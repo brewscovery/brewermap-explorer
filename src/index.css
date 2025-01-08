@@ -65,3 +65,12 @@
 .mapboxgl-popup-close-button {
   @apply text-muted-foreground hover:text-foreground transition-colors;
 }
+
+/* Add these styles to ensure the map container is visible */
+.mapboxgl-map {
+  @apply w-full h-full rounded-lg;
+}
+
+.mapboxgl-canvas {
+  @apply rounded-lg;
+}

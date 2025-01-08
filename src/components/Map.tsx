@@ -8,6 +8,7 @@ interface MapProps {
   onBrewerySelect: (brewery: Brewery) => void;
 }
 
+// Replace this with your actual Mapbox token
 const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR3Z3k2NmowMDNqMnFxbTI2M2wyOXozIn0.JYdYhyQiR6KgsFH_HJRwzQ';
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
@@ -22,7 +23,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [-95.7129, 37.0902],
+      center: [-95.7129, 37.0902], // Center of US
       zoom: 3
     });
 
@@ -82,43 +83,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       }
     });
   }, [breweries]);
-
-  // Add function to center map on brewery
-  const centerOnBrewery = (brewery: Brewery) => {
-    if (!map.current || !brewery.longitude || !brewery.latitude) return;
-    
-    const lat = parseFloat(brewery.latitude);
-    const lng = parseFloat(brewery.longitude);
-    
-    // Validate coordinates before centering
-    if (isNaN(lat) || isNaN(lng) || 
-        lat < -90 || lat > 90 || 
-        lng < -180 || lng > 180) {
-      return;
-    }
-    
-    map.current.flyTo({
-      center: [lng, lat],
-      zoom: 15,
-      duration: 2000,
-      essential: true
-    });
-  };
-
-  // Update useEffect to listen for brewery selection
-  useEffect(() => {
-    const handleBrewerySelect = (brewery: Brewery) => {
-      centerOnBrewery(brewery);
-    };
-
-    if (onBrewerySelect) {
-      const originalOnBrewerySelect = onBrewerySelect;
-      onBrewerySelect = (brewery: Brewery) => {
-        handleBrewerySelect(brewery);
-        originalOnBrewerySelect(brewery);
-      };
-    }
-  }, [onBrewerySelect]);
 
   return (
     <div className="relative w-full h-full">
