@@ -9,7 +9,7 @@ interface MapProps {
 }
 
 // Replace this with your actual Mapbox token
-const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR3Z3k2NmowMDNqMnFxbTI2M2wyOXozIn0.JYdYhyQiR6KgsFH_HJRwzQ';
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiYnJld3Njb3ZlcnkiLCJhIjoiY201bmJhMmRkMDE3eTJwcTRpeHZ6MzFoMyJ9.9MJIileO_bMKCiOVavjSRw';
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
