@@ -12,23 +12,41 @@ const Index = () => {
   const { data: breweries = [], isLoading, error } = useQuery({
     queryKey: ['breweries'],
     queryFn: async () => {
-      // Fetch each type separately
       const types = ['micro', 'regional', 'large', 'brewpub'];
-      const responses = await Promise.all(
-        types.map(type =>
-          fetch(`https://api.openbrewerydb.org/v1/breweries?by_type=${type}`)
-            .then(res => {
-              if (!res.ok) {
-                throw new Error(`Failed to fetch ${type} breweries`);
-              }
-              return res.json();
-            })
-        )
-      );
+      let allBreweries: Brewery[] = [];
 
-      // Combine all results into a single array
-      return responses.flat();
+      // Fetch each type with a delay between requests
+      for (const type of types) {
+        try {
+          const response = await fetch(`https://api.openbrewerydb.org/v1/breweries?by_type=${type}&per_page=50`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch ${type} breweries`);
+          }
+          const data = await response.json();
+          
+          // Filter out breweries with invalid coordinates
+          const validBreweries = data.filter((brewery: Brewery) => {
+            const lat = parseFloat(brewery.latitude);
+            const lng = parseFloat(brewery.longitude);
+            return !isNaN(lat) && !isNaN(lng) && 
+                   lat >= -90 && lat <= 90 && 
+                   lng >= -180 && lng <= 180;
+          });
+          
+          allBreweries = [...allBreweries, ...validBreweries];
+          
+          // Add a delay between requests to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        } catch (err) {
+          console.error(`Error fetching ${type} breweries:`, err);
+          toast.error(`Failed to load ${type} breweries`);
+        }
+      }
+
+      return allBreweries;
     },
+    retry: 3,
+    retryDelay: 1000,
   });
 
   useEffect(() => {
