@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Beer } from 'lucide-react';
@@ -9,15 +9,17 @@ interface MapProps {
   onBrewerySelect: (brewery: Brewery) => void;
 }
 
+// Public token is safe to store in code
+const MAPBOX_TOKEN = 'pk.eyJ1IjoibG92YWJsZSIsImEiOiJjbHR3Z3k2NmowMDNqMnFxbTI2M2wyOXozIn0.JYdYhyQiR6KgsFH_HJRwzQ';
+
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState<string>('');
 
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
+    mapboxgl.accessToken = MAPBOX_TOKEN;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -31,7 +33,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken]);
+  }, []);
 
   useEffect(() => {
     if (!map.current) return;
@@ -96,23 +98,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       };
     }
   }, [onBrewerySelect]);
-
-  if (!mapboxToken) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 p-4">
-        <p className="text-lg">Please enter your Mapbox public token to view the map:</p>
-        <input
-          type="text"
-          className="w-full max-w-md px-4 py-2 border rounded"
-          placeholder="Enter Mapbox token..."
-          onChange={(e) => setMapboxToken(e.target.value)}
-        />
-        <p className="text-sm text-muted-foreground">
-          You can get your token from <a href="https://www.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
-        </p>
-      </div>
-    );
-  }
 
   return (
     <div className="relative w-full h-full">
