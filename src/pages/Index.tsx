@@ -12,23 +12,22 @@ const Index = () => {
   const { data: breweries = [], isLoading, error } = useQuery({
     queryKey: ['breweries'],
     queryFn: async () => {
-      // Fetch both breweries and brewpubs
-      const [breweriesResponse, brewpubsResponse] = await Promise.all([
-        fetch('https://api.openbrewerydb.org/v1/breweries?by_type=micro,regional,large'),
-        fetch('https://api.openbrewerydb.org/v1/breweries?by_type=brewpub')
-      ]);
+      // Fetch each type separately
+      const types = ['micro', 'regional', 'large', 'brewpub'];
+      const responses = await Promise.all(
+        types.map(type =>
+          fetch(`https://api.openbrewerydb.org/v1/breweries?by_type=${type}`)
+            .then(res => {
+              if (!res.ok) {
+                throw new Error(`Failed to fetch ${type} breweries`);
+              }
+              return res.json();
+            })
+        )
+      );
 
-      if (!breweriesResponse.ok || !brewpubsResponse.ok) {
-        throw new Error('Failed to fetch breweries');
-      }
-
-      const [breweries, brewpubs] = await Promise.all([
-        breweriesResponse.json(),
-        brewpubsResponse.json()
-      ]);
-
-      // Combine and return all results
-      return [...breweries, ...brewpubs];
+      // Combine all results into a single array
+      return responses.flat();
     },
   });
 
