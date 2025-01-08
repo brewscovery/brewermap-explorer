@@ -1,11 +1,52 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useEffect, useState } from 'react';
+import Map from '@/components/Map';
+import Sidebar from '@/components/Sidebar';
+import type { Brewery } from '@/types/brewery';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
+
+  const { data: breweries = [], isLoading, error } = useQuery({
+    queryKey: ['breweries'],
+    queryFn: async () => {
+      const response = await fetch('https://api.openbrewerydb.org/v1/breweries');
+      if (!response.ok) {
+        throw new Error('Failed to fetch breweries');
+      }
+      return response.json();
+    },
+  });
+
+  useEffect(() => {
+    if (error) {
+      toast.error('Failed to load breweries');
+    }
+  }, [error]);
+
+  const filteredBreweries = breweries.filter((brewery: Brewery) =>
+    brewery.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    brewery.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    brewery.state.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div className="flex h-screen">
+      <div className="w-96 h-full">
+        <Sidebar
+          breweries={filteredBreweries}
+          onBrewerySelect={setSelectedBrewery}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+        />
+      </div>
+      <div className="flex-1 h-full">
+        <Map
+          breweries={filteredBreweries}
+          onBrewerySelect={setSelectedBrewery}
+        />
       </div>
     </div>
   );
