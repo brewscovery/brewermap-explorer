@@ -69,6 +69,34 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     });
   }, [breweries, map.current]);
 
+  // Add function to center map on brewery
+  const centerOnBrewery = (brewery: Brewery) => {
+    if (!map.current || !brewery.longitude || !brewery.latitude) return;
+    
+    map.current.flyTo({
+      center: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)],
+      zoom: 15,
+      duration: 2000,
+      essential: true
+    });
+  };
+
+  // Update useEffect to listen for brewery selection
+  useEffect(() => {
+    const handleBrewerySelect = (brewery: Brewery) => {
+      centerOnBrewery(brewery);
+    };
+
+    // Add event listener for brewery selection
+    if (onBrewerySelect) {
+      const originalOnBrewerySelect = onBrewerySelect;
+      onBrewerySelect = (brewery: Brewery) => {
+        handleBrewerySelect(brewery);
+        originalOnBrewerySelect(brewery);
+      };
+    }
+  }, [onBrewerySelect]);
+
   if (!mapboxToken) {
     return (
       <div className="flex flex-col items-center justify-center h-full gap-4 p-4">
