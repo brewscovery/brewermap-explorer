@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,6 +19,44 @@ interface BreweryFormProps {
 
 const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
   const form = useForm<Omit<Brewery, 'id'>>();
+  const { watch } = form;
+
+  // Watch address fields for changes
+  const street = watch('street');
+  const city = watch('city');
+  const state = watch('state');
+  const postalCode = watch('postal_code');
+
+  // Fetch coordinates when address fields change
+  useEffect(() => {
+    const fetchCoordinates = async () => {
+      // Only proceed if all required fields are filled
+      if (!street || !city || !state) return;
+
+      try {
+        const { data, error } = await supabase.functions.invoke('geocode', {
+          body: {
+            street,
+            city,
+            state,
+            postalCode,
+          },
+        });
+
+        if (error) throw error;
+
+        if (data.latitude && data.longitude) {
+          form.setValue('latitude', data.latitude);
+          form.setValue('longitude', data.longitude);
+        }
+      } catch (error) {
+        console.error('Error fetching coordinates:', error);
+        toast.error('Failed to fetch coordinates');
+      }
+    };
+
+    fetchCoordinates();
+  }, [street, city, state, postalCode, form]);
 
   const onSubmit = async (data: Omit<Brewery, 'id'>) => {
     try {
@@ -116,34 +154,6 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
                 <FormLabel>Postal Code</FormLabel>
                 <FormControl>
                   <Input placeholder="Postal code" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Latitude</FormLabel>
-                <FormControl>
-                  <Input placeholder="Latitude" type="text" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Longitude</FormLabel>
-                <FormControl>
-                  <Input placeholder="Longitude" type="text" {...field} />
                 </FormControl>
               </FormItem>
             )}
