@@ -4,6 +4,7 @@ import Sidebar from '@/components/Sidebar';
 import type { Brewery } from '@/types/brewery';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -12,41 +13,17 @@ const Index = () => {
   const { data: breweries = [], isLoading, error } = useQuery({
     queryKey: ['breweries'],
     queryFn: async () => {
-      const types = ['micro', 'regional', 'large', 'brewpub'];
-      let allBreweries: Brewery[] = [];
+      const { data, error } = await supabase
+        .from('breweries')
+        .select('*');
 
-      // Fetch each type with a delay between requests
-      for (const type of types) {
-        try {
-          const response = await fetch(`https://api.openbrewerydb.org/v1/breweries?by_type=${type}&per_page=50`);
-          if (!response.ok) {
-            throw new Error(`Failed to fetch ${type} breweries`);
-          }
-          const data = await response.json();
-          
-          // Filter out breweries with invalid coordinates
-          const validBreweries = data.filter((brewery: Brewery) => {
-            const lat = parseFloat(brewery.latitude);
-            const lng = parseFloat(brewery.longitude);
-            return !isNaN(lat) && !isNaN(lng) && 
-                   lat >= -90 && lat <= 90 && 
-                   lng >= -180 && lng <= 180;
-          });
-          
-          allBreweries = [...allBreweries, ...validBreweries];
-          
-          // Add a delay between requests to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 1000));
-        } catch (err) {
-          console.error(`Error fetching ${type} breweries:`, err);
-          toast.error(`Failed to load ${type} breweries`);
-        }
+      if (error) {
+        console.error('Error fetching breweries:', error);
+        throw error;
       }
 
-      return allBreweries;
+      return data || [];
     },
-    retry: 3,
-    retryDelay: 1000,
   });
 
   useEffect(() => {
