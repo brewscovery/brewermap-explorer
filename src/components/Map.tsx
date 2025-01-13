@@ -37,7 +37,19 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
         type: 'geojson',
         data: {
           type: 'FeatureCollection',
-          features: []
+          features: breweries
+            .filter(brewery => brewery.longitude && brewery.latitude)
+            .map(brewery => ({
+              type: 'Feature',
+              properties: {
+                id: brewery.id,
+                name: brewery.name
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
+              }
+            }))
         },
         cluster: true,
         clusterMaxZoom: 14,
@@ -142,11 +154,10 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
             ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
           `;
 
-          // Create and show popup
           new mapboxgl.Popup()
             .setLngLat(coordinates)
             .setDOMContent(popupContent)
-            .addTo(map.current!);
+            .addTo(map.current);
         }
       });
 
@@ -169,36 +180,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       map.current?.remove();
     };
   }, [breweries, onBrewerySelect]);
-
-  // Update map data when breweries change
-  useEffect(() => {
-    if (!map.current || !map.current.isStyleLoaded()) return;
-
-    const features = breweries
-      .filter(brewery => brewery.longitude && brewery.latitude)
-      .map(brewery => ({
-        type: 'Feature' as const,
-        properties: {
-          id: brewery.id,
-          name: brewery.name
-        },
-        geometry: {
-          type: 'Point' as const,
-          coordinates: [
-            parseFloat(brewery.longitude),
-            parseFloat(brewery.latitude)
-          ]
-        }
-      }));
-
-    const source = map.current.getSource('breweries') as mapboxgl.GeoJSONSource;
-    if (source) {
-      source.setData({
-        type: 'FeatureCollection',
-        features
-      });
-    }
-  }, [breweries]);
 
   return (
     <div className="relative w-full h-full">
