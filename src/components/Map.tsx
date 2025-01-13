@@ -128,16 +128,24 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
         const properties = e.features[0].properties;
         const brewery = breweries.find(b => b.id === properties.id);
         if (brewery) {
-          const popup = new mapboxgl.Popup()
-            .setLngLat((e.features[0].geometry as any).coordinates)
-            .setHTML(`
-              <div class="flex flex-col gap-2">
-                <h3 class="font-bold">${brewery.name}</h3>
-                <p class="text-sm">${brewery.street}</p>
-                <p class="text-sm">${brewery.city}, ${brewery.state}</p>
-                ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline text-sm">Visit Website</a>` : ''}
-              </div>
-            `)
+          onBrewerySelect(brewery);
+          
+          const coordinates = (e.features[0].geometry as any).coordinates.slice();
+          
+          // Create popup content
+          const popupContent = document.createElement('div');
+          popupContent.className = 'flex flex-col gap-2 p-2';
+          popupContent.innerHTML = `
+            <h3 class="font-bold">${brewery.name}</h3>
+            <p class="text-sm">${brewery.street || ''}</p>
+            <p class="text-sm">${brewery.city}, ${brewery.state}</p>
+            ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+          `;
+
+          // Create and show popup
+          new mapboxgl.Popup()
+            .setLngLat(coordinates)
+            .setDOMContent(popupContent)
             .addTo(map.current!);
         }
       });
@@ -160,7 +168,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, []);
+  }, [breweries, onBrewerySelect]);
 
   // Update map data when breweries change
   useEffect(() => {
