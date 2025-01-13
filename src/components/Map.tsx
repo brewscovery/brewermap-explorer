@@ -91,26 +91,16 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       // Add a layer for individual points
       map.current.addLayer({
         id: 'unclustered-point',
-        type: 'symbol',
+        type: 'circle',
         source: 'breweries',
         filter: ['!', ['has', 'point_count']],
-        layout: {
-          'icon-image': 'beer',
-          'icon-size': 1,
-          'icon-allow-overlap': false
+        paint: {
+          'circle-color': '#51A4DB',
+          'circle-radius': 8,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#fff'
         }
       });
-
-      // Add custom beer icon
-      map.current.loadImage(
-        'https://raw.githubusercontent.com/mapbox/mapbox-gl-js/main/src/style-spec/reference/marker.png',
-        (error, image) => {
-          if (error) throw error;
-          if (image && map.current && !map.current.hasImage('beer')) {
-            map.current.addImage('beer', image);
-          }
-        }
-      );
 
       // Handle clicks on clusters
       map.current.on('click', 'clusters', (e) => {
