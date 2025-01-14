@@ -10,16 +10,7 @@ interface MapSourceProps {
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
-    if (!map.isStyleLoaded()) {
-      map.on('style.load', () => {
-        addSource();
-      });
-      return;
-    }
-
-    addSource();
-
-    function addSource() {
+    const addSource = () => {
       // Remove existing source if it exists
       if (map.getSource('breweries')) {
         map.removeSource('breweries');
@@ -48,6 +39,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
         clusterMaxZoom: 14,
         clusterRadius: 50
       });
+    };
+
+    // If style is not loaded, wait for it
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', () => {
+        addSource();
+      });
+    } else {
+      addSource();
     }
 
     return () => {
