@@ -41,13 +41,10 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       });
     };
 
-    // If style is not loaded, wait for it
-    if (!map.isStyleLoaded()) {
-      map.once('style.load', () => {
-        addSource();
-      });
-    } else {
+    if (map.loaded()) {
       addSource();
+    } else {
+      map.once('load', addSource);
     }
 
     return () => {

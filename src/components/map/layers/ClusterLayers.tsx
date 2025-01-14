@@ -58,13 +58,10 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    // If style is not loaded, wait for it
-    if (!map.isStyleLoaded()) {
-      map.once('style.load', () => {
-        addLayers();
-      });
-    } else {
+    if (map.loaded()) {
       addLayers();
+    } else {
+      map.once('load', addLayers);
     }
 
     return () => {

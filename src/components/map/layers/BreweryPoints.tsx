@@ -26,13 +26,10 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    // If style is not loaded, wait for it
-    if (!map.isStyleLoaded()) {
-      map.once('style.load', () => {
-        addLayer();
-      });
-    } else {
+    if (map.loaded()) {
       addLayer();
+    } else {
+      map.once('load', addLayer);
     }
 
     return () => {
