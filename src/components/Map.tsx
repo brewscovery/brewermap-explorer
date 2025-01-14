@@ -21,11 +21,11 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
-    // Initialize map with default center (US)
+    // Initialize map with default center (Australia)
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [-95.7129, 37.0902],
+      center: [133.7751, -25.2744], // Center of Australia
       zoom: 3
     });
 
@@ -57,7 +57,14 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
         },
         (error) => {
           console.error('Error getting location:', error);
-          toast.error('Could not get your location. Using default view.');
+          toast.error('Could not get your location. Showing Australia view.');
+          if (map.current) {
+            map.current.flyTo({
+              center: [133.7751, -25.2744],
+              zoom: 4,
+              essential: true
+            });
+          }
         }
       );
     });
