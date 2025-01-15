@@ -41,11 +41,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       });
     };
 
-    if (map.loaded()) {
-      addSource();
-    } else {
-      map.once('load', addSource);
-    }
+    const initializeSource = () => {
+      if (map.loaded()) {
+        addSource();
+      } else {
+        map.once('load', addSource);
+      }
+    };
+
+    initializeSource();
 
     return () => {
       if (map.getSource('breweries')) {

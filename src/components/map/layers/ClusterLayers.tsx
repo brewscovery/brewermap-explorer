@@ -58,10 +58,28 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
+    const initializeLayers = () => {
+      // Only add layers if source exists
+      if (map.getSource(source)) {
+        addLayers();
+      } else {
+        // Wait for source to be added
+        const checkSource = setInterval(() => {
+          if (map.getSource(source)) {
+            addLayers();
+            clearInterval(checkSource);
+          }
+        }, 100);
+
+        // Cleanup interval after 5 seconds if source never appears
+        setTimeout(() => clearInterval(checkSource), 5000);
+      }
+    };
+
     if (map.loaded()) {
-      addLayers();
+      initializeLayers();
     } else {
-      map.once('load', addLayers);
+      map.once('load', initializeLayers);
     }
 
     return () => {
