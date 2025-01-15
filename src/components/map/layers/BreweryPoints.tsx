@@ -9,7 +9,6 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
-      // Add unclustered point layer
       if (!map.getLayer('unclustered-point')) {
         map.addLayer({
           id: 'unclustered-point',
@@ -27,11 +26,9 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
     };
 
     const initializeLayer = () => {
-      // Only add layer if source exists
       if (map.getSource(source)) {
         addLayer();
       } else {
-        // Wait for source to be added
         const checkSource = setInterval(() => {
           if (map.getSource(source)) {
             addLayer();
@@ -39,7 +36,6 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
           }
         }, 100);
 
-        // Cleanup interval after 5 seconds if source never appears
         setTimeout(() => clearInterval(checkSource), 5000);
       }
     };
@@ -51,8 +47,15 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
     }
 
     return () => {
-      if (map.getLayer('unclustered-point')) {
-        map.removeLayer('unclustered-point');
+      // Only try to remove layer if the map still exists and is loaded
+      if (map && !map.isStyleLoaded()) return;
+      
+      try {
+        if (map.getLayer('unclustered-point')) {
+          map.removeLayer('unclustered-point');
+        }
+      } catch (error) {
+        console.warn('Error cleaning up brewery points layer:', error);
       }
     };
   }, [map, source]);

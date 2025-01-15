@@ -59,11 +59,9 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     };
 
     const initializeLayers = () => {
-      // Only add layers if source exists
       if (map.getSource(source)) {
         addLayers();
       } else {
-        // Wait for source to be added
         const checkSource = setInterval(() => {
           if (map.getSource(source)) {
             addLayers();
@@ -71,7 +69,6 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           }
         }, 100);
 
-        // Cleanup interval after 5 seconds if source never appears
         setTimeout(() => clearInterval(checkSource), 5000);
       }
     };
@@ -83,8 +80,19 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     }
 
     return () => {
-      if (map.getLayer('clusters')) map.removeLayer('clusters');
-      if (map.getLayer('cluster-count')) map.removeLayer('cluster-count');
+      // Only try to remove layers if the map still exists and is loaded
+      if (map && !map.isStyleLoaded()) return;
+      
+      try {
+        if (map.getLayer('clusters')) {
+          map.removeLayer('clusters');
+        }
+        if (map.getLayer('cluster-count')) {
+          map.removeLayer('cluster-count');
+        }
+      } catch (error) {
+        console.warn('Error cleaning up cluster layers:', error);
+      }
     };
   }, [map, source]);
 
