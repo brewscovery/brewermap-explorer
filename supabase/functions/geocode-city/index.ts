@@ -14,16 +14,25 @@ serve(async (req) => {
 
   try {
     const { city } = await req.json()
+    console.log('Searching for city:', city)
     
     // Geocode the city using Mapbox
     const mapboxToken = Deno.env.get('MAPBOX_ACCESS_TOKEN')
+    if (!mapboxToken) {
+      throw new Error('MAPBOX_ACCESS_TOKEN is not configured')
+    }
+
     const encodedCity = encodeURIComponent(city)
-    const response = await fetch(
+    const geocodeResponse = await fetch(
       `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedCity}.json?access_token=${mapboxToken}`
     )
     
-    const data = await response.json()
-    const coordinates = data.features?.[0]?.geometry?.coordinates
+    if (!geocodeResponse.ok) {
+      throw new Error(`Mapbox API error: ${geocodeResponse.statusText}`)
+    }
+
+    const geocodeData = await geocodeResponse.json()
+    const coordinates = geocodeData.features?.[0]?.geometry?.coordinates
 
     if (!coordinates) {
       return new Response(
@@ -32,47 +41,50 @@ serve(async (req) => {
       )
     }
 
-    // Query breweries within 100km radius
+    console.log('City coordinates:', coordinates)
+
+    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { data: breweries, error } = await supabase.rpc('calculate_distance', {
-      lat1: parseFloat(coordinates[1]),
-      lon1: parseFloat(coordinates[0]),
-      lat2: null,
-      lon2: null
-    }).select()
+    // Query breweries and calculate distances
+    const { data: breweries, error: dbError } = await supabase
       .from('breweries')
-      .filter('latitude', 'not.is', null)
-      .filter('longitude', 'not.is', null)
-      .execute()
+      .select('*')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null)
 
-    if (error) {
-      console.error('Database error:', error)
-      throw error
+    if (dbError) {
+      console.error('Database error:', dbError)
+      throw dbError
     }
 
-    // Filter breweries within 100km
+    // Filter breweries within 100km radius
     const nearbyBreweries = breweries.filter(brewery => {
-      const distance = supabase.rpc('calculate_distance', {
+      if (!brewery.latitude || !brewery.longitude) return false
+      
+      const { data: distance } = supabase.rpc('calculate_distance', {
         lat1: parseFloat(coordinates[1]),
         lon1: parseFloat(coordinates[0]),
         lat2: parseFloat(brewery.latitude),
         lon2: parseFloat(brewery.longitude)
       })
-      return distance <= 100
+
+      return distance && distance <= 100
     })
+
+    console.log(`Found ${nearbyBreweries.length} breweries within 100km radius`)
 
     return new Response(
       JSON.stringify(nearbyBreweries),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in geocode-city function:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: error.message || 'Internal server error' }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
