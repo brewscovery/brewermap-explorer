@@ -9,6 +9,12 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
+      // Wait for map style and source to be loaded
+      if (!map.isStyleLoaded() || !map.getSource(source)) {
+        map.once('style.load', addLayer);
+        return;
+      }
+
       if (!map.getLayer('unclustered-point')) {
         map.addLayer({
           id: 'unclustered-point',
@@ -25,10 +31,11 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    if (map.loaded()) {
+    // Add layer when map is ready
+    if (map.isStyleLoaded()) {
       addLayer();
     } else {
-      map.once('load', addLayer);
+      map.once('style.load', addLayer);
     }
 
     return () => {

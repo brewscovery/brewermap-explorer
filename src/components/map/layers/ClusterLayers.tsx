@@ -9,6 +9,12 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
+      // Wait for map style and source to be loaded
+      if (!map.isStyleLoaded() || !map.getSource(source)) {
+        map.once('style.load', addLayers);
+        return;
+      }
+
       // Add clusters layer
       if (!map.getLayer('clusters')) {
         map.addLayer({
@@ -58,22 +64,22 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    if (map.loaded()) {
+    // Add layers when map is ready
+    if (map.isStyleLoaded()) {
       addLayers();
     } else {
-      map.once('load', addLayers);
+      map.once('style.load', addLayers);
     }
 
     return () => {
       if (!map || !map.getStyle()) return;
       
       try {
-        if (map.getLayer('cluster-count')) {
-          map.removeLayer('cluster-count');
-        }
-        if (map.getLayer('clusters')) {
-          map.removeLayer('clusters');
-        }
+        ['cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }

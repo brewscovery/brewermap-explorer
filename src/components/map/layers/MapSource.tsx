@@ -12,10 +12,18 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const addSource = () => {
       try {
+        // Wait for map style to be loaded
+        if (!map.isStyleLoaded()) {
+          map.once('style.load', addSource);
+          return;
+        }
+
+        // Remove existing source if it exists
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
         }
 
+        // Add new source
         map.addSource('breweries', {
           type: 'geojson',
           data: {
@@ -43,10 +51,11 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    if (map.loaded()) {
+    // Add source when map is ready
+    if (map.isStyleLoaded()) {
       addSource();
     } else {
-      map.once('load', addSource);
+      map.once('style.load', addSource);
     }
 
     return () => {
@@ -54,6 +63,13 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       
       try {
         if (map.getSource('breweries')) {
+          // Remove all layers that use this source first
+          const layers = ['unclustered-point', 'clusters', 'cluster-count'];
+          layers.forEach(layer => {
+            if (map.getLayer(layer)) {
+              map.removeLayer(layer);
+            }
+          });
           map.removeSource('breweries');
         }
       } catch (error) {
