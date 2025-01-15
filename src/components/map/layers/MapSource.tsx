@@ -12,12 +12,10 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const addSource = () => {
       try {
-        // Remove existing source if it exists
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
         }
 
-        // Add a source for brewery points with clustering enabled
         map.addSource('breweries', {
           type: 'geojson',
           data: {
@@ -45,19 +43,14 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    const initializeSource = () => {
-      if (map.loaded()) {
-        addSource();
-      } else {
-        map.once('load', addSource);
-      }
-    };
-
-    initializeSource();
+    if (map.loaded()) {
+      addSource();
+    } else {
+      map.once('load', addSource);
+    }
 
     return () => {
-      // Only try to remove source if the map still exists and is loaded
-      if (map && !map.isStyleLoaded()) return;
+      if (!map || !map.getStyle()) return;
       
       try {
         if (map.getSource('breweries')) {

@@ -58,37 +58,21 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    const initializeLayers = () => {
-      if (map.getSource(source)) {
-        addLayers();
-      } else {
-        const checkSource = setInterval(() => {
-          if (map.getSource(source)) {
-            addLayers();
-            clearInterval(checkSource);
-          }
-        }, 100);
-
-        setTimeout(() => clearInterval(checkSource), 5000);
-      }
-    };
-
     if (map.loaded()) {
-      initializeLayers();
+      addLayers();
     } else {
-      map.once('load', initializeLayers);
+      map.once('load', addLayers);
     }
 
     return () => {
-      // Only try to remove layers if the map still exists and is loaded
-      if (map && !map.isStyleLoaded()) return;
+      if (!map || !map.getStyle()) return;
       
       try {
-        if (map.getLayer('clusters')) {
-          map.removeLayer('clusters');
-        }
         if (map.getLayer('cluster-count')) {
           map.removeLayer('cluster-count');
+        }
+        if (map.getLayer('clusters')) {
+          map.removeLayer('clusters');
         }
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);

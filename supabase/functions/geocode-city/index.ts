@@ -7,7 +7,6 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -16,7 +15,6 @@ serve(async (req) => {
     const { city } = await req.json()
     console.log('Searching for city:', city)
     
-    // Geocode the city using Mapbox
     const mapboxToken = Deno.env.get('MAPBOX_ACCESS_TOKEN')
     if (!mapboxToken) {
       throw new Error('MAPBOX_ACCESS_TOKEN is not configured')
@@ -43,13 +41,12 @@ serve(async (req) => {
 
     console.log('City coordinates:', coordinates)
 
-    // Initialize Supabase client
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Query breweries and calculate distances
+    // First get all breweries
     const { data: breweries, error: dbError } = await supabase
       .from('breweries')
       .select('*')
@@ -61,19 +58,20 @@ serve(async (req) => {
       throw dbError
     }
 
-    // Filter breweries within 100km radius
-    const nearbyBreweries = breweries.filter(brewery => {
-      if (!brewery.latitude || !brewery.longitude) return false
-      
-      const { data: distance } = supabase.rpc('calculate_distance', {
+    // Then calculate distances and filter
+    const nearbyBreweries = []
+    for (const brewery of breweries) {
+      const { data: distance } = await supabase.rpc('calculate_distance', {
         lat1: parseFloat(coordinates[1]),
         lon1: parseFloat(coordinates[0]),
         lat2: parseFloat(brewery.latitude),
         lon2: parseFloat(brewery.longitude)
       })
-
-      return distance && distance <= 100
-    })
+      
+      if (distance && distance <= 100) {
+        nearbyBreweries.push(brewery)
+      }
+    }
 
     console.log(`Found ${nearbyBreweries.length} breweries within 100km radius`)
 

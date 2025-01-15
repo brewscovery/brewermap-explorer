@@ -25,30 +25,14 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    const initializeLayer = () => {
-      if (map.getSource(source)) {
-        addLayer();
-      } else {
-        const checkSource = setInterval(() => {
-          if (map.getSource(source)) {
-            addLayer();
-            clearInterval(checkSource);
-          }
-        }, 100);
-
-        setTimeout(() => clearInterval(checkSource), 5000);
-      }
-    };
-
     if (map.loaded()) {
-      initializeLayer();
+      addLayer();
     } else {
-      map.once('load', initializeLayer);
+      map.once('load', addLayer);
     }
 
     return () => {
-      // Only try to remove layer if the map still exists and is loaded
-      if (map && !map.isStyleLoaded()) return;
+      if (!map || !map.getStyle()) return;
       
       try {
         if (map.getLayer('unclustered-point')) {
