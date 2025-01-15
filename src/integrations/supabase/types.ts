@@ -65,7 +65,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_distance: {
+        Args: {
+          lat1: number
+          lon1: number
+          lat2: number
+          lon2: number
+        }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never

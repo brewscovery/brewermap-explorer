@@ -9,20 +9,42 @@ import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
 
   const { data: breweries = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['breweries'],
+    queryKey: ['breweries', searchTerm, searchType],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('breweries')
-        .select('*');
+      if (!searchTerm) {
+        const { data, error } = await supabase
+          .from('breweries')
+          .select('*');
 
-      if (error) {
-        console.error('Error fetching breweries:', error);
-        throw error;
+        if (error) throw error;
+        return data || [];
       }
 
+      if (searchType === 'city') {
+        const { data, error } = await supabase.functions.invoke('geocode-city', {
+          body: { city: searchTerm }
+        });
+
+        if (error) throw error;
+        return data || [];
+      }
+
+      const { data, error } = await supabase
+        .from('breweries')
+        .select('*')
+        .filter(
+          searchType === 'name' 
+            ? 'name' 
+            : 'country',
+          'ilike',
+          `%${searchTerm}%`
+        );
+
+      if (error) throw error;
       return data || [];
     },
   });
@@ -33,26 +55,22 @@ const Index = () => {
     }
   }, [error]);
 
-  const filteredBreweries = breweries.filter((brewery: Brewery) =>
-    brewery.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    brewery.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    brewery.state.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-1 min-h-0">
         <div className="w-96 h-full">
           <Sidebar
-            breweries={filteredBreweries}
+            breweries={breweries}
             onBrewerySelect={setSelectedBrewery}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
+            searchType={searchType}
+            onSearchTypeChange={setSearchType}
           />
         </div>
         <div className="flex-1 h-full">
           <Map
-            breweries={filteredBreweries}
+            breweries={breweries}
             onBrewerySelect={setSelectedBrewery}
           />
         </div>
