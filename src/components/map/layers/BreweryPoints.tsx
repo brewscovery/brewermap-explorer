@@ -23,7 +23,15 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
           filter: ['!', ['has', 'point_count']],
           paint: {
             'circle-color': '#51A4DB',
-            'circle-radius': 8,
+            'circle-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              7, // zoom level
+              8, // circle radius
+              16, // zoom level
+              15 // circle radius
+            ],
             'circle-stroke-width': 2,
             'circle-stroke-color': '#fff'
           }
@@ -32,10 +40,13 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
     };
 
     // Add layer when map is ready
-    if (map.isStyleLoaded()) {
+    if (map.isStyleLoaded() && map.getSource(source)) {
       addLayer();
     } else {
-      map.once('style.load', addLayer);
+      map.on('load', () => {
+        // Wait a brief moment for the source to be fully loaded
+        setTimeout(addLayer, 100);
+      });
     }
 
     return () => {
