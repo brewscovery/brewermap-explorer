@@ -16,6 +16,25 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
 
+  // Function to fly to a brewery's location
+  const flyToBrewery = (brewery: Brewery) => {
+    if (!map.current || !brewery.longitude || !brewery.latitude) return;
+
+    map.current.flyTo({
+      center: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)],
+      zoom: 15,
+      essential: true
+    });
+  };
+
+  // Watch for brewery selection changes
+  useEffect(() => {
+    const selectedBrewery = breweries.find(b => b === breweries[0]);
+    if (selectedBrewery) {
+      flyToBrewery(selectedBrewery);
+    }
+  }, [breweries]);
+
   useEffect(() => {
     if (!mapContainer.current) return;
 

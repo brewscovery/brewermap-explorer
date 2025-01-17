@@ -11,6 +11,7 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
+  const [displayedBreweries, setDisplayedBreweries] = useState<Brewery[]>([]);
 
   const { data: breweries = [], isLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
@@ -55,6 +56,15 @@ const Index = () => {
     }
   }, [error]);
 
+  // Update displayed breweries when selection changes
+  useEffect(() => {
+    if (selectedBrewery) {
+      setDisplayedBreweries([selectedBrewery, ...breweries.filter(b => b.id !== selectedBrewery.id)]);
+    } else {
+      setDisplayedBreweries(breweries);
+    }
+  }, [selectedBrewery, breweries]);
+
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-1 min-h-0">
@@ -70,7 +80,7 @@ const Index = () => {
         </div>
         <div className="flex-1 h-full">
           <Map
-            breweries={breweries}
+            breweries={displayedBreweries}
             onBrewerySelect={setSelectedBrewery}
           />
         </div>
