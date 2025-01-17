@@ -9,36 +9,40 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
-      if (!map.getStyle() || !map.getSource(source)) {
+      if (!map.getSource(source)) {
+        console.log('Source not found, retrying...');
         setTimeout(addLayer, 100);
         return;
       }
 
       try {
-        if (!map.getLayer('unclustered-point')) {
-          map.addLayer({
-            id: 'unclustered-point',
-            type: 'circle',
-            source,
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-              'circle-color': '#51A4DB',
-              'circle-radius': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                7,
-                8,
-                16,
-                15
-              ],
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#fff'
-            }
-          });
+        if (map.getLayer('unclustered-point')) {
+          map.removeLayer('unclustered-point');
         }
+
+        map.addLayer({
+          id: 'unclustered-point',
+          type: 'circle',
+          source,
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-color': '#51A4DB',
+            'circle-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              7, 5,  // At zoom level 7, radius is 5px
+              12, 8, // At zoom level 12, radius is 8px
+              16, 12 // At zoom level 16, radius is 12px
+            ],
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff'
+          }
+        });
+
+        console.log('Added unclustered-point layer');
       } catch (error) {
-        console.warn('Error adding brewery points layer:', error);
+        console.error('Error adding brewery points layer:', error);
       }
     };
 
