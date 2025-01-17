@@ -10,26 +10,15 @@ interface MapSourceProps {
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
-    const addSource = () => {
+    const updateSource = () => {
       if (!map.getStyle()) return;
 
       try {
-        // Remove existing source and layers if they exist
-        const layers = ['unclustered-point', 'clusters', 'cluster-count'];
-        layers.forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
-          }
-        });
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         
-        if (map.getSource('breweries')) {
-          map.removeSource('breweries');
-        }
-
-        // Add new source
-        map.addSource('breweries', {
-          type: 'geojson',
-          data: {
+        // If source exists, just update the data
+        if (source) {
+          source.setData({
             type: 'FeatureCollection',
             features: breweries
               .filter(brewery => brewery.longitude && brewery.latitude)
@@ -44,21 +33,42 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
                   coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
                 }
               }))
-          },
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50
-        });
+          });
+        } else {
+          // If source doesn't exist, create it
+          map.addSource('breweries', {
+            type: 'geojson',
+            data: {
+              type: 'FeatureCollection',
+              features: breweries
+                .filter(brewery => brewery.longitude && brewery.latitude)
+                .map(brewery => ({
+                  type: 'Feature',
+                  properties: {
+                    id: brewery.id,
+                    name: brewery.name
+                  },
+                  geometry: {
+                    type: 'Point',
+                    coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
+                  }
+                }))
+            },
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50
+          });
+        }
       } catch (error) {
-        console.warn('Error adding source:', error);
+        console.warn('Error updating source:', error);
       }
     };
 
-    // Add source when map style is loaded
+    // Update source when map style is loaded
     if (map.isStyleLoaded()) {
-      addSource();
+      updateSource();
     } else {
-      map.once('style.load', addSource);
+      map.once('style.load', updateSource);
     }
 
     return () => {
