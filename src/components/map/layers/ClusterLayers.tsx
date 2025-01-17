@@ -9,9 +9,8 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
-      // Wait for map style and source to be loaded
-      if (!map.isStyleLoaded() || !map.getSource(source)) {
-        map.once('style.load', addLayers);
+      if (!map.getSource(source)) {
+        setTimeout(addLayers, 100);
         return;
       }
 
@@ -68,7 +67,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     if (map.isStyleLoaded()) {
       addLayers();
     } else {
-      map.once('style.load', addLayers);
+      map.on('style.load', addLayers);
     }
 
     return () => {

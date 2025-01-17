@@ -12,14 +12,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const addSource = () => {
       try {
-        // Wait for map style to be loaded
-        if (!map.isStyleLoaded()) {
-          map.once('style.load', addSource);
-          return;
-        }
-
         // Remove existing source if it exists
         if (map.getSource('breweries')) {
+          // Remove all layers that use this source first
+          const layers = ['unclustered-point', 'clusters', 'cluster-count'];
+          layers.forEach(layer => {
+            if (map.getLayer(layer)) {
+              map.removeLayer(layer);
+            }
+          });
           map.removeSource('breweries');
         }
 
@@ -51,11 +52,11 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    // Add source when map is ready
+    // Add source when map style is loaded
     if (map.isStyleLoaded()) {
       addSource();
     } else {
-      map.once('style.load', addSource);
+      map.on('style.load', addSource);
     }
 
     return () => {
@@ -63,7 +64,6 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       
       try {
         if (map.getSource('breweries')) {
-          // Remove all layers that use this source first
           const layers = ['unclustered-point', 'clusters', 'cluster-count'];
           layers.forEach(layer => {
             if (map.getLayer(layer)) {
