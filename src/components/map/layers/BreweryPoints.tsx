@@ -9,32 +9,36 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
-      if (!map.getSource(source)) {
+      if (!map.getStyle() || !map.getSource(source)) {
         setTimeout(addLayer, 100);
         return;
       }
 
-      if (!map.getLayer('unclustered-point')) {
-        map.addLayer({
-          id: 'unclustered-point',
-          type: 'circle',
-          source,
-          filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-color': '#51A4DB',
-            'circle-radius': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              7, // zoom level
-              8, // circle radius
-              16, // zoom level
-              15 // circle radius
-            ],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff'
-          }
-        });
+      try {
+        if (!map.getLayer('unclustered-point')) {
+          map.addLayer({
+            id: 'unclustered-point',
+            type: 'circle',
+            source,
+            filter: ['!', ['has', 'point_count']],
+            paint: {
+              'circle-color': '#51A4DB',
+              'circle-radius': [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                7,
+                8,
+                16,
+                15
+              ],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#fff'
+            }
+          });
+        }
+      } catch (error) {
+        console.warn('Error adding brewery points layer:', error);
       }
     };
 
@@ -42,11 +46,11 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
     if (map.isStyleLoaded()) {
       addLayer();
     } else {
-      map.on('style.load', () => addLayer());
+      map.once('style.load', addLayer);
     }
 
     return () => {
-      if (!map || !map.getStyle()) return;
+      if (!map.getStyle()) return;
       
       try {
         if (map.getLayer('unclustered-point')) {

@@ -11,16 +11,18 @@ interface MapSourceProps {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const addSource = () => {
+      if (!map.getStyle()) return;
+
       try {
-        // Remove existing source if it exists
+        // Remove existing source and layers if they exist
+        const layers = ['unclustered-point', 'clusters', 'cluster-count'];
+        layers.forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        
         if (map.getSource('breweries')) {
-          // Remove all layers that use this source first
-          const layers = ['unclustered-point', 'clusters', 'cluster-count'];
-          layers.forEach(layer => {
-            if (map.getLayer(layer)) {
-              map.removeLayer(layer);
-            }
-          });
           map.removeSource('breweries');
         }
 
@@ -56,20 +58,21 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
     if (map.isStyleLoaded()) {
       addSource();
     } else {
-      map.on('style.load', addSource);
+      map.once('style.load', addSource);
     }
 
     return () => {
-      if (!map || !map.getStyle()) return;
+      if (!map.getStyle()) return;
       
       try {
+        const layers = ['unclustered-point', 'clusters', 'cluster-count'];
+        layers.forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        
         if (map.getSource('breweries')) {
-          const layers = ['unclustered-point', 'clusters', 'cluster-count'];
-          layers.forEach(layer => {
-            if (map.getLayer(layer)) {
-              map.removeLayer(layer);
-            }
-          });
           map.removeSource('breweries');
         }
       } catch (error) {
