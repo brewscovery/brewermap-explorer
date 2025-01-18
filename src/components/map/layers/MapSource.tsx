@@ -1,11 +1,17 @@
 import { useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
+import type { Feature, Point, FeatureCollection } from 'geojson';
 
 interface MapSourceProps {
   map: mapboxgl.Map;
   breweries: Brewery[];
   children: React.ReactNode;
+}
+
+interface BreweryProperties {
+  id: string;
+  name: string;
 }
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
@@ -18,7 +24,7 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
 
       try {
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        const geojsonData = {
+        const geojsonData: FeatureCollection<Point, BreweryProperties> = {
           type: 'FeatureCollection',
           features: breweries
             .filter(brewery => brewery.longitude && brewery.latitude)
