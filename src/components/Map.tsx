@@ -21,8 +21,14 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const flyToBrewery = (brewery: Brewery) => {
     if (!map.current || !brewery.longitude || !brewery.latitude) return;
 
+    // Create a simple object with just the coordinates to avoid cloning issues
+    const coordinates = {
+      lng: parseFloat(brewery.longitude),
+      lat: parseFloat(brewery.latitude)
+    };
+
     map.current.flyTo({
-      center: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)],
+      center: [coordinates.lng, coordinates.lat],
       zoom: 15,
       essential: true
     });
@@ -41,58 +47,68 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
-    // Initialize map with default center (Australia)
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/light-v11',
-      center: [133.7751, -25.2744], // Center of Australia
-      zoom: 3
-    });
-
-    // Wait for map style to load before adding controls and layers
-    map.current.on('style.load', () => {
-      if (!map.current) return;
-      
-      setIsStyleLoaded(true);
-
-      // Add navigation controls
-      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      // Add geolocate control
-      const geolocateControl = new mapboxgl.GeolocateControl({
-        positionOptions: {
-          enableHighAccuracy: true
-        },
-        trackUserLocation: true,
-        showUserHeading: true
+    try {
+      // Initialize map with default center (Australia)
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [133.7751, -25.2744], // Center of Australia
+        zoom: 3
       });
 
-      map.current.addControl(geolocateControl, 'top-right');
+      // Wait for map style to load before adding controls and layers
+      map.current.on('style.load', () => {
+        if (!map.current) return;
+        
+        setIsStyleLoaded(true);
 
-      // Try to get user location
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          if (map.current) {
-            map.current.flyTo({
-              center: [position.coords.longitude, position.coords.latitude],
-              zoom: 9,
-              essential: true
-            });
+        // Add navigation controls
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+        // Add geolocate control
+        const geolocateControl = new mapboxgl.GeolocateControl({
+          positionOptions: {
+            enableHighAccuracy: true
+          },
+          trackUserLocation: true,
+          showUserHeading: true
+        });
+
+        map.current.addControl(geolocateControl, 'top-right');
+
+        // Try to get user location
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (map.current) {
+              const coordinates = {
+                lng: position.coords.longitude,
+                lat: position.coords.latitude
+              };
+              
+              map.current.flyTo({
+                center: [coordinates.lng, coordinates.lat],
+                zoom: 9,
+                essential: true
+              });
+            }
+          },
+          (error) => {
+            console.error('Error getting location:', error);
+            toast.error('Could not get your location. Showing Australia view.');
+            if (map.current) {
+              map.current.flyTo({
+                center: [133.7751, -25.2744],
+                zoom: 4,
+                essential: true
+              });
+            }
           }
-        },
-        (error) => {
-          console.error('Error getting location:', error);
-          toast.error('Could not get your location. Showing Australia view.');
-          if (map.current) {
-            map.current.flyTo({
-              center: [133.7751, -25.2744],
-              zoom: 4,
-              essential: true
-            });
-          }
-        }
-      );
-    });
+        );
+      });
+    } catch (error) {
+      console.error('Error initializing map:', error);
+      toast.error('Failed to initialize map');
+    }
 
     return () => {
       map.current?.remove();
