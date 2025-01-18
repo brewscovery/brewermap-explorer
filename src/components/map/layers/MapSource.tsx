@@ -11,65 +11,52 @@ interface MapSourceProps {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const updateSource = () => {
-      if (!map.getStyle()) return;
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', updateSource);
+        return;
+      }
 
       try {
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        const geojsonData = {
+          type: 'FeatureCollection',
+          features: breweries
+            .filter(brewery => brewery.longitude && brewery.latitude)
+            .map(brewery => ({
+              type: 'Feature',
+              properties: {
+                id: brewery.id,
+                name: brewery.name
+              },
+              geometry: {
+                type: 'Point',
+                coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
+              }
+            }))
+        };
         
         // If source exists, just update the data
         if (source) {
-          source.setData({
-            type: 'FeatureCollection',
-            features: breweries
-              .filter(brewery => brewery.longitude && brewery.latitude)
-              .map(brewery => ({
-                type: 'Feature',
-                properties: {
-                  id: brewery.id,
-                  name: brewery.name
-                },
-                geometry: {
-                  type: 'Point',
-                  coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
-                }
-              }))
-          });
+          source.setData(geojsonData);
         } else {
           // If source doesn't exist, create it
           map.addSource('breweries', {
             type: 'geojson',
-            data: {
-              type: 'FeatureCollection',
-              features: breweries
-                .filter(brewery => brewery.longitude && brewery.latitude)
-                .map(brewery => ({
-                  type: 'Feature',
-                  properties: {
-                    id: brewery.id,
-                    name: brewery.name
-                  },
-                  geometry: {
-                    type: 'Point',
-                    coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
-                  }
-                }))
-            },
+            data: geojsonData,
             cluster: true,
             clusterMaxZoom: 14,
             clusterRadius: 50
           });
         }
+
+        console.log('Source updated successfully');
       } catch (error) {
         console.warn('Error updating source:', error);
       }
     };
 
     // Update source when map style is loaded
-    if (map.isStyleLoaded()) {
-      updateSource();
-    } else {
-      map.once('style.load', updateSource);
-    }
+    updateSource();
 
     return () => {
       if (!map.getStyle()) return;
