@@ -9,13 +9,12 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
-      // Wait for map style to be loaded
       if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded, waiting...');
         map.once('style.load', addLayer);
         return;
       }
 
-      // Check if source exists
       if (!map.getSource(source)) {
         console.log('Source not found, retrying...');
         setTimeout(addLayer, 100);
@@ -23,38 +22,32 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
 
       try {
-        // Load the custom beer icon first
+        // Load the custom marker icon
         map.loadImage(
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
           (error, image) => {
             if (error) {
-              console.error('Error loading beer icon:', error);
+              console.error('Error loading marker icon:', error);
               return;
             }
             
-            if (!map.hasImage('beer') && image) {
-              map.addImage('beer', image);
+            if (!map.hasImage('brewery-marker') && image) {
+              map.addImage('brewery-marker', image);
               
-              // Only add the layer after the icon is loaded
+              // Remove existing layer if it exists
               if (map.getLayer('unclustered-point')) {
                 map.removeLayer('unclustered-point');
               }
 
+              // Add the layer for individual breweries
               map.addLayer({
                 id: 'unclustered-point',
                 type: 'symbol',
                 source: source,
                 filter: ['!', ['has', 'point_count']],
                 layout: {
-                  'icon-image': 'beer',
-                  'icon-size': [
-                    'interpolate',
-                    ['linear'],
-                    ['zoom'],
-                    10, 0.5,
-                    15, 0.75,
-                    20, 1
-                  ],
+                  'icon-image': 'brewery-marker',
+                  'icon-size': 0.5,
                   'icon-allow-overlap': true,
                   'text-field': ['get', 'name'],
                   'text-font': ['Open Sans Regular'],
@@ -79,7 +72,6 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    // Add layer when map is ready
     addLayer();
 
     return () => {
@@ -89,8 +81,8 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
         if (map.getLayer('unclustered-point')) {
           map.removeLayer('unclustered-point');
         }
-        if (map.hasImage('beer')) {
-          map.removeImage('beer');
+        if (map.hasImage('brewery-marker')) {
+          map.removeImage('brewery-marker');
         }
       } catch (error) {
         console.warn('Error cleaning up brewery points layer:', error);

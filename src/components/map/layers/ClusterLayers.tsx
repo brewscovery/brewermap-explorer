@@ -9,13 +9,12 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
-      // Wait for map style to be loaded
       if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded, waiting...');
         map.once('style.load', addLayers);
         return;
       }
 
-      // Check if source exists
       if (!map.getSource(source)) {
         console.log('Source not found, retrying...');
         setTimeout(addLayers, 100);
@@ -34,7 +33,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         map.addLayer({
           id: 'clusters',
           type: 'circle',
-          source,
+          source: source,
           filter: ['has', 'point_count'],
           paint: {
             'circle-color': [
@@ -62,7 +61,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         map.addLayer({
           id: 'cluster-count',
           type: 'symbol',
-          source,
+          source: source,
           filter: ['has', 'point_count'],
           layout: {
             'text-field': '{point_count_abbreviated}',
@@ -80,7 +79,6 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    // Add layers when map is ready
     addLayers();
 
     return () => {

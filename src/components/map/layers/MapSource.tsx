@@ -17,13 +17,14 @@ interface BreweryProperties {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const updateSource = () => {
+      // Wait for map style to be loaded
       if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded, waiting...');
         map.once('style.load', updateSource);
         return;
       }
 
       try {
-        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         const geojsonData: FeatureCollection<Point, BreweryProperties> = {
           type: 'FeatureCollection',
           features: breweries
@@ -40,12 +41,14 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
               }
             }))
         };
+
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         
-        // If source exists, just update the data
         if (source) {
+          console.log('Updating existing source with', breweries.length, 'breweries');
           source.setData(geojsonData);
         } else {
-          // If source doesn't exist, create it
+          console.log('Creating new source with', breweries.length, 'breweries');
           map.addSource('breweries', {
             type: 'geojson',
             data: geojsonData,
@@ -54,27 +57,17 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
             clusterRadius: 50
           });
         }
-
-        console.log('Source updated successfully with', breweries.length, 'breweries');
       } catch (error) {
-        console.warn('Error updating source:', error);
+        console.error('Error updating source:', error);
       }
     };
 
-    // Update source when map style is loaded
     updateSource();
 
     return () => {
       if (!map.getStyle()) return;
       
       try {
-        const layers = ['unclustered-point', 'clusters', 'cluster-count'];
-        layers.forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
-          }
-        });
-        
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
         }
