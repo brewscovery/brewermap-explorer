@@ -23,29 +23,52 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
 
       try {
+        // Remove existing layer if it exists
         if (map.getLayer('unclustered-point')) {
           map.removeLayer('unclustered-point');
         }
 
+        // Add the unclustered points layer
         map.addLayer({
           id: 'unclustered-point',
-          type: 'circle',
-          source,
+          type: 'symbol',
+          source: source,
           filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-color': '#51A4DB',
-            'circle-radius': [
+          layout: {
+            'icon-image': 'beer',
+            'icon-size': [
               'interpolate',
               ['linear'],
               ['zoom'],
-              7, 5,  // At zoom level 7, radius is 5px
-              12, 8, // At zoom level 12, radius is 8px
-              16, 12 // At zoom level 16, radius is 12px
+              10, 0.5,
+              15, 0.75,
+              20, 1
             ],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff'
+            'icon-allow-overlap': true,
+            'text-field': ['get', 'name'],
+            'text-font': ['Open Sans Regular'],
+            'text-size': 11,
+            'text-offset': [0, 1.5],
+            'text-anchor': 'top',
+            'text-allow-overlap': false,
+          },
+          paint: {
+            'text-color': '#666',
+            'text-halo-color': '#fff',
+            'text-halo-width': 1
           }
         });
+
+        // Load the custom beer icon
+        map.loadImage(
+          'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+          (error, image) => {
+            if (error) throw error;
+            if (!map.hasImage('beer') && image) {
+              map.addImage('beer', image);
+            }
+          }
+        );
 
         console.log('Added unclustered-point layer successfully');
       } catch (error) {
@@ -62,6 +85,9 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       try {
         if (map.getLayer('unclustered-point')) {
           map.removeLayer('unclustered-point');
+        }
+        if (map.hasImage('beer')) {
+          map.removeImage('beer');
         }
       } catch (error) {
         console.warn('Error cleaning up brewery points layer:', error);
