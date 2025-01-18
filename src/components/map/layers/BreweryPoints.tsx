@@ -23,54 +23,57 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
 
       try {
-        // Remove existing layer if it exists
-        if (map.getLayer('unclustered-point')) {
-          map.removeLayer('unclustered-point');
-        }
-
-        // Add the unclustered points layer
-        map.addLayer({
-          id: 'unclustered-point',
-          type: 'symbol',
-          source: source,
-          filter: ['!', ['has', 'point_count']],
-          layout: {
-            'icon-image': 'beer',
-            'icon-size': [
-              'interpolate',
-              ['linear'],
-              ['zoom'],
-              10, 0.5,
-              15, 0.75,
-              20, 1
-            ],
-            'icon-allow-overlap': true,
-            'text-field': ['get', 'name'],
-            'text-font': ['Open Sans Regular'],
-            'text-size': 11,
-            'text-offset': [0, 1.5],
-            'text-anchor': 'top',
-            'text-allow-overlap': false,
-          },
-          paint: {
-            'text-color': '#666',
-            'text-halo-color': '#fff',
-            'text-halo-width': 1
-          }
-        });
-
-        // Load the custom beer icon
+        // Load the custom beer icon first
         map.loadImage(
           'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
           (error, image) => {
-            if (error) throw error;
+            if (error) {
+              console.error('Error loading beer icon:', error);
+              return;
+            }
+            
             if (!map.hasImage('beer') && image) {
               map.addImage('beer', image);
+              
+              // Only add the layer after the icon is loaded
+              if (map.getLayer('unclustered-point')) {
+                map.removeLayer('unclustered-point');
+              }
+
+              map.addLayer({
+                id: 'unclustered-point',
+                type: 'symbol',
+                source: source,
+                filter: ['!', ['has', 'point_count']],
+                layout: {
+                  'icon-image': 'beer',
+                  'icon-size': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    10, 0.5,
+                    15, 0.75,
+                    20, 1
+                  ],
+                  'icon-allow-overlap': true,
+                  'text-field': ['get', 'name'],
+                  'text-font': ['Open Sans Regular'],
+                  'text-size': 11,
+                  'text-offset': [0, 1.5],
+                  'text-anchor': 'top',
+                  'text-allow-overlap': false,
+                },
+                paint: {
+                  'text-color': '#666',
+                  'text-halo-color': '#fff',
+                  'text-halo-width': 1
+                }
+              });
+
+              console.log('Added unclustered-point layer successfully');
             }
           }
         );
-
-        console.log('Added unclustered-point layer successfully');
       } catch (error) {
         console.error('Error adding brewery points layer:', error);
       }

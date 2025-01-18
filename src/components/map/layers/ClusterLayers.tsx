@@ -23,53 +23,56 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
 
       try {
+        // Remove existing layers if they exist
+        ['clusters', 'cluster-count'].forEach(layerId => {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+        });
+
         // Add clusters layer
-        if (!map.getLayer('clusters')) {
-          map.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source,
-            filter: ['has', 'point_count'],
-            paint: {
-              'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#51A4DB',
-                10,
-                '#2B8CBE',
-                30,
-                '#084081'
-              ],
-              'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                20,
-                10,
-                30,
-                30,
-                40
-              ]
-            }
-          });
-        }
+        map.addLayer({
+          id: 'clusters',
+          type: 'circle',
+          source,
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': [
+              'step',
+              ['get', 'point_count'],
+              '#51A4DB',
+              10,
+              '#2B8CBE',
+              30,
+              '#084081'
+            ],
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              20,
+              10,
+              30,
+              30,
+              40
+            ]
+          }
+        });
 
         // Add cluster count layer
-        if (!map.getLayer('cluster-count')) {
-          map.addLayer({
-            id: 'cluster-count',
-            type: 'symbol',
-            source,
-            filter: ['has', 'point_count'],
-            layout: {
-              'text-field': '{point_count_abbreviated}',
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12
-            },
-            paint: {
-              'text-color': '#ffffff'
-            }
-          });
-        }
+        map.addLayer({
+          id: 'cluster-count',
+          type: 'symbol',
+          source,
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 12
+          },
+          paint: {
+            'text-color': '#ffffff'
+          }
+        });
 
         console.log('Added cluster layers successfully');
       } catch (error) {
