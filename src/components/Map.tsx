@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Brewery } from '@/types/brewery';
@@ -15,6 +15,7 @@ interface MapProps {
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const [isStyleLoaded, setIsStyleLoaded] = useState(false);
 
   // Function to fly to a brewery's location
   const flyToBrewery = (brewery: Brewery) => {
@@ -51,6 +52,8 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     // Wait for map style to load before adding controls and layers
     map.current.on('style.load', () => {
       if (!map.current) return;
+      
+      setIsStyleLoaded(true);
 
       // Add navigation controls
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
@@ -99,7 +102,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && map.current.isStyleLoaded() && (
+      {map.current && isStyleLoaded && (
         <>
           <MapLayers
             map={map.current}
