@@ -9,6 +9,13 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
+      // Wait for map style to be loaded
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', addLayer);
+        return;
+      }
+
+      // Check if source exists
       if (!map.getSource(source)) {
         console.log('Source not found, retrying...');
         setTimeout(addLayer, 100);
@@ -47,11 +54,7 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
     };
 
     // Add layer when map is ready
-    if (map.isStyleLoaded()) {
-      addLayer();
-    } else {
-      map.once('style.load', addLayer);
-    }
+    addLayer();
 
     return () => {
       if (!map.getStyle()) return;
