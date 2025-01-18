@@ -9,7 +9,15 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
-      if (!map.getStyle() || !map.getSource(source)) {
+      // Wait for map style to be loaded
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', addLayers);
+        return;
+      }
+
+      // Check if source exists
+      if (!map.getSource(source)) {
+        console.log('Source not found, retrying...');
         setTimeout(addLayers, 100);
         return;
       }
@@ -62,17 +70,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             }
           });
         }
+
+        console.log('Added cluster layers successfully');
       } catch (error) {
-        console.warn('Error adding cluster layers:', error);
+        console.error('Error adding cluster layers:', error);
       }
     };
 
     // Add layers when map is ready
-    if (map.isStyleLoaded()) {
-      addLayers();
-    } else {
-      map.once('style.load', addLayers);
-    }
+    addLayers();
 
     return () => {
       if (!map.getStyle()) return;

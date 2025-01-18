@@ -47,7 +47,7 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
           }
         });
 
-        console.log('Added unclustered-point layer');
+        console.log('Added unclustered-point layer successfully');
       } catch (error) {
         console.error('Error adding brewery points layer:', error);
       }

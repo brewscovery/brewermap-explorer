@@ -55,7 +55,7 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           });
         }
 
-        console.log('Source updated successfully');
+        console.log('Source updated successfully with', breweries.length, 'breweries');
       } catch (error) {
         console.warn('Error updating source:', error);
       }
