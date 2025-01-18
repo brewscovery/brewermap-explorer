@@ -48,22 +48,25 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       zoom: 3
     });
 
-    // Add navigation controls
-    map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    // Wait for map style to load before adding controls and layers
+    map.current.on('style.load', () => {
+      if (!map.current) return;
 
-    // Add geolocate control
-    const geolocateControl = new mapboxgl.GeolocateControl({
-      positionOptions: {
-        enableHighAccuracy: true
-      },
-      trackUserLocation: true,
-      showUserHeading: true
-    });
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-    map.current.addControl(geolocateControl, 'top-right');
+      // Add geolocate control
+      const geolocateControl = new mapboxgl.GeolocateControl({
+        positionOptions: {
+          enableHighAccuracy: true
+        },
+        trackUserLocation: true,
+        showUserHeading: true
+      });
 
-    // Try to get user location when map loads
-    map.current.on('load', () => {
+      map.current.addControl(geolocateControl, 'top-right');
+
+      // Try to get user location
       navigator.geolocation.getCurrentPosition(
         (position) => {
           if (map.current) {
@@ -96,7 +99,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && (
+      {map.current && map.current.isStyleLoaded() && (
         <>
           <MapLayers
             map={map.current}
