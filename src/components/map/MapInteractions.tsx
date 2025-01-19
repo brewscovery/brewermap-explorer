@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
-import { createPopupContent } from '@/utils/mapUtils';
 
 interface MapInteractionsProps {
   map: mapboxgl.Map;
@@ -36,10 +35,9 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
           if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          // Create a properly typed coordinate tuple
           const coordinates: [number, number] = [
-            Number(features[0].geometry.coordinates[0]),
-            Number(features[0].geometry.coordinates[1])
+            features[0].geometry.coordinates[0],
+            features[0].geometry.coordinates[1]
           ];
 
           map.easeTo({
@@ -62,15 +60,13 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         
         if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        // Create a properly typed coordinate tuple
         const coordinates: [number, number] = [
-          Number(e.features[0].geometry.coordinates[0]),
-          Number(e.features[0].geometry.coordinates[1])
+          e.features[0].geometry.coordinates[0],
+          e.features[0].geometry.coordinates[1]
         ];
 
-        // Create popup with brewery information
-        const popup = document.createElement('div');
-        popup.innerHTML = `
+        const popupContent = document.createElement('div');
+        popupContent.innerHTML = `
           <h3 class="font-bold">${brewery.name}</h3>
           <p class="text-sm">${brewery.street || ''}</p>
           <p class="text-sm">${brewery.city}, ${brewery.state}</p>
@@ -79,11 +75,10 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
         new mapboxgl.Popup()
           .setLngLat(coordinates)
-          .setDOMContent(popup)
+          .setDOMContent(popupContent)
           .addTo(map);
 
-        // Create a new brewery object with only primitive values
-        const breweryData: Brewery = {
+        const simpleBrewery: Brewery = {
           id: brewery.id,
           name: brewery.name,
           brewery_type: brewery.brewery_type || '',
@@ -92,13 +87,13 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           state: brewery.state,
           postal_code: brewery.postal_code || '',
           country: brewery.country || 'United States',
-          longitude: brewery.longitude || '',
-          latitude: brewery.latitude || '',
+          longitude: String(coordinates[0]),
+          latitude: String(coordinates[1]),
           phone: brewery.phone || '',
           website_url: brewery.website_url || ''
         };
 
-        onBrewerySelect(breweryData);
+        onBrewerySelect(simpleBrewery);
       } catch (error) {
         console.error('Error handling point click:', error);
       }
