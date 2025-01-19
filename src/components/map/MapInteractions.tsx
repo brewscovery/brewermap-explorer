@@ -34,11 +34,10 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
             return;
           }
 
-          const feature = features[0];
-          if (feature.geometry.type !== 'Point') return;
+          if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          // Create a simple coordinates array that can be cloned
-          const coordinates = feature.geometry.coordinates.slice(0, 2) as [number, number];
+          // Create a simple coordinates array that can be safely cloned
+          const coordinates = [...features[0].geometry.coordinates] as [number, number];
 
           map.easeTo({
             center: coordinates,
@@ -58,25 +57,31 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         const properties = e.features[0].properties;
         const brewery = breweries.find(b => b.id === properties.id);
         
-        if (!brewery) return;
+        if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        const feature = e.features[0];
-        if (feature.geometry.type !== 'Point') return;
+        // Create a simple coordinates array that can be safely cloned
+        const coordinates = [...e.features[0].geometry.coordinates] as [number, number];
 
-        // Create a simple coordinates array that can be cloned
-        const coordinates = feature.geometry.coordinates.slice(0, 2) as [number, number];
-
-        // Create popup content using the full brewery object
-        const popupContent = createPopupContent(brewery);
-
-        // Create and show popup
-        new mapboxgl.Popup()
+        // Create a new popup with the brewery information
+        const popup = new mapboxgl.Popup()
           .setLngLat(coordinates)
-          .setDOMContent(popupContent)
+          .setDOMContent(createPopupContent(brewery))
           .addTo(map);
 
-        // Notify about brewery selection with the original brewery object
-        onBrewerySelect(brewery);
+        // Create a simple copy of the brewery object to avoid cloning issues
+        const breweryData = {
+          ...brewery,
+          // Ensure all required properties are included
+          brewery_type: brewery.brewery_type || '',
+          postal_code: brewery.postal_code || '',
+          country: brewery.country || '',
+          longitude: brewery.longitude || '',
+          latitude: brewery.latitude || '',
+          phone: brewery.phone || ''
+        };
+
+        // Notify about brewery selection
+        onBrewerySelect(breweryData);
       } catch (error) {
         console.error('Error handling point click:', error);
       }
