@@ -36,8 +36,11 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
           if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          // Create a simple array of coordinates to avoid cloning issues
-          const coordinates = features[0].geometry.coordinates.slice() as [number, number];
+          // Create a new array from the coordinates to avoid reference issues
+          const coordinates = [
+            Number(features[0].geometry.coordinates[0]),
+            Number(features[0].geometry.coordinates[1])
+          ];
 
           map.easeTo({
             center: coordinates,
@@ -59,17 +62,28 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         
         if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        // Create a simple array of coordinates to avoid cloning issues
-        const coordinates = e.features[0].geometry.coordinates.slice() as [number, number];
+        // Create a new array from the coordinates to avoid reference issues
+        const coordinates = [
+          Number(e.features[0].geometry.coordinates[0]),
+          Number(e.features[0].geometry.coordinates[1])
+        ];
 
-        // Create a new popup with the brewery information
+        // Create popup with brewery information
+        const popup = document.createElement('div');
+        popup.innerHTML = `
+          <h3 class="font-bold">${brewery.name}</h3>
+          <p class="text-sm">${brewery.street || ''}</p>
+          <p class="text-sm">${brewery.city}, ${brewery.state}</p>
+          ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+        `;
+
         new mapboxgl.Popup()
           .setLngLat(coordinates)
-          .setDOMContent(createPopupContent(brewery))
+          .setDOMContent(popup)
           .addTo(map);
 
-        // Create a plain object with only primitive values
-        const breweryData: Brewery = {
+        // Create a new object with primitive values only
+        const breweryData = {
           id: brewery.id,
           name: brewery.name,
           brewery_type: brewery.brewery_type || '',
