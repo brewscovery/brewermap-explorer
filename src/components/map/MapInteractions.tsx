@@ -35,10 +35,10 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
           if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          const coordinates: [number, number] = [
+          const coordinates = [
             features[0].geometry.coordinates[0],
             features[0].geometry.coordinates[1]
-          ];
+          ] as [number, number];
 
           map.easeTo({
             center: coordinates,
@@ -60,25 +60,26 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         
         if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        const coordinates: [number, number] = [
+        const coordinates = [
           e.features[0].geometry.coordinates[0],
           e.features[0].geometry.coordinates[1]
-        ];
+        ] as [number, number];
 
-        const popupContent = document.createElement('div');
-        popupContent.innerHTML = `
+        // Create a simple HTML string for the popup
+        const popupHTML = `
           <h3 class="font-bold">${brewery.name}</h3>
           <p class="text-sm">${brewery.street || ''}</p>
           <p class="text-sm">${brewery.city}, ${brewery.state}</p>
           ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
         `;
 
-        new mapboxgl.Popup()
+        const popup = new mapboxgl.Popup()
           .setLngLat(coordinates)
-          .setDOMContent(popupContent)
+          .setHTML(popupHTML)
           .addTo(map);
 
-        const simpleBrewery: Brewery = {
+        // Create a new brewery object with primitive values only
+        const selectedBrewery: Brewery = {
           id: brewery.id,
           name: brewery.name,
           brewery_type: brewery.brewery_type || '',
@@ -93,7 +94,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           website_url: brewery.website_url || ''
         };
 
-        onBrewerySelect(simpleBrewery);
+        onBrewerySelect(selectedBrewery);
       } catch (error) {
         console.error('Error handling point click:', error);
       }
