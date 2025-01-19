@@ -18,24 +18,32 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const flyToBrewery = (brewery: Brewery) => {
     if (!map.current || !brewery.longitude || !brewery.latitude) return;
 
-    // Create a simple object with just the coordinates to avoid cloning issues
-    const coordinates = {
-      lng: parseFloat(brewery.longitude),
-      lat: parseFloat(brewery.latitude)
-    };
+    try {
+      // Create a simple object with just the coordinates to avoid cloning issues
+      const coordinates = {
+        lng: parseFloat(brewery.longitude),
+        lat: parseFloat(brewery.latitude)
+      };
 
-    map.current.flyTo({
-      center: [coordinates.lng, coordinates.lat],
-      zoom: 15,
-      essential: true
-    });
+      map.current.flyTo({
+        center: [coordinates.lng, coordinates.lat],
+        zoom: 15,
+        essential: true
+      });
+    } catch (error) {
+      console.error('Error flying to brewery:', error);
+    }
   };
 
   // Watch for brewery selection changes
   useEffect(() => {
-    const selectedBrewery = breweries.find(b => b === breweries[0]);
-    if (selectedBrewery) {
-      flyToBrewery(selectedBrewery);
+    try {
+      const selectedBrewery = breweries.find(b => b === breweries[0]);
+      if (selectedBrewery) {
+        flyToBrewery(selectedBrewery);
+      }
+    } catch (error) {
+      console.error('Error handling brewery selection:', error);
     }
   }, [breweries]);
 
