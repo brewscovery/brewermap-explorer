@@ -36,8 +36,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
           if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          // Create a new array from the coordinates to avoid reference issues
-          const coordinates = [
+          // Create a properly typed coordinate tuple
+          const coordinates: [number, number] = [
             Number(features[0].geometry.coordinates[0]),
             Number(features[0].geometry.coordinates[1])
           ];
@@ -62,8 +62,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         
         if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        // Create a new array from the coordinates to avoid reference issues
-        const coordinates = [
+        // Create a properly typed coordinate tuple
+        const coordinates: [number, number] = [
           Number(e.features[0].geometry.coordinates[0]),
           Number(e.features[0].geometry.coordinates[1])
         ];
@@ -82,8 +82,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           .setDOMContent(popup)
           .addTo(map);
 
-        // Create a new object with primitive values only
-        const breweryData = {
+        // Create a new brewery object with only primitive values
+        const breweryData: Brewery = {
           id: brewery.id,
           name: brewery.name,
           brewery_type: brewery.brewery_type || '',
@@ -98,7 +98,6 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           website_url: brewery.website_url || ''
         };
 
-        // Notify about brewery selection with the clean data
         onBrewerySelect(breweryData);
       } catch (error) {
         console.error('Error handling point click:', error);
