@@ -24,9 +24,16 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
           filter: ['!', ['has', 'point_count']],
           paint: {
             'circle-color': '#fbbf24',
-            'circle-radius': 8,
+            'circle-radius': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              10, 4,  // At zoom level 10, circles will have size 4
+              15, 8   // At zoom level 15, circles will have size 8
+            ],
             'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff'
+            'circle-stroke-color': '#fff',
+            'circle-opacity': 0.9
           }
         });
 
@@ -39,10 +46,17 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
           layout: {
             'text-field': ['get', 'name'],
             'text-font': ['Open Sans Regular'],
-            'text-size': 11,
+            'text-size': [
+              'interpolate',
+              ['linear'],
+              ['zoom'],
+              10, 0,    // Hide text at zoom level 10 and below
+              11, 11    // Show text at zoom level 11 and above
+            ],
             'text-offset': [0, 1.5],
             'text-anchor': 'top',
             'text-allow-overlap': false,
+            'text-ignore-placement': false
           },
           paint: {
             'text-color': '#666',
