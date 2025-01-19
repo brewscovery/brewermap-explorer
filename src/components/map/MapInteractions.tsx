@@ -17,6 +17,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         const features = map.queryRenderedFeatures(e.point, {
           layers: ['clusters']
         });
+        
         if (!features.length) return;
 
         const clusterId = features[0].properties?.cluster_id;
@@ -36,10 +37,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           const feature = features[0];
           if (feature.geometry.type !== 'Point') return;
 
-          const coordinates: [number, number] = [
-            feature.geometry.coordinates[0],
-            feature.geometry.coordinates[1]
-          ];
+          // Create a simple coordinates array that can be cloned
+          const coordinates = feature.geometry.coordinates.slice(0, 2) as [number, number];
 
           map.easeTo({
             center: coordinates,
@@ -64,13 +63,21 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         const feature = e.features[0];
         if (feature.geometry.type !== 'Point') return;
 
-        const coordinates: [number, number] = [
-          feature.geometry.coordinates[0],
-          feature.geometry.coordinates[1]
-        ];
+        // Create a simple coordinates array that can be cloned
+        const coordinates = feature.geometry.coordinates.slice(0, 2) as [number, number];
 
-        // Create popup content before passing to popup
-        const popupContent = createPopupContent(brewery);
+        // Create a simplified brewery object for the popup
+        const simpleBrewery = {
+          id: brewery.id,
+          name: brewery.name,
+          street: brewery.street,
+          city: brewery.city,
+          state: brewery.state,
+          website_url: brewery.website_url
+        };
+
+        // Create popup content
+        const popupContent = createPopupContent(simpleBrewery);
 
         // Create and show popup
         new mapboxgl.Popup()
@@ -78,7 +85,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           .setDOMContent(popupContent)
           .addTo(map);
 
-        // Notify about brewery selection
+        // Notify about brewery selection with the original brewery object
         onBrewerySelect(brewery);
       } catch (error) {
         console.error('Error handling point click:', error);
