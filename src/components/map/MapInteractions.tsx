@@ -33,17 +33,18 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
             return;
           }
 
-          if (features[0].geometry.type === 'Point') {
-            const coordinates: [number, number] = [
-              features[0].geometry.coordinates[0],
-              features[0].geometry.coordinates[1]
-            ];
+          const feature = features[0];
+          if (feature.geometry.type !== 'Point') return;
 
-            map.easeTo({
-              center: coordinates,
-              zoom: zoom
-            });
-          }
+          const coordinates: [number, number] = [
+            feature.geometry.coordinates[0],
+            feature.geometry.coordinates[1]
+          ];
+
+          map.easeTo({
+            center: coordinates,
+            zoom: zoom
+          });
         });
       } catch (error) {
         console.error('Error handling cluster click:', error);
@@ -58,11 +59,14 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         const properties = e.features[0].properties;
         const brewery = breweries.find(b => b.id === properties.id);
         
-        if (!brewery || !e.features[0].geometry.type === 'Point') return;
+        if (!brewery) return;
+
+        const feature = e.features[0];
+        if (feature.geometry.type !== 'Point') return;
 
         const coordinates: [number, number] = [
-          e.features[0].geometry.coordinates[0],
-          e.features[0].geometry.coordinates[1]
+          feature.geometry.coordinates[0],
+          feature.geometry.coordinates[1]
         ];
 
         // Create popup content before passing to popup
