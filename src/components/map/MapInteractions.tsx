@@ -66,18 +66,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         // Create a simple coordinates array that can be cloned
         const coordinates = feature.geometry.coordinates.slice(0, 2) as [number, number];
 
-        // Create a simplified brewery object for the popup
-        const simpleBrewery = {
-          id: brewery.id,
-          name: brewery.name,
-          street: brewery.street,
-          city: brewery.city,
-          state: brewery.state,
-          website_url: brewery.website_url
-        };
-
-        // Create popup content
-        const popupContent = createPopupContent(simpleBrewery);
+        // Create popup content using the full brewery object
+        const popupContent = createPopupContent(brewery);
 
         // Create and show popup
         new mapboxgl.Popup()
