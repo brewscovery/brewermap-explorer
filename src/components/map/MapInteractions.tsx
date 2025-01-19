@@ -36,8 +36,10 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
           if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          // Create a simple coordinates array that can be safely cloned
-          const coordinates = [...features[0].geometry.coordinates] as [number, number];
+          const coordinates = [
+            features[0].geometry.coordinates[0],
+            features[0].geometry.coordinates[1]
+          ] as [number, number];
 
           map.easeTo({
             center: coordinates,
@@ -59,25 +61,33 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         
         if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        // Create a simple coordinates array that can be safely cloned
-        const coordinates = [...e.features[0].geometry.coordinates] as [number, number];
+        const coordinates = [
+          e.features[0].geometry.coordinates[0],
+          e.features[0].geometry.coordinates[1]
+        ] as [number, number];
 
         // Create a new popup with the brewery information
-        const popup = new mapboxgl.Popup()
+        new mapboxgl.Popup()
           .setLngLat(coordinates)
           .setDOMContent(createPopupContent(brewery))
           .addTo(map);
 
-        // Create a simple copy of the brewery object to avoid cloning issues
-        const breweryData = {
-          ...brewery,
-          // Ensure all required properties are included
+        // Create a plain object with only the necessary data
+        const breweryData: Brewery = {
+          id: brewery.id,
+          name: brewery.name,
           brewery_type: brewery.brewery_type || '',
+          street: brewery.street || '',
+          city: brewery.city,
+          state: brewery.state,
           postal_code: brewery.postal_code || '',
-          country: brewery.country || '',
+          country: brewery.country || 'United States',
           longitude: brewery.longitude || '',
           latitude: brewery.latitude || '',
-          phone: brewery.phone || ''
+          phone: brewery.phone || '',
+          website_url: brewery.website_url || '',
+          created_at: brewery.created_at,
+          updated_at: brewery.updated_at
         };
 
         // Notify about brewery selection
