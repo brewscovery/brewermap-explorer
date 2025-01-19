@@ -33,15 +33,17 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
             return;
           }
 
-          // Create a simple coordinates object to avoid cloning issues
-          const coordinates = features[0].geometry.type === 'Point' 
-            ? [...(features[0].geometry as any).coordinates] 
-            : [0, 0];
+          if (features[0].geometry.type === 'Point') {
+            const coordinates: [number, number] = [
+              features[0].geometry.coordinates[0],
+              features[0].geometry.coordinates[1]
+            ];
 
-          map.easeTo({
-            center: coordinates,
-            zoom: zoom
-          });
+            map.easeTo({
+              center: coordinates,
+              zoom: zoom
+            });
+          }
         });
       } catch (error) {
         console.error('Error handling cluster click:', error);
@@ -56,12 +58,12 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         const properties = e.features[0].properties;
         const brewery = breweries.find(b => b.id === properties.id);
         
-        if (!brewery) return;
+        if (!brewery || !e.features[0].geometry.type === 'Point') return;
 
-        // Create a simple coordinates object to avoid cloning issues
-        const coordinates = e.features[0].geometry.type === 'Point'
-          ? [...(e.features[0].geometry as any).coordinates]
-          : [0, 0];
+        const coordinates: [number, number] = [
+          e.features[0].geometry.coordinates[0],
+          e.features[0].geometry.coordinates[1]
+        ];
 
         // Create popup content before passing to popup
         const popupContent = createPopupContent(brewery);
@@ -72,16 +74,8 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           .setDOMContent(popupContent)
           .addTo(map);
 
-        // Notify about brewery selection with a simple object
-        const simpleBrewery = {
-          ...brewery,
-          coordinates: {
-            lng: parseFloat(brewery.longitude || '0'),
-            lat: parseFloat(brewery.latitude || '0')
-          }
-        };
-        
-        onBrewerySelect(simpleBrewery as Brewery);
+        // Notify about brewery selection
+        onBrewerySelect(brewery);
       } catch (error) {
         console.error('Error handling point click:', error);
       }
