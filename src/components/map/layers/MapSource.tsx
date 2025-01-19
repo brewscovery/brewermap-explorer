@@ -17,13 +17,6 @@ interface BreweryProperties {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const updateSource = () => {
-      // Wait for map style to be loaded
-      if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded, waiting...');
-        map.once('style.load', updateSource);
-        return;
-      }
-
       try {
         const geojsonData: FeatureCollection<Point, BreweryProperties> = {
           type: 'FeatureCollection',
@@ -45,10 +38,8 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         
         if (source) {
-          console.log('Updating existing source with', breweries.length, 'breweries');
           source.setData(geojsonData);
         } else {
-          console.log('Creating new source with', breweries.length, 'breweries');
           map.addSource('breweries', {
             type: 'geojson',
             data: geojsonData,
@@ -62,7 +53,12 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    updateSource();
+    // Wait for style to be loaded before updating source
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', updateSource);
+    } else {
+      updateSource();
+    }
 
     return () => {
       if (!map.getStyle()) return;

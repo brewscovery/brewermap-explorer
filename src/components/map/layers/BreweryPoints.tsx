@@ -9,12 +9,6 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayer = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded, waiting...');
-        map.once('style.load', addLayer);
-        return;
-      }
-
       if (!map.getSource(source)) {
         console.log('Source not found, retrying...');
         setTimeout(addLayer, 100);
@@ -34,36 +28,31 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
             if (!map.hasImage('brewery-marker') && image) {
               map.addImage('brewery-marker', image);
               
-              // Remove existing layer if it exists
-              if (map.getLayer('unclustered-point')) {
-                map.removeLayer('unclustered-point');
-              }
-
               // Add the layer for individual breweries
-              map.addLayer({
-                id: 'unclustered-point',
-                type: 'symbol',
-                source: source,
-                filter: ['!', ['has', 'point_count']],
-                layout: {
-                  'icon-image': 'brewery-marker',
-                  'icon-size': 0.5,
-                  'icon-allow-overlap': true,
-                  'text-field': ['get', 'name'],
-                  'text-font': ['Open Sans Regular'],
-                  'text-size': 11,
-                  'text-offset': [0, 1.5],
-                  'text-anchor': 'top',
-                  'text-allow-overlap': false,
-                },
-                paint: {
-                  'text-color': '#666',
-                  'text-halo-color': '#fff',
-                  'text-halo-width': 1
-                }
-              });
-
-              console.log('Added unclustered-point layer successfully');
+              if (!map.getLayer('unclustered-point')) {
+                map.addLayer({
+                  id: 'unclustered-point',
+                  type: 'symbol',
+                  source: source,
+                  filter: ['!', ['has', 'point_count']],
+                  layout: {
+                    'icon-image': 'brewery-marker',
+                    'icon-size': 0.5,
+                    'icon-allow-overlap': true,
+                    'text-field': ['get', 'name'],
+                    'text-font': ['Open Sans Regular'],
+                    'text-size': 11,
+                    'text-offset': [0, 1.5],
+                    'text-anchor': 'top',
+                    'text-allow-overlap': false,
+                  },
+                  paint: {
+                    'text-color': '#666',
+                    'text-halo-color': '#fff',
+                    'text-halo-width': 1
+                  }
+                });
+              }
             }
           }
         );
@@ -72,7 +61,12 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    addLayer();
+    // Wait for style to be loaded before adding layer
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', addLayer);
+    } else {
+      addLayer();
+    }
 
     return () => {
       if (!map.getStyle()) return;
