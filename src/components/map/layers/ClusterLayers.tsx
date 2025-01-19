@@ -27,11 +27,11 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'circle-color': [
                 'step',
                 ['get', 'point_count'],
-                '#51A4DB',
+                '#fbbf24', // Amber-400 for small clusters
                 10,
-                '#2B8CBE',
+                '#f59e0b', // Amber-500 for medium clusters
                 30,
-                '#084081'
+                '#d97706' // Amber-600 for large clusters
               ],
               'circle-radius': [
                 'step',
@@ -41,7 +41,9 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
                 30,
                 30,
                 40
-              ]
+              ],
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#fff'
             }
           });
         }
