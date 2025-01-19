@@ -19,14 +19,8 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     if (!map.current || !brewery.longitude || !brewery.latitude) return;
 
     try {
-      // Create a simple object with just the coordinates to avoid cloning issues
-      const coordinates = {
-        lng: parseFloat(brewery.longitude),
-        lat: parseFloat(brewery.latitude)
-      };
-
       map.current.flyTo({
-        center: [coordinates.lng, coordinates.lat],
+        center: [Number(brewery.longitude), Number(brewery.latitude)],
         zoom: 15,
         essential: true
       });
@@ -37,13 +31,24 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
   // Watch for brewery selection changes
   useEffect(() => {
-    try {
-      const selectedBrewery = breweries.find(b => b === breweries[0]);
-      if (selectedBrewery) {
-        flyToBrewery(selectedBrewery);
-      }
-    } catch (error) {
-      console.error('Error handling brewery selection:', error);
+    const selectedBrewery = breweries[0];
+    if (selectedBrewery) {
+      // Create a simple object with just the necessary data
+      const simpleBrewery: Brewery = {
+        id: selectedBrewery.id,
+        name: selectedBrewery.name,
+        brewery_type: selectedBrewery.brewery_type || '',
+        street: selectedBrewery.street || '',
+        city: selectedBrewery.city,
+        state: selectedBrewery.state,
+        postal_code: selectedBrewery.postal_code || '',
+        country: selectedBrewery.country || 'United States',
+        longitude: selectedBrewery.longitude || '',
+        latitude: selectedBrewery.latitude || '',
+        phone: selectedBrewery.phone || '',
+        website_url: selectedBrewery.website_url || ''
+      };
+      flyToBrewery(simpleBrewery);
     }
   }, [breweries]);
 
@@ -55,12 +60,38 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           <MapGeolocation map={map.current} />
           <MapLayers
             map={map.current}
-            breweries={breweries}
+            breweries={breweries.map(b => ({
+              id: b.id,
+              name: b.name,
+              brewery_type: b.brewery_type || '',
+              street: b.street || '',
+              city: b.city,
+              state: b.state,
+              postal_code: b.postal_code || '',
+              country: b.country || 'United States',
+              longitude: b.longitude || '',
+              latitude: b.latitude || '',
+              phone: b.phone || '',
+              website_url: b.website_url || ''
+            }))}
             onBrewerySelect={onBrewerySelect}
           />
           <MapInteractions
             map={map.current}
-            breweries={breweries}
+            breweries={breweries.map(b => ({
+              id: b.id,
+              name: b.name,
+              brewery_type: b.brewery_type || '',
+              street: b.street || '',
+              city: b.city,
+              state: b.state,
+              postal_code: b.postal_code || '',
+              country: b.country || 'United States',
+              longitude: b.longitude || '',
+              latitude: b.latitude || '',
+              phone: b.phone || '',
+              website_url: b.website_url || ''
+            }))}
             onBrewerySelect={onBrewerySelect}
           />
         </>
