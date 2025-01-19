@@ -12,92 +12,84 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
   useEffect(() => {
     // Handle clicks on clusters
     const handleClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      try {
-        const features = map.queryRenderedFeatures(e.point, {
-          layers: ['clusters']
-        });
-        
-        if (!features.length) return;
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['clusters']
+      });
+      
+      if (!features.length) return;
 
-        const clusterId = features[0].properties?.cluster_id;
-        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        
-        if (!source) {
-          console.error('Source not found');
+      const clusterId = features[0].properties?.cluster_id;
+      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+      
+      if (!source) {
+        console.error('Source not found');
+        return;
+      }
+
+      source.getClusterExpansionZoom(clusterId, (err, zoom) => {
+        if (err) {
+          console.error('Error getting cluster zoom:', err);
           return;
         }
 
-        source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-          if (err) {
-            console.error('Error getting cluster zoom:', err);
-            return;
-          }
+        if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-          if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
+        const coordinates: [number, number] = [
+          features[0].geometry.coordinates[0],
+          features[0].geometry.coordinates[1]
+        ];
 
-          const coordinates = [
-            features[0].geometry.coordinates[0],
-            features[0].geometry.coordinates[1]
-          ] as [number, number];
-
-          map.easeTo({
-            center: coordinates,
-            zoom: zoom
-          });
+        map.easeTo({
+          center: coordinates,
+          zoom: zoom
         });
-      } catch (error) {
-        console.error('Error handling cluster click:', error);
-      }
+      });
     };
 
     // Handle clicks on individual points
     const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      try {
-        if (!e.features?.[0]?.properties) return;
-        
-        const properties = e.features[0].properties;
-        const brewery = breweries.find(b => b.id === properties.id);
-        
-        if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
+      if (!e.features?.[0]?.properties) return;
+      
+      const properties = e.features[0].properties;
+      const brewery = breweries.find(b => b.id === properties.id);
+      
+      if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
 
-        const coordinates = [
-          e.features[0].geometry.coordinates[0],
-          e.features[0].geometry.coordinates[1]
-        ] as [number, number];
+      const coordinates: [number, number] = [
+        e.features[0].geometry.coordinates[0],
+        e.features[0].geometry.coordinates[1]
+      ];
 
-        // Create a simple HTML string for the popup
-        const popupHTML = `
-          <h3 class="font-bold">${brewery.name}</h3>
-          <p class="text-sm">${brewery.street || ''}</p>
-          <p class="text-sm">${brewery.city}, ${brewery.state}</p>
-          ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
-        `;
+      // Create a simple HTML string for the popup
+      const popupHTML = `
+        <h3 class="font-bold">${brewery.name}</h3>
+        <p class="text-sm">${brewery.street || ''}</p>
+        <p class="text-sm">${brewery.city}, ${brewery.state}</p>
+        ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+      `;
 
-        const popup = new mapboxgl.Popup()
-          .setLngLat(coordinates)
-          .setHTML(popupHTML)
-          .addTo(map);
+      new mapboxgl.Popup()
+        .setLngLat(coordinates)
+        .setHTML(popupHTML)
+        .addTo(map);
 
-        // Create a new brewery object with primitive values only
-        const selectedBrewery: Brewery = {
-          id: brewery.id,
-          name: brewery.name,
-          brewery_type: brewery.brewery_type || '',
-          street: brewery.street || '',
-          city: brewery.city,
-          state: brewery.state,
-          postal_code: brewery.postal_code || '',
-          country: brewery.country || 'United States',
-          longitude: String(coordinates[0]),
-          latitude: String(coordinates[1]),
-          phone: brewery.phone || '',
-          website_url: brewery.website_url || ''
-        };
+      // Create a new brewery object with primitive values only
+      const selectedBrewery: Brewery = {
+        id: brewery.id,
+        name: brewery.name,
+        brewery_type: brewery.brewery_type || '',
+        street: brewery.street || '',
+        city: brewery.city,
+        state: brewery.state,
+        postal_code: brewery.postal_code || '',
+        country: brewery.country || 'United States',
+        longitude: String(coordinates[0]),
+        latitude: String(coordinates[1]),
+        phone: brewery.phone || '',
+        website_url: brewery.website_url || ''
+      };
 
-        onBrewerySelect(selectedBrewery);
-      } catch (error) {
-        console.error('Error handling point click:', error);
-      }
+      onBrewerySelect(selectedBrewery);
     };
 
     // Handle cursor changes
