@@ -85,9 +85,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
           longitude: brewery.longitude || '',
           latitude: brewery.latitude || '',
           phone: brewery.phone || '',
-          website_url: brewery.website_url || '',
-          created_at: brewery.created_at,
-          updated_at: brewery.updated_at
+          website_url: brewery.website_url || ''
         };
 
         // Notify about brewery selection
