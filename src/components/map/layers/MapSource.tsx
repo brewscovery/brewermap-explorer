@@ -16,14 +16,15 @@ interface BreweryProperties {
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
-    const updateSource = () => {
+    const addSource = () => {
       if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded yet, waiting...');
+        console.log('Waiting for map style to load before adding source...');
+        requestAnimationFrame(addSource);
         return;
       }
 
       try {
-        // Filter out breweries without valid coordinates and create serializable features
+        // Filter out breweries without valid coordinates
         const validBreweries = breweries.filter(brewery => 
           brewery.longitude && 
           brewery.latitude && 
@@ -48,8 +49,8 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           features: features
         };
 
+        // Check if source exists and update it, or create new one
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        
         if (source) {
           source.setData(geojsonData);
         } else {
@@ -61,18 +62,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
             clusterRadius: 50
           });
         }
+
+        console.log('Source added successfully with', features.length, 'features');
       } catch (error) {
         console.error('Error updating source:', error);
       }
     };
 
-    // Initial update
-    updateSource();
-
-    // Set up style.load event listener if style isn't loaded
-    if (!map.isStyleLoaded()) {
-      map.once('style.load', updateSource);
-    }
+    // Initial attempt to add source
+    addSource();
 
     return () => {
       if (!map.getStyle()) return;
