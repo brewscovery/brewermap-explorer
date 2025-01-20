@@ -10,11 +10,13 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
       if (!map.isStyleLoaded()) {
+        console.log('Waiting for map style to load before adding cluster layers...');
         requestAnimationFrame(addLayers);
         return;
       }
 
       if (!map.getSource(source)) {
+        console.log('Waiting for source to be available before adding cluster layers...');
         requestAnimationFrame(addLayers);
         return;
       }
@@ -29,11 +31,20 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             filter: ['has', 'point_count'],
             paint: {
               'circle-color': '#fbbf24',
-              'circle-radius': 20,
+              'circle-radius': [
+                'step',
+                ['get', 'point_count'],
+                20,    // Size for points with count < 10
+                10,    
+                30,    // Size for points with count < 50
+                50,    
+                40     // Size for points with count >= 50
+              ],
               'circle-stroke-width': 3,
               'circle-stroke-color': '#ffffff'
             }
           });
+          console.log('Added clusters layer');
         }
 
         // Add cluster count layer
@@ -52,9 +63,8 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'text-color': '#ffffff'
             }
           });
+          console.log('Added cluster count layer');
         }
-
-        console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }

@@ -49,6 +49,13 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           features: features
         };
 
+        // Remove existing layers before updating source
+        ['unclustered-point-label', 'unclustered-point', 'cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+
         // Update or add source
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         if (source) {
