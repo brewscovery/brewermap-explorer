@@ -34,7 +34,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     const selectedBrewery = breweries[0];
     if (selectedBrewery) {
       // Create a simple object with just the necessary data
-      const simpleBrewery: Brewery = {
+      const simpleBrewery = {
         id: selectedBrewery.id,
         name: selectedBrewery.name,
         brewery_type: selectedBrewery.brewery_type || '',
@@ -52,6 +52,22 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [breweries]);
 
+  // Create serializable brewery objects
+  const serializableBreweries = breweries.map(brewery => ({
+    id: brewery.id,
+    name: brewery.name,
+    brewery_type: brewery.brewery_type || '',
+    street: brewery.street || '',
+    city: brewery.city,
+    state: brewery.state,
+    postal_code: brewery.postal_code || '',
+    country: brewery.country || 'United States',
+    longitude: brewery.longitude || '',
+    latitude: brewery.latitude || '',
+    phone: brewery.phone || '',
+    website_url: brewery.website_url || ''
+  }));
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
@@ -60,38 +76,12 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           <MapGeolocation map={map.current} />
           <MapLayers
             map={map.current}
-            breweries={breweries.map(b => ({
-              id: b.id,
-              name: b.name,
-              brewery_type: b.brewery_type || '',
-              street: b.street || '',
-              city: b.city,
-              state: b.state,
-              postal_code: b.postal_code || '',
-              country: b.country || 'United States',
-              longitude: b.longitude || '',
-              latitude: b.latitude || '',
-              phone: b.phone || '',
-              website_url: b.website_url || ''
-            }))}
+            breweries={serializableBreweries}
             onBrewerySelect={onBrewerySelect}
           />
           <MapInteractions
             map={map.current}
-            breweries={breweries.map(b => ({
-              id: b.id,
-              name: b.name,
-              brewery_type: b.brewery_type || '',
-              street: b.street || '',
-              city: b.city,
-              state: b.state,
-              postal_code: b.postal_code || '',
-              country: b.country || 'United States',
-              longitude: b.longitude || '',
-              latitude: b.latitude || '',
-              phone: b.phone || '',
-              website_url: b.website_url || ''
-            }))}
+            breweries={serializableBreweries}
             onBrewerySelect={onBrewerySelect}
           />
         </>

@@ -24,30 +24,44 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
 
       try {
-        // Filter out breweries without valid coordinates
-        const validBreweries = breweries.filter(brewery => 
-          brewery.longitude && 
-          brewery.latitude && 
-          !isNaN(parseFloat(brewery.longitude)) && 
-          !isNaN(parseFloat(brewery.latitude))
-        );
-
-        const features: Feature<Point, BreweryProperties>[] = validBreweries.map(brewery => ({
-          type: 'Feature',
-          properties: {
-            id: brewery.id,
-            name: brewery.name
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
-          }
-        }));
+        // Create a clean array of features with only necessary data
+        const features: Feature<Point, BreweryProperties>[] = breweries
+          .filter(brewery => 
+            brewery.longitude && 
+            brewery.latitude && 
+            !isNaN(parseFloat(brewery.longitude)) && 
+            !isNaN(parseFloat(brewery.latitude))
+          )
+          .map(brewery => ({
+            type: 'Feature',
+            properties: {
+              id: brewery.id,
+              name: brewery.name
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
+            }
+          }));
 
         const geojsonData: FeatureCollection<Point, BreweryProperties> = {
           type: 'FeatureCollection',
           features: features
         };
+
+        // Remove existing layers before updating source
+        if (map.getLayer('unclustered-point-label')) {
+          map.removeLayer('unclustered-point-label');
+        }
+        if (map.getLayer('unclustered-point')) {
+          map.removeLayer('unclustered-point');
+        }
+        if (map.getLayer('cluster-count')) {
+          map.removeLayer('cluster-count');
+        }
+        if (map.getLayer('clusters')) {
+          map.removeLayer('clusters');
+        }
 
         // Check if source exists and update it, or create new one
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
@@ -76,6 +90,13 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       if (!map.getStyle()) return;
       
       try {
+        // Remove layers first
+        ['unclustered-point-label', 'unclustered-point', 'cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        // Then remove source
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
         }
