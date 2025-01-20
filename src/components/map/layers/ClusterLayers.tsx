@@ -35,15 +35,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             'circle-radius': [
               'step',
               ['get', 'point_count'],
-              20, // Base size
+              30, // Base size
               10, // If point count >= 10
-              25, // Size if point count >= 10
+              35, // Size if point count >= 10
               30, // If point count >= 30
-              30  // Size if point count >= 30
+              40  // Size if point count >= 30
             ],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff',
-            'circle-opacity': 0.9
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff',
+            'circle-opacity': 1
           }
         });
       }
@@ -58,7 +58,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           layout: {
             'text-field': '{point_count_abbreviated}',
             'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12
+            'text-size': 14
           },
           paint: {
             'text-color': '#ffffff'

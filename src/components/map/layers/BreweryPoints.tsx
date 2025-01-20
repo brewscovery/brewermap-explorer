@@ -28,11 +28,11 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
               'interpolate',
               ['linear'],
               ['zoom'],
-              10, 6,  // At zoom level 10, circles will have size 6
-              15, 12  // At zoom level 15, circles will have size 12
+              10, 8,   // At zoom level 10, circles will have size 8
+              15, 15   // At zoom level 15, circles will have size 15
             ],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#fff',
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff',
             'circle-opacity': 1
           }
         });
@@ -51,16 +51,16 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
               ['linear'],
               ['zoom'],
               10, 0,    // Hide text at zoom level 10 and below
-              11, 12    // Show text at zoom level 11 and above
+              11, 14    // Show text at zoom level 11 and above
             ],
-            'text-offset': [0, 1.5],
+            'text-offset': [0, 2],
             'text-anchor': 'top',
             'text-allow-overlap': false,
             'text-ignore-placement': false
           },
           paint: {
             'text-color': '#374151',
-            'text-halo-color': '#fff',
+            'text-halo-color': '#ffffff',
             'text-halo-width': 2
           }
         });
