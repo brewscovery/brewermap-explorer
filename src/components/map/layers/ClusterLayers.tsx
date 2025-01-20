@@ -15,58 +15,55 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         return;
       }
 
-      try {
-        // Add clusters layer
-        if (!map.getLayer('clusters')) {
-          map.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source: source,
-            filter: ['has', 'point_count'],
-            paint: {
-              'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#fbbf24', // Amber-400 for small clusters
-                10,
-                '#f59e0b', // Amber-500 for medium clusters
-                30,
-                '#d97706' // Amber-600 for large clusters
-              ],
-              'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                20,
-                10,
-                30,
-                30,
-                40
-              ],
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#fff'
-            }
-          });
-        }
+      // Add clusters layer
+      if (!map.getLayer('clusters')) {
+        map.addLayer({
+          id: 'clusters',
+          type: 'circle',
+          source: source,
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': [
+              'step',
+              ['get', 'point_count'],
+              '#fbbf24', // Amber-400 for small clusters
+              10,
+              '#f59e0b', // Amber-500 for medium clusters
+              30,
+              '#d97706' // Amber-600 for large clusters
+            ],
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              20, // Base size
+              10, // If point count >= 10
+              25, // Size if point count >= 10
+              30, // If point count >= 30
+              30  // Size if point count >= 30
+            ],
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#fff',
+            'circle-opacity': 0.9
+          }
+        });
+      }
 
-        // Add cluster count layer
-        if (!map.getLayer('cluster-count')) {
-          map.addLayer({
-            id: 'cluster-count',
-            type: 'symbol',
-            source: source,
-            filter: ['has', 'point_count'],
-            layout: {
-              'text-field': '{point_count_abbreviated}',
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12
-            },
-            paint: {
-              'text-color': '#ffffff'
-            }
-          });
-        }
-      } catch (error) {
-        console.error('Error adding cluster layers:', error);
+      // Add cluster count layer
+      if (!map.getLayer('cluster-count')) {
+        map.addLayer({
+          id: 'cluster-count',
+          type: 'symbol',
+          source: source,
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 12
+          },
+          paint: {
+            'text-color': '#ffffff'
+          }
+        });
       }
     };
 
