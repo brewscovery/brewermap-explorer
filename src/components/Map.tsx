@@ -32,23 +32,8 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   // Watch for brewery selection changes
   useEffect(() => {
     const selectedBrewery = breweries[0];
-    if (selectedBrewery) {
-      // Create a simple object with just the necessary data
-      const simpleBrewery = {
-        id: selectedBrewery.id,
-        name: selectedBrewery.name,
-        brewery_type: selectedBrewery.brewery_type || '',
-        street: selectedBrewery.street || '',
-        city: selectedBrewery.city,
-        state: selectedBrewery.state,
-        postal_code: selectedBrewery.postal_code || '',
-        country: selectedBrewery.country || 'United States',
-        longitude: selectedBrewery.longitude || '',
-        latitude: selectedBrewery.latitude || '',
-        phone: selectedBrewery.phone || '',
-        website_url: selectedBrewery.website_url || ''
-      };
-      flyToBrewery(simpleBrewery);
+    if (selectedBrewery && selectedBrewery.longitude && selectedBrewery.latitude) {
+      flyToBrewery(selectedBrewery);
     }
   }, [breweries]);
 

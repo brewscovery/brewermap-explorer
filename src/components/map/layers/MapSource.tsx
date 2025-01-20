@@ -24,18 +24,6 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
 
       try {
-        // Remove existing layers before updating source
-        ['unclustered-point-label', 'unclustered-point', 'cluster-count', 'clusters'].forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
-          }
-        });
-
-        // Remove existing source if it exists
-        if (map.getSource('breweries')) {
-          map.removeSource('breweries');
-        }
-
         // Create a clean array of features with only necessary data
         const features: Feature<Point, BreweryProperties>[] = breweries
           .filter(brewery => 
@@ -61,16 +49,21 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           features: features
         };
 
-        // Add new source
-        map.addSource('breweries', {
-          type: 'geojson',
-          data: geojsonData,
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50
-        });
+        // Update or add source
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(geojsonData);
+        } else {
+          map.addSource('breweries', {
+            type: 'geojson',
+            data: geojsonData,
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50
+          });
+        }
 
-        console.log('Source added successfully with', features.length, 'features');
+        console.log('Source updated successfully with', features.length, 'features');
       } catch (error) {
         console.error('Error updating source:', error);
       }
@@ -83,14 +76,14 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       if (!map.getStyle()) return;
       
       try {
-        // Remove layers first
-        ['unclustered-point-label', 'unclustered-point', 'cluster-count', 'clusters'].forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
-          }
-        });
-        // Then remove source
         if (map.getSource('breweries')) {
+          // Remove layers first
+          ['unclustered-point-label', 'unclustered-point', 'cluster-count', 'clusters'].forEach(layer => {
+            if (map.getLayer(layer)) {
+              map.removeLayer(layer);
+            }
+          });
+          // Then remove source
           map.removeSource('breweries');
         }
       } catch (error) {
