@@ -18,40 +18,25 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const flyToBrewery = (brewery: Brewery) => {
     if (!map.current || !brewery.longitude || !brewery.latitude) return;
 
-    try {
-      map.current.flyTo({
-        center: [Number(brewery.longitude), Number(brewery.latitude)],
-        zoom: 15,
-        essential: true
-      });
-    } catch (error) {
-      console.error('Error flying to brewery:', error);
-    }
+    const lng = parseFloat(brewery.longitude);
+    const lat = parseFloat(brewery.latitude);
+    
+    if (isNaN(lng) || isNaN(lat)) return;
+
+    map.current.flyTo({
+      center: [lng, lat],
+      zoom: 15,
+      essential: true
+    });
   };
 
   // Watch for brewery selection changes
   useEffect(() => {
     const selectedBrewery = breweries[0];
-    if (selectedBrewery && selectedBrewery.longitude && selectedBrewery.latitude) {
+    if (selectedBrewery?.longitude && selectedBrewery?.latitude) {
       flyToBrewery(selectedBrewery);
     }
   }, [breweries]);
-
-  // Create serializable brewery objects
-  const serializableBreweries = breweries.map(brewery => ({
-    id: brewery.id,
-    name: brewery.name,
-    brewery_type: brewery.brewery_type || '',
-    street: brewery.street || '',
-    city: brewery.city,
-    state: brewery.state,
-    postal_code: brewery.postal_code || '',
-    country: brewery.country || 'United States',
-    longitude: brewery.longitude || '',
-    latitude: brewery.latitude || '',
-    phone: brewery.phone || '',
-    website_url: brewery.website_url || ''
-  }));
 
   return (
     <div className="relative w-full h-full">
@@ -61,12 +46,12 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           <MapGeolocation map={map.current} />
           <MapLayers
             map={map.current}
-            breweries={serializableBreweries}
+            breweries={breweries}
             onBrewerySelect={onBrewerySelect}
           />
           <MapInteractions
             map={map.current}
-            breweries={serializableBreweries}
+            breweries={breweries}
             onBrewerySelect={onBrewerySelect}
           />
         </>
