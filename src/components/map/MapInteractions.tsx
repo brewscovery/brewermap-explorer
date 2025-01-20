@@ -10,8 +10,10 @@ interface MapInteractionsProps {
 
 const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsProps) => {
   useEffect(() => {
+    if (!map) return;
+
     // Handle clicks on clusters
-    const handleClusterClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
+    const handleClusterClick = (e: mapboxgl.MapMouseEvent) => {
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['clusters']
       });
@@ -27,40 +29,36 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       }
 
       source.getClusterExpansionZoom(clusterId, (err, zoom) => {
-        if (err) {
-          console.error('Error getting cluster zoom:', err);
-          return;
-        }
+        if (err) return;
 
         if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-        const coordinates: [number, number] = [
-          features[0].geometry.coordinates[0],
-          features[0].geometry.coordinates[1]
-        ];
-
         map.easeTo({
-          center: coordinates,
+          center: [
+            features[0].geometry.coordinates[0],
+            features[0].geometry.coordinates[1]
+          ],
           zoom: zoom
         });
       });
     };
 
     // Handle clicks on individual points
-    const handlePointClick = (e: mapboxgl.MapMouseEvent & { features?: mapboxgl.MapboxGeoJSONFeature[] }) => {
-      if (!e.features?.[0]?.properties) return;
+    const handlePointClick = (e: mapboxgl.MapMouseEvent) => {
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['unclustered-point']
+      });
+
+      if (!features.length || !features[0].properties) return;
       
-      const properties = e.features[0].properties;
+      const properties = features[0].properties;
       const brewery = breweries.find(b => b.id === properties.id);
       
-      if (!brewery || !e.features[0].geometry || e.features[0].geometry.type !== 'Point') return;
+      if (!brewery || !features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-      const coordinates: [number, number] = [
-        e.features[0].geometry.coordinates[0],
-        e.features[0].geometry.coordinates[1]
-      ];
+      const coordinates = features[0].geometry.coordinates.slice() as [number, number];
 
-      // Create a simple HTML string for the popup
+      // Create popup content
       const popupHTML = `
         <h3 class="font-bold">${brewery.name}</h3>
         <p class="text-sm">${brewery.street || ''}</p>
@@ -73,7 +71,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
         .setHTML(popupHTML)
         .addTo(map);
 
-      // Create a new brewery object with primitive values only
+      // Create a clean brewery object with only primitive values
       const selectedBrewery: Brewery = {
         id: brewery.id,
         name: brewery.name,
@@ -92,33 +90,24 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       onBrewerySelect(selectedBrewery);
     };
 
-    // Handle cursor changes
-    const handleMouseEnter = () => {
-      map.getCanvas().style.cursor = 'pointer';
-    };
-
-    const handleMouseLeave = () => {
-      map.getCanvas().style.cursor = '';
-    };
-
     // Add event listeners
     map.on('click', 'clusters', handleClusterClick);
     map.on('click', 'unclustered-point', handlePointClick);
-    map.on('mouseenter', 'clusters', handleMouseEnter);
-    map.on('mouseleave', 'clusters', handleMouseLeave);
-    map.on('mouseenter', 'unclustered-point', handleMouseEnter);
-    map.on('mouseleave', 'unclustered-point', handleMouseLeave);
+    map.on('mouseenter', 'clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'clusters', () => { map.getCanvas().style.cursor = ''; });
+    map.on('mouseenter', 'unclustered-point', () => { map.getCanvas().style.cursor = 'pointer'; });
+    map.on('mouseleave', 'unclustered-point', () => { map.getCanvas().style.cursor = ''; });
 
-    // Cleanup event listeners
+    // Cleanup
     return () => {
       if (!map.getStyle()) return;
       
       map.off('click', 'clusters', handleClusterClick);
       map.off('click', 'unclustered-point', handlePointClick);
-      map.off('mouseenter', 'clusters', handleMouseEnter);
-      map.off('mouseleave', 'clusters', handleMouseLeave);
-      map.off('mouseenter', 'unclustered-point', handleMouseEnter);
-      map.off('mouseleave', 'unclustered-point', handleMouseLeave);
+      map.off('mouseenter', 'clusters', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.off('mouseleave', 'clusters', () => { map.getCanvas().style.cursor = ''; });
+      map.off('mouseenter', 'unclustered-point', () => { map.getCanvas().style.cursor = 'pointer'; });
+      map.off('mouseleave', 'unclustered-point', () => { map.getCanvas().style.cursor = ''; });
     };
   }, [map, breweries, onBrewerySelect]);
 
