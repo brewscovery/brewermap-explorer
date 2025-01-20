@@ -10,19 +10,17 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
       if (!map.isStyleLoaded()) {
-        console.log('Waiting for map style to load before adding cluster layers...');
         requestAnimationFrame(addLayers);
         return;
       }
 
       if (!map.getSource(source)) {
-        console.log('Source not found, retrying cluster layers...');
         requestAnimationFrame(addLayers);
         return;
       }
 
       try {
-        // Add clusters layer if it doesn't exist
+        // Add clusters layer
         if (!map.getLayer('clusters')) {
           map.addLayer({
             id: 'clusters',
@@ -30,33 +28,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             source: source,
             filter: ['has', 'point_count'],
             paint: {
-              'circle-color': [
-                'step',
-                ['get', 'point_count'],
-                '#fbbf24',
-                10,
-                '#f59e0b',
-                30,
-                '#d97706'
-              ],
-              'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                30,
-                10,
-                35,
-                30,
-                40
-              ],
+              'circle-color': '#fbbf24',
+              'circle-radius': 20,
               'circle-stroke-width': 3,
-              'circle-stroke-color': '#ffffff',
-              'circle-opacity': 1
+              'circle-stroke-color': '#ffffff'
             }
           });
-          console.log('Clusters layer added successfully');
         }
 
-        // Add cluster count layer if it doesn't exist
+        // Add cluster count layer
         if (!map.getLayer('cluster-count')) {
           map.addLayer({
             id: 'cluster-count',
@@ -72,14 +52,14 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'text-color': '#ffffff'
             }
           });
-          console.log('Cluster count layer added successfully');
         }
+
+        console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }
     };
 
-    // Initial attempt to add layers
     addLayers();
 
     return () => {

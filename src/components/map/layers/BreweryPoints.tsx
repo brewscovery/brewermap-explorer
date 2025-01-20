@@ -10,19 +10,17 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayers = () => {
       if (!map.isStyleLoaded()) {
-        console.log('Waiting for map style to load before adding point layers...');
         requestAnimationFrame(addLayers);
         return;
       }
 
       if (!map.getSource(source)) {
-        console.log('Source not found, retrying point layers...');
         requestAnimationFrame(addLayers);
         return;
       }
 
       try {
-        // Add unclustered point layer if it doesn't exist
+        // Add unclustered point layer
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
             id: 'unclustered-point',
@@ -31,22 +29,14 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
             filter: ['!', ['has', 'point_count']],
             paint: {
               'circle-color': '#fbbf24',
-              'circle-radius': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10, 8,
-                15, 15
-              ],
+              'circle-radius': 10,
               'circle-stroke-width': 3,
-              'circle-stroke-color': '#ffffff',
-              'circle-opacity': 1
+              'circle-stroke-color': '#ffffff'
             }
           });
-          console.log('Unclustered point layer added successfully');
         }
 
-        // Add text labels for unclustered points if they don't exist
+        // Add text labels for unclustered points
         if (!map.getLayer('unclustered-point-label')) {
           map.addLayer({
             id: 'unclustered-point-label',
@@ -56,17 +46,9 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
             layout: {
               'text-field': ['get', 'name'],
               'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                10, 0,
-                11, 14
-              ],
-              'text-offset': [0, 2],
-              'text-anchor': 'top',
-              'text-allow-overlap': false,
-              'text-ignore-placement': false
+              'text-size': 12,
+              'text-offset': [0, 1.5],
+              'text-anchor': 'top'
             },
             paint: {
               'text-color': '#374151',
@@ -74,14 +56,14 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
               'text-halo-width': 2
             }
           });
-          console.log('Unclustered point label layer added successfully');
         }
+
+        console.log('Point layers added successfully');
       } catch (error) {
         console.error('Error adding point layers:', error);
       }
     };
 
-    // Initial attempt to add layers
     addLayers();
 
     return () => {
