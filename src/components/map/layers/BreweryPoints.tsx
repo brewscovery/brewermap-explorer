@@ -8,14 +8,19 @@ interface BreweryPointsProps {
 
 const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
   useEffect(() => {
-    const addLayer = () => {
-      if (!map.getSource(source)) {
-        console.log('Source not found, retrying...');
-        setTimeout(addLayer, 100);
+    const addLayers = () => {
+      if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded yet, waiting...');
         return;
       }
 
-      // Add unclustered points layer
+      if (!map.getSource(source)) {
+        console.log('Source not found, retrying...');
+        setTimeout(addLayers, 100);
+        return;
+      }
+
+      // Add unclustered point layer
       if (!map.getLayer('unclustered-point')) {
         map.addLayer({
           id: 'unclustered-point',
@@ -36,8 +41,10 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
             'circle-opacity': 1
           }
         });
+      }
 
-        // Add the text layer for brewery names
+      // Add text labels for unclustered points
+      if (!map.getLayer('unclustered-point-label')) {
         map.addLayer({
           id: 'unclustered-point-label',
           type: 'symbol',
@@ -67,25 +74,25 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
     };
 
-    // Wait for style to be loaded before adding layer
+    // Initial attempt to add layers
+    addLayers();
+
+    // Set up style.load event listener if style isn't loaded
     if (!map.isStyleLoaded()) {
-      map.once('style.load', addLayer);
-    } else {
-      addLayer();
+      map.once('style.load', addLayers);
     }
 
     return () => {
       if (!map.getStyle()) return;
       
       try {
-        if (map.getLayer('unclustered-point-label')) {
-          map.removeLayer('unclustered-point-label');
-        }
-        if (map.getLayer('unclustered-point')) {
-          map.removeLayer('unclustered-point');
-        }
+        ['unclustered-point', 'unclustered-point-label'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
       } catch (error) {
-        console.warn('Error cleaning up brewery points layer:', error);
+        console.warn('Error cleaning up point layers:', error);
       }
     };
   }, [map, source]);

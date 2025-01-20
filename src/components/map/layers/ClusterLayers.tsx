@@ -9,6 +9,11 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
+      if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded yet, waiting...');
+        return;
+      }
+
       if (!map.getSource(source)) {
         console.log('Source not found, retrying...');
         setTimeout(addLayers, 100);
@@ -67,11 +72,12 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    // Wait for style to be loaded before adding layers
+    // Initial attempt to add layers
+    addLayers();
+
+    // Set up style.load event listener if style isn't loaded
     if (!map.isStyleLoaded()) {
       map.once('style.load', addLayers);
-    } else {
-      addLayers();
     }
 
     return () => {

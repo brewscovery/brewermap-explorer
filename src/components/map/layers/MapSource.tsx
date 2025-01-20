@@ -17,22 +17,35 @@ interface BreweryProperties {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const updateSource = () => {
+      if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded yet, waiting...');
+        return;
+      }
+
       try {
+        // Filter out breweries without valid coordinates and create serializable features
+        const validBreweries = breweries.filter(brewery => 
+          brewery.longitude && 
+          brewery.latitude && 
+          !isNaN(parseFloat(brewery.longitude)) && 
+          !isNaN(parseFloat(brewery.latitude))
+        );
+
+        const features: Feature<Point, BreweryProperties>[] = validBreweries.map(brewery => ({
+          type: 'Feature',
+          properties: {
+            id: brewery.id,
+            name: brewery.name
+          },
+          geometry: {
+            type: 'Point',
+            coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
+          }
+        }));
+
         const geojsonData: FeatureCollection<Point, BreweryProperties> = {
           type: 'FeatureCollection',
-          features: breweries
-            .filter(brewery => brewery.longitude && brewery.latitude)
-            .map(brewery => ({
-              type: 'Feature',
-              properties: {
-                id: brewery.id,
-                name: brewery.name
-              },
-              geometry: {
-                type: 'Point',
-                coordinates: [parseFloat(brewery.longitude), parseFloat(brewery.latitude)]
-              }
-            }))
+          features: features
         };
 
         const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
@@ -53,11 +66,12 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    // Wait for style to be loaded before updating source
+    // Initial update
+    updateSource();
+
+    // Set up style.load event listener if style isn't loaded
     if (!map.isStyleLoaded()) {
       map.once('style.load', updateSource);
-    } else {
-      updateSource();
     }
 
     return () => {
