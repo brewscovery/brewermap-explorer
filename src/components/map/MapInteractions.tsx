@@ -30,7 +30,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
         if (!features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-        const coordinates = features[0].geometry.coordinates.slice();
+        const coordinates = features[0].geometry.coordinates as [number, number];
         
         map.easeTo({
           center: coordinates,
@@ -52,7 +52,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       
       if (!brewery || !features[0].geometry || features[0].geometry.type !== 'Point') return;
 
-      const coordinates = features[0].geometry.coordinates.slice();
+      const coordinates = features[0].geometry.coordinates as [number, number];
 
       // Create popup content
       const popupHTML = `
