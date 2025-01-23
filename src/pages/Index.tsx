@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
 import Sidebar from '@/components/Sidebar';
 import BreweryForm from '@/components/BreweryForm';
@@ -6,8 +7,12 @@ import type { Brewery } from '@/types/brewery';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, userType } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
@@ -50,13 +55,17 @@ const Index = () => {
     },
   });
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/auth');
+  };
+
   useEffect(() => {
     if (error) {
       toast.error('Failed to load breweries');
     }
   }, [error]);
 
-  // Update displayed breweries when selection changes
   useEffect(() => {
     if (selectedBrewery) {
       setDisplayedBreweries([selectedBrewery, ...breweries.filter(b => b.id !== selectedBrewery.id)]);
@@ -67,6 +76,17 @@ const Index = () => {
 
   return (
     <div className="flex flex-col h-screen">
+      <div className="p-4 bg-background border-b flex justify-between items-center">
+        <h1 className="text-xl font-bold">Brewery Explorer</h1>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-muted-foreground">
+            {userType === 'business' ? 'Business Account' : 'Regular Account'}
+          </span>
+          <Button variant="outline" onClick={handleLogout}>
+            Logout
+          </Button>
+        </div>
+      </div>
       <div className="flex flex-1 min-h-0">
         <div className="w-96 h-full">
           <Sidebar
@@ -85,12 +105,14 @@ const Index = () => {
           />
         </div>
       </div>
-      <div className="p-6 bg-card border-t">
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Add New Brewery</h2>
-          <BreweryForm onSubmitSuccess={refetch} />
+      {userType === 'business' && (
+        <div className="p-6 bg-card border-t">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold mb-4">Add New Brewery</h2>
+            <BreweryForm onSubmitSuccess={refetch} />
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

@@ -60,6 +60,111 @@ export type Database = {
         }
         Relationships: []
       }
+      brewery_owners: {
+        Row: {
+          brewery_id: string | null
+          created_at: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          brewery_id?: string | null
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          brewery_id?: string | null
+          created_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brewery_owners_brewery_id_fkey"
+            columns: ["brewery_id"]
+            isOneToOne: false
+            referencedRelation: "breweries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "brewery_owners_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checkins: {
+        Row: {
+          brewery_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          visited_at: string
+        }
+        Insert: {
+          brewery_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          visited_at?: string
+        }
+        Update: {
+          brewery_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checkins_brewery_id_fkey"
+            columns: ["brewery_id"]
+            isOneToOne: false
+            referencedRelation: "breweries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          user_type: Database["public"]["Enums"]["user_type"]
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -76,7 +181,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      user_type: "business" | "regular"
     }
     CompositeTypes: {
       [_ in never]: never
