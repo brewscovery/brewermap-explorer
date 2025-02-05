@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CheckInDialogProps {
   brewery: Brewery;
@@ -34,6 +36,7 @@ interface CheckInFormData {
 }
 
 export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDialogProps) {
+  const { user } = useAuth();
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<CheckInFormData>();
 
   const onSubmit = async (data: CheckInFormData) => {
@@ -42,6 +45,7 @@ export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDi
         .from('checkins')
         .insert({
           brewery_id: brewery.id,
+          user_id: user?.id,  // Add the user_id here
           rating: parseInt(data.rating),
           comment: data.comment,
         });
@@ -63,6 +67,9 @@ export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDi
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Check in at {brewery.name}</DialogTitle>
+          <DialogDescription>
+            Share your experience at this brewery
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
