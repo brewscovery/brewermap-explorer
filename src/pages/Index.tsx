@@ -9,6 +9,13 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Label } from '@/components/ui/label';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -17,8 +24,11 @@ const Index = () => {
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const [displayedBreweries, setDisplayedBreweries] = useState<Brewery[]>([]);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const { data: breweries = [], isLoading, error, refetch } = useQuery({
+  const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
     queryFn: async () => {
       if (!searchTerm) {
@@ -55,9 +65,28 @@ const Index = () => {
     },
   });
 
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) throw error;
+      toast.success('Logged in successfully');
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    navigate('/auth');
+    navigate('/');
   };
 
   useEffect(() => {
@@ -76,18 +105,58 @@ const Index = () => {
 
   return (
     <div className="flex flex-col h-screen">
-      <div className="p-4 bg-background border-b flex justify-between items-center">
+      <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
         <h1 className="text-xl font-bold">Brewery Explorer</h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
-            {userType === 'business' ? 'Business Account' : 'Regular Account'}
-          </span>
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
+          {user ? (
+            <>
+              <span className="text-sm text-muted-foreground">
+                {userType === 'business' ? 'Business Account' : 'Regular Account'}
+              </span>
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
+              </Button>
+            </>
+          ) : (
+            <div className="flex gap-2">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline">Login</Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="password">Password</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? 'Loading...' : 'Login'}
+                    </Button>
+                  </form>
+                </PopoverContent>
+              </Popover>
+              <Button onClick={() => navigate('/auth')}>Sign Up</Button>
+            </div>
+          )}
         </div>
       </div>
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 pt-[73px]">
         <div className="w-96 h-full">
           <Sidebar
             breweries={breweries}
