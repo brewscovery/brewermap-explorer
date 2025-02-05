@@ -1,6 +1,10 @@
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
+import { CheckInDialog } from '@/components/CheckInDialog';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 interface MapInteractionsProps {
   map: mapboxgl.Map;
@@ -9,6 +13,10 @@ interface MapInteractionsProps {
 }
 
 const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsProps) => {
+  const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  const { user, userType } = useAuth();
+
   useEffect(() => {
     if (!map) return;
 
@@ -56,16 +64,33 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
       // Create popup content
       const popupHTML = `
-        <h3 class="font-bold">${brewery.name}</h3>
-        <p class="text-sm">${brewery.street || ''}</p>
-        <p class="text-sm">${brewery.city}, ${brewery.state}</p>
-        ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+        <div class="space-y-2">
+          <h3 class="font-bold">${brewery.name}</h3>
+          <p class="text-sm">${brewery.street || ''}</p>
+          <p class="text-sm">${brewery.city}, ${brewery.state}</p>
+          ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+          ${user && userType === 'regular' ? '<button class="check-in-btn bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 rounded-md text-sm font-medium">Check In</button>' : ''}
+        </div>
       `;
 
-      new mapboxgl.Popup()
+      const popup = new mapboxgl.Popup()
         .setLngLat(coordinates)
         .setHTML(popupHTML)
         .addTo(map);
+
+      // Add click handler for check-in button
+      const checkInBtn = popup.getElement().querySelector('.check-in-btn');
+      if (checkInBtn) {
+        checkInBtn.addEventListener('click', () => {
+          if (!user) {
+            toast.error('Please log in to check in at breweries');
+            return;
+          }
+          setSelectedBrewery(brewery);
+          setIsCheckInDialogOpen(true);
+          popup.remove();
+        });
+      }
 
       onBrewerySelect(brewery);
     };
@@ -93,9 +118,25 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       map.off('mouseenter', 'unclustered-point', handleMouseEnter);
       map.off('mouseleave', 'unclustered-point', handleMouseLeave);
     };
-  }, [map, breweries, onBrewerySelect]);
+  }, [map, breweries, onBrewerySelect, user, userType]);
 
-  return null;
+  return (
+    <>
+      {selectedBrewery && (
+        <CheckInDialog
+          brewery={selectedBrewery}
+          isOpen={isCheckInDialogOpen}
+          onClose={() => {
+            setIsCheckInDialogOpen(false);
+            setSelectedBrewery(null);
+          }}
+          onSuccess={() => {
+            // Handle successful check-in
+          }}
+        />
+      )}
+    </>
+  );
 };
 
 export default MapInteractions;
