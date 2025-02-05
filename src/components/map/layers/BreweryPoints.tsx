@@ -1,12 +1,14 @@
+
 import { useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface BreweryPointsProps {
   map: mapboxgl.Map;
   source: string;
+  visitedBreweryIds?: string[];
 }
 
-const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
+const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayers = () => {
       if (!map.isStyleLoaded()) {
@@ -22,7 +24,7 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
       }
 
       try {
-        // Add unclustered point layer
+        // Add unclustered point layer with conditional colors
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
             id: 'unclustered-point',
@@ -30,13 +32,26 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
             source: source,
             filter: ['!', ['has', 'point_count']],
             paint: {
-              'circle-color': '#fbbf24',
+              'circle-color': [
+                'case',
+                ['in', ['get', 'id'], ['literal', visitedBreweryIds]],
+                '#22c55e', // Green color for visited breweries
+                '#fbbf24'  // Default yellow color for unvisited breweries
+              ],
               'circle-radius': 12,
               'circle-stroke-width': 3,
               'circle-stroke-color': '#ffffff'
             }
           });
           console.log('Added unclustered point layer');
+        } else {
+          // Update the layer paint properties when visitedBreweryIds changes
+          map.setPaintProperty('unclustered-point', 'circle-color', [
+            'case',
+            ['in', ['get', 'id'], ['literal', visitedBreweryIds]],
+            '#22c55e', // Green color for visited breweries
+            '#fbbf24'  // Default yellow color for unvisited breweries
+          ]);
         }
 
         // Add text labels for unclustered points
@@ -83,7 +98,7 @@ const BreweryPoints = ({ map, source }: BreweryPointsProps) => {
         console.warn('Error cleaning up point layers:', error);
       }
     };
-  }, [map, source]);
+  }, [map, source, visitedBreweryIds]);
 
   return null;
 };
