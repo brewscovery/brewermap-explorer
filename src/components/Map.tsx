@@ -36,13 +36,16 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     enabled: !!user
   });
 
-  // Update visited breweries when check-ins data changes
+  // Update visited breweries when check-ins data changes or when user logs out
   useEffect(() => {
-    if (checkins) {
+    if (user && checkins) {
       const visited = checkins.map(checkin => checkin.brewery_id);
       setVisitedBreweryIds(visited);
+    } else {
+      // Reset visited breweries when user is not logged in
+      setVisitedBreweryIds([]);
     }
-  }, [checkins]);
+  }, [checkins, user]);
 
   // Function to fly to a brewery's location
   const flyToBrewery = (brewery: Brewery) => {
