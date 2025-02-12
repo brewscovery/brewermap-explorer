@@ -11,18 +11,6 @@ interface BreweryPointsProps {
 const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsProps) => {
   useEffect(() => {
     const addLayers = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Waiting for map style to load before adding point layers...');
-        requestAnimationFrame(addLayers);
-        return;
-      }
-
-      if (!map.getSource(source)) {
-        console.log('Waiting for source to be available before adding point layers...');
-        requestAnimationFrame(addLayers);
-        return;
-      }
-
       try {
         // Add unclustered point layer with conditional colors
         if (!map.getLayer('unclustered-point')) {
@@ -43,7 +31,6 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'circle-stroke-color': '#ffffff'
             }
           });
-          console.log('Added unclustered point layer');
         } else {
           // Update the layer paint properties when visitedBreweryIds changes
           map.setPaintProperty('unclustered-point', 'circle-color', [
@@ -76,16 +63,39 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'text-halo-width': 2
             }
           });
-          console.log('Added unclustered point label layer');
         }
       } catch (error) {
         console.error('Error adding point layers:', error);
       }
     };
 
-    addLayers();
+    // If the style and source are already loaded, add layers immediately
+    if (map.isStyleLoaded() && map.getSource(source)) {
+      addLayers();
+    }
+
+    // Also listen for the style.load event to handle initial load
+    const onStyleLoad = () => {
+      // Wait for source to be available before adding layers
+      if (map.getSource(source)) {
+        addLayers();
+      } else {
+        // If source isn't available yet, wait for sourcedata event
+        const onSourceAdd = () => {
+          if (map.getSource(source)) {
+            addLayers();
+            map.off('sourcedata', onSourceAdd);
+          }
+        };
+        map.on('sourcedata', onSourceAdd);
+      }
+    };
+
+    map.on('style.load', onStyleLoad);
 
     return () => {
+      map.off('style.load', onStyleLoad);
+      
       if (!map.getStyle()) return;
       
       try {

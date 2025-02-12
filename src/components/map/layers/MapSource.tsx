@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
@@ -17,11 +18,6 @@ interface BreweryProperties {
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   useEffect(() => {
     const addSource = () => {
-      if (!map.isStyleLoaded()) {
-        requestAnimationFrame(addSource);
-        return;
-      }
-
       // Create a clean array of features with only necessary data
       const features: Feature<Point, BreweryProperties>[] = breweries
         .filter(brewery => {
@@ -64,9 +60,21 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    addSource();
+    // If the style is already loaded, add the source immediately
+    if (map.isStyleLoaded()) {
+      addSource();
+    }
+
+    // Also listen for the style.load event to handle initial load
+    const onStyleLoad = () => {
+      addSource();
+    };
+
+    map.on('style.load', onStyleLoad);
 
     return () => {
+      map.off('style.load', onStyleLoad);
+      
       if (!map.getStyle()) return;
       
       try {

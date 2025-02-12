@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import mapboxgl from 'mapbox-gl';
 
@@ -9,18 +10,6 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const addLayers = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Waiting for map style to load before adding cluster layers...');
-        requestAnimationFrame(addLayers);
-        return;
-      }
-
-      if (!map.getSource(source)) {
-        console.log('Waiting for source to be available before adding cluster layers...');
-        requestAnimationFrame(addLayers);
-        return;
-      }
-
       try {
         // Add clusters layer
         if (!map.getLayer('clusters')) {
@@ -44,7 +33,6 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'circle-stroke-color': '#ffffff'
             }
           });
-          console.log('Added clusters layer');
         }
 
         // Add cluster count layer
@@ -63,16 +51,39 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'text-color': '#ffffff'
             }
           });
-          console.log('Added cluster count layer');
         }
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }
     };
 
-    addLayers();
+    // If the style and source are already loaded, add layers immediately
+    if (map.isStyleLoaded() && map.getSource(source)) {
+      addLayers();
+    }
+
+    // Also listen for the style.load event to handle initial load
+    const onStyleLoad = () => {
+      // Wait for source to be available before adding layers
+      if (map.getSource(source)) {
+        addLayers();
+      } else {
+        // If source isn't available yet, wait for sourcedata event
+        const onSourceAdd = () => {
+          if (map.getSource(source)) {
+            addLayers();
+            map.off('sourcedata', onSourceAdd);
+          }
+        };
+        map.on('sourcedata', onSourceAdd);
+      }
+    };
+
+    map.on('style.load', onStyleLoad);
 
     return () => {
+      map.off('style.load', onStyleLoad);
+      
       if (!map.getStyle()) return;
       
       try {
