@@ -25,24 +25,6 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const { user, userType } = useAuth();
 
-  // Fetch user's check-ins for the selected brewery
-  const { data: userCheckins } = useQuery({
-    queryKey: ['brewery-checkins', selectedBrewery?.id, user?.id],
-    queryFn: async () => {
-      if (!user || !selectedBrewery) return null;
-      const { data, error } = await supabase
-        .from('checkins')
-        .select('rating, comment, created_at')
-        .eq('brewery_id', selectedBrewery.id)
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user && !!selectedBrewery
-  });
-
   useEffect(() => {
     if (!map) return;
 
@@ -74,7 +56,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
     };
 
     // Handle clicks on individual points
-    const handlePointClick = (e: mapboxgl.MapMouseEvent) => {
+    const handlePointClick = async (e: mapboxgl.MapMouseEvent) => {
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['unclustered-point']
       });
@@ -88,21 +70,30 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
 
       const coordinates = features[0].geometry.coordinates as [number, number];
 
-      // Create popup content with user's check-ins if available
+      // Fetch user's check-ins for this specific brewery
       let checkinsHtml = '';
-      if (user && userCheckins && userCheckins.length > 0) {
-        checkinsHtml = `
-          <div class="mt-4 border-t pt-2">
-            <h4 class="font-semibold mb-2">Your Check-ins</h4>
-            ${userCheckins.map((checkin: CheckIn) => `
-              <div class="mb-2 pb-2 border-b last:border-b-0">
-                <p class="text-sm font-medium">Rating: ${'⭐'.repeat(checkin.rating)}</p>
-                ${checkin.comment ? `<p class="text-sm">${checkin.comment}</p>` : ''}
-                <p class="text-xs text-gray-500">${new Date(checkin.created_at).toLocaleDateString()}</p>
-              </div>
-            `).join('')}
-          </div>
-        `;
+      if (user) {
+        const { data: userCheckins, error } = await supabase
+          .from('checkins')
+          .select('rating, comment, created_at')
+          .eq('brewery_id', brewery.id)
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false });
+
+        if (!error && userCheckins && userCheckins.length > 0) {
+          checkinsHtml = `
+            <div class="mt-4 border-t pt-2">
+              <h4 class="font-semibold mb-2">Your Check-ins</h4>
+              ${userCheckins.map((checkin: CheckIn) => `
+                <div class="mb-2 pb-2 border-b last:border-b-0">
+                  <p class="text-sm font-medium">Rating: ${'⭐'.repeat(checkin.rating)}</p>
+                  ${checkin.comment ? `<p class="text-sm">${checkin.comment}</p>` : ''}
+                  <p class="text-xs text-gray-500">${new Date(checkin.created_at).toLocaleDateString()}</p>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        }
       }
 
       // Create popup content
@@ -163,7 +154,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       map.off('mouseenter', 'unclustered-point', handleMouseEnter);
       map.off('mouseleave', 'unclustered-point', handleMouseLeave);
     };
-  }, [map, breweries, onBrewerySelect, user, userType, userCheckins]);
+  }, [map, breweries, onBrewerySelect, user, userType]);
 
   return (
     <>
