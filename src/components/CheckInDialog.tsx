@@ -41,13 +41,19 @@ export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDi
 
   const onSubmit = async (data: CheckInFormData) => {
     try {
+      // Ensure rating is a valid number between 1 and 5
+      const rating = parseInt(data.rating);
+      if (isNaN(rating) || rating < 1 || rating > 5) {
+        throw new Error('Please select a valid rating between 1 and 5 stars');
+      }
+
       const { error } = await supabase
         .from('checkins')
         .insert({
           brewery_id: brewery.id,
-          user_id: user?.id,  // Add the user_id here
-          rating: parseInt(data.rating),
-          comment: data.comment,
+          user_id: user?.id,
+          rating: rating, // Now properly parsed as a number
+          comment: data.comment || null, // Handle empty comments
         });
 
       if (error) throw error;
