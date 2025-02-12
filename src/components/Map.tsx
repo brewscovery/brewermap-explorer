@@ -6,7 +6,7 @@ import MapLayers from './map/MapLayers';
 import MapInteractions from './map/MapInteractions';
 import MapGeolocation from './map/MapGeolocation';
 import { useMapInitialization } from '@/hooks/useMapInitialization';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -19,6 +19,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
+  const queryClient = useQueryClient();
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
@@ -35,6 +36,32 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     },
     enabled: !!user
   });
+
+  // Subscribe to realtime changes on checkins
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('checkins-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'checkins',
+          filter: `user_id=eq.${user.id}`
+        },
+        () => {
+          // Invalidate and refetch checkins
+          queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, [user, queryClient]);
 
   // Update visited breweries when check-ins data changes or when user logs out
   useEffect(() => {
