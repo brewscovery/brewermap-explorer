@@ -19,6 +19,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
+  const [isMapReady, setIsMapReady] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
@@ -52,7 +53,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          // Invalidate and refetch checkins
           queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
         }
       )
@@ -69,7 +69,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       const visited = checkins.map(checkin => checkin.brewery_id);
       setVisitedBreweryIds(visited);
     } else {
-      // Reset visited breweries when user is not logged in
       setVisitedBreweryIds([]);
     }
   }, [checkins, user]);
@@ -98,10 +97,31 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [breweries]);
 
+  // Ensure map is fully initialized before rendering layers
+  useEffect(() => {
+    if (!map.current || !isStyleLoaded) return;
+
+    const checkMapReady = () => {
+      if (map.current?.isStyleLoaded()) {
+        setIsMapReady(true);
+      } else {
+        map.current?.once('style.load', () => {
+          setIsMapReady(true);
+        });
+      }
+    };
+
+    checkMapReady();
+
+    return () => {
+      setIsMapReady(false);
+    };
+  }, [map, isStyleLoaded]);
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && isStyleLoaded && (
+      {map.current && isStyleLoaded && isMapReady && breweries.length > 0 && (
         <>
           <MapGeolocation map={map.current} />
           <MapLayers
