@@ -19,7 +19,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
-  const [isMapReady, setIsMapReady] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
@@ -97,31 +96,27 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [breweries]);
 
-  // Ensure map is fully initialized before rendering layers
+  // Force a re-render of map layers when style is loaded
   useEffect(() => {
     if (!map.current || !isStyleLoaded) return;
 
-    const checkMapReady = () => {
+    const forceRender = () => {
       if (map.current?.isStyleLoaded()) {
-        setIsMapReady(true);
-      } else {
-        map.current?.once('style.load', () => {
-          setIsMapReady(true);
-        });
+        // Trigger a moveend event to force layers to re-render
+        map.current.fire('moveend');
       }
     };
 
-    checkMapReady();
+    // Small delay to ensure style is fully processed
+    const timer = setTimeout(forceRender, 100);
 
-    return () => {
-      setIsMapReady(false);
-    };
-  }, [map, isStyleLoaded]);
+    return () => clearTimeout(timer);
+  }, [map, isStyleLoaded, breweries]);
 
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && isStyleLoaded && isMapReady && breweries.length > 0 && (
+      {map.current && isStyleLoaded && breweries.length > 0 && (
         <>
           <MapGeolocation map={map.current} />
           <MapLayers
