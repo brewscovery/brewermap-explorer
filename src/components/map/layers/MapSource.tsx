@@ -47,16 +47,17 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       } as FeatureCollection<Point, BreweryProperties>;
     };
 
-    const addSource = () => {
-      if (sourceAdded.current) {
-        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        if (source) {
+    const tryAddSource = () => {
+      try {
+        // Always try to remove the source first to ensure a clean state
+        if (map.getSource('breweries')) {
+          // If source exists, just update the data
+          const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
           source.setData(createGeoJsonData());
+          return;
         }
-        return;
-      }
 
-      if (!map.getSource('breweries')) {
+        // Add new source if it doesn't exist
         map.addSource('breweries', {
           type: 'geojson',
           data: createGeoJsonData(),
@@ -65,25 +66,36 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           clusterRadius: 50
         });
         sourceAdded.current = true;
-        
-        // Emit a custom event when source is added
         map.fire('source-added');
+      } catch (error) {
+        console.warn('Error adding/updating source:', error);
       }
     };
 
-    const initialize = () => {
-      if (!map.isStyleLoaded()) {
-        map.once('style.load', () => {
-          addSource();
-        });
+    // Function to check map state and add source
+    const addSourceWhenReady = () => {
+      if (map.isStyleLoaded()) {
+        tryAddSource();
       } else {
-        addSource();
+        // Wait for style to load
+        map.once('style.load', tryAddSource);
       }
     };
 
-    initialize();
+    // Initial attempt to add source
+    addSourceWhenReady();
+
+    // Also try adding source after a short delay to ensure map is ready
+    const timer = setTimeout(() => {
+      if (!sourceAdded.current) {
+        addSourceWhenReady();
+      }
+    }, 500);
 
     return () => {
+      clearTimeout(timer);
+      map.off('style.load', tryAddSource);
+      
       if (!map.getStyle()) return;
       
       try {
