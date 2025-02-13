@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface ClusterLayersProps {
@@ -8,8 +8,12 @@ interface ClusterLayersProps {
 }
 
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
+  const layersAdded = useRef(false);
+
   useEffect(() => {
     const addLayers = () => {
+      if (layersAdded.current) return;
+      
       try {
         // Add clusters layer
         if (!map.getLayer('clusters')) {
@@ -52,37 +56,33 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             }
           });
         }
+        
+        layersAdded.current = true;
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }
     };
 
-    // If the style and source are already loaded, add layers immediately
-    if (map.isStyleLoaded() && map.getSource(source)) {
-      addLayers();
-    }
-
-    // Also listen for the style.load event to handle initial load
-    const onStyleLoad = () => {
-      // Wait for source to be available before adding layers
-      if (map.getSource(source)) {
-        addLayers();
-      } else {
-        // If source isn't available yet, wait for sourcedata event
-        const onSourceAdd = () => {
+    const initialize = () => {
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', () => {
           if (map.getSource(source)) {
             addLayers();
-            map.off('sourcedata', onSourceAdd);
+          } else {
+            map.once('source-added', addLayers);
           }
-        };
-        map.on('sourcedata', onSourceAdd);
+        });
+      } else if (map.getSource(source)) {
+        addLayers();
+      } else {
+        map.once('source-added', addLayers);
       }
     };
 
-    map.on('style.load', onStyleLoad);
+    initialize();
 
     return () => {
-      map.off('style.load', onStyleLoad);
+      map.off('source-added', addLayers);
       
       if (!map.getStyle()) return;
       
@@ -92,6 +92,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
             map.removeLayer(layer);
           }
         });
+        layersAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }

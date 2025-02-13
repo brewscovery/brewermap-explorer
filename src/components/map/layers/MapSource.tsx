@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -16,9 +16,10 @@ interface BreweryProperties {
 }
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
+  const sourceAdded = useRef(false);
+
   useEffect(() => {
-    const addSource = () => {
-      // Create a clean array of features with only necessary data
+    const createGeoJsonData = () => {
       const features: Feature<Point, BreweryProperties>[] = breweries
         .filter(brewery => {
           const lng = parseFloat(brewery.longitude || '');
@@ -40,46 +41,55 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
           }
         }));
 
-      const geojsonData: FeatureCollection<Point, BreweryProperties> = {
+      return {
         type: 'FeatureCollection',
         features: features
-      };
+      } as FeatureCollection<Point, BreweryProperties>;
+    };
 
-      // Update or add source
-      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-      if (source) {
-        source.setData(geojsonData);
-      } else {
+    const addSource = () => {
+      if (sourceAdded.current) {
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        if (source) {
+          source.setData(createGeoJsonData());
+        }
+        return;
+      }
+
+      if (!map.getSource('breweries')) {
         map.addSource('breweries', {
           type: 'geojson',
-          data: geojsonData,
+          data: createGeoJsonData(),
           cluster: true,
           clusterMaxZoom: 14,
           clusterRadius: 50
         });
+        sourceAdded.current = true;
+        
+        // Emit a custom event when source is added
+        map.fire('source-added');
       }
     };
 
-    // If the style is already loaded, add the source immediately
-    if (map.isStyleLoaded()) {
-      addSource();
-    }
-
-    // Also listen for the style.load event to handle initial load
-    const onStyleLoad = () => {
-      addSource();
+    const initialize = () => {
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', () => {
+          addSource();
+        });
+      } else {
+        addSource();
+      }
     };
 
-    map.on('style.load', onStyleLoad);
+    initialize();
 
     return () => {
-      map.off('style.load', onStyleLoad);
-      
       if (!map.getStyle()) return;
       
       try {
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
+          sourceAdded.current = false;
         }
       } catch (error) {
         console.warn('Error cleaning up source:', error);

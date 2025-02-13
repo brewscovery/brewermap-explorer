@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface BreweryPointsProps {
@@ -9,6 +9,8 @@ interface BreweryPointsProps {
 }
 
 const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsProps) => {
+  const layersAdded = useRef(false);
+
   useEffect(() => {
     const addLayers = () => {
       try {
@@ -31,6 +33,7 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'circle-stroke-color': '#ffffff'
             }
           });
+          layersAdded.current = true;
         } else {
           // Update the layer paint properties when visitedBreweryIds changes
           map.setPaintProperty('unclustered-point', 'circle-color', [
@@ -69,32 +72,26 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
       }
     };
 
-    // If the style and source are already loaded, add layers immediately
-    if (map.isStyleLoaded() && map.getSource(source)) {
-      addLayers();
-    }
-
-    // Also listen for the style.load event to handle initial load
-    const onStyleLoad = () => {
-      // Wait for source to be available before adding layers
-      if (map.getSource(source)) {
-        addLayers();
-      } else {
-        // If source isn't available yet, wait for sourcedata event
-        const onSourceAdd = () => {
+    const initialize = () => {
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', () => {
           if (map.getSource(source)) {
             addLayers();
-            map.off('sourcedata', onSourceAdd);
+          } else {
+            map.once('source-added', addLayers);
           }
-        };
-        map.on('sourcedata', onSourceAdd);
+        });
+      } else if (map.getSource(source)) {
+        addLayers();
+      } else {
+        map.once('source-added', addLayers);
       }
     };
 
-    map.on('style.load', onStyleLoad);
+    initialize();
 
     return () => {
-      map.off('style.load', onStyleLoad);
+      map.off('source-added', addLayers);
       
       if (!map.getStyle()) return;
       
@@ -104,6 +101,7 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
             map.removeLayer(layer);
           }
         });
+        layersAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up point layers:', error);
       }
