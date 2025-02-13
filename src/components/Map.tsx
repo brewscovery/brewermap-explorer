@@ -96,27 +96,10 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [breweries]);
 
-  // Force a re-render of map layers when style is loaded
-  useEffect(() => {
-    if (!map.current || !isStyleLoaded) return;
-
-    const forceRender = () => {
-      if (map.current?.isStyleLoaded()) {
-        // Trigger a moveend event to force layers to re-render
-        map.current.fire('moveend');
-      }
-    };
-
-    // Small delay to ensure style is fully processed
-    const timer = setTimeout(forceRender, 100);
-
-    return () => clearTimeout(timer);
-  }, [map, isStyleLoaded, breweries]);
-
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && isStyleLoaded && breweries.length > 0 && (
+      {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
           <MapLayers
