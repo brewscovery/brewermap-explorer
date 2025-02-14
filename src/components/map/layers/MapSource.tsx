@@ -17,6 +17,8 @@ interface BreweryProperties {
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
+  const retryCount = useRef(0);
+  const MAX_RETRIES = 5;
 
   useEffect(() => {
     const createGeoJsonData = () => {
@@ -47,17 +49,22 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       } as FeatureCollection<Point, BreweryProperties>;
     };
 
-    const tryAddSource = () => {
+    const updateSource = () => {
       try {
-        // Always try to remove the source first to ensure a clean state
-        if (map.getSource('breweries')) {
-          // If source exists, just update the data
-          const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        if (source) {
           source.setData(createGeoJsonData());
-          return;
+          return true;
         }
+        return false;
+      } catch (error) {
+        console.warn('Error updating source:', error);
+        return false;
+      }
+    };
 
-        // Add new source if it doesn't exist
+    const addSource = () => {
+      try {
         map.addSource('breweries', {
           type: 'geojson',
           data: createGeoJsonData(),
@@ -67,35 +74,36 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
         });
         sourceAdded.current = true;
         map.fire('source-added');
+        return true;
       } catch (error) {
-        console.warn('Error adding/updating source:', error);
+        console.warn('Error adding source:', error);
+        return false;
       }
     };
 
-    // Function to check map state and add source
-    const addSourceWhenReady = () => {
-      if (map.isStyleLoaded()) {
-        tryAddSource();
-      } else {
-        // Wait for style to load
-        map.once('style.load', tryAddSource);
+    const initializeSource = () => {
+      if (!map.isStyleLoaded()) {
+        if (retryCount.current < MAX_RETRIES) {
+          retryCount.current++;
+          setTimeout(initializeSource, 200);
+        }
+        return;
+      }
+
+      // Try to update existing source first
+      if (!updateSource()) {
+        // If update fails, try to add new source
+        if (!map.getSource('breweries')) {
+          addSource();
+        }
       }
     };
 
-    // Initial attempt to add source
-    addSourceWhenReady();
+    // Start initialization process
+    initializeSource();
 
-    // Also try adding source after a short delay to ensure map is ready
-    const timer = setTimeout(() => {
-      if (!sourceAdded.current) {
-        addSourceWhenReady();
-      }
-    }, 500);
-
+    // Cleanup
     return () => {
-      clearTimeout(timer);
-      map.off('style.load', tryAddSource);
-      
       if (!map.getStyle()) return;
       
       try {
@@ -108,6 +116,11 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
   }, [map, breweries]);
+
+  // Reset retry count when map changes
+  useEffect(() => {
+    retryCount.current = 0;
+  }, [map]);
 
   return <>{children}</>;
 };
