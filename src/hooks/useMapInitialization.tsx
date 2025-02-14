@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { MAPBOX_TOKEN } from '@/utils/mapUtils';
@@ -14,12 +15,10 @@ export const useMapInitialization = () => {
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
     try {
-      // Initialize map with default center (Australia)
+      // Initialize map without setting initial center and zoom
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [133.7751, -25.2744], // Center of Australia
-        zoom: 3
+        style: 'mapbox://styles/mapbox/light-v11'
       });
 
       // Wait for map style to load before adding controls and layers
