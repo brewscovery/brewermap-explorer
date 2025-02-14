@@ -17,8 +17,6 @@ interface BreweryProperties {
 
 const MapSource = ({ map, breweries, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
-  const retryCount = useRef(0);
-  const MAX_RETRIES = 5;
 
   useEffect(() => {
     const createGeoJsonData = () => {
@@ -49,61 +47,55 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       } as FeatureCollection<Point, BreweryProperties>;
     };
 
-    const updateSource = () => {
-      try {
-        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        if (source) {
-          source.setData(createGeoJsonData());
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.warn('Error updating source:', error);
-        return false;
-      }
-    };
-
-    const addSource = () => {
-      try {
-        map.addSource('breweries', {
-          type: 'geojson',
-          data: createGeoJsonData(),
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50
-        });
-        sourceAdded.current = true;
-        map.fire('source-added');
-        return true;
-      } catch (error) {
-        console.warn('Error adding source:', error);
-        return false;
-      }
-    };
-
-    const initializeSource = () => {
+    const setupSource = () => {
       if (!map.isStyleLoaded()) {
-        if (retryCount.current < MAX_RETRIES) {
-          retryCount.current++;
-          setTimeout(initializeSource, 200);
-        }
+        map.once('style.load', setupSource);
         return;
       }
 
-      // Try to update existing source first
-      if (!updateSource()) {
-        // If update fails, try to add new source
-        if (!map.getSource('breweries')) {
-          addSource();
+      try {
+        // First try to update existing source
+        const existingSource = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        if (existingSource) {
+          existingSource.setData(createGeoJsonData());
+        } else {
+          // If no source exists, add a new one
+          map.addSource('breweries', {
+            type: 'geojson',
+            data: createGeoJsonData(),
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50
+          });
+          sourceAdded.current = true;
+          // Explicitly trigger source added event
+          map.fire('source-added');
+          
+          // Force a map re-render
+          map.once('idle', () => {
+            map.fire('moveend');
+          });
         }
+      } catch (error) {
+        console.warn('Error setting up source:', error);
       }
     };
 
-    // Start initialization process
-    initializeSource();
+    // Initial setup
+    setupSource();
+
+    // Also set up after a short delay to ensure map is fully ready
+    const delayedSetup = setTimeout(() => {
+      if (!sourceAdded.current) {
+        setupSource();
+      }
+    }, 500);
 
     // Cleanup
     return () => {
+      clearTimeout(delayedSetup);
+      map.off('style.load', setupSource);
+      
       if (!map.getStyle()) return;
       
       try {
@@ -116,11 +108,6 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
   }, [map, breweries]);
-
-  // Reset retry count when map changes
-  useEffect(() => {
-    retryCount.current = 0;
-  }, [map]);
 
   return <>{children}</>;
 };
