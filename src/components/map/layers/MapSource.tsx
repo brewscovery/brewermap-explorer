@@ -49,7 +49,11 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
 
     const setupSource = () => {
       if (!map.isStyleLoaded()) {
-        map.once('style.load', setupSource);
+        const styleLoadListener = () => {
+          setupSource();
+          map.off('style.load', styleLoadListener);
+        };
+        map.on('style.load', styleLoadListener);
         return;
       }
 
@@ -68,34 +72,28 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
             clusterRadius: 50
           });
           sourceAdded.current = true;
-          // Explicitly trigger source added event
           map.fire('source-added');
-          
-          // Force a map re-render
-          map.once('idle', () => {
-            map.fire('moveend');
-          });
+        }
+
+        // Ensure layers are re-rendered
+        if (map.loaded()) {
+          map.fire('moveend');
         }
       } catch (error) {
         console.warn('Error setting up source:', error);
       }
     };
 
-    // Initial setup
-    setupSource();
-
-    // Also set up after a short delay to ensure map is fully ready
-    const delayedSetup = setTimeout(() => {
-      if (!sourceAdded.current) {
+    // Wait for both map style and data
+    if (map && breweries.length > 0) {
+      if (map.loaded()) {
         setupSource();
+      } else {
+        map.once('load', setupSource);
       }
-    }, 500);
+    }
 
-    // Cleanup
     return () => {
-      clearTimeout(delayedSetup);
-      map.off('style.load', setupSource);
-      
       if (!map.getStyle()) return;
       
       try {

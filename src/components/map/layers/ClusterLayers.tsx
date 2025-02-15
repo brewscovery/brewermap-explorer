@@ -64,25 +64,23 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     };
 
     const initialize = () => {
-      if (!map.isStyleLoaded()) {
-        map.once('style.load', () => {
-          if (map.getSource(source)) {
-            addLayers();
-          } else {
-            map.once('source-added', addLayers);
-          }
-        });
-      } else if (map.getSource(source)) {
-        addLayers();
-      } else {
-        map.once('source-added', addLayers);
+      if (!map.getSource(source)) {
+        map.once('source-added', initialize);
+        return;
       }
+
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', initialize);
+        return;
+      }
+
+      addLayers();
     };
 
     initialize();
 
     return () => {
-      map.off('source-added', addLayers);
+      map.off('source-added', initialize);
       
       if (!map.getStyle()) return;
       
