@@ -13,11 +13,14 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Retrieving Mapbox token...');
     const token = Deno.env.get('MAPBOX_ACCESS_TOKEN')
     if (!token) {
+      console.error('MAPBOX_ACCESS_TOKEN not found in environment variables');
       throw new Error('MAPBOX_ACCESS_TOKEN not found')
     }
 
+    console.log('Successfully retrieved Mapbox token');
     return new Response(
       JSON.stringify({ token }),
       { 
@@ -28,6 +31,7 @@ serve(async (req) => {
       }
     )
   } catch (error) {
+    console.error('Error in get-mapbox-token function:', error.message);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

@@ -55,13 +55,10 @@ export const useMapInitialization = () => {
     return () => {
       if (map.current) {
         try {
-          // Remove all event listeners first
+          // Remove event listeners
           map.current.off('style.load');
           
-          // Remove controls before removing the map
-          map.current.removeControl(map.current.getCanvas());
-          
-          // Finally remove the map
+          // Remove the map instance
           map.current.remove();
         } catch (error) {
           console.error('Error cleaning up map:', error);
