@@ -80,7 +80,14 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       if (!map.current?.isStyleLoaded()) return;
 
       // Clean up existing layers and source
-      ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+      const layersToRemove = [
+        'unclustered-point',
+        'unclustered-point-label',
+        'cluster-count',
+        'clusters'
+      ];
+
+      layersToRemove.reverse().forEach(layer => {
         if (map.current?.getLayer(layer)) {
           map.current.removeLayer(layer);
         }
@@ -90,14 +97,14 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
         map.current.removeSource('breweries');
       }
 
-      // Force a style reload
+      // Force a style reload and wait a bit to ensure the style is fully loaded
+      map.current.once('style.load', () => {
+        console.log('Style reloaded, reinitializing layers');
+      });
       map.current.fire('style.load');
     };
 
-    // Wait a bit for the style to be fully loaded
-    const timer = setTimeout(initializeLayers, 500);
-
-    return () => clearTimeout(timer);
+    initializeLayers();
   }, [map, isStyleLoaded, breweries]);
 
   return (
