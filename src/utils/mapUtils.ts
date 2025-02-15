@@ -1,7 +1,13 @@
-import mapboxgl from 'mapbox-gl';
-import type { Brewery } from '@/types/brewery';
 
-export const MAPBOX_TOKEN = 'pk.eyJ1IjoiYnJld3Njb3ZlcnkiLCJhIjoiY201bmJhMmRkMDE3eTJwcTRpeHZ6MzFoMyJ9.9MJIileO_bMKCiOVavjSRw';
+import { supabase } from '@/integrations/supabase/client';
+
+export const getMapboxToken = async () => {
+  const { data } = await supabase.functions.invoke('get-mapbox-token');
+  if (!data?.token) {
+    throw new Error('Failed to get Mapbox token');
+  }
+  return data.token;
+};
 
 export const createBreweryFeatures = (breweries: Brewery[]) => {
   return breweries
