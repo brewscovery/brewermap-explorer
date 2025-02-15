@@ -22,17 +22,25 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           source: source,
           filter: ['has', 'point_count'],
           paint: {
-            'circle-color': '#fbbf24',
+            'circle-color': [
+              'step',
+              ['get', 'point_count'],
+              '#fbbf24', // Default color (amber-400)
+              10,
+              '#f59e0b', // >= 10 points (amber-500)
+              50,
+              '#d97706'  // >= 50 points (amber-600)
+            ],
             'circle-radius': [
               'step',
               ['get', 'point_count'],
-              20,    // Size for points with count < 10
-              10,    
-              30,    // Size for points with count < 50
+              20,    // Default size
+              10,    // Number of points
+              30,    // Size when points >= 10
               50,    
-              40     // Size for points with count >= 50
+              40     // Size when points >= 50
             ],
-            'circle-stroke-width': 3,
+            'circle-stroke-width': 2,
             'circle-stroke-color': '#ffffff'
           }
         });
@@ -54,6 +62,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         });
         
         layersAdded.current = true;
+        console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }
@@ -61,6 +70,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
     const initialize = () => {
       if (!map.getSource(source)) {
+        console.log('Source not ready, waiting for source-added event');
         map.once('source-added', initialize);
         return;
       }
