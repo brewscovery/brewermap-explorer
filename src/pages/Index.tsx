@@ -1,7 +1,7 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
-import Sidebar from '@/components/Sidebar';
 import BreweryForm from '@/components/BreweryForm';
 import type { Brewery } from '@/types/brewery';
 import { useQuery } from '@tanstack/react-query';
@@ -23,7 +23,6 @@ const Index = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
-  const [displayedBreweries, setDisplayedBreweries] = useState<Brewery[]>([]);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -95,14 +94,6 @@ const Index = () => {
     }
   }, [error]);
 
-  useEffect(() => {
-    if (selectedBrewery) {
-      setDisplayedBreweries([selectedBrewery, ...breweries.filter(b => b.id !== selectedBrewery.id)]);
-    } else {
-      setDisplayedBreweries(breweries);
-    }
-  }, [selectedBrewery, breweries]);
-
   return (
     <div className="flex flex-col h-screen">
       <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
@@ -156,23 +147,11 @@ const Index = () => {
           )}
         </div>
       </div>
-      <div className="flex flex-1 min-h-0 pt-[73px]">
-        <div className="w-96 h-full">
-          <Sidebar
-            breweries={breweries}
-            onBrewerySelect={setSelectedBrewery}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            searchType={searchType}
-            onSearchTypeChange={setSearchType}
-          />
-        </div>
-        <div className="flex-1 h-full">
-          <Map
-            breweries={displayedBreweries}
-            onBrewerySelect={setSelectedBrewery}
-          />
-        </div>
+      <div className="flex-1 min-h-0 pt-[73px]">
+        <Map
+          breweries={breweries}
+          onBrewerySelect={setSelectedBrewery}
+        />
       </div>
       {userType === 'business' && (
         <div className="p-6 bg-card border-t">
