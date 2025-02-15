@@ -20,6 +20,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const [hasInitializedMap, setHasInitializedMap] = useState(false);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
@@ -90,11 +91,17 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
   // Watch for brewery selection changes
   useEffect(() => {
+    // Skip if this is the initial map load
+    if (!hasInitializedMap) {
+      setHasInitializedMap(true);
+      return;
+    }
+
     const selectedBrewery = breweries[0];
     if (selectedBrewery?.longitude && selectedBrewery?.latitude) {
       flyToBrewery(selectedBrewery);
     }
-  }, [breweries]);
+  }, [breweries, hasInitializedMap]);
 
   // Force a re-render of map layers when style is loaded or breweries change
   useEffect(() => {
