@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Brewery } from '@/types/brewery';
@@ -20,7 +19,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
-  const [initialLoad, setInitialLoad] = useState(true);
+  const [allowNavigation, setAllowNavigation] = useState(false);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
@@ -75,7 +74,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
   // Function to fly to a brewery's location
   const flyToBrewery = (brewery: Brewery) => {
-    if (!map.current || !brewery.longitude || !brewery.latitude) return;
+    if (!map.current || !brewery.longitude || !brewery.latitude || !allowNavigation) return;
 
     const lng = parseFloat(brewery.longitude);
     const lat = parseFloat(brewery.latitude);
@@ -89,30 +88,26 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     });
   };
 
-  // Wait for style to load before allowing brewery selection effects
+  // Enable navigation after initial delay
   useEffect(() => {
-    if (isStyleLoaded && initialLoad) {
-      // Wait a bit to ensure the initial center on Australia is complete
+    if (isStyleLoaded) {
       const timer = setTimeout(() => {
-        setInitialLoad(false);
-      }, 1000);
+        setAllowNavigation(true);
+      }, 2000); // Wait 2 seconds before allowing navigation
       
       return () => clearTimeout(timer);
     }
-  }, [isStyleLoaded, initialLoad]);
+  }, [isStyleLoaded]);
 
   // Watch for brewery selection changes
   useEffect(() => {
-    // Skip if this is the initial load
-    if (initialLoad) {
-      return;
-    }
+    if (!allowNavigation) return;
 
     const selectedBrewery = breweries[0];
     if (selectedBrewery?.longitude && selectedBrewery?.latitude) {
       flyToBrewery(selectedBrewery);
     }
-  }, [breweries, initialLoad]);
+  }, [breweries, allowNavigation]);
 
   // Force a re-render of map layers when style is loaded or breweries change
   useEffect(() => {
@@ -120,12 +115,10 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
     const forceRender = () => {
       if (map.current?.isStyleLoaded()) {
-        // Trigger a moveend event to force layers to re-render
         map.current.fire('moveend');
       }
     };
 
-    // Small delay to ensure style is fully processed
     const timer = setTimeout(forceRender, 100);
 
     return () => clearTimeout(timer);

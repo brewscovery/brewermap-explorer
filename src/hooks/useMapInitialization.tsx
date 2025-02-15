@@ -8,14 +8,15 @@ export const useMapInitialization = () => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
+  const initializedRef = useRef(false);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || initializedRef.current) return;
+    initializedRef.current = true;
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
     try {
-      // Initialize map with Australia as default center
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
@@ -23,33 +24,21 @@ export const useMapInitialization = () => {
         zoom: 4
       });
 
+      // Add navigation controls
+      map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
       // Wait for map style to load before adding controls and layers
       map.current.on('style.load', () => {
         if (!map.current) return;
-        
         setIsStyleLoaded(true);
 
-        // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-        // Add geolocate control
-        const geolocateControl = new mapboxgl.GeolocateControl({
-          positionOptions: {
-            enableHighAccuracy: true
-          },
-          trackUserLocation: true,
-          showUserHeading: true
-        });
-
-        map.current.addControl(geolocateControl, 'top-right');
-
-        // Ensure the map is centered on Australia after style load
-        map.current.flyTo({
+        // Center on Australia and block any immediate position changes
+        map.current.jumpTo({
           center: [133.7751, -25.2744],
           zoom: 4,
-          essential: true
         });
       });
+
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map');
