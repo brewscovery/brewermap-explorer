@@ -15,10 +15,12 @@ export const useMapInitialization = () => {
     mapboxgl.accessToken = MAPBOX_TOKEN;
     
     try {
-      // Initialize map without setting initial center and zoom
+      // Initialize map with Australia as default center
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11'
+        style: 'mapbox://styles/mapbox/light-v11',
+        center: [133.7751, -25.2744], // Center of Australia
+        zoom: 4
       });
 
       // Wait for map style to load before adding controls and layers
@@ -40,6 +42,13 @@ export const useMapInitialization = () => {
         });
 
         map.current.addControl(geolocateControl, 'top-right');
+
+        // Ensure the map is centered on Australia after style load
+        map.current.flyTo({
+          center: [133.7751, -25.2744],
+          zoom: 4,
+          essential: true
+        });
       });
     } catch (error) {
       console.error('Error initializing map:', error);
