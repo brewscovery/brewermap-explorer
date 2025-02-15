@@ -72,17 +72,27 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [checkins, user]);
 
-  // Force a re-render of map layers when style is loaded or breweries change
+  // Force a re-render of map layers when style is loaded and breweries are available
   useEffect(() => {
-    if (!map.current || !isStyleLoaded) return;
+    if (!map.current || !isStyleLoaded || !breweries.length) return;
 
-    const forceRender = () => {
+    const timer = setTimeout(() => {
       if (map.current?.isStyleLoaded()) {
-        map.current.fire('moveend');
+        // Remove and re-add the source to force a refresh
+        const source = map.current.getSource('breweries');
+        if (source) {
+          ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+            if (map.current?.getLayer(layer)) {
+              map.current.removeLayer(layer);
+            }
+          });
+          map.current.removeSource('breweries');
+        }
+        
+        // Trigger a re-render of the layers
+        map.current.fire('style.load');
       }
-    };
-
-    const timer = setTimeout(forceRender, 100);
+    }, 100);
 
     return () => clearTimeout(timer);
   }, [map, isStyleLoaded, breweries]);

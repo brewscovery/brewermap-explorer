@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -61,9 +60,7 @@ const Index = () => {
 
       if (error) throw error;
       return data || [];
-    },
-    staleTime: 30000, // Consider data fresh for 30 seconds
-    refetchOnWindowFocus: false // Prevent unnecessary refetches
+    }
   });
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -150,12 +147,10 @@ const Index = () => {
         </div>
       </div>
       <div className="flex-1 min-h-0 pt-[73px]">
-        {!breweriesLoading && breweries && (
-          <Map
-            breweries={breweries}
-            onBrewerySelect={setSelectedBrewery}
-          />
-        )}
+        <Map
+          breweries={breweries}
+          onBrewerySelect={setSelectedBrewery}
+        />
       </div>
       {userType === 'business' && (
         <div className="p-6 bg-card border-t">
