@@ -13,13 +13,12 @@ export const useMapInitialization = () => {
   useEffect(() => {
     const initializeMap = async () => {
       if (!mapContainer.current || initializedRef.current) return;
-      initializedRef.current = true;
-
+      
       try {
         const token = await getMapboxToken();
         mapboxgl.accessToken = token;
         
-        map.current = new mapboxgl.Map({
+        const newMap = new mapboxgl.Map({
           container: mapContainer.current,
           style: 'mapbox://styles/mapbox/light-v11',
           center: [133.7751, -25.2744], // Center of Australia
@@ -27,7 +26,7 @@ export const useMapInitialization = () => {
         });
 
         // Add navigation controls
-        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
         // Wait for map style to load
         const onStyleLoad = () => {
@@ -35,12 +34,15 @@ export const useMapInitialization = () => {
           setIsStyleLoaded(true);
         };
 
-        map.current.on('style.load', onStyleLoad);
+        newMap.on('style.load', onStyleLoad);
 
         // Check if style is already loaded
-        if (map.current.isStyleLoaded()) {
+        if (newMap.isStyleLoaded()) {
           onStyleLoad();
         }
+
+        map.current = newMap;
+        initializedRef.current = true;
       } catch (error) {
         console.error('Error initializing map:', error);
         toast.error('Failed to initialize map');
@@ -49,8 +51,25 @@ export const useMapInitialization = () => {
 
     initializeMap();
 
+    // Cleanup function
     return () => {
-      map.current?.remove();
+      if (map.current) {
+        try {
+          // Remove all event listeners first
+          map.current.off('style.load');
+          
+          // Remove controls before removing the map
+          map.current.removeControl(map.current.getCanvas());
+          
+          // Finally remove the map
+          map.current.remove();
+        } catch (error) {
+          console.error('Error cleaning up map:', error);
+        }
+      }
+      // Reset refs
+      map.current = null;
+      initializedRef.current = false;
     };
   }, []);
 
