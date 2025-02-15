@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import type { Brewery } from '@/types/brewery';
 
 export const getMapboxToken = async () => {
   const { data } = await supabase.functions.invoke('get-mapbox-token');
