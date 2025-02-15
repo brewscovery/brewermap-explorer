@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Brewery } from '@/types/brewery';
@@ -19,7 +20,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
-  const [allowNavigation, setAllowNavigation] = useState(false);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
@@ -71,43 +71,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       setVisitedBreweryIds([]);
     }
   }, [checkins, user]);
-
-  // Function to fly to a brewery's location
-  const flyToBrewery = (brewery: Brewery) => {
-    if (!map.current || !brewery.longitude || !brewery.latitude || !allowNavigation) return;
-
-    const lng = parseFloat(brewery.longitude);
-    const lat = parseFloat(brewery.latitude);
-    
-    if (isNaN(lng) || isNaN(lat)) return;
-
-    map.current.flyTo({
-      center: [lng, lat],
-      zoom: 15,
-      essential: true
-    });
-  };
-
-  // Enable navigation after initial delay
-  useEffect(() => {
-    if (isStyleLoaded) {
-      const timer = setTimeout(() => {
-        setAllowNavigation(true);
-      }, 2000); // Wait 2 seconds before allowing navigation
-      
-      return () => clearTimeout(timer);
-    }
-  }, [isStyleLoaded]);
-
-  // Watch for brewery selection changes
-  useEffect(() => {
-    if (!allowNavigation) return;
-
-    const selectedBrewery = breweries[0];
-    if (selectedBrewery?.longitude && selectedBrewery?.latitude) {
-      flyToBrewery(selectedBrewery);
-    }
-  }, [breweries, allowNavigation]);
 
   // Force a re-render of map layers when style is loaded or breweries change
   useEffect(() => {
