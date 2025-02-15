@@ -20,7 +20,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
-  const [hasInitializedMap, setHasInitializedMap] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
@@ -89,11 +89,22 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     });
   };
 
+  // Wait for style to load before allowing brewery selection effects
+  useEffect(() => {
+    if (isStyleLoaded && initialLoad) {
+      // Wait a bit to ensure the initial center on Australia is complete
+      const timer = setTimeout(() => {
+        setInitialLoad(false);
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isStyleLoaded, initialLoad]);
+
   // Watch for brewery selection changes
   useEffect(() => {
-    // Skip if this is the initial map load
-    if (!hasInitializedMap) {
-      setHasInitializedMap(true);
+    // Skip if this is the initial load
+    if (initialLoad) {
       return;
     }
 
@@ -101,7 +112,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     if (selectedBrewery?.longitude && selectedBrewery?.latitude) {
       flyToBrewery(selectedBrewery);
     }
-  }, [breweries, hasInitializedMap]);
+  }, [breweries, initialLoad]);
 
   // Force a re-render of map layers when style is loaded or breweries change
   useEffect(() => {
