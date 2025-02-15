@@ -49,20 +49,16 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
 
     const setupSource = () => {
       if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded yet, waiting...');
         map.once('style.load', setupSource);
         return;
       }
 
       try {
-        console.log('Setting up source with', breweries.length, 'breweries');
         // First try to update existing source
         const existingSource = map.getSource('breweries') as mapboxgl.GeoJSONSource;
         if (existingSource) {
-          console.log('Updating existing source');
           existingSource.setData(createGeoJsonData());
         } else {
-          console.log('Adding new source');
           // If no source exists, add a new one
           map.addSource('breweries', {
             type: 'geojson',
@@ -72,16 +68,34 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
             clusterRadius: 50
           });
           sourceAdded.current = true;
+          // Explicitly trigger source added event
           map.fire('source-added');
+          
+          // Force a map re-render
+          map.once('idle', () => {
+            map.fire('moveend');
+          });
         }
       } catch (error) {
-        console.error('Error setting up source:', error);
+        console.warn('Error setting up source:', error);
       }
     };
 
+    // Initial setup
     setupSource();
 
+    // Also set up after a short delay to ensure map is fully ready
+    const delayedSetup = setTimeout(() => {
+      if (!sourceAdded.current) {
+        setupSource();
+      }
+    }, 500);
+
+    // Cleanup
     return () => {
+      clearTimeout(delayedSetup);
+      map.off('style.load', setupSource);
+      
       if (!map.getStyle()) return;
       
       try {
