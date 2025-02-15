@@ -12,50 +12,46 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
   useEffect(() => {
     const addLayers = () => {
-      if (layersAdded.current) return;
-      
+      if (!map.isStyleLoaded() || layersAdded.current) return;
+
       try {
         // Add clusters layer
-        if (!map.getLayer('clusters')) {
-          map.addLayer({
-            id: 'clusters',
-            type: 'circle',
-            source: source,
-            filter: ['has', 'point_count'],
-            paint: {
-              'circle-color': '#fbbf24',
-              'circle-radius': [
-                'step',
-                ['get', 'point_count'],
-                20,    // Size for points with count < 10
-                10,    
-                30,    // Size for points with count < 50
-                50,    
-                40     // Size for points with count >= 50
-              ],
-              'circle-stroke-width': 3,
-              'circle-stroke-color': '#ffffff'
-            }
-          });
-        }
+        map.addLayer({
+          id: 'clusters',
+          type: 'circle',
+          source: source,
+          filter: ['has', 'point_count'],
+          paint: {
+            'circle-color': '#fbbf24',
+            'circle-radius': [
+              'step',
+              ['get', 'point_count'],
+              20,    // Size for points with count < 10
+              10,    
+              30,    // Size for points with count < 50
+              50,    
+              40     // Size for points with count >= 50
+            ],
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff'
+          }
+        });
 
         // Add cluster count layer
-        if (!map.getLayer('cluster-count')) {
-          map.addLayer({
-            id: 'cluster-count',
-            type: 'symbol',
-            source: source,
-            filter: ['has', 'point_count'],
-            layout: {
-              'text-field': '{point_count_abbreviated}',
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 14
-            },
-            paint: {
-              'text-color': '#ffffff'
-            }
-          });
-        }
+        map.addLayer({
+          id: 'cluster-count',
+          type: 'symbol',
+          source: source,
+          filter: ['has', 'point_count'],
+          layout: {
+            'text-field': '{point_count_abbreviated}',
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 14
+          },
+          paint: {
+            'text-color': '#ffffff'
+          }
+        });
         
         layersAdded.current = true;
       } catch (error) {
@@ -69,19 +65,17 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         return;
       }
 
-      if (!map.isStyleLoaded()) {
-        map.once('style.load', initialize);
-        return;
-      }
-
       addLayers();
     };
 
-    initialize();
+    // Start initialization process
+    if (map.isStyleLoaded()) {
+      initialize();
+    } else {
+      map.once('style.load', initialize);
+    }
 
     return () => {
-      map.off('source-added', initialize);
-      
       if (!map.getStyle()) return;
       
       try {

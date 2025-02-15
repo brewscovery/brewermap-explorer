@@ -49,58 +49,69 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
 
     const setupSource = () => {
       if (!map.isStyleLoaded()) {
-        const styleLoadListener = () => {
-          setupSource();
-          map.off('style.load', styleLoadListener);
-        };
-        map.on('style.load', styleLoadListener);
         return;
       }
 
       try {
-        // First try to update existing source
-        const existingSource = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-        if (existingSource) {
-          existingSource.setData(createGeoJsonData());
-        } else {
-          // If no source exists, add a new one
-          map.addSource('breweries', {
-            type: 'geojson',
-            data: createGeoJsonData(),
-            cluster: true,
-            clusterMaxZoom: 14,
-            clusterRadius: 50
+        // Remove existing source and layers if they exist
+        if (map.getSource('breweries')) {
+          ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+            if (map.getLayer(layer)) {
+              map.removeLayer(layer);
+            }
           });
-          sourceAdded.current = true;
-          map.fire('source-added');
+          map.removeSource('breweries');
         }
 
-        // Ensure layers are re-rendered
-        if (map.loaded()) {
-          map.fire('moveend');
-        }
+        // Add new source
+        map.addSource('breweries', {
+          type: 'geojson',
+          data: createGeoJsonData(),
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50
+        });
+        
+        sourceAdded.current = true;
+        map.fire('source-added');
       } catch (error) {
         console.warn('Error setting up source:', error);
       }
     };
 
-    // Wait for both map style and data
-    if (map && breweries.length > 0) {
-      if (map.loaded()) {
-        setupSource();
-      } else {
-        map.once('load', setupSource);
+    const initializeSource = () => {
+      if (!map.isStyleLoaded()) {
+        map.once('style.load', initializeSource);
+        return;
       }
+
+      setupSource();
+    };
+
+    // Initial setup
+    if (map && breweries.length > 0) {
+      initializeSource();
+    }
+
+    // Also update source when breweries data changes
+    if (sourceAdded.current && map.getSource('breweries')) {
+      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+      source.setData(createGeoJsonData());
     }
 
     return () => {
       if (!map.getStyle()) return;
       
       try {
+        ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
         if (map.getSource('breweries')) {
           map.removeSource('breweries');
-          sourceAdded.current = false;
         }
+        sourceAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up source:', error);
       }
