@@ -62,13 +62,14 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
         map.removeSource('breweries');
       }
       
-      // Add new source
+      // Add new source with clustering enabled
       map.addSource('breweries', {
         type: 'geojson',
         data: createGeoJsonData(),
         cluster: true,
         clusterMaxZoom: 14,
-        clusterRadius: 50
+        clusterRadius: 50,
+        generateId: true // Ensures unique IDs for features
       });
       
       sourceAdded.current = true;
