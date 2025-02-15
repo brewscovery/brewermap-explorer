@@ -29,15 +29,13 @@ export const useMapInitialization = () => {
 
       // Wait for map style to load before adding controls and layers
       map.current.on('style.load', () => {
-        if (!map.current) return;
         setIsStyleLoaded(true);
-
-        // Center on Australia and block any immediate position changes
-        map.current.jumpTo({
-          center: [133.7751, -25.2744],
-          zoom: 4,
-        });
       });
+
+      // Ensure the style is loaded
+      if (map.current.isStyleLoaded()) {
+        setIsStyleLoaded(true);
+      }
 
     } catch (error) {
       console.error('Error initializing map:', error);

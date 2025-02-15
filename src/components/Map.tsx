@@ -72,27 +72,30 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [checkins, user]);
 
-  // Force a re-render of map layers when style is loaded and breweries are available
+  // Initialize map layers when style is loaded and breweries are available
   useEffect(() => {
     if (!map.current || !isStyleLoaded || !breweries.length) return;
 
-    const timer = setTimeout(() => {
-      if (map.current?.isStyleLoaded()) {
-        // Remove and re-add the source to force a refresh
-        const source = map.current.getSource('breweries');
-        if (source) {
-          ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-            if (map.current?.getLayer(layer)) {
-              map.current.removeLayer(layer);
-            }
-          });
-          map.current.removeSource('breweries');
+    const initializeLayers = () => {
+      if (!map.current?.isStyleLoaded()) return;
+
+      // Clean up existing layers and source
+      ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+        if (map.current?.getLayer(layer)) {
+          map.current.removeLayer(layer);
         }
-        
-        // Trigger a re-render of the layers
-        map.current.fire('style.load');
+      });
+      
+      if (map.current.getSource('breweries')) {
+        map.current.removeSource('breweries');
       }
-    }, 100);
+
+      // Force a style reload
+      map.current.fire('style.load');
+    };
+
+    // Wait a bit for the style to be fully loaded
+    const timer = setTimeout(initializeLayers, 500);
 
     return () => clearTimeout(timer);
   }, [map, isStyleLoaded, breweries]);
