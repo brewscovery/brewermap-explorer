@@ -27,24 +27,27 @@ export const useMapInitialization = () => {
       // Add navigation controls
       map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-      // Wait for map style to load before adding controls and layers
-      map.current.on('style.load', () => {
+      // Wait for map style to load
+      const onStyleLoad = () => {
+        console.log('Map style loaded');
         setIsStyleLoaded(true);
-      });
+      };
 
-      // Ensure the style is loaded
+      map.current.on('style.load', onStyleLoad);
+
+      // Check if style is already loaded
       if (map.current.isStyleLoaded()) {
-        setIsStyleLoaded(true);
+        onStyleLoad();
       }
 
+      return () => {
+        map.current?.off('style.load', onStyleLoad);
+        map.current?.remove();
+      };
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map');
     }
-
-    return () => {
-      map.current?.remove();
-    };
   }, []);
 
   return { mapContainer, map, isStyleLoaded };
