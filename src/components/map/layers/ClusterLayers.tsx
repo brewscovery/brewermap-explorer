@@ -15,6 +15,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       if (layersAdded.current) return;
       
       try {
+        console.log('Adding cluster layers');
         // Add clusters layer
         if (!map.getLayer('clusters')) {
           map.addLayer({
@@ -58,6 +59,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         }
         
         layersAdded.current = true;
+        console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
       }
@@ -65,16 +67,19 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
     const initialize = () => {
       if (!map.isStyleLoaded()) {
+        console.log('Waiting for map style to load before adding cluster layers');
         map.once('style.load', () => {
           if (map.getSource(source)) {
             addLayers();
           } else {
+            console.log('Waiting for source to be added');
             map.once('source-added', addLayers);
           }
         });
       } else if (map.getSource(source)) {
         addLayers();
       } else {
+        console.log('Waiting for source to be added');
         map.once('source-added', addLayers);
       }
     };

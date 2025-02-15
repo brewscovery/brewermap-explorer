@@ -14,6 +14,7 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
   useEffect(() => {
     const addLayers = () => {
       try {
+        console.log('Adding brewery point layers');
         // Add unclustered point layer with conditional colors
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
@@ -67,6 +68,7 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
             }
           });
         }
+        console.log('Brewery point layers added successfully');
       } catch (error) {
         console.error('Error adding point layers:', error);
       }
@@ -74,16 +76,19 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
 
     const initialize = () => {
       if (!map.isStyleLoaded()) {
+        console.log('Waiting for map style to load before adding point layers');
         map.once('style.load', () => {
           if (map.getSource(source)) {
             addLayers();
           } else {
+            console.log('Waiting for source to be added');
             map.once('source-added', addLayers);
           }
         });
       } else if (map.getSource(source)) {
         addLayers();
       } else {
+        console.log('Waiting for source to be added');
         map.once('source-added', addLayers);
       }
     };
