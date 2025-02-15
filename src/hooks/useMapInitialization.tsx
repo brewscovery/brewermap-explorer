@@ -9,6 +9,8 @@ export const useMapInitialization = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
   const initializedRef = useRef(false);
+  // Store the listener function reference
+  const onStyleLoadRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const initializeMap = async () => {
@@ -28,12 +30,14 @@ export const useMapInitialization = () => {
         // Add navigation controls
         newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        // Wait for map style to load
+        // Create and store the style load listener
         const onStyleLoad = () => {
           console.log('Map style loaded');
           setIsStyleLoaded(true);
         };
+        onStyleLoadRef.current = onStyleLoad;
 
+        // Add the event listener
         newMap.on('style.load', onStyleLoad);
 
         // Check if style is already loaded
@@ -53,10 +57,10 @@ export const useMapInitialization = () => {
 
     // Cleanup function
     return () => {
-      if (map.current) {
+      if (map.current && onStyleLoadRef.current) {
         try {
-          // Remove event listeners
-          map.current.off('style.load');
+          // Remove event listener with both event name and listener function
+          map.current.off('style.load', onStyleLoadRef.current);
           
           // Remove the map instance
           map.current.remove();
@@ -67,6 +71,7 @@ export const useMapInitialization = () => {
       // Reset refs
       map.current = null;
       initializedRef.current = false;
+      onStyleLoadRef.current = null;
     };
   }, []);
 
