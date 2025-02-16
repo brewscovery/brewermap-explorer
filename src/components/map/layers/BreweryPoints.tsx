@@ -12,8 +12,25 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
   const layersAdded = useRef(false);
 
   useEffect(() => {
+    const updatePointColors = () => {
+      if (!map.getLayer('unclustered-point')) return;
+
+      // Update the layer paint properties when visitedBreweryIds changes
+      map.setPaintProperty('unclustered-point', 'circle-color', [
+        'case',
+        ['in', ['get', 'id'], ['literal', visitedBreweryIds]],
+        '#22c55e', // Green color for visited breweries
+        '#fbbf24'  // Default yellow color for unvisited breweries
+      ]);
+    };
+
     const addLayers = () => {
       try {
+        if (!map.getSource(source)) {
+          console.log('Source not available yet, waiting...');
+          return;
+        }
+
         // Add unclustered point layer with conditional colors
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
@@ -33,19 +50,8 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'circle-stroke-color': '#ffffff'
             }
           });
-          layersAdded.current = true;
-        } else {
-          // Update the layer paint properties when visitedBreweryIds changes
-          map.setPaintProperty('unclustered-point', 'circle-color', [
-            'case',
-            ['in', ['get', 'id'], ['literal', visitedBreweryIds]],
-            '#22c55e', // Green color for visited breweries
-            '#fbbf24'  // Default yellow color for unvisited breweries
-          ]);
-        }
 
-        // Add text labels for unclustered points
-        if (!map.getLayer('unclustered-point-label')) {
+          // Add text labels for unclustered points
           map.addLayer({
             id: 'unclustered-point-label',
             type: 'symbol',
@@ -66,6 +72,12 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'text-halo-width': 2
             }
           });
+
+          layersAdded.current = true;
+          console.log('Point layers added successfully');
+        } else {
+          // Update colors if layers already exist
+          updatePointColors();
         }
       } catch (error) {
         console.error('Error adding point layers:', error);
@@ -78,21 +90,32 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
           if (map.getSource(source)) {
             addLayers();
           } else {
-            map.once('source-added', addLayers);
+            map.once('sourcedata', (e) => {
+              if (e.sourceId === source && e.isSourceLoaded) {
+                addLayers();
+              }
+            });
           }
         });
       } else if (map.getSource(source)) {
         addLayers();
       } else {
-        map.once('source-added', addLayers);
+        map.once('sourcedata', (e) => {
+          if (e.sourceId === source && e.isSourceLoaded) {
+            addLayers();
+          }
+        });
       }
     };
 
     initialize();
 
+    // Listen for changes to visitedBreweryIds and update colors
+    if (layersAdded.current) {
+      updatePointColors();
+    }
+
     return () => {
-      map.off('source-added', addLayers);
-      
       if (!map.getStyle()) return;
       
       try {
