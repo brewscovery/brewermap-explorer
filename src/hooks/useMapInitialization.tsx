@@ -9,7 +9,6 @@ export const useMapInitialization = () => {
   const map = useRef<mapboxgl.Map | null>(null);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
   const initializedRef = useRef(false);
-  // Store the listener function reference
   const onStyleLoadRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
@@ -33,8 +32,22 @@ export const useMapInitialization = () => {
         // Create and store the style load listener
         const onStyleLoad = () => {
           console.log('Map style loaded');
-          setIsStyleLoaded(true);
+          if (newMap.isStyleLoaded()) {
+            setIsStyleLoaded(true);
+          } else {
+            // If style isn't loaded yet, wait for it
+            const checkStyle = setInterval(() => {
+              if (newMap.isStyleLoaded()) {
+                clearInterval(checkStyle);
+                setIsStyleLoaded(true);
+              }
+            }, 100);
+
+            // Clean up interval after 5 seconds if style hasn't loaded
+            setTimeout(() => clearInterval(checkStyle), 5000);
+          }
         };
+        
         onStyleLoadRef.current = onStyleLoad;
 
         // Add the event listener
