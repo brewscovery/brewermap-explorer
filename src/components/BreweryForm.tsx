@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,6 +13,7 @@ import {
   FormLabel,
 } from './ui/form';
 import { Input } from './ui/input';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
@@ -20,6 +22,7 @@ interface BreweryFormProps {
 const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
   const form = useForm<Omit<Brewery, 'id'>>();
   const { watch } = form;
+  const { user } = useAuth();
 
   // Watch address fields for changes
   const street = watch('street');
@@ -59,17 +62,37 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
   }, [street, city, state, postalCode, form]);
 
   const onSubmit = async (data: Omit<Brewery, 'id'>) => {
-    try {
-      const { error } = await supabase
-        .from('breweries')
-        .insert([data]);
+    if (!user) {
+      toast.error('You must be logged in to add a brewery');
+      return;
+    }
 
-      if (error) throw error;
+    try {
+      // First, insert the brewery
+      const { data: breweryData, error: breweryError } = await supabase
+        .from('breweries')
+        .insert([data])
+        .select()
+        .single();
+
+      if (breweryError) throw breweryError;
+
+      // Then, create the brewery ownership record
+      const { error: ownershipError } = await supabase
+        .from('brewery_owners')
+        .insert([
+          {
+            user_id: user.id,
+            brewery_id: breweryData.id
+          }
+        ]);
+
+      if (ownershipError) throw ownershipError;
 
       toast.success('Brewery added successfully!');
       form.reset();
       onSubmitSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding brewery:', error);
       toast.error('Failed to add brewery');
     }
