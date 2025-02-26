@@ -84,7 +84,7 @@ const Index = () => {
   };
 
   const handleForgotPassword = () => {
-    navigate('/auth?forgot=true');
+    navigate('/auth?type=recovery');
   };
 
   const handleLogout = async () => {

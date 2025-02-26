@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { toast } from 'sonner';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -22,13 +24,20 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check if we're in password recovery mode
-    if (searchParams.get('type') === 'recovery') {
+    // Check URL parameters
+    const type = searchParams.get('type');
+    if (type === 'recovery') {
       setIsPasswordRecovery(true);
       setIsLogin(false);
       setIsForgotPassword(false);
+    } else if (searchParams.get('forgot') === 'true') {
+      setIsForgotPassword(true);
+      setIsLogin(false);
+    } else if (user && !isPasswordRecovery) {
+      // Only redirect if user is logged in and we're not in password recovery mode
+      navigate('/');
     }
-  }, [searchParams]);
+  }, [searchParams, user, navigate, isPasswordRecovery]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
