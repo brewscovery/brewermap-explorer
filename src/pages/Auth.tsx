@@ -76,10 +76,16 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      // Verify the recovery token before updating the password
-      const { data: { session }, error: verifyError } = await supabase.auth.verifyOtp({
-        token: searchParams.get('token') || '',
+      // Get the token from the URL
+      const token = searchParams.get('token');
+      if (!token) {
+        throw new Error('No recovery token found');
+      }
+
+      // Verify the recovery token using token_hash
+      const { error: verifyError } = await supabase.auth.verifyOtp({
         type: 'recovery',
+        token_hash: token
       });
 
       if (verifyError) {
