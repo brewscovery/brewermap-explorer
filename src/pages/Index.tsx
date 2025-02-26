@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -82,6 +83,10 @@ const Index = () => {
     }
   };
 
+  const handleForgotPassword = () => {
+    navigate('/auth?forgot=true');
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate('/');
@@ -137,6 +142,14 @@ const Index = () => {
                     </div>
                     <Button type="submit" className="w-full" disabled={isLoading}>
                       {isLoading ? 'Loading...' : 'Login'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="w-full"
+                      onClick={handleForgotPassword}
+                    >
+                      Forgot your password?
                     </Button>
                   </form>
                 </PopoverContent>
