@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,53 +24,27 @@ const Auth = () => {
 
   useEffect(() => {
     const checkAndHandleRecovery = async () => {
-      // First check the URL hash for recovery parameters
-      if (window.location.hash) {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const type = hashParams.get('type');
-        const accessToken = hashParams.get('access_token');
-        
-        if (type === 'recovery' && accessToken) {
-          await supabase.auth.signOut();
-          // Set the session with the access token
-          const { data, error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: '',
-          });
-          if (error) {
-            console.error('Error setting session:', error);
-          }
-          setIsPasswordRecovery(true);
-          setIsLogin(false);
-          setIsForgotPassword(false);
-          return;
-        }
-      }
+      // Get hash parameters
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const type = params.get('type');
       
-      // If no recovery in hash, check query params
-      const type = searchParams.get('type');
-      const accessToken = searchParams.get('access_token');
-      
-      if (type === 'recovery' && accessToken) {
-        await supabase.auth.signOut();
-        // Set the session with the access token from query params
-        const { data, error } = await supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: '',
-        });
-        if (error) {
-          console.error('Error setting session:', error);
-        }
+      if (type === 'recovery') {
+        console.log('Recovery flow detected');
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-      } else if (user && !isPasswordRecovery && !isForgotPassword) {
+        return;
+      }
+      
+      // If no recovery and user is logged in, redirect to home
+      if (user && !isPasswordRecovery && !isForgotPassword) {
         navigate('/');
       }
     };
 
     checkAndHandleRecovery();
-  }, [searchParams, user, navigate, isPasswordRecovery, isForgotPassword]);
+  }, [user, navigate, isPasswordRecovery, isForgotPassword]);
 
   useEffect(() => {
     if (isPasswordRecovery && user) {
