@@ -29,9 +29,18 @@ const Auth = () => {
       if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const type = hashParams.get('type');
+        const accessToken = hashParams.get('access_token');
         
-        if (type === 'recovery') {
+        if (type === 'recovery' && accessToken) {
           await supabase.auth.signOut();
+          // Set the session with the access token
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: '',
+          });
+          if (error) {
+            console.error('Error setting session:', error);
+          }
           setIsPasswordRecovery(true);
           setIsLogin(false);
           setIsForgotPassword(false);
@@ -41,10 +50,18 @@ const Auth = () => {
       
       // If no recovery in hash, check query params
       const type = searchParams.get('type');
-      const token = searchParams.get('access_token');
+      const accessToken = searchParams.get('access_token');
       
-      if (type === 'recovery' && token) {
+      if (type === 'recovery' && accessToken) {
         await supabase.auth.signOut();
+        // Set the session with the access token from query params
+        const { data, error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: '',
+        });
+        if (error) {
+          console.error('Error setting session:', error);
+        }
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
@@ -68,7 +85,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,  // Keep it simple, just redirect to /auth
+        redirectTo: `${window.location.origin}/auth`,
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
@@ -89,8 +106,6 @@ const Auth = () => {
       if (password !== confirmPassword) {
         throw new Error("Passwords don't match");
       }
-
-      await supabase.auth.signOut();
 
       const { error } = await supabase.auth.updateUser({
         password: password,
