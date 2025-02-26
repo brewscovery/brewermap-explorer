@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,11 +27,13 @@ const Auth = () => {
     const type = searchParams.get('type');
     
     if (type === 'recovery') {
-      supabase.auth.signOut().then(() => {
+      // Force sign out any existing session
+      (async () => {
+        await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-      });
+      })();
     } else if (searchParams.get('forgot') === 'true') {
       setIsForgotPassword(true);
       setIsLogin(false);
@@ -38,6 +41,52 @@ const Auth = () => {
       navigate('/');
     }
   }, [searchParams, user, navigate, isPasswordRecovery]);
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      if (error) throw error;
+      toast.success('Password reset instructions have been sent to your email');
+      setIsForgotPassword(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSetNewPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (password !== confirmPassword) {
+        throw new Error("Passwords don't match");
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+
+      if (error) throw error;
+      
+      // Ensure user is signed out after password update
+      await supabase.auth.signOut();
+      toast.success('Password updated successfully. Please login with your new password.');
+      navigate('/auth');
+      setIsLogin(true);
+      setIsPasswordRecovery(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,51 +124,6 @@ const Auth = () => {
     }
   };
 
-  const handlePasswordReset = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
-      });
-      if (error) throw error;
-      toast.success('Password reset instructions have been sent to your email');
-      setIsForgotPassword(false);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSetNewPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      if (password !== confirmPassword) {
-        throw new Error("Passwords don't match");
-      }
-
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
-
-      if (error) throw error;
-      
-      await supabase.auth.signOut();
-      toast.success('Password updated successfully. Please login with your new password.');
-      navigate('/auth');
-      setIsLogin(true);
-      setIsPasswordRecovery(false);
-    } catch (error: any) {
-      toast.error(error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const resetFormFields = () => {
     setEmail('');
     setPassword('');
@@ -127,6 +131,7 @@ const Auth = () => {
     setUserType('regular');
   };
 
+  // Handle password recovery form (after clicking reset link)
   if (isPasswordRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
