@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,16 +25,13 @@ const Auth = () => {
   useEffect(() => {
     const checkAndHandleRecovery = async () => {
       const type = searchParams.get('type');
-      
-      if (type === 'recovery') {
-        // Immediately sign out and show recovery form
+      const accessToken = searchParams.get('access_token');
+
+      if (type === 'recovery' && accessToken) {
         await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-      } else if (searchParams.get('forgot') === 'true') {
-        setIsForgotPassword(true);
-        setIsLogin(false);
       } else if (user && !isPasswordRecovery) {
         navigate('/');
       }
@@ -45,7 +41,6 @@ const Auth = () => {
   }, [searchParams, user, navigate, isPasswordRecovery]);
 
   useEffect(() => {
-    // Additional check to ensure user is signed out in recovery mode
     if (isPasswordRecovery && user) {
       supabase.auth.signOut();
     }
@@ -79,7 +74,6 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      // Force sign out before updating password
       await supabase.auth.signOut();
 
       const { error } = await supabase.auth.updateUser({
@@ -88,7 +82,6 @@ const Auth = () => {
 
       if (error) throw error;
       
-      // Additional sign out after password update for safety
       await supabase.auth.signOut();
       toast.success('Password updated successfully. Please login with your new password.');
       navigate('/auth');
