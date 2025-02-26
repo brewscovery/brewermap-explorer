@@ -25,10 +25,11 @@ const Auth = () => {
 
   useEffect(() => {
     const checkAndHandleRecovery = async () => {
+      const token = searchParams.get('token');
       const type = searchParams.get('type');
-      const accessToken = searchParams.get('access_token');
-
-      if (type === 'recovery' && accessToken) {
+      
+      if (type === 'recovery' && token) {
+        // If we have a recovery token, show the password reset form
         await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
@@ -54,7 +55,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
+        redirectTo: window.location.origin + '/auth',
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
