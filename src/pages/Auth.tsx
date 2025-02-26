@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,17 +23,18 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Check URL parameters
     const type = searchParams.get('type');
+    
     if (type === 'recovery') {
-      setIsPasswordRecovery(true);
-      setIsLogin(false);
-      setIsForgotPassword(false);
+      supabase.auth.signOut().then(() => {
+        setIsPasswordRecovery(true);
+        setIsLogin(false);
+        setIsForgotPassword(false);
+      });
     } else if (searchParams.get('forgot') === 'true') {
       setIsForgotPassword(true);
       setIsLogin(false);
     } else if (user && !isPasswordRecovery) {
-      // Only redirect if user is logged in and we're not in password recovery mode
       navigate('/');
     }
   }, [searchParams, user, navigate, isPasswordRecovery]);
@@ -52,7 +52,6 @@ const Auth = () => {
         if (error) throw error;
         navigate('/');
       } else {
-        // Check if passwords match during signup
         if (password !== confirmPassword) {
           throw new Error("Passwords don't match");
         }
@@ -108,8 +107,12 @@ const Auth = () => {
       });
 
       if (error) throw error;
-      toast.success('Password updated successfully');
-      navigate('/');
+      
+      await supabase.auth.signOut();
+      toast.success('Password updated successfully. Please login with your new password.');
+      navigate('/auth');
+      setIsLogin(true);
+      setIsPasswordRecovery(false);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -124,7 +127,6 @@ const Auth = () => {
     setUserType('regular');
   };
 
-  // Handle new password form (after clicking reset link)
   if (isPasswordRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -167,7 +169,6 @@ const Auth = () => {
     );
   }
 
-  // Handle password reset form
   if (isForgotPassword) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
