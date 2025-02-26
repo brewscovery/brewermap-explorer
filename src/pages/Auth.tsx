@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,23 +23,32 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const type = searchParams.get('type');
-    
-    if (type === 'recovery') {
-      // Force sign out any existing session
-      (async () => {
+    const checkAndHandleRecovery = async () => {
+      const type = searchParams.get('type');
+      
+      if (type === 'recovery') {
+        // Immediately sign out and show recovery form
         await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-      })();
-    } else if (searchParams.get('forgot') === 'true') {
-      setIsForgotPassword(true);
-      setIsLogin(false);
-    } else if (user && !isPasswordRecovery) {
-      navigate('/');
-    }
+      } else if (searchParams.get('forgot') === 'true') {
+        setIsForgotPassword(true);
+        setIsLogin(false);
+      } else if (user && !isPasswordRecovery) {
+        navigate('/');
+      }
+    };
+
+    checkAndHandleRecovery();
   }, [searchParams, user, navigate, isPasswordRecovery]);
+
+  useEffect(() => {
+    // Additional check to ensure user is signed out in recovery mode
+    if (isPasswordRecovery && user) {
+      supabase.auth.signOut();
+    }
+  }, [isPasswordRecovery, user]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,13 +77,16 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
+      // Force sign out before updating password
+      await supabase.auth.signOut();
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
 
       if (error) throw error;
       
-      // Ensure user is signed out after password update
+      // Additional sign out after password update for safety
       await supabase.auth.signOut();
       toast.success('Password updated successfully. Please login with your new password.');
       navigate('/auth');
@@ -131,7 +142,6 @@ const Auth = () => {
     setUserType('regular');
   };
 
-  // Handle password recovery form (after clicking reset link)
   if (isPasswordRecovery) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
