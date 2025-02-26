@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,6 +21,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check if we're in a password recovery flow
+    const isPasswordRecovery = new URLSearchParams(window.location.search).get('type') === 'recovery';
+
+    // If it's a password recovery, we don't want to automatically log in
+    if (isPasswordRecovery) {
+      setUser(null);
+      setUserType(null);
+      setLoading(false);
+      // Sign out any existing session
+      supabase.auth.signOut();
+      return;
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
@@ -30,11 +44,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserType(session.user.id);
-      } else {
-        setUserType(null);
+      // Don't update the user state if we're in password recovery
+      if (!isPasswordRecovery) {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          fetchUserType(session.user.id);
+        } else {
+          setUserType(null);
+        }
       }
       setLoading(false);
     });
