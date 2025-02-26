@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,8 +28,10 @@ const Auth = () => {
       const type = searchParams.get('type');
       const token = searchParams.get('token');
       
+      // If it's a recovery flow, handle it
       if (type === 'recovery' && token) {
         console.log('Recovery flow detected');
+        // Make sure user is signed out
         await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
@@ -36,7 +39,8 @@ const Auth = () => {
         return;
       }
       
-      if (user && !isPasswordRecovery && !isForgotPassword) {
+      // Only redirect to home if user is logged in AND we're not in recovery or forgot password flow
+      if (user && !isPasswordRecovery && !isForgotPassword && !type) {
         navigate('/');
       }
     };
@@ -72,13 +76,25 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      const { error } = await supabase.auth.updateUser({
+      // Verify the recovery token before updating the password
+      const { data: { session }, error: verifyError } = await supabase.auth.verifyOtp({
+        token: searchParams.get('token') || '',
+        type: 'recovery',
+      });
+
+      if (verifyError) {
+        throw new Error('Invalid or expired recovery token. Please request a new password reset.');
+      }
+
+      // Update the password
+      const { error: updateError } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (error) throw error;
+      if (updateError) throw updateError;
       
       toast.success('Password updated successfully. Please login with your new password.');
+      // Sign out after password update
       await supabase.auth.signOut();
       setIsLogin(true);
       setIsPasswordRecovery(false);
