@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,6 +62,7 @@ const Auth = () => {
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
       setIsForgotPassword(false);
+      setIsLogin(true);
     } catch (error: any) {
       toast.error(error.message);
     } finally {
