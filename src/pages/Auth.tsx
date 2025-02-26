@@ -25,8 +25,21 @@ const Auth = () => {
 
   useEffect(() => {
     const checkAndHandleRecovery = async () => {
-      const token = searchParams.get('token');
+      // Check if we were redirected from a password reset
+      if (window.location.pathname === '/' && window.location.hash.includes('type=recovery')) {
+        // Extract the access token from the hash
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        
+        if (accessToken) {
+          // Redirect to the auth page with the recovery parameters
+          navigate('/auth?type=recovery&access_token=' + accessToken);
+          return;
+        }
+      }
+
       const type = searchParams.get('type');
+      const token = searchParams.get('access_token');
       
       if (type === 'recovery' && token) {
         // If we have a recovery token, show the password reset form
@@ -55,7 +68,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth?type=recovery`,
+        redirectTo: window.location.origin,  // Redirect to root, we'll handle navigation to /auth in the effect
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
