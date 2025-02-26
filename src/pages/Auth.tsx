@@ -28,9 +28,21 @@ const Auth = () => {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
       const type = params.get('type');
+      const accessToken = params.get('access_token');
       
-      if (type === 'recovery') {
+      if (type === 'recovery' && accessToken) {
         console.log('Recovery flow detected');
+        // Sign out any existing session
+        await supabase.auth.signOut();
+        
+        // Exchange the access token for a new session
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Error getting session:', error);
+          toast.error('Unable to start password recovery. Please try again.');
+          return;
+        }
+        
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
@@ -45,12 +57,6 @@ const Auth = () => {
 
     checkAndHandleRecovery();
   }, [user, navigate, isPasswordRecovery, isForgotPassword]);
-
-  useEffect(() => {
-    if (isPasswordRecovery && user) {
-      supabase.auth.signOut();
-    }
-  }, [isPasswordRecovery, user]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,17 +86,23 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
+      // Get the current session before updating the password
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        throw new Error('No active session found. Please try the password reset link again.');
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
 
       if (error) throw error;
       
-      await supabase.auth.signOut();
       toast.success('Password updated successfully. Please login with your new password.');
-      navigate('/auth');
+      await supabase.auth.signOut();
       setIsLogin(true);
       setIsPasswordRecovery(false);
+      navigate('/auth');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
