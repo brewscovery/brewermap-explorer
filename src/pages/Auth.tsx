@@ -25,30 +25,30 @@ const Auth = () => {
 
   useEffect(() => {
     const checkAndHandleRecovery = async () => {
-      // Check if we were redirected from a password reset
-      if (window.location.pathname === '/' && window.location.hash.includes('type=recovery')) {
-        // Extract the access token from the hash
+      // First check the URL hash for recovery parameters
+      if (window.location.hash) {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        const accessToken = hashParams.get('access_token');
+        const type = hashParams.get('type');
         
-        if (accessToken) {
-          // Redirect to the auth page with the recovery parameters
-          navigate('/auth?type=recovery&access_token=' + accessToken);
+        if (type === 'recovery') {
+          await supabase.auth.signOut();
+          setIsPasswordRecovery(true);
+          setIsLogin(false);
+          setIsForgotPassword(false);
           return;
         }
       }
-
+      
+      // If no recovery in hash, check query params
       const type = searchParams.get('type');
       const token = searchParams.get('access_token');
       
       if (type === 'recovery' && token) {
-        // If we have a recovery token, show the password reset form
         await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
       } else if (user && !isPasswordRecovery && !isForgotPassword) {
-        // Only redirect if we're not in recovery or forgot password mode
         navigate('/');
       }
     };
@@ -68,7 +68,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin,  // Redirect to root, we'll handle navigation to /auth in the effect
+        redirectTo: `${window.location.origin}/auth`,  // Keep it simple, just redirect to /auth
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
