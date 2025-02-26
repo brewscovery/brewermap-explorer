@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 const Auth = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,6 +55,75 @@ const Auth = () => {
       setLoading(false);
     }
   };
+
+  const handlePasswordReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      if (error) throw error;
+      toast.success('Password reset instructions have been sent to your email');
+      setIsForgotPassword(false);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const resetFormFields = () => {
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setUserType('regular');
+  };
+
+  // Handle password reset form
+  if (isForgotPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Reset Password</CardTitle>
+            <CardDescription>
+              Enter your email address and we'll send you instructions to reset your password.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePasswordReset} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Reset Instructions'}
+              </Button>
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => {
+                  setIsForgotPassword(false);
+                  resetFormFields();
+                }}
+              >
+                Back to Login
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -122,17 +192,23 @@ const Auth = () => {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Loading...' : isLogin ? 'Login' : 'Sign Up'}
             </Button>
+            {isLogin && (
+              <Button
+                type="button"
+                variant="link"
+                className="w-full"
+                onClick={() => setIsForgotPassword(true)}
+              >
+                Forgot your password?
+              </Button>
+            )}
           </form>
           <Button
             variant="link"
             className="w-full mt-4"
             onClick={() => {
               setIsLogin(!isLogin);
-              // Reset form fields when switching between login and signup
-              setEmail('');
-              setPassword('');
-              setConfirmPassword('');
-              setUserType('regular');
+              resetFormFields();
             }}
           >
             {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Login'}
