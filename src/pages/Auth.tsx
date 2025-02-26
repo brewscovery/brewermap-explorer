@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,13 +33,14 @@ const Auth = () => {
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-      } else if (user && !isPasswordRecovery) {
+      } else if (user && !isPasswordRecovery && !isForgotPassword) {
+        // Only redirect if we're not in recovery or forgot password mode
         navigate('/');
       }
     };
 
     checkAndHandleRecovery();
-  }, [searchParams, user, navigate, isPasswordRecovery]);
+  }, [searchParams, user, navigate, isPasswordRecovery, isForgotPassword]);
 
   useEffect(() => {
     if (isPasswordRecovery && user) {
