@@ -103,15 +103,8 @@ const Auth = () => {
 
       if (error) throw error;
 
-      // Show success message immediately
-      toast.success('Password updated successfully. Please login with your new password.');
-
-      // Sign out and redirect
-      await supabase.auth.signOut();
-      
-      // Clear form fields
-      setPassword('');
-      setConfirmPassword('');
+      // Show success message
+      toast.success('Password updated successfully');
       
       // Navigate to home page
       window.history.replaceState({}, '', '/');
