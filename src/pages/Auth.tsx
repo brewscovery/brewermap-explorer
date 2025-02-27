@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,29 +36,24 @@ const Auth = () => {
         case 'USER_UPDATED':
           if (isPasswordRecovery) {
             setLoading(false);
-            toast.success('Password updated successfully. Please login with your new password.');
             
             try {
-              // Clean up URL first
-              window.history.replaceState({}, '', '/auth');
-              
-              // Sign out the user - this will trigger the SIGNED_OUT event
+              // Sign out the user first
               await supabase.auth.signOut();
               
-              // The rest of the flow will be handled by the SIGNED_OUT event
+              // Show success message
+              toast.success('Password updated successfully. Please login with your new password.');
+              
+              // Clean up URL and redirect to index
+              window.history.replaceState({}, '', '/');
+              navigate('/', { replace: true });
+              
             } catch (error) {
               console.error('Sign out error:', error);
-              // If sign out fails, force a page reload as fallback
-              window.location.reload();
+              toast.error('An error occurred. Please try logging in with your new password.');
+              // Still redirect to index on error
+              navigate('/', { replace: true });
             }
-          }
-          break;
-        case 'SIGNED_OUT':
-          if (isPasswordRecovery) {
-            setIsPasswordRecovery(false);
-            setIsLogin(true);
-            // Force a clean reload of the auth page
-            window.location.href = '/auth';
           }
           break;
       }
