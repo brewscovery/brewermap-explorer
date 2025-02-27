@@ -94,8 +94,13 @@ const Index = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/');
+    } catch (error: any) {
+      toast.error('Failed to logout. Please try again.');
+    }
   };
 
   const handleForgotPassword = () => {
