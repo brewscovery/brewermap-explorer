@@ -94,23 +94,8 @@ const Index = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      setIsLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      // Clear any cached session data
-      await supabase.auth.getSession();
-      
-      // Force a page reload to clear any stale state
-      window.location.reload();
-      
-    } catch (error: any) {
-      console.error('Logout error:', error);
-      toast.error('Failed to logout. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    await supabase.auth.signOut();
+    navigate('/');
   };
 
   const handleForgotPassword = () => {
