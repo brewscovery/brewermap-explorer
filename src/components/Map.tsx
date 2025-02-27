@@ -17,7 +17,7 @@ interface MapProps {
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded, reinitializeMap } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -103,6 +103,13 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       }
     };
   }, [map, isStyleLoaded, breweries]);
+
+  // Reinitialize map when auth state changes
+  useEffect(() => {
+    if (user) {
+      reinitializeMap();
+    }
+  }, [user, reinitializeMap]);
 
   return (
     <div className="relative w-full h-full">
