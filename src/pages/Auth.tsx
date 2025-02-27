@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,6 +29,7 @@ const Auth = () => {
       console.log('Auth event:', event);
       
       if (event === 'PASSWORD_RECOVERY') {
+        console.log('Password recovery event received');
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
@@ -45,7 +47,13 @@ const Auth = () => {
     const type = searchParams.get('type');
     const forgot = searchParams.get('forgot');
     
-    if (type === 'recovery') {
+    // Check for recovery token in URL
+    const hasRecoveryToken = searchParams.has('access_token') || 
+                           searchParams.has('token') || 
+                           searchParams.has('code');
+    
+    if (hasRecoveryToken || type === 'recovery') {
+      console.log('Recovery token detected in URL');
       setIsPasswordRecovery(true);
       setIsLogin(false);
       setIsForgotPassword(false);
