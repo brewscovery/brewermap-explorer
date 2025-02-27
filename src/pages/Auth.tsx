@@ -38,8 +38,9 @@ const Auth = () => {
     // Check URL parameters on mount
     const type = searchParams.get('type');
     const forgot = searchParams.get('forgot');
+    const token = searchParams.get('token');
     
-    if (type === 'recovery') {
+    if ((type === 'recovery' && token) || searchParams.has('access_token')) {
       console.log('Recovery flow detected from URL');
       setIsPasswordRecovery(true);
       setIsLogin(false);
@@ -63,7 +64,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/auth',
+        redirectTo: window.location.origin + '/auth?type=recovery',
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
@@ -85,9 +86,18 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      const { error } = await supabase.auth.updateUser({
-        password: password,
-      });
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // If no session, try to get the access token from URL
+        const accessToken = searchParams.get('access_token');
+        if (!accessToken) {
+          throw new Error('No valid session found. Please try the reset link again.');
+        }
+      }
+
+      const { error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
       
@@ -97,6 +107,7 @@ const Auth = () => {
       setIsPasswordRecovery(false);
       navigate('/auth');
     } catch (error: any) {
+      console.error('Password update error:', error);
       toast.error(error.message);
     } finally {
       setLoading(false);
