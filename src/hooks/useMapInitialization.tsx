@@ -10,7 +10,6 @@ export const useMapInitialization = () => {
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
   const initializedRef = useRef(false);
   const onStyleLoadRef = useRef<(() => void) | null>(null);
-  const tokenRetryCount = useRef(0);
 
   const initializeMap = useCallback(async (force = false) => {
     if (!mapContainer.current) {
@@ -34,31 +33,7 @@ export const useMapInitialization = () => {
       }
 
       console.log('Getting Mapbox token...');
-      let token;
-      try {
-        token = await getMapboxToken();
-        console.log('Mapbox token retrieved successfully');
-        // Reset retry count on success
-        tokenRetryCount.current = 0;
-      } catch (error) {
-        console.error('Failed to get Mapbox token:', error);
-        
-        // Retry logic for token retrieval
-        if (tokenRetryCount.current < 3) {
-          tokenRetryCount.current++;
-          console.log(`Retrying token retrieval (attempt ${tokenRetryCount.current})...`);
-          
-          // Wait 1 second before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          return initializeMap(force);
-        }
-        
-        // If we've exceeded retry attempts, use a default public token as fallback
-        // This is just to prevent the app from completely breaking
-        console.warn('Using fallback Mapbox token after failed retries');
-        token = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
-      }
-      
+      const token = await getMapboxToken();
       mapboxgl.accessToken = token;
       
       console.log('Creating new map instance...');
@@ -117,7 +92,7 @@ export const useMapInitialization = () => {
       console.log('Map initialization completed');
     } catch (error) {
       console.error('Error initializing map:', error);
-      toast.error('Failed to initialize map. Please refresh the page.');
+      toast.error('Failed to initialize map');
     }
   }, [isStyleLoaded]);
 
