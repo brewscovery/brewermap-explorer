@@ -72,31 +72,37 @@ export const useMapInitialization = () => {
       // Add navigation controls
       newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
+      map.current = newMap;
+      initializedRef.current = true;
+
       // Create and store the style load listener
       const onStyleLoad = () => {
         console.log('Map style loaded event fired');
+        
+        // Ensure style is fully loaded before proceeding
         if (newMap.isStyleLoaded()) {
           console.log('Style is loaded, setting isStyleLoaded to true');
           setIsStyleLoaded(true);
         } else {
-          console.log('Style not loaded yet, setting up interval check');
-          // If style isn't loaded yet, wait for it
+          console.log('Style not loaded yet after style.load event, setting up interval check');
+          
+          // If style isn't loaded yet, wait for it with an interval
+          let attempts = 0;
+          const maxAttempts = 50; // 5 seconds (100ms * 50)
+          
           const checkStyle = setInterval(() => {
+            attempts++;
+            
             if (newMap.isStyleLoaded()) {
-              console.log('Style loaded via interval check');
+              console.log(`Style loaded via interval check (attempt ${attempts})`);
+              clearInterval(checkStyle);
+              setIsStyleLoaded(true);
+            } else if (attempts >= maxAttempts) {
+              console.warn('Style still not loaded after max attempts, forcing isStyleLoaded to true');
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
             }
           }, 100);
-
-          // Clean up interval after 5 seconds if style hasn't loaded
-          setTimeout(() => {
-            clearInterval(checkStyle);
-            if (!isStyleLoaded) {
-              console.warn('Style still not loaded after 5s timeout, forcing isStyleLoaded to true');
-              setIsStyleLoaded(true);
-            }
-          }, 5000);
         }
       };
       
@@ -106,20 +112,18 @@ export const useMapInitialization = () => {
       console.log('Adding style.load event listener');
       newMap.on('style.load', onStyleLoad);
 
-      // Check if style is already loaded
+      // Also check if style is already loaded (can happen with cached styles)
       if (newMap.isStyleLoaded()) {
         console.log('Style already loaded, initializing immediately');
         onStyleLoad();
       }
-
-      map.current = newMap;
-      initializedRef.current = true;
+      
       console.log('Map initialization completed');
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map. Please refresh the page.');
     }
-  }, [isStyleLoaded]);
+  }, []);
 
   // Initial map setup
   useEffect(() => {
