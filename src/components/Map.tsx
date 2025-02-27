@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Brewery } from '@/types/brewery';
@@ -9,6 +8,7 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 
 interface MapProps {
   breweries: Brewery[];
@@ -17,9 +17,19 @@ interface MapProps {
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded, reinitializeMap } = useMapInitialization();
+  const [searchParams] = useSearchParams();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+
+  // Handle map reinitialization after password reset
+  useEffect(() => {
+    const type = searchParams.get('type');
+    if (type === 'recovery' && user) {
+      console.log('Reinitializing map after password reset');
+      reinitializeMap();
+    }
+  }, [searchParams, user, reinitializeMap]);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
