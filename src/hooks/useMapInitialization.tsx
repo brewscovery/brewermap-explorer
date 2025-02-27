@@ -12,19 +12,31 @@ export const useMapInitialization = () => {
   const onStyleLoadRef = useRef<(() => void) | null>(null);
 
   const initializeMap = useCallback(async (force = false) => {
-    if (!mapContainer.current || (initializedRef.current && !force)) return;
+    if (!mapContainer.current) {
+      console.warn('Map container ref is not available');
+      return;
+    }
+    
+    if (initializedRef.current && !force) {
+      console.log('Map already initialized and force=false, skipping initialization');
+      return;
+    }
     
     try {
       // Clean up existing map if forcing reinitialization
       if (force && map.current) {
+        console.log('Force reinitialization - removing existing map instance');
         map.current.remove();
         map.current = null;
         initializedRef.current = false;
+        setIsStyleLoaded(false);
       }
 
+      console.log('Getting Mapbox token...');
       const token = await getMapboxToken();
       mapboxgl.accessToken = token;
       
+      console.log('Creating new map instance...');
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
@@ -37,48 +49,62 @@ export const useMapInitialization = () => {
 
       // Create and store the style load listener
       const onStyleLoad = () => {
-        console.log('Map style loaded');
+        console.log('Map style loaded event fired');
         if (newMap.isStyleLoaded()) {
+          console.log('Style is loaded, setting isStyleLoaded to true');
           setIsStyleLoaded(true);
         } else {
+          console.log('Style not loaded yet, setting up interval check');
           // If style isn't loaded yet, wait for it
           const checkStyle = setInterval(() => {
             if (newMap.isStyleLoaded()) {
+              console.log('Style loaded via interval check');
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
             }
           }, 100);
 
           // Clean up interval after 5 seconds if style hasn't loaded
-          setTimeout(() => clearInterval(checkStyle), 5000);
+          setTimeout(() => {
+            clearInterval(checkStyle);
+            if (!isStyleLoaded) {
+              console.warn('Style still not loaded after 5s timeout, forcing isStyleLoaded to true');
+              setIsStyleLoaded(true);
+            }
+          }, 5000);
         }
       };
       
       onStyleLoadRef.current = onStyleLoad;
 
       // Add the event listener
+      console.log('Adding style.load event listener');
       newMap.on('style.load', onStyleLoad);
 
       // Check if style is already loaded
       if (newMap.isStyleLoaded()) {
+        console.log('Style already loaded, initializing immediately');
         onStyleLoad();
       }
 
       map.current = newMap;
       initializedRef.current = true;
+      console.log('Map initialization completed');
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map');
     }
-  }, []);
+  }, [isStyleLoaded]);
 
   // Initial map setup
   useEffect(() => {
+    console.log('Map initialization effect running');
     initializeMap();
 
     return () => {
       if (map.current && onStyleLoadRef.current) {
         try {
+          console.log('Cleaning up map instance');
           map.current.off('style.load', onStyleLoadRef.current);
           map.current.remove();
         } catch (error) {
@@ -88,10 +114,12 @@ export const useMapInitialization = () => {
       map.current = null;
       initializedRef.current = false;
       onStyleLoadRef.current = null;
+      console.log('Map cleanup completed');
     };
   }, [initializeMap]);
 
   const reinitializeMap = useCallback(() => {
+    console.log('Reinitializing map with force=true');
     initializeMap(true);
   }, [initializeMap]);
 
