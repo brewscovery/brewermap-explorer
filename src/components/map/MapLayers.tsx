@@ -2,15 +2,22 @@
 import React, { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
-import MapSource from './layers/MapSource';
+import type { Feature, Point, FeatureCollection } from 'geojson';
 import ClusterLayers from './layers/ClusterLayers';
 import BreweryPoints from './layers/BreweryPoints';
+import { createBreweryFeatures } from '@/utils/mapUtils';
 
 interface MapLayersProps {
   map: mapboxgl.Map;
   breweries: Brewery[];
   visitedBreweryIds?: string[];
   onBrewerySelect: (brewery: Brewery) => void;
+}
+
+// Define a custom interface for brewery properties
+interface BreweryProperties {
+  id: string;
+  name: string;
 }
 
 const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLayersProps) => {
@@ -20,7 +27,7 @@ const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLa
     // Add the source directly to the map
     if (!map || !map.isStyleLoaded() || !breweries.length) return;
 
-    const createGeoJsonData = () => {
+    const createGeoJsonData = (): FeatureCollection<Point, BreweryProperties> => {
       const features = breweries
         .filter(brewery => {
           const lng = parseFloat(brewery.longitude || '');
@@ -28,13 +35,13 @@ const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLa
           return !isNaN(lng) && !isNaN(lat);
         })
         .map(brewery => ({
-          type: 'Feature',
+          type: 'Feature' as const,
           properties: {
             id: brewery.id,
             name: brewery.name
           },
           geometry: {
-            type: 'Point',
+            type: 'Point' as const,
             coordinates: [
               parseFloat(brewery.longitude || '0'),
               parseFloat(brewery.latitude || '0')
@@ -44,7 +51,7 @@ const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLa
 
       console.log(`Created GeoJSON with ${features.length} features`);
       return {
-        type: 'FeatureCollection',
+        type: 'FeatureCollection' as const,
         features
       };
     };
