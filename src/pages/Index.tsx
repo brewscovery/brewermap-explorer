@@ -93,19 +93,28 @@ const Index = () => {
     }
   };
 
-  const handleForgotPassword = () => {
-    navigate('/auth');
-    setTimeout(() => {
-      const forgotPasswordButton = document.querySelector('button[data-forgot-password]');
-      if (forgotPasswordButton instanceof HTMLButtonElement) {
-        forgotPasswordButton.click();
-      }
-    }, 100);
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear any cached session data
+      await supabase.auth.getSession();
+      
+      // Force a page reload to clear any stale state
+      window.location.reload();
+      
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      toast.error('Failed to logout. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate('/');
+  const handleForgotPassword = () => {
+    navigate('/auth?forgot=true');
   };
 
   useEffect(() => {
@@ -124,8 +133,8 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {userType === 'business' ? 'Business Account' : 'Regular Account'}
               </span>
-              <Button variant="outline" onClick={handleLogout}>
-                Logout
+              <Button variant="outline" onClick={handleLogout} disabled={isLoading}>
+                {isLoading ? 'Logging out...' : 'Logout'}
               </Button>
             </>
           ) : (
@@ -163,7 +172,7 @@ const Index = () => {
                       type="button"
                       variant="link"
                       className="w-full"
-                      onClick={() => navigate('/auth?forgot=true')}
+                      onClick={handleForgotPassword}
                     >
                       Forgot your password?
                     </Button>
