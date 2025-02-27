@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
 import BreweryForm from '@/components/BreweryForm';
 import type { Brewery } from '@/types/brewery';
@@ -19,6 +18,7 @@ import { Label } from '@/components/ui/label';
 
 const Index = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, userType } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
@@ -26,6 +26,19 @@ const Index = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const type = searchParams.get('type');
+    
+    if (type === 'recovery') {
+      navigate('/auth' + window.location.search);
+      return;
+    }
+
+    if (!user && !type) {
+      navigate('/auth');
+    }
+  }, [user, navigate, searchParams]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],

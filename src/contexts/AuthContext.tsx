@@ -34,31 +34,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       return;
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserType(session.user.id);
-      }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      // Don't update the user state if we're in password recovery
+    const setupAuth = async () => {
+      // Get initial session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Don't set user if we're in recovery mode
       if (!isPasswordRecovery) {
         setUser(session?.user ?? null);
         if (session?.user) {
-          fetchUserType(session.user.id);
-        } else {
-          setUserType(null);
+          await fetchUserType(session.user.id);
         }
       }
-      setLoading(false);
-    });
 
-    return () => {
-      subscription.unsubscribe();
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Don't update the user state if we're in password recovery
+        if (!isPasswordRecovery) {
+          setUser(session?.user ?? null);
+          if (session?.user) {
+            await fetchUserType(session.user.id);
+          } else {
+            setUserType(null);
+          }
+        }
+        setLoading(false);
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
     };
+
+    setupAuth();
   }, []);
 
   const fetchUserType = async (userId: string) => {
