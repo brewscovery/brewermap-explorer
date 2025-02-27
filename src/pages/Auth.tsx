@@ -79,6 +79,7 @@ const Auth = () => {
 
   const handleSetNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // Prevent multiple submissions
     setLoading(true);
 
     try {
@@ -102,10 +103,16 @@ const Auth = () => {
       if (error) throw error;
       
       toast.success('Password updated successfully. Please login with your new password.');
-      await supabase.auth.signOut();
-      setIsLogin(true);
+      
+      // Clear the form and reset states
+      setPassword('');
+      setConfirmPassword('');
       setIsPasswordRecovery(false);
-      navigate('/auth');
+      setIsLogin(true);
+      
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      navigate('/auth', { replace: true });
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
