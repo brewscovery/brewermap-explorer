@@ -29,13 +29,14 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Only handle recovery flow redirects
     const type = searchParams.get('type');
+    const token = searchParams.get('token');
     
-    if (type === 'recovery') {
+    // Only redirect for recovery/signup verification if we're not already logged in
+    if ((type === 'recovery' || type === 'signup') && token && !user) {
       navigate('/auth' + window.location.search);
     }
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, user]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
