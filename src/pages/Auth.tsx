@@ -33,29 +33,6 @@ const Auth = () => {
           setIsLogin(false);
           setIsForgotPassword(false);
           break;
-        case 'USER_UPDATED':
-          if (isPasswordRecovery) {
-            setLoading(false);
-            
-            try {
-              // Sign out the user first
-              await supabase.auth.signOut();
-              
-              // Show success message
-              toast.success('Password updated successfully. Please login with your new password.');
-              
-              // Clean up URL and redirect to index
-              window.history.replaceState({}, '', '/');
-              navigate('/', { replace: true });
-              
-            } catch (error) {
-              console.error('Sign out error:', error);
-              toast.error('An error occurred. Please try logging in with your new password.');
-              // Still redirect to index on error
-              navigate('/', { replace: true });
-            }
-          }
-          break;
       }
     });
 
@@ -126,16 +103,24 @@ const Auth = () => {
 
       if (error) throw error;
 
+      // Show success message immediately
+      toast.success('Password updated successfully. Please login with your new password.');
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      
       // Clear form fields
       setPassword('');
       setConfirmPassword('');
-
-      // The rest of the flow will be handled by the auth state change listener
-      // when it receives the USER_UPDATED event
       
+      // Navigate to home page
+      window.history.replaceState({}, '', '/');
+      navigate('/', { replace: true });
+
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
+    } finally {
       setLoading(false);
     }
   };
