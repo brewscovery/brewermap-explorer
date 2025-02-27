@@ -118,8 +118,8 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {userType === 'business' ? 'Business Account' : 'Regular Account'}
               </span>
-              <Button variant="outline" onClick={handleLogout} disabled={isLoading}>
-                {isLoading ? 'Logging out...' : 'Logout'}
+              <Button variant="outline" onClick={handleLogout}>
+                Logout
               </Button>
             </>
           ) : (
