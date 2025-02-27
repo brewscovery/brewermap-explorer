@@ -21,26 +21,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // First check if we're in a recovery flow
-    const params = new URLSearchParams(window.location.search);
-    const isRecovery = params.get('type') === 'recovery';
-
-    if (isRecovery) {
-      // Immediately sign out and clear state for recovery flow
-      const handleRecovery = async () => {
-        console.log('Recovery flow detected, signing out user');
-        await supabase.auth.signOut();
-        setUser(null);
-        setUserType(null);
-        setLoading(false);
-      };
-      handleRecovery();
-      return;
-    }
-
-    // Only proceed with normal auth flow if not in recovery
+    // Only proceed with auth flow if not in recovery
     const setupAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+
+      // Don't set user if we're in a recovery flow
+      if (window.location.search.includes('type=recovery')) {
+        console.log('Recovery flow detected, not setting user');
+        setLoading(false);
+        return;
+      }
+
       setUser(session?.user ?? null);
       
       if (session?.user) {
@@ -48,8 +39,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Prevent auth state changes during recovery flow
         if (window.location.search.includes('type=recovery')) {
-          // Double check we're not in recovery mode
+          console.log('Recovery flow detected in auth change, blocking update');
           return;
         }
         
