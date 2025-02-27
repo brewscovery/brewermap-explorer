@@ -15,34 +15,13 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 });
 
-// Handle recovery flow immediately when this module is loaded
-const params = new URLSearchParams(window.location.search);
-if (params.get('type') === 'recovery') {
-  // Force a signout before any auth processing happens
-  supabase.auth.signOut().catch(console.error);
-}
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userType, setUserType] = useState<'business' | 'regular' | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Skip auth setup if we're in recovery mode
-    if (window.location.search.includes('type=recovery')) {
-      console.log('Recovery flow detected in AuthContext, skipping auth setup');
-      setLoading(false);
-      return;
-    }
-
     const setupAuth = async () => {
-      // Double-check we're not in recovery mode
-      if (window.location.search.includes('type=recovery')) {
-        console.log('Recovery flow detected, skipping session setup');
-        setLoading(false);
-        return;
-      }
-
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
@@ -51,12 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        // Skip auth changes if in recovery mode
-        if (window.location.search.includes('type=recovery')) {
-          console.log('Recovery flow detected in auth change, skipping update');
-          return;
-        }
-
+        console.log('Auth event:', event);
         setUser(session?.user ?? null);
         if (session?.user) {
           await fetchUserType(session.user.id);
@@ -104,3 +78,4 @@ export const useAuth = () => {
   }
   return context;
 };
+

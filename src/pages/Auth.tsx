@@ -31,8 +31,6 @@ const Auth = () => {
       // If it's a recovery flow, handle it
       if (type === 'recovery' && token) {
         console.log('Recovery flow detected');
-        // Make sure user is signed out
-        await supabase.auth.signOut();
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
@@ -76,28 +74,12 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      // Get the token from the URL
-      const token = searchParams.get('token');
-      if (!token) {
-        throw new Error('No recovery token found');
-      }
-
-      // Verify the recovery token using token_hash
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        type: 'recovery',
-        token_hash: token
-      });
-
-      if (verifyError) {
-        throw new Error('Invalid or expired recovery token. Please request a new password reset.');
-      }
-
-      // Update the password
-      const { error: updateError } = await supabase.auth.updateUser({
+      // Update the password using updateUser
+      const { error } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (updateError) throw updateError;
+      if (error) throw error;
       
       toast.success('Password updated successfully. Please login with your new password.');
       // Sign out after password update
@@ -335,3 +317,4 @@ const Auth = () => {
 };
 
 export default Auth;
+

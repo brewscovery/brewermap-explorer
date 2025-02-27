@@ -8,7 +8,6 @@ import { useState } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import { supabase } from "./integrations/supabase/client";
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient({
@@ -19,13 +18,6 @@ const App = () => {
       },
     },
   }));
-
-  // Handle recovery flow immediately, before anything else
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('type') === 'recovery') {
-    // Immediately sign out - this needs to happen synchronously
-    supabase.auth.signOut().catch(console.error);
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -46,3 +38,4 @@ const App = () => {
 };
 
 export default App;
+
