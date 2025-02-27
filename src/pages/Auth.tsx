@@ -24,15 +24,20 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const setupRecoveryMode = () => {
+      console.log('Setting up recovery mode...');
+      setIsPasswordRecovery(true);
+      setIsLogin(false);
+      setIsForgotPassword(false);
+    };
+
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event);
       
       if (event === 'PASSWORD_RECOVERY') {
         console.log('Password recovery event received');
-        setIsPasswordRecovery(true);
-        setIsLogin(false);
-        setIsForgotPassword(false);
+        setupRecoveryMode();
       }
 
       // If the user's password was successfully updated, redirect to home
@@ -44,19 +49,16 @@ const Auth = () => {
     });
 
     // Check URL parameters on mount
+    const token = searchParams.get('token');
     const type = searchParams.get('type');
     const forgot = searchParams.get('forgot');
     
-    // Check for recovery token in URL
-    const hasRecoveryToken = searchParams.has('access_token') || 
-                           searchParams.has('token') || 
-                           searchParams.has('code');
+    console.log('URL params:', { token, type });
     
-    if (hasRecoveryToken || type === 'recovery') {
-      console.log('Recovery token detected in URL');
-      setIsPasswordRecovery(true);
-      setIsLogin(false);
-      setIsForgotPassword(false);
+    // If we have both token and type=recovery in the URL, set up recovery mode
+    if (token && type === 'recovery') {
+      console.log('Recovery URL detected');
+      setupRecoveryMode();
     } else if (forgot === 'true') {
       setIsForgotPassword(true);
       setIsLogin(false);
