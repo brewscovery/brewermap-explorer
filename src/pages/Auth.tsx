@@ -31,35 +31,56 @@ const Auth = () => {
       setIsForgotPassword(false);
     };
 
+    const handleRecoveryFlow = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        console.log('Current session:', data?.session);
+        if (error) throw error;
+        
+        if (data?.session?.user) {
+          console.log('User authenticated in recovery flow');
+          setupRecoveryMode();
+        }
+      } catch (error) {
+        console.error('Recovery flow error:', error);
+      }
+    };
+
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event);
+      console.log('Auth event:', event, 'Session:', session);
       
       if (event === 'PASSWORD_RECOVERY') {
         console.log('Password recovery event received');
         setupRecoveryMode();
       }
 
+      if (event === 'SIGNED_IN') {
+        console.log('Sign in event during recovery');
+        const type = searchParams.get('type');
+        if (type === 'recovery') {
+          setupRecoveryMode();
+        }
+      }
+
       // If the user's password was successfully updated, redirect to home
       if (event === 'USER_UPDATED') {
         console.log('User updated event received');
         toast.success('Password updated successfully');
+        setLoading(false);
         navigate('/', { replace: true });
       }
     });
 
     // Check URL parameters on mount
-    const token = searchParams.get('token');
     const type = searchParams.get('type');
-    const forgot = searchParams.get('forgot');
     
-    console.log('URL params:', { token, type });
+    console.log('Current URL type parameter:', type);
     
-    // If we have both token and type=recovery in the URL, set up recovery mode
-    if (token && type === 'recovery') {
-      console.log('Recovery URL detected');
-      setupRecoveryMode();
-    } else if (forgot === 'true') {
+    if (type === 'recovery') {
+      console.log('Recovery URL detected, initializing recovery flow');
+      handleRecoveryFlow();
+    } else if (searchParams.get('forgot') === 'true') {
       setIsForgotPassword(true);
       setIsLogin(false);
       setIsPasswordRecovery(false);
@@ -78,7 +99,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/auth?type=recovery',
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
@@ -111,7 +132,7 @@ const Auth = () => {
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
-      setLoading(false); // Reset loading state on error
+      setLoading(false);
     }
   };
 
