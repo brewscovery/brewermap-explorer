@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,22 +28,18 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event);
       
-      switch (event) {
-        case 'PASSWORD_RECOVERY':
-          setIsPasswordRecovery(true);
-          setIsLogin(false);
-          setIsForgotPassword(false);
-          break;
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true);
+        setIsLogin(false);
+        setIsForgotPassword(false);
       }
     });
 
     // Check URL parameters on mount
     const type = searchParams.get('type');
     const forgot = searchParams.get('forgot');
-    const token = searchParams.get('token');
     
-    if ((type === 'recovery' && token) || searchParams.has('access_token')) {
-      console.log('Recovery flow detected from URL');
+    if (type === 'recovery') {
       setIsPasswordRecovery(true);
       setIsLogin(false);
       setIsForgotPassword(false);
@@ -57,7 +54,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, navigate, searchParams, isPasswordRecovery]);
+  }, [user, navigate, searchParams]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,26 +85,14 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      // First check if we have a session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        // If no session, try to get the access token from URL
-        const accessToken = searchParams.get('access_token');
-        if (!accessToken) {
-          throw new Error('No valid session found. Please try the reset link again.');
-        }
-      }
-
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
 
-      // Show success message
       toast.success('Password updated successfully');
       
-      // Navigate to home page
-      window.history.replaceState({}, '', '/');
+      // Clear recovery state and redirect
+      setIsPasswordRecovery(false);
       navigate('/', { replace: true });
 
     } catch (error: any) {
