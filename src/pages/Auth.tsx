@@ -36,25 +36,30 @@ const Auth = () => {
           break;
         case 'USER_UPDATED':
           if (isPasswordRecovery) {
-            // Password has been successfully updated
             setLoading(false);
-            setIsPasswordRecovery(false);
-            setIsLogin(true);
-            
-            // Sign out the user
-            await supabase.auth.signOut();
-            
             toast.success('Password updated successfully. Please login with your new password.');
             
-            // Clean up URL and redirect to auth page
-            window.history.replaceState({}, '', '/auth');
-            navigate('/auth', { replace: true });
+            try {
+              // Clean up URL first
+              window.history.replaceState({}, '', '/auth');
+              
+              // Sign out the user - this will trigger the SIGNED_OUT event
+              await supabase.auth.signOut();
+              
+              // The rest of the flow will be handled by the SIGNED_OUT event
+            } catch (error) {
+              console.error('Sign out error:', error);
+              // If sign out fails, force a page reload as fallback
+              window.location.reload();
+            }
           }
           break;
         case 'SIGNED_OUT':
           if (isPasswordRecovery) {
-            // Force reload after sign out to clear all states
-            window.location.reload();
+            setIsPasswordRecovery(false);
+            setIsLogin(true);
+            // Force a clean reload of the auth page
+            window.location.href = '/auth';
           }
           break;
       }
