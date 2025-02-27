@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -29,19 +28,13 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    // Check if we're in a recovery flow
+    // Only handle recovery flow redirects
     const type = searchParams.get('type');
     
     if (type === 'recovery') {
       navigate('/auth' + window.location.search);
-      return;
     }
-
-    // Only redirect to auth if not logged in
-    if (!user) {
-      navigate('/auth');
-    }
-  }, [user, navigate, searchParams]);
+  }, [navigate, searchParams]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
