@@ -17,7 +17,7 @@ interface MapProps {
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded, reinitializeMap } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
@@ -71,45 +71,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       setVisitedBreweryIds([]);
     }
   }, [checkins, user]);
-
-  // Initialize map layers when style is loaded and breweries are available
-  useEffect(() => {
-    if (!map.current || !isStyleLoaded || !breweries.length) return;
-
-    const initializeLayers = () => {
-      if (!map.current?.isStyleLoaded()) return;
-
-      // Clean up existing layers and source
-      ['clusters', 'cluster-count', 'unclustered-point-label', 'unclustered-point'].forEach(layer => {
-        if (map.current?.getLayer(layer)) {
-          map.current.removeLayer(layer);
-        }
-      });
-      
-      if (map.current.getSource('breweries')) {
-        map.current.removeSource('breweries');
-      }
-    };
-
-    // Initialize layers immediately
-    initializeLayers();
-
-    // And also when the style loads
-    map.current.on('style.load', initializeLayers);
-
-    return () => {
-      if (map.current) {
-        map.current.off('style.load', initializeLayers);
-      }
-    };
-  }, [map, isStyleLoaded, breweries]);
-
-  // Reinitialize map when auth state changes
-  useEffect(() => {
-    if (user) {
-      reinitializeMap();
-    }
-  }, [user, reinitializeMap]);
 
   return (
     <div className="relative w-full h-full">

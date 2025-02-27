@@ -12,15 +12,9 @@ export const useMapInitialization = () => {
   const onStyleLoadRef = useRef<(() => void) | null>(null);
 
   const initializeMap = useCallback(async () => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || initializedRef.current) return;
     
     try {
-      // Clean up existing map instance if it exists
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-
       const token = await getMapboxToken();
       mapboxgl.accessToken = token;
       
@@ -73,9 +67,7 @@ export const useMapInitialization = () => {
 
   // Initial map setup
   useEffect(() => {
-    if (!initializedRef.current) {
-      initializeMap();
-    }
+    initializeMap();
 
     return () => {
       if (map.current && onStyleLoadRef.current) {
@@ -92,10 +84,5 @@ export const useMapInitialization = () => {
     };
   }, [initializeMap]);
 
-  const reinitializeMap = useCallback(() => {
-    initializedRef.current = false;
-    initializeMap();
-  }, [initializeMap]);
-
-  return { mapContainer, map, isStyleLoaded, reinitializeMap };
+  return { mapContainer, map, isStyleLoaded };
 };
