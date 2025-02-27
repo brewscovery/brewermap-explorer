@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +31,13 @@ const Auth = () => {
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
+      }
+
+      // If the user's password was successfully updated, redirect to home
+      if (event === 'USER_UPDATED') {
+        console.log('User updated event received');
+        toast.success('Password updated successfully');
+        navigate('/', { replace: true });
       }
     });
 
@@ -81,25 +87,21 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      console.log('Starting password update...');
       if (password !== confirmPassword) {
         throw new Error("Passwords don't match");
       }
 
       const { error } = await supabase.auth.updateUser({ password });
-
       if (error) throw error;
 
-      toast.success('Password updated successfully');
+      console.log('Password update successful');
+      // Note: The navigation and success message will be handled by the AUTH_STATE_CHANGE listener
       
-      // Clear recovery state and redirect
-      setIsPasswordRecovery(false);
-      navigate('/', { replace: true });
-
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
-    } finally {
-      setLoading(false);
+      setLoading(false); // Reset loading state on error
     }
   };
 
