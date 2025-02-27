@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -93,7 +94,13 @@ const Index = () => {
   };
 
   const handleForgotPassword = () => {
-    navigate('/auth?type=recovery');
+    navigate('/auth');
+    setTimeout(() => {
+      const forgotPasswordButton = document.querySelector('button[data-forgot-password]');
+      if (forgotPasswordButton instanceof HTMLButtonElement) {
+        forgotPasswordButton.click();
+      }
+    }, 100);
   };
 
   const handleLogout = async () => {
@@ -156,7 +163,7 @@ const Index = () => {
                       type="button"
                       variant="link"
                       className="w-full"
-                      onClick={handleForgotPassword}
+                      onClick={() => navigate('/auth?forgot=true')}
                     >
                       Forgot your password?
                     </Button>

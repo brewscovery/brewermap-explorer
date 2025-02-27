@@ -37,12 +37,18 @@ const Auth = () => {
 
     // Check URL parameters on mount
     const type = searchParams.get('type');
+    const forgot = searchParams.get('forgot');
+    
     if (type === 'recovery') {
       console.log('Recovery flow detected from URL');
       setIsPasswordRecovery(true);
       setIsLogin(false);
       setIsForgotPassword(false);
-    } else if (user && !isPasswordRecovery) {
+    } else if (forgot === 'true') {
+      setIsForgotPassword(true);
+      setIsLogin(false);
+      setIsPasswordRecovery(false);
+    } else if (user && !isPasswordRecovery && !isForgotPassword) {
       navigate('/');
     }
 
