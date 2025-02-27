@@ -12,7 +12,17 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
   useEffect(() => {
     const addLayers = () => {
-      if (!map.isStyleLoaded() || layersAdded.current) return;
+      if (!map.getStyle() || !map.getSource(source)) {
+        console.log('Map style or source not ready, skipping cluster layer addition');
+        return;
+      }
+
+      if (layersAdded.current) {
+        console.log('Cluster layers already added, skipping');
+        return;
+      }
+
+      console.log('Adding cluster layers to map');
 
       try {
         // Add clusters layer
@@ -65,44 +75,6 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           });
         }
 
-        // Add unclustered point layer
-        if (!map.getLayer('unclustered-point')) {
-          map.addLayer({
-            id: 'unclustered-point',
-            type: 'circle',
-            source: source,
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-              'circle-color': '#fbbf24',
-              'circle-radius': 12,
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#ffffff'
-            }
-          });
-        }
-
-        // Add unclustered point label
-        if (!map.getLayer('unclustered-point-label')) {
-          map.addLayer({
-            id: 'unclustered-point-label',
-            type: 'symbol',
-            source: source,
-            filter: ['!', ['has', 'point_count']],
-            layout: {
-              'text-field': ['get', 'name'],
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12,
-              'text-offset': [0, 1.5],
-              'text-anchor': 'top'
-            },
-            paint: {
-              'text-color': '#374151',
-              'text-halo-color': '#ffffff',
-              'text-halo-width': 2
-            }
-          });
-        }
-        
         layersAdded.current = true;
         console.log('Cluster layers added successfully');
       } catch (error) {
@@ -111,33 +83,55 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     };
 
     const initialize = () => {
-      if (!map.getSource(source)) {
-        console.log('Waiting for source to be added...');
-        const checkSource = setInterval(() => {
-          if (map.getSource(source)) {
-            clearInterval(checkSource);
-            addLayers();
-          }
-        }, 100);
-
-        return () => clearInterval(checkSource);
+      if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded, waiting for style load event');
+        map.once('style.load', () => {
+          setTimeout(() => {
+            if (map.getSource(source)) {
+              addLayers();
+            } else {
+              console.log('Source not found after style load, waiting for sourcedata event');
+              map.once('sourcedata', (e) => {
+                if (e.sourceId === source && e.isSourceLoaded) {
+                  addLayers();
+                }
+              });
+            }
+          }, 100);
+        });
+        return;
       }
 
-      addLayers();
+      // If style is already loaded, check for source
+      if (map.getSource(source)) {
+        addLayers();
+      } else {
+        console.log('Source not found, waiting for it to be added...');
+        // Listen for the sourcedata event to know when our source is added
+        map.once('sourcedata', (e) => {
+          if (e.sourceId === source && e.isSourceLoaded) {
+            addLayers();
+          }
+        });
+
+        // Also set a timeout as fallback
+        setTimeout(() => {
+          if (!layersAdded.current && map.getSource(source)) {
+            console.log('Adding cluster layers via timeout fallback');
+            addLayers();
+          }
+        }, 1000);
+      }
     };
 
-    // Start initialization process
-    if (map.isStyleLoaded()) {
-      initialize();
-    } else {
-      map.once('style.load', initialize);
-    }
+    console.log('Initializing cluster layers component');
+    initialize();
 
     return () => {
       if (!map.getStyle()) return;
       
       try {
-        ['cluster-count', 'clusters', 'unclustered-point', 'unclustered-point-label'].forEach(layer => {
+        ['cluster-count', 'clusters'].forEach(layer => {
           if (map.getLayer(layer)) {
             map.removeLayer(layer);
           }

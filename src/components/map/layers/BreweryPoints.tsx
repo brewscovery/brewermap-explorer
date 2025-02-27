@@ -31,6 +31,8 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
           return;
         }
 
+        console.log('Adding brewery point layers');
+
         // Add unclustered point layer with conditional colors
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
@@ -85,29 +87,38 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
     };
 
     const initialize = () => {
+      // Wait for source to be loaded before adding layers
       if (!map.isStyleLoaded()) {
+        console.log('Map style not loaded, waiting for style load event');
         map.once('style.load', () => {
-          if (map.getSource(source)) {
-            addLayers();
-          } else {
-            map.once('sourcedata', (e) => {
-              if (e.sourceId === source && e.isSourceLoaded) {
-                addLayers();
-              }
-            });
-          }
+          setTimeout(() => {
+            if (map.getSource(source)) {
+              addLayers();
+            } else {
+              console.log('Source not found after style load, waiting for sourcedata event');
+              map.once('sourcedata', (e) => {
+                if (e.sourceId === source && e.isSourceLoaded) {
+                  addLayers();
+                }
+              });
+            }
+          }, 100);
         });
-      } else if (map.getSource(source)) {
-        addLayers();
       } else {
-        map.once('sourcedata', (e) => {
-          if (e.sourceId === source && e.isSourceLoaded) {
-            addLayers();
-          }
-        });
+        if (map.getSource(source)) {
+          addLayers();
+        } else {
+          console.log('Source not found, waiting for sourcedata event');
+          map.once('sourcedata', (e) => {
+            if (e.sourceId === source && e.isSourceLoaded) {
+              addLayers();
+            }
+          });
+        }
       }
     };
 
+    console.log('Initializing brewery points component');
     initialize();
 
     // Listen for changes to visitedBreweryIds and update colors
