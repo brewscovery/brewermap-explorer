@@ -116,9 +116,11 @@ const Auth = () => {
       
       toast.success('Password updated successfully. Please login with your new password.');
       
-      // Force navigation to login
-      navigate('/auth', { replace: true });
-      window.location.reload(); // Force a full page reload to clear any lingering states
+      // Wait for state updates to complete
+      setTimeout(() => {
+        // Force a full page reload to clear any lingering states
+        window.location.href = '/auth';
+      }, 100);
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
