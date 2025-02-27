@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,10 +27,23 @@ const Auth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event);
       
-      if (event === 'PASSWORD_RECOVERY') {
-        setIsPasswordRecovery(true);
-        setIsLogin(false);
-        setIsForgotPassword(false);
+      switch (event) {
+        case 'PASSWORD_RECOVERY':
+          setIsPasswordRecovery(true);
+          setIsLogin(false);
+          setIsForgotPassword(false);
+          break;
+        case 'USER_UPDATED':
+          if (isPasswordRecovery) {
+            // Password has been successfully updated
+            setLoading(false);
+            setIsPasswordRecovery(false);
+            setIsLogin(true);
+            toast.success('Password updated successfully. Please login with your new password.');
+            // Clean up URL and redirect
+            window.history.replaceState({}, '', '/auth');
+          }
+          break;
       }
     });
 
@@ -56,7 +68,7 @@ const Auth = () => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, navigate, searchParams]);
+  }, [user, navigate, searchParams, isPasswordRecovery]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,30 +113,17 @@ const Auth = () => {
       const { error } = await supabase.auth.updateUser({ password });
 
       if (error) throw error;
-      
-      // Sign out first
-      await supabase.auth.signOut();
-      
-      // Clear form and states
+
+      // Clear form fields
       setPassword('');
       setConfirmPassword('');
+
+      // The rest of the flow will be handled by the auth state change listener
+      // when it receives the USER_UPDATED event
       
-      // Force a clean URL and state reset
-      window.history.replaceState({}, '', '/auth');
-      setIsPasswordRecovery(false);
-      setIsLogin(true);
-      
-      toast.success('Password updated successfully. Please login with your new password.');
-      
-      // Wait for state updates to complete
-      setTimeout(() => {
-        // Force a full page reload to clear any lingering states
-        window.location.href = '/auth';
-      }, 100);
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
-    } finally {
       setLoading(false);
     }
   };
