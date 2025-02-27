@@ -27,6 +27,17 @@ const Index = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [passwordReset, setPasswordReset] = useState(false);
+
+  // Check for password reset flag in localStorage
+  useEffect(() => {
+    const resetFlag = localStorage.getItem('password_reset_completed');
+    if (resetFlag === 'true' && user) {
+      setPasswordReset(true);
+      // Clear the flag
+      localStorage.removeItem('password_reset_completed');
+    }
+  }, [user]);
 
   useEffect(() => {
     const type = searchParams.get('type');
@@ -179,6 +190,7 @@ const Index = () => {
         <Map
           breweries={breweries}
           onBrewerySelect={setSelectedBrewery}
+          passwordReset={passwordReset}
         />
       </div>
       {userType === 'business' && (
