@@ -24,27 +24,32 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const checkAndHandleRecovery = async () => {
-      const type = searchParams.get('type');
-      const token = searchParams.get('token');
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth event:', event);
       
-      // If it's a recovery flow, handle it
-      if (type === 'recovery' && token) {
-        console.log('Recovery flow detected');
+      if (event === 'PASSWORD_RECOVERY') {
         setIsPasswordRecovery(true);
         setIsLogin(false);
         setIsForgotPassword(false);
-        return;
       }
-      
-      // Only redirect to home if user is logged in AND we're not in recovery or forgot password flow
-      if (user && !isPasswordRecovery && !isForgotPassword && !type) {
-        navigate('/');
-      }
-    };
+    });
 
-    checkAndHandleRecovery();
-  }, [user, navigate, isPasswordRecovery, isForgotPassword, searchParams]);
+    // Check URL parameters on mount
+    const type = searchParams.get('type');
+    if (type === 'recovery') {
+      console.log('Recovery flow detected from URL');
+      setIsPasswordRecovery(true);
+      setIsLogin(false);
+      setIsForgotPassword(false);
+    } else if (user && !isPasswordRecovery) {
+      navigate('/');
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [user, navigate, searchParams]);
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +57,7 @@ const Auth = () => {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth`,
+        redirectTo: window.location.origin + '/auth',
       });
       if (error) throw error;
       toast.success('Password reset instructions have been sent to your email');
@@ -74,7 +79,6 @@ const Auth = () => {
         throw new Error("Passwords don't match");
       }
 
-      // Update the password using updateUser
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
@@ -82,7 +86,6 @@ const Auth = () => {
       if (error) throw error;
       
       toast.success('Password updated successfully. Please login with your new password.');
-      // Sign out after password update
       await supabase.auth.signOut();
       setIsLogin(true);
       setIsPasswordRecovery(false);
@@ -317,4 +320,3 @@ const Auth = () => {
 };
 
 export default Auth;
-
