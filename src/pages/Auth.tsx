@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,9 +40,21 @@ const Auth = () => {
             setLoading(false);
             setIsPasswordRecovery(false);
             setIsLogin(true);
+            
+            // Sign out the user
+            await supabase.auth.signOut();
+            
             toast.success('Password updated successfully. Please login with your new password.');
-            // Clean up URL and redirect
+            
+            // Clean up URL and redirect to auth page
             window.history.replaceState({}, '', '/auth');
+            navigate('/auth', { replace: true });
+          }
+          break;
+        case 'SIGNED_OUT':
+          if (isPasswordRecovery) {
+            // Force reload after sign out to clear all states
+            window.location.reload();
           }
           break;
       }
