@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -28,6 +29,7 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
+    // Check if we're in a recovery flow
     const type = searchParams.get('type');
     
     if (type === 'recovery') {
@@ -35,7 +37,8 @@ const Index = () => {
       return;
     }
 
-    if (!user && !type) {
+    // Only redirect to auth if not logged in
+    if (!user) {
       navigate('/auth');
     }
   }, [user, navigate, searchParams]);
