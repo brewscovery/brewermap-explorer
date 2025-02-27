@@ -79,7 +79,7 @@ const Auth = () => {
 
   const handleSetNewPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; // Prevent multiple submissions
+    if (loading) return;
     setLoading(true);
 
     try {
@@ -102,17 +102,23 @@ const Auth = () => {
 
       if (error) throw error;
       
-      toast.success('Password updated successfully. Please login with your new password.');
+      // Sign out first
+      await supabase.auth.signOut();
       
-      // Clear the form and reset states
+      // Clear form and states
       setPassword('');
       setConfirmPassword('');
+      
+      // Force a clean URL and state reset
+      window.history.replaceState({}, '', '/auth');
       setIsPasswordRecovery(false);
       setIsLogin(true);
       
-      // Sign out and redirect
-      await supabase.auth.signOut();
+      toast.success('Password updated successfully. Please login with your new password.');
+      
+      // Force navigation to login
       navigate('/auth', { replace: true });
+      window.location.reload(); // Force a full page reload to clear any lingering states
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
