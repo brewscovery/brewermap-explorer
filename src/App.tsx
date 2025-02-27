@@ -20,18 +20,12 @@ const App = () => {
     },
   }));
 
-  useEffect(() => {
-    // Handle recovery flow at the app level
-    const handleRecoveryFlow = async () => {
-      const params = new URLSearchParams(window.location.search);
-      if (params.get('type') === 'recovery') {
-        console.log('Recovery flow detected in App.tsx, signing out');
-        await supabase.auth.signOut();
-      }
-    };
-
-    handleRecoveryFlow();
-  }, []);
+  // Handle recovery flow immediately, before anything else
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('type') === 'recovery') {
+    // Immediately sign out - this needs to happen synchronously
+    supabase.auth.signOut().catch(console.error);
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
