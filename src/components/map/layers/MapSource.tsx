@@ -51,39 +51,54 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
     const addSourceAndLayers = () => {
       console.log('Adding source and layers');
       
-      // Clean up existing source and layers
-      ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-        if (map.getLayer(layer)) {
-          map.removeLayer(layer);
+      try {
+        // Clean up existing source and layers if they exist
+        ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        
+        if (map.getSource('breweries')) {
+          map.removeSource('breweries');
         }
-      });
-      
-      if (map.getSource('breweries')) {
-        map.removeSource('breweries');
+        
+        // Add new source with clustering enabled
+        map.addSource('breweries', {
+          type: 'geojson',
+          data: createGeoJsonData(),
+          cluster: true,
+          clusterMaxZoom: 14,
+          clusterRadius: 50,
+          generateId: true // Ensures unique IDs for features
+        });
+        
+        sourceAdded.current = true;
+        console.log('Source added successfully');
+      } catch (error) {
+        console.error('Error adding source and layers:', error);
       }
-      
-      // Add new source with clustering enabled
-      map.addSource('breweries', {
-        type: 'geojson',
-        data: createGeoJsonData(),
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50,
-        generateId: true // Ensures unique IDs for features
-      });
-      
-      sourceAdded.current = true;
-      console.log('Source added successfully');
     };
 
     const initializeSource = () => {
       if (!map.isStyleLoaded()) {
         console.log('Style not loaded, waiting for style.load event');
+        
+        // One-time listener to add source after style loads
         const onStyleLoad = () => {
           console.log('Style loaded, initializing source');
-          addSourceAndLayers();
+          // Small delay to ensure style is fully processed
+          setTimeout(() => {
+            if (map.isStyleLoaded()) {
+              addSourceAndLayers();
+            } else {
+              console.warn('Style still not loaded after style.load event');
+            }
+          }, 100);
+          
           map.off('style.load', onStyleLoad);
         };
+        
         map.on('style.load', onStyleLoad);
       } else {
         console.log('Style already loaded, initializing source');
@@ -98,11 +113,19 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
     }
 
     // Update source data when breweries change and source exists
-    if (sourceAdded.current) {
-      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
-      if (source) {
-        console.log('Updating existing source data');
-        source.setData(createGeoJsonData());
+    if (sourceAdded.current && map.getSource('breweries')) {
+      try {
+        const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+        if (source) {
+          console.log('Updating existing source data');
+          source.setData(createGeoJsonData());
+        }
+      } catch (error) {
+        console.error('Error updating source data:', error);
+        // If updating fails, try to re-add the source
+        if (map.isStyleLoaded()) {
+          addSourceAndLayers();
+        }
       }
     }
 
