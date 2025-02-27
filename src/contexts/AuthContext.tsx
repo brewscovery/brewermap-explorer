@@ -21,45 +21,51 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if we're in a password recovery flow
-    const isPasswordRecovery = new URLSearchParams(window.location.search).get('type') === 'recovery';
-
-    // If it's a password recovery, we don't want to automatically log in
-    if (isPasswordRecovery) {
-      setUser(null);
-      setUserType(null);
-      setLoading(false);
-      // Sign out any existing session
-      supabase.auth.signOut();
-      return;
-    }
+    const checkAndHandleRecovery = async () => {
+      // Check if we're in a password recovery flow by looking for both type and token
+      const params = new URLSearchParams(window.location.search);
+      const isPasswordRecovery = params.get('type') === 'recovery' && params.get('token');
+      
+      if (isPasswordRecovery) {
+        console.log('Recovery flow detected, signing out user');
+        // Immediately sign out any existing session
+        await supabase.auth.signOut();
+        setUser(null);
+        setUserType(null);
+        setLoading(false);
+        return true;
+      }
+      return false;
+    };
 
     const setupAuth = async () => {
-      // Get initial session
+      // First check if we're in recovery mode
+      const isRecovery = await checkAndHandleRecovery();
+      if (isRecovery) return;
+
+      // If not in recovery mode, proceed with normal auth setup
       const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
       
-      // Don't set user if we're in recovery mode
-      if (!isPasswordRecovery) {
+      if (session?.user) {
+        await fetchUserType(session.user.id);
+      }
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        // Double check we're not in recovery mode before updating auth state
+        const isRecovery = await checkAndHandleRecovery();
+        if (isRecovery) return;
+
         setUser(session?.user ?? null);
         if (session?.user) {
           await fetchUserType(session.user.id);
-        }
-      }
-
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        // Don't update the user state if we're in password recovery
-        if (!isPasswordRecovery) {
-          setUser(session?.user ?? null);
-          if (session?.user) {
-            await fetchUserType(session.user.id);
-          } else {
-            setUserType(null);
-          }
+        } else {
+          setUserType(null);
         }
         setLoading(false);
       });
 
+      setLoading(false);
       return () => {
         subscription.unsubscribe();
       };
