@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Brewery } from '@/types/brewery';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -21,11 +21,12 @@ interface BreweryProperties {
 }
 
 const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLayersProps) => {
-  const [sourceAdded, setSourceAdded] = useState(false);
+  const [sourceReady, setSourceReady] = useState(false);
+  const sourceAddedRef = useRef(false);
 
   useEffect(() => {
-    // Add the source directly to the map
-    if (!map || !map.isStyleLoaded() || !breweries.length) return;
+    // Only proceed if map is available and we have breweries
+    if (!map || !breweries.length) return;
 
     const createGeoJsonData = (): FeatureCollection<Point, BreweryProperties> => {
       const features = breweries
@@ -56,59 +57,78 @@ const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLa
       };
     };
 
-    const addSource = () => {
+    const addOrUpdateSource = () => {
       try {
-        // Remove existing source if it exists
-        if (map.getSource('breweries')) {
-          map.removeSource('breweries');
+        // Check if style is loaded before attempting to add source
+        if (!map.isStyleLoaded()) {
+          console.log('Map style not loaded yet, waiting for style.load event');
+          map.once('style.load', () => {
+            setTimeout(addOrUpdateSource, 200);
+          });
+          return;
         }
 
-        // Add new source
-        map.addSource('breweries', {
-          type: 'geojson',
-          data: createGeoJsonData(),
-          cluster: true,
-          clusterMaxZoom: 14,
-          clusterRadius: 50,
-          generateId: true
-        });
+        // Check if source already exists
+        if (map.getSource('breweries')) {
+          console.log('Source already exists, updating data...');
+          (map.getSource('breweries') as mapboxgl.GeoJSONSource).setData(createGeoJsonData());
+        } else {
+          console.log('Adding new source...');
+          map.addSource('breweries', {
+            type: 'geojson',
+            data: createGeoJsonData(),
+            cluster: true,
+            clusterMaxZoom: 14,
+            clusterRadius: 50,
+            generateId: true
+          });
+        }
 
-        console.log('Source added directly to map');
-        setSourceAdded(true);
+        // Mark source as ready and notify components
+        console.log('Source is ready');
+        sourceAddedRef.current = true;
+        setSourceReady(true);
       } catch (error) {
-        console.error('Error adding source directly:', error);
+        console.error('Error in addOrUpdateSource:', error);
+        
+        // Retry after a delay if failed
+        if (!sourceAddedRef.current) {
+          console.log('Retrying source addition in 500ms...');
+          setTimeout(addOrUpdateSource, 500);
+        }
       }
     };
 
-    if (map.isStyleLoaded()) {
-      addSource();
-    } else {
-      map.once('style.load', addSource);
-    }
+    addOrUpdateSource();
 
     return () => {
       if (!map.getStyle()) return;
       
       try {
+        // Check if layers exist and remove them first
+        ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        
+        // Then remove the source
         if (map.getSource('breweries')) {
-          // Remove layers first
-          ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-            if (map.getLayer(layer)) {
-              map.removeLayer(layer);
-            }
-          });
           map.removeSource('breweries');
         }
-        setSourceAdded(false);
+        
+        sourceAddedRef.current = false;
+        setSourceReady(false);
       } catch (error) {
-        console.warn('Error cleaning up source:', error);
+        console.warn('Error cleaning up source or layers:', error);
       }
     };
   }, [map, breweries]);
 
+  // Only render layer components when the source is ready
   return (
     <>
-      {sourceAdded && (
+      {sourceReady && (
         <>
           <ClusterLayers map={map} source="breweries" />
           <BreweryPoints map={map} source="breweries" visitedBreweryIds={visitedBreweryIds} />

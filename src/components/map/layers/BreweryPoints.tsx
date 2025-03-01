@@ -10,8 +10,11 @@ interface BreweryPointsProps {
 
 const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsProps) => {
   const layersAdded = useRef(false);
+  const addAttempts = useRef(0);
+  const maxAttempts = 10;
 
   useEffect(() => {
+    // Function to update the color of brewery points based on visited status
     const updatePointColors = () => {
       if (!map.getLayer('unclustered-point')) return;
 
@@ -22,18 +25,27 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
         '#22c55e', // Green color for visited breweries
         '#fbbf24'  // Default yellow color for unvisited breweries
       ]);
+      
+      console.log('Updated point colors with visited breweries:', visitedBreweryIds);
     };
 
+    // Function to add brewery point layers to the map
     const addLayers = () => {
-      try {
-        if (!map.getSource(source)) {
-          console.log('Source not available yet, waiting...');
-          return;
-        }
+      if (layersAdded.current) {
+        // If layers already added, just update colors
+        updatePointColors();
+        return true;
+      }
 
+      if (!map.getSource(source)) {
+        console.log('Source not found, cannot add brewery point layers');
+        return false;
+      }
+
+      try {
         console.log('Adding brewery point layers');
 
-        // Add unclustered point layer with conditional colors
+        // Add unclustered point layer
         if (!map.getLayer('unclustered-point')) {
           map.addLayer({
             id: 'unclustered-point',
@@ -52,8 +64,10 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'circle-stroke-color': '#ffffff'
             }
           });
+        }
 
-          // Add text labels for unclustered points
+        // Add text labels for unclustered points
+        if (!map.getLayer('unclustered-point-label')) {
           map.addLayer({
             id: 'unclustered-point-label',
             type: 'symbol',
@@ -74,58 +88,55 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
               'text-halo-width': 2
             }
           });
-
-          layersAdded.current = true;
-          console.log('Point layers added successfully');
-        } else {
-          // Update colors if layers already exist
-          updatePointColors();
         }
+
+        layersAdded.current = true;
+        console.log('Point layers added successfully');
+        return true;
       } catch (error) {
-        console.error('Error adding point layers:', error);
+        console.error('Error adding brewery point layers:', error);
+        return false;
       }
     };
 
-    const initialize = () => {
-      // Wait for source to be loaded before adding layers
-      if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded, waiting for style load event');
-        map.once('style.load', () => {
-          setTimeout(() => {
-            if (map.getSource(source)) {
-              addLayers();
-            } else {
-              console.log('Source not found after style load, waiting for sourcedata event');
-              map.once('sourcedata', (e) => {
-                if (e.sourceId === source && e.isSourceLoaded) {
-                  addLayers();
-                }
-              });
-            }
-          }, 100);
-        });
-      } else {
-        if (map.getSource(source)) {
-          addLayers();
-        } else {
-          console.log('Source not found, waiting for sourcedata event');
-          map.once('sourcedata', (e) => {
-            if (e.sourceId === source && e.isSourceLoaded) {
-              addLayers();
-            }
-          });
+    // Try to add layers if the style and source are ready
+    const attemptToAddLayers = () => {
+      addAttempts.current++;
+      
+      if (addAttempts.current > maxAttempts) {
+        console.warn('Exceeded maximum attempts to add brewery point layers');
+        return;
+      }
+
+      // Make sure map is available
+      if (!map) {
+        console.warn('Map not available for brewery points');
+        return;
+      }
+
+      console.log(`Attempt ${addAttempts.current} to add brewery point layers`);
+      
+      // Check if style is loaded and try to add layers
+      if (map.isStyleLoaded()) {
+        if (addLayers()) {
+          // Success, no need for further attempts
+          return;
         }
       }
+      
+      // Schedule another attempt
+      setTimeout(attemptToAddLayers, 300);
     };
 
-    console.log('Initializing brewery points component');
-    initialize();
+    // Start the process
+    attemptToAddLayers();
 
-    // Listen for changes to visitedBreweryIds and update colors
+    // Update colors when visitedBreweryIds changes
     if (layersAdded.current) {
       updatePointColors();
     }
 
+    // Cleanup function
     return () => {
       if (!map.getStyle()) return;
       
@@ -136,8 +147,9 @@ const BreweryPoints = ({ map, source, visitedBreweryIds = [] }: BreweryPointsPro
           }
         });
         layersAdded.current = false;
+        addAttempts.current = 0;
       } catch (error) {
-        console.warn('Error cleaning up point layers:', error);
+        console.warn('Error cleaning up brewery point layers:', error);
       }
     };
   }, [map, source, visitedBreweryIds]);

@@ -9,22 +9,25 @@ interface ClusterLayersProps {
 
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const layersAdded = useRef(false);
+  const addAttempts = useRef(0);
+  const maxAttempts = 10;
 
   useEffect(() => {
+    // Function to add cluster layers to the map
     const addLayers = () => {
-      if (!map.getStyle() || !map.getSource(source)) {
-        console.log('Map style or source not ready, skipping cluster layer addition');
-        return;
-      }
-
       if (layersAdded.current) {
         console.log('Cluster layers already added, skipping');
-        return;
+        return true;
       }
 
-      console.log('Adding cluster layers to map');
+      if (!map.getSource(source)) {
+        console.log('Source not found, cannot add cluster layers');
+        return false;
+      }
 
       try {
+        console.log('Adding cluster layers to map');
+
         // Add clusters layer
         if (!map.getLayer('clusters')) {
           map.addLayer({
@@ -77,56 +80,46 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
         layersAdded.current = true;
         console.log('Cluster layers added successfully');
+        return true;
       } catch (error) {
         console.error('Error adding cluster layers:', error);
+        return false;
       }
     };
 
-    const initialize = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Map style not loaded, waiting for style load event');
-        map.once('style.load', () => {
-          setTimeout(() => {
-            if (map.getSource(source)) {
-              addLayers();
-            } else {
-              console.log('Source not found after style load, waiting for sourcedata event');
-              map.once('sourcedata', (e) => {
-                if (e.sourceId === source && e.isSourceLoaded) {
-                  addLayers();
-                }
-              });
-            }
-          }, 100);
-        });
+    // Try to add layers if the style and source are ready
+    const attemptToAddLayers = () => {
+      addAttempts.current++;
+      
+      if (addAttempts.current > maxAttempts) {
+        console.warn('Exceeded maximum attempts to add cluster layers');
         return;
       }
 
-      // If style is already loaded, check for source
-      if (map.getSource(source)) {
-        addLayers();
-      } else {
-        console.log('Source not found, waiting for it to be added...');
-        // Listen for the sourcedata event to know when our source is added
-        map.once('sourcedata', (e) => {
-          if (e.sourceId === source && e.isSourceLoaded) {
-            addLayers();
-          }
-        });
-
-        // Also set a timeout as fallback
-        setTimeout(() => {
-          if (!layersAdded.current && map.getSource(source)) {
-            console.log('Adding cluster layers via timeout fallback');
-            addLayers();
-          }
-        }, 1000);
+      // Make sure map is available
+      if (!map) {
+        console.warn('Map not available for cluster layers');
+        return;
       }
+
+      console.log(`Attempt ${addAttempts.current} to add cluster layers`);
+      
+      // Check if style is loaded and try to add layers
+      if (map.isStyleLoaded()) {
+        if (addLayers()) {
+          // Success, no need for further attempts
+          return;
+        }
+      }
+      
+      // Schedule another attempt
+      setTimeout(attemptToAddLayers, 300);
     };
 
-    console.log('Initializing cluster layers component');
-    initialize();
+    // Start the process
+    attemptToAddLayers();
 
+    // Cleanup function
     return () => {
       if (!map.getStyle()) return;
       
@@ -137,6 +130,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           }
         });
         layersAdded.current = false;
+        addAttempts.current = 0;
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }
