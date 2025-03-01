@@ -12,6 +12,23 @@ export const useMapInitialization = () => {
   const onStyleLoadRef = useRef<(() => void) | null>(null);
   const tokenRetryCount = useRef(0);
   const initializationInProgressRef = useRef(false);
+  
+  const cleanupExistingMap = useCallback(() => {
+    if (map.current) {
+      console.log('Cleaning up existing map instance');
+      try {
+        if (onStyleLoadRef.current) {
+          map.current.off('style.load', onStyleLoadRef.current);
+        }
+        map.current.remove();
+      } catch (error) {
+        console.error('Error removing existing map:', error);
+      }
+      map.current = null;
+      initializedRef.current = false;
+      setIsStyleLoaded(false);
+    }
+  }, []);
 
   const initializeMap = useCallback(async (force = false) => {
     if (!mapContainer.current) {
@@ -30,18 +47,7 @@ export const useMapInitialization = () => {
       
       // Clean up existing map if forcing reinitialization
       if (force && map.current) {
-        console.log('Force reinitialization - removing existing map instance');
-        try {
-          if (onStyleLoadRef.current) {
-            map.current.off('style.load', onStyleLoadRef.current);
-          }
-          map.current.remove();
-        } catch (error) {
-          console.error('Error removing existing map:', error);
-        }
-        map.current = null;
-        initializedRef.current = false;
-        setIsStyleLoaded(false);
+        cleanupExistingMap();
       }
 
       console.log('Getting Mapbox token...');
@@ -138,7 +144,7 @@ export const useMapInitialization = () => {
       toast.error('Failed to initialize map. Please refresh the page.');
       initializationInProgressRef.current = false;
     }
-  }, []);
+  }, [cleanupExistingMap]);
 
   // Initial map setup
   useEffect(() => {
@@ -146,22 +152,10 @@ export const useMapInitialization = () => {
     initializeMap();
 
     return () => {
-      if (map.current && onStyleLoadRef.current) {
-        try {
-          console.log('Cleaning up map instance');
-          map.current.off('style.load', onStyleLoadRef.current);
-          map.current.remove();
-        } catch (error) {
-          console.error('Error cleaning up map:', error);
-        }
-      }
-      map.current = null;
-      initializedRef.current = false;
-      onStyleLoadRef.current = null;
-      initializationInProgressRef.current = false;
+      cleanupExistingMap();
       console.log('Map cleanup completed');
     };
-  }, [initializeMap]);
+  }, [initializeMap, cleanupExistingMap]);
 
   const reinitializeMap = useCallback(() => {
     console.log('Reinitializing map with force=true');

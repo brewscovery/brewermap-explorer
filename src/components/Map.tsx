@@ -25,6 +25,7 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const resetHandledRef = useRef(false);
+  const resetTimerRef = useRef<number | null>(null);
 
   // Handle map reinitialization after password reset
   useEffect(() => {
@@ -35,11 +36,26 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
       // Mark that we've handled this reset
       resetHandledRef.current = true;
       
-      // Use a short delay to ensure auth state has fully updated
-      setTimeout(() => {
+      // Clear any existing timer
+      if (resetTimerRef.current) {
+        window.clearTimeout(resetTimerRef.current);
+      }
+      
+      // Use a longer delay to ensure auth state has fully updated
+      resetTimerRef.current = window.setTimeout(() => {
+        console.log('Executing map reinitialization after delay');
         reinitializeMap();
-      }, 500);
+        resetTimerRef.current = null;
+      }, 1500);
     }
+    
+    return () => {
+      // Clean up timer if component unmounts
+      if (resetTimerRef.current) {
+        window.clearTimeout(resetTimerRef.current);
+        resetTimerRef.current = null;
+      }
+    };
   }, [passwordReset, user, reinitializeMap]);
 
   // Reset the handled flag when passwordReset becomes false

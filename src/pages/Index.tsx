@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -33,12 +32,14 @@ const Index = () => {
   useEffect(() => {
     const resetFlag = localStorage.getItem('password_reset_completed');
     if (resetFlag === 'true' && user) {
+      console.log('Password reset detected from localStorage flag');
       setPasswordReset(true);
       // Clear the flag
       localStorage.removeItem('password_reset_completed');
     }
   }, [user]);
 
+  // Check for auth events via URL params
   useEffect(() => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
@@ -47,7 +48,27 @@ const Index = () => {
     if ((type === 'recovery' || type === 'signup') && token && !user) {
       navigate('/auth' + window.location.search);
     }
+    
+    // Check if coming back from a password reset
+    if (type === 'recovery' && user) {
+      console.log('Password reset detected from URL params');
+      setPasswordReset(true);
+      // Clean up URL without refreshing the page
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, document.title, newUrl);
+    }
   }, [navigate, searchParams, user]);
+
+  // Reset passwordReset flag after a delay to prevent multiple toasts
+  useEffect(() => {
+    if (passwordReset) {
+      const timer = setTimeout(() => {
+        setPasswordReset(false);
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [passwordReset]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
