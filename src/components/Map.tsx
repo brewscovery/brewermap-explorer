@@ -21,11 +21,12 @@ interface MapProps {
 const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded, reinitializeMap } = useMapInitialization();
-  const [searchParams] = useSearchParams();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const resetHandledRef = useRef(false);
   const resetTimerRef = useRef<number | null>(null);
+  const initRetryCountRef = useRef(0);
+  const maxRetries = 3;
 
   // Handle map reinitialization after password reset
   useEffect(() => {
@@ -41,12 +42,28 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
         window.clearTimeout(resetTimerRef.current);
       }
       
-      // Use a longer delay to ensure auth state has fully updated
-      resetTimerRef.current = window.setTimeout(() => {
-        console.log('Executing map reinitialization after delay');
-        reinitializeMap();
-        resetTimerRef.current = null;
-      }, 1500);
+      const retryReinitialization = () => {
+        if (initRetryCountRef.current < maxRetries) {
+          console.log(`Executing map reinitialization after delay (attempt ${initRetryCountRef.current + 1})`);
+          
+          // Try to reinitialize
+          const result = reinitializeMap();
+          
+          // If no success and still under max retries, try again after a delay
+          if (!result && initRetryCountRef.current < maxRetries) {
+            initRetryCountRef.current++;
+            resetTimerRef.current = window.setTimeout(retryReinitialization, 2000);
+          } else {
+            resetTimerRef.current = null;
+          }
+        } else {
+          console.log('Max reinitialization attempts reached');
+          resetTimerRef.current = null;
+        }
+      };
+      
+      // Start with a delay to ensure auth state has fully updated
+      resetTimerRef.current = window.setTimeout(retryReinitialization, 2000);
     }
     
     return () => {
@@ -62,6 +79,7 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   useEffect(() => {
     if (!passwordReset) {
       resetHandledRef.current = false;
+      initRetryCountRef.current = 0;
     }
   }, [passwordReset]);
 

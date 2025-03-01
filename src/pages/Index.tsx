@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -53,6 +54,8 @@ const Index = () => {
     if (type === 'recovery' && user) {
       console.log('Password reset detected from URL params');
       setPasswordReset(true);
+      // Set flag in localStorage for persistence across page loads
+      localStorage.setItem('password_reset_completed', 'true');
       // Clean up URL without refreshing the page
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
@@ -63,12 +66,33 @@ const Index = () => {
   useEffect(() => {
     if (passwordReset) {
       const timer = setTimeout(() => {
+        console.log('Resetting password reset flag after timeout');
         setPasswordReset(false);
-      }, 5000);
+      }, 10000); // Longer timeout to ensure map has time to reinitialize
       
       return () => clearTimeout(timer);
     }
   }, [passwordReset]);
+
+  // Listen for auth state changes that might indicate a password reset
+  useEffect(() => {
+    if (!user) return;
+    
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event);
+      
+      if (event === 'USER_UPDATED' && session?.user) {
+        console.log('User updated event received');
+        // This could be a password reset completion
+        setPasswordReset(true);
+        localStorage.setItem('password_reset_completed', 'true');
+      }
+    });
+    
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
+  }, [user]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],

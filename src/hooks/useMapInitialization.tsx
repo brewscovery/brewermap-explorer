@@ -19,11 +19,17 @@ export const useMapInitialization = () => {
       try {
         if (onStyleLoadRef.current) {
           map.current.off('style.load', onStyleLoadRef.current);
+          onStyleLoadRef.current = null;
         }
+        
+        // Remove all event listeners
         map.current.remove();
+        
+        console.log('Map instance successfully removed');
       } catch (error) {
         console.error('Error removing existing map:', error);
       }
+      
       map.current = null;
       initializedRef.current = false;
       setIsStyleLoaded(false);
@@ -33,12 +39,12 @@ export const useMapInitialization = () => {
   const initializeMap = useCallback(async (force = false) => {
     if (!mapContainer.current) {
       console.warn('Map container ref is not available');
-      return;
+      return false;
     }
     
     if ((initializedRef.current && !force) || initializationInProgressRef.current) {
       console.log('Map already initialized or initialization in progress, skipping');
-      return;
+      return false;
     }
     
     try {
@@ -83,7 +89,11 @@ export const useMapInitialization = () => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [133.7751, -25.2744], // Center of Australia
-        zoom: 4
+        zoom: 4,
+        maxBounds: [
+          [80, -50], // Southwest coordinates
+          [180, 0]   // Northeast coordinates
+        ]
       });
 
       // Add navigation controls
@@ -101,6 +111,7 @@ export const useMapInitialization = () => {
           console.log('Style is loaded, setting isStyleLoaded to true');
           setIsStyleLoaded(true);
           initializationInProgressRef.current = false;
+          return true;
         } else {
           console.log('Style not loaded yet after style.load event, setting up interval check');
           
@@ -116,11 +127,13 @@ export const useMapInitialization = () => {
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
               initializationInProgressRef.current = false;
+              return true;
             } else if (attempts >= maxAttempts) {
               console.warn('Style still not loaded after max attempts, forcing isStyleLoaded to true');
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
               initializationInProgressRef.current = false;
+              return true;
             }
           }, 100);
         }
@@ -138,11 +151,18 @@ export const useMapInitialization = () => {
         onStyleLoad();
       }
       
+      // Add error handler for the map
+      newMap.on('error', (e) => {
+        console.error('Map error:', e.error);
+      });
+      
       console.log('Map initialization completed');
+      return true;
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map. Please refresh the page.');
       initializationInProgressRef.current = false;
+      return false;
     }
   }, [cleanupExistingMap]);
 
