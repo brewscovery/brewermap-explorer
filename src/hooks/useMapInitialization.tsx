@@ -11,6 +11,7 @@ export const useMapInitialization = () => {
   const initializedRef = useRef(false);
   const onStyleLoadRef = useRef<(() => void) | null>(null);
   const tokenRetryCount = useRef(0);
+  const initializationInProgressRef = useRef(false);
 
   const initializeMap = useCallback(async (force = false) => {
     if (!mapContainer.current) {
@@ -18,16 +19,26 @@ export const useMapInitialization = () => {
       return;
     }
     
-    if (initializedRef.current && !force) {
-      console.log('Map already initialized and force=false, skipping initialization');
+    if ((initializedRef.current && !force) || initializationInProgressRef.current) {
+      console.log('Map already initialized or initialization in progress, skipping');
       return;
     }
     
     try {
+      // Set flag to prevent multiple simultaneous initializations
+      initializationInProgressRef.current = true;
+      
       // Clean up existing map if forcing reinitialization
       if (force && map.current) {
         console.log('Force reinitialization - removing existing map instance');
-        map.current.remove();
+        try {
+          if (onStyleLoadRef.current) {
+            map.current.off('style.load', onStyleLoadRef.current);
+          }
+          map.current.remove();
+        } catch (error) {
+          console.error('Error removing existing map:', error);
+        }
         map.current = null;
         initializedRef.current = false;
         setIsStyleLoaded(false);
@@ -50,11 +61,11 @@ export const useMapInitialization = () => {
           
           // Wait 1 second before retrying
           await new Promise(resolve => setTimeout(resolve, 1000));
+          initializationInProgressRef.current = false;
           return initializeMap(force);
         }
         
         // If we've exceeded retry attempts, use a default public token as fallback
-        // This is just to prevent the app from completely breaking
         console.warn('Using fallback Mapbox token after failed retries');
         token = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
       }
@@ -83,6 +94,7 @@ export const useMapInitialization = () => {
         if (newMap.isStyleLoaded()) {
           console.log('Style is loaded, setting isStyleLoaded to true');
           setIsStyleLoaded(true);
+          initializationInProgressRef.current = false;
         } else {
           console.log('Style not loaded yet after style.load event, setting up interval check');
           
@@ -97,10 +109,12 @@ export const useMapInitialization = () => {
               console.log(`Style loaded via interval check (attempt ${attempts})`);
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
+              initializationInProgressRef.current = false;
             } else if (attempts >= maxAttempts) {
               console.warn('Style still not loaded after max attempts, forcing isStyleLoaded to true');
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
+              initializationInProgressRef.current = false;
             }
           }, 100);
         }
@@ -122,6 +136,7 @@ export const useMapInitialization = () => {
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map. Please refresh the page.');
+      initializationInProgressRef.current = false;
     }
   }, []);
 
@@ -143,13 +158,16 @@ export const useMapInitialization = () => {
       map.current = null;
       initializedRef.current = false;
       onStyleLoadRef.current = null;
+      initializationInProgressRef.current = false;
       console.log('Map cleanup completed');
     };
   }, [initializeMap]);
 
   const reinitializeMap = useCallback(() => {
     console.log('Reinitializing map with force=true');
-    initializeMap(true);
+    // Reset the initialization in progress flag to ensure we can reinitialize
+    initializationInProgressRef.current = false;
+    return initializeMap(true);
   }, [initializeMap]);
 
   return { mapContainer, map, isStyleLoaded, reinitializeMap };

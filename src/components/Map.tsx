@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Brewery } from '@/types/brewery';
 import MapLayers from './map/MapLayers';
@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface MapProps {
   breweries: Brewery[];
@@ -23,14 +24,30 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   const [searchParams] = useSearchParams();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const resetHandledRef = useRef(false);
 
   // Handle map reinitialization after password reset
   useEffect(() => {
-    if (passwordReset && user) {
+    if (passwordReset && user && !resetHandledRef.current) {
       console.log('Reinitializing map after password reset');
-      reinitializeMap();
+      toast.success('Password has been reset successfully');
+      
+      // Mark that we've handled this reset
+      resetHandledRef.current = true;
+      
+      // Use a short delay to ensure auth state has fully updated
+      setTimeout(() => {
+        reinitializeMap();
+      }, 500);
     }
   }, [passwordReset, user, reinitializeMap]);
+
+  // Reset the handled flag when passwordReset becomes false
+  useEffect(() => {
+    if (!passwordReset) {
+      resetHandledRef.current = false;
+    }
+  }, [passwordReset]);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
