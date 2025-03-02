@@ -9,7 +9,6 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface MapProps {
@@ -26,7 +25,7 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   const resetHandledRef = useRef(false);
   const resetTimerRef = useRef<number | null>(null);
   const initRetryCountRef = useRef(0);
-  const maxRetries = 3;
+  const maxRetries = 5; // Increasing max retries
 
   // Handle map reinitialization after password reset
   useEffect(() => {
@@ -42,28 +41,42 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
         window.clearTimeout(resetTimerRef.current);
       }
       
-      const retryReinitialization = () => {
-        if (initRetryCountRef.current < maxRetries) {
-          console.log(`Executing map reinitialization after delay (attempt ${initRetryCountRef.current + 1})`);
-          
-          // Try to reinitialize
-          const result = reinitializeMap();
-          
-          // If no success and still under max retries, try again after a delay
-          if (!result && initRetryCountRef.current < maxRetries) {
-            initRetryCountRef.current++;
-            resetTimerRef.current = window.setTimeout(retryReinitialization, 2000);
+      // Increasing initial delay to ensure auth state has settled
+      resetTimerRef.current = window.setTimeout(() => {
+        const retryReinitialization = () => {
+          if (initRetryCountRef.current < maxRetries) {
+            console.log(`Executing map reinitialization after delay (attempt ${initRetryCountRef.current + 1})`);
+            
+            // Try to reinitialize
+            const result = reinitializeMap();
+            
+            // If no success and still under max retries, try again after a delay
+            if (!result && initRetryCountRef.current < maxRetries) {
+              initRetryCountRef.current++;
+              // Increasing delay between retries
+              const retryDelay = 2000 + (initRetryCountRef.current * 1000);
+              console.log(`Scheduling retry ${initRetryCountRef.current + 1} in ${retryDelay}ms`);
+              resetTimerRef.current = window.setTimeout(retryReinitialization, retryDelay);
+            } else if (result) {
+              console.log('Map reinitialization successful');
+              resetTimerRef.current = null;
+            } else {
+              console.log('Max reinitialization attempts reached');
+              resetTimerRef.current = null;
+              // Force a complete reinit as last resort
+              window.setTimeout(() => {
+                console.log('Attempting last resort full reinitialization');
+                reinitializeMap(true);
+              }, 5000);
+            }
           } else {
+            console.log('Max reinitialization attempts reached');
             resetTimerRef.current = null;
           }
-        } else {
-          console.log('Max reinitialization attempts reached');
-          resetTimerRef.current = null;
-        }
-      };
-      
-      // Start with a delay to ensure auth state has fully updated
-      resetTimerRef.current = window.setTimeout(retryReinitialization, 2000);
+        };
+        
+        retryReinitialization();
+      }, 3000); // Increased initial delay
     }
     
     return () => {

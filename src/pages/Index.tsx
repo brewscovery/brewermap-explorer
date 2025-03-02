@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -29,14 +28,22 @@ const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [passwordReset, setPasswordReset] = useState(false);
 
-  // Check for password reset flag in localStorage
+  // Check for password reset flag in URL and localStorage
   useEffect(() => {
     const resetFlag = localStorage.getItem('password_reset_completed');
-    if (resetFlag === 'true' && user) {
+    const resetTimestamp = localStorage.getItem('password_reset_timestamp');
+    const currentTime = Date.now();
+    
+    // Only consider reset flag valid if it was set within the last 5 minutes
+    const isRecentReset = resetTimestamp && 
+      (currentTime - parseInt(resetTimestamp)) < 5 * 60 * 1000;
+    
+    if ((resetFlag === 'true' && isRecentReset) && user) {
       console.log('Password reset detected from localStorage flag');
       setPasswordReset(true);
-      // Clear the flag
+      // Clear the flag after processing
       localStorage.removeItem('password_reset_completed');
+      localStorage.removeItem('password_reset_timestamp');
     }
   }, [user]);
 
@@ -56,6 +63,7 @@ const Index = () => {
       setPasswordReset(true);
       // Set flag in localStorage for persistence across page loads
       localStorage.setItem('password_reset_completed', 'true');
+      localStorage.setItem('password_reset_timestamp', Date.now().toString());
       // Clean up URL without refreshing the page
       const newUrl = window.location.pathname;
       window.history.replaceState({}, document.title, newUrl);
@@ -68,7 +76,7 @@ const Index = () => {
       const timer = setTimeout(() => {
         console.log('Resetting password reset flag after timeout');
         setPasswordReset(false);
-      }, 10000); // Longer timeout to ensure map has time to reinitialize
+      }, 20000); // Increased timeout to ensure map has time to reinitialize
       
       return () => clearTimeout(timer);
     }
@@ -86,6 +94,7 @@ const Index = () => {
         // This could be a password reset completion
         setPasswordReset(true);
         localStorage.setItem('password_reset_completed', 'true');
+        localStorage.setItem('password_reset_timestamp', Date.now().toString());
       }
     });
     
