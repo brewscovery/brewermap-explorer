@@ -19,13 +19,13 @@ interface MapProps {
 
 const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded, reinitializeMap } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded, reinitializeMap, resetMapInitializationState } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const resetHandledRef = useRef(false);
   const resetTimerRef = useRef<number | null>(null);
   const initRetryCountRef = useRef(0);
-  const maxRetries = 5; // Increasing max retries
+  const maxRetries = 5;
 
   // Handle map reinitialization after password reset
   useEffect(() => {
@@ -41,52 +41,56 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
         window.clearTimeout(resetTimerRef.current);
       }
       
-      // Increasing initial delay to ensure auth state has settled
+      // First, completely reset the map initialization state
+      resetMapInitializationState();
+      
+      // Then delay before attempting reinitialization
       resetTimerRef.current = window.setTimeout(() => {
-        const retryReinitialization = () => {
-          if (initRetryCountRef.current < maxRetries) {
-            console.log(`Executing map reinitialization after delay (attempt ${initRetryCountRef.current + 1})`);
-            
-            // Try to reinitialize
-            const result = reinitializeMap();
-            
-            // If no success and still under max retries, try again after a delay
-            if (!result && initRetryCountRef.current < maxRetries) {
-              initRetryCountRef.current++;
-              // Increasing delay between retries
-              const retryDelay = 2000 + (initRetryCountRef.current * 1000);
-              console.log(`Scheduling retry ${initRetryCountRef.current + 1} in ${retryDelay}ms`);
-              resetTimerRef.current = window.setTimeout(retryReinitialization, retryDelay);
-            } else if (result) {
-              console.log('Map reinitialization successful');
-              resetTimerRef.current = null;
-            } else {
-              console.log('Max reinitialization attempts reached');
-              resetTimerRef.current = null;
-              // Force a complete reinit as last resort
-              window.setTimeout(() => {
-                console.log('Attempting last resort full reinitialization');
-                reinitializeMap(true);
-              }, 5000);
-            }
-          } else {
-            console.log('Max reinitialization attempts reached');
-            resetTimerRef.current = null;
-          }
-        };
+        console.log('Executing complete map reset and reinitialization');
         
-        retryReinitialization();
-      }, 3000); // Increased initial delay
+        // Force a complete rebuild of the map
+        const result = reinitializeMap(true);
+        
+        if (!result) {
+          console.log('Initial reinitialization failed, scheduling retry sequence');
+          
+          // If first attempt fails, set up a retry sequence with exponential backoff
+          const retryWithBackoff = (attempt = 1) => {
+            if (attempt <= maxRetries) {
+              const delay = Math.min(2000 * Math.pow(1.5, attempt - 1), 10000); // Exponential backoff with cap
+              console.log(`Scheduling retry ${attempt} in ${delay}ms`);
+              
+              resetTimerRef.current = window.setTimeout(() => {
+                console.log(`Executing retry ${attempt}`);
+                const success = reinitializeMap(true);
+                
+                if (!success && attempt < maxRetries) {
+                  retryWithBackoff(attempt + 1);
+                } else if (success) {
+                  console.log(`Map successfully reinitialized on retry ${attempt}`);
+                  initRetryCountRef.current = 0;
+                } else {
+                  console.log('Max retries reached, map reinitialization failed');
+                  toast.error('Map failed to load. Please refresh the page.');
+                }
+              }, delay);
+            }
+          };
+          
+          retryWithBackoff();
+        } else {
+          console.log('Initial map reinitialization successful');
+        }
+      }, 1500);
     }
     
     return () => {
-      // Clean up timer if component unmounts
       if (resetTimerRef.current) {
         window.clearTimeout(resetTimerRef.current);
         resetTimerRef.current = null;
       }
     };
-  }, [passwordReset, user, reinitializeMap]);
+  }, [passwordReset, user, reinitializeMap, resetMapInitializationState]);
 
   // Reset the handled flag when passwordReset becomes false
   useEffect(() => {

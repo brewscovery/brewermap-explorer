@@ -40,10 +40,28 @@ export const useMapInitialization = () => {
       }
       
       map.current = null;
-      initializedRef.current = false;
-      setIsStyleLoaded(false);
     }
   }, []);
+
+  // Complete reset of all map initialization state
+  const resetMapInitializationState = useCallback(() => {
+    console.log('Completely resetting map initialization state');
+    
+    // Clean up existing map instance
+    cleanupExistingMap();
+    
+    // Reset all state variables
+    initializedRef.current = false;
+    setIsStyleLoaded(false);
+    initializationInProgressRef.current = false;
+    tokenRetryCount.current = 0;
+    
+    // Clear any stored map token in localStorage to force fresh fetch
+    localStorage.removeItem('mapbox_token');
+    
+    console.log('Map initialization state completely reset');
+    return true;
+  }, [cleanupExistingMap]);
 
   const initializeMap = useCallback(async (force = false) => {
     if (!mapContainer.current) {
@@ -51,8 +69,8 @@ export const useMapInitialization = () => {
       return false;
     }
     
-    // If already initializing, prevent concurrent initialization
-    if (initializationInProgressRef.current) {
+    // If already initializing and not forcing, prevent concurrent initialization
+    if (initializationInProgressRef.current && !force) {
       console.log('Map initialization already in progress, skipping');
       return false;
     }
@@ -97,6 +115,12 @@ export const useMapInitialization = () => {
         token = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
       }
       
+      if (!token) {
+        console.error('No token available, aborting map initialization');
+        initializationInProgressRef.current = false;
+        return false;
+      }
+      
       mapboxgl.accessToken = token;
       
       console.log('Creating new map instance...');
@@ -109,7 +133,9 @@ export const useMapInitialization = () => {
           [80, -50], // Southwest coordinates
           [180, 0]   // Northeast coordinates
         ],
-        preserveDrawingBuffer: true // Add this to ensure map renders correctly
+        preserveDrawingBuffer: true, // Ensure map renders correctly
+        fadeDuration: 0, // Reduce transition animations for faster rendering
+        renderWorldCopies: false // Performance improvement
       });
 
       // Add navigation controls
@@ -126,8 +152,10 @@ export const useMapInitialization = () => {
       // Add error handler for the map
       addMapListener('error', (e: any) => {
         console.error('Map error:', e.error);
+        toast.error('Map error occurred. Please refresh the page.');
       });
 
+      // Set initialized flag before style load to prevent multiple initializations
       initializedRef.current = true;
 
       // Create and store the style load listener
@@ -138,6 +166,7 @@ export const useMapInitialization = () => {
         if (newMap.isStyleLoaded()) {
           console.log('Style is loaded, setting isStyleLoaded to true');
           setIsStyleLoaded(true);
+          // Reset initialization flag once style is loaded successfully
           initializationInProgressRef.current = false;
           return true;
         } else {
@@ -161,6 +190,7 @@ export const useMapInitialization = () => {
               clearInterval(checkStyle);
               setIsStyleLoaded(true);
               initializationInProgressRef.current = false;
+              
               // Force a style reload as a last resort
               try {
                 newMap.setStyle('mapbox://styles/mapbox/light-v11');
@@ -190,7 +220,10 @@ export const useMapInitialization = () => {
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map. Please refresh the page.');
+      
+      // Reset flags to allow future attempts
       initializationInProgressRef.current = false;
+      
       return false;
     }
   }, [cleanupExistingMap]);
@@ -198,18 +231,25 @@ export const useMapInitialization = () => {
   // Initial map setup
   useEffect(() => {
     console.log('Map initialization effect running');
-    // If user tried to initialize manually but it failed, we try again automatically
-    const timer = setTimeout(() => {
-      if (!initializedRef.current) {
-        console.log('Initial map initialization not completed, trying again automatically');
-        initializeMap();
-      }
-    }, 5000);
     
-    initializeMap();
+    const initializeAndRetry = async () => {
+      const success = await initializeMap();
+      
+      // If initial attempt fails, try one more time after a delay
+      if (!success && !initializedRef.current) {
+        console.log('Initial map initialization failed, scheduling automatic retry');
+        const timer = setTimeout(() => {
+          console.log('Initial map initialization not completed, trying again automatically');
+          initializeMap(true);
+        }, 2000);
+        
+        return () => clearTimeout(timer);
+      }
+    };
+    
+    initializeAndRetry();
 
     return () => {
-      clearTimeout(timer);
       cleanupExistingMap();
       console.log('Map cleanup completed');
     };
@@ -217,12 +257,16 @@ export const useMapInitialization = () => {
 
   const reinitializeMap = useCallback((forceNewInstance = false) => {
     console.log(`Reinitializing map with force=${forceNewInstance}`);
-    // Reset the initialization in progress flag to ensure we can reinitialize
-    initializationInProgressRef.current = false;
+    
+    // If forcing, make sure we reset the initialization flag to allow reinit
+    if (forceNewInstance) {
+      initializationInProgressRef.current = false;
+    }
+    
     // Reset the style loaded state to ensure we wait for the new style to load
     setIsStyleLoaded(false);
-    return initializeMap(true);
+    return initializeMap(forceNewInstance);
   }, [initializeMap]);
 
-  return { mapContainer, map, isStyleLoaded, reinitializeMap };
+  return { mapContainer, map, isStyleLoaded, reinitializeMap, resetMapInitializationState };
 };
