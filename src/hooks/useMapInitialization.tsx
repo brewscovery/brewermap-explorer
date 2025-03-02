@@ -13,7 +13,10 @@ export const useMapInitialization = () => {
   const tokenRetryCount = useRef(0);
   const initializationInProgressRef = useRef(false);
   const mapEventListenersRef = useRef<Array<{ type: string; listener: any }>>([]);
+  const lastTokenFetchTimeRef = useRef(0);
+  const fallbackTokenRef = useRef<string | null>(null);
   
+  // Function to completely clean up an existing map instance
   const cleanupExistingMap = useCallback(() => {
     if (map.current) {
       console.log('Cleaning up existing map instance');
@@ -43,9 +46,9 @@ export const useMapInitialization = () => {
     }
   }, []);
 
-  // Complete reset of all map initialization state
+  // Function to completely reset all map initialization state
   const resetMapInitializationState = useCallback(() => {
-    console.log('Completely resetting map initialization state');
+    console.log('COMPLETE RESET: Resetting all map initialization state');
     
     // Clean up existing map instance
     cleanupExistingMap();
@@ -55,15 +58,93 @@ export const useMapInitialization = () => {
     setIsStyleLoaded(false);
     initializationInProgressRef.current = false;
     tokenRetryCount.current = 0;
+    lastTokenFetchTimeRef.current = 0;
     
-    // Clear any stored map token in localStorage to force fresh fetch
+    // Clear any stored map token cache to force fresh fetch
     localStorage.removeItem('mapbox_token');
+    localStorage.removeItem('mapbox_token_timestamp');
     
-    console.log('Map initialization state completely reset');
+    console.log('Map initialization state has been completely reset');
     return true;
   }, [cleanupExistingMap]);
 
+  // Function to get a token, with caching and fallbacks
+  const getToken = useCallback(async (forceFresh = false) => {
+    const now = Date.now();
+    const cachedToken = localStorage.getItem('mapbox_token');
+    const cachedTimestamp = parseInt(localStorage.getItem('mapbox_token_timestamp') || '0');
+    const cacheAge = now - cachedTimestamp;
+    const MAX_CACHE_AGE = 60 * 60 * 1000; // 1 hour
+    
+    // Use cached token if it exists and isn't too old, unless forced to refresh
+    if (!forceFresh && cachedToken && cacheAge < MAX_CACHE_AGE) {
+      console.log(`Using cached Mapbox token (${Math.round(cacheAge/1000/60)} minutes old)`);
+      return cachedToken;
+    }
+    
+    // Avoid hammering the token endpoint
+    const MIN_FETCH_INTERVAL = 5000; // 5 seconds
+    if (now - lastTokenFetchTimeRef.current < MIN_FETCH_INTERVAL) {
+      console.log('Token fetch throttled, using fallback');
+      
+      // First try cached token even if it's older than normal cache time
+      if (cachedToken) {
+        console.log('Using expired cached token as fallback');
+        return cachedToken;
+      }
+      
+      // Next try our in-memory fallback
+      if (fallbackTokenRef.current) {
+        console.log('Using in-memory fallback token');
+        return fallbackTokenRef.current;
+      }
+      
+      // Last resort, use hardcoded fallback
+      console.log('Using hardcoded fallback token');
+      return 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
+    }
+    
+    try {
+      console.log('Fetching fresh Mapbox token...');
+      lastTokenFetchTimeRef.current = now;
+      
+      const token = await getMapboxToken();
+      console.log('Fresh Mapbox token retrieved successfully');
+      
+      // Cache the token
+      localStorage.setItem('mapbox_token', token);
+      localStorage.setItem('mapbox_token_timestamp', now.toString());
+      
+      // Store as fallback
+      fallbackTokenRef.current = token;
+      
+      return token;
+    } catch (error) {
+      console.error('Error fetching Mapbox token:', error);
+      
+      // If we have a previous fallback, use it
+      if (fallbackTokenRef.current) {
+        console.log('Using in-memory fallback after fetch error');
+        return fallbackTokenRef.current;
+      }
+      
+      // If we have a cached token, use it regardless of age in case of error
+      if (cachedToken) {
+        console.log('Using expired cached token after fetch error');
+        return cachedToken;
+      }
+      
+      // Last resort fallback
+      const fallbackToken = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
+      console.log('Using hardcoded fallback token after fetch error');
+      return fallbackToken;
+    }
+  }, []);
+
+  // Function to initialize the map
   const initializeMap = useCallback(async (force = false) => {
+    console.log(`Initializing map (force=${force})`);
+    
     if (!mapContainer.current) {
       console.warn('Map container ref is not available');
       return false;
@@ -78,7 +159,7 @@ export const useMapInitialization = () => {
     // If already initialized and not forcing, skip
     if (initializedRef.current && !force) {
       console.log('Map already initialized and not forcing, skipping');
-      return false;
+      return true;
     }
     
     try {
@@ -86,34 +167,13 @@ export const useMapInitialization = () => {
       initializationInProgressRef.current = true;
       
       // Clean up existing map if forcing reinitialization
-      if (force || map.current) {
+      if (force && map.current) {
         cleanupExistingMap();
       }
 
+      // Get the Mapbox token, forcing fresh on first try of forced init
       console.log('Getting Mapbox token...');
-      let token;
-      try {
-        token = await getMapboxToken();
-        console.log('Mapbox token retrieved successfully');
-        tokenRetryCount.current = 0;
-      } catch (error) {
-        console.error('Failed to get Mapbox token:', error);
-        
-        // Retry logic for token retrieval
-        if (tokenRetryCount.current < 3) {
-          tokenRetryCount.current++;
-          console.log(`Retrying token retrieval (attempt ${tokenRetryCount.current})...`);
-          
-          // Wait 1 second before retrying
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          initializationInProgressRef.current = false;
-          return initializeMap(force);
-        }
-        
-        // If we've exceeded retry attempts, use a default public token as fallback
-        console.warn('Using fallback Mapbox token after failed retries');
-        token = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
-      }
+      const token = await getToken(force);
       
       if (!token) {
         console.error('No token available, aborting map initialization');
@@ -135,11 +195,20 @@ export const useMapInitialization = () => {
         ],
         preserveDrawingBuffer: true, // Ensure map renders correctly
         fadeDuration: 0, // Reduce transition animations for faster rendering
-        renderWorldCopies: false // Performance improvement
+        renderWorldCopies: false, // Performance improvement
+        attributionControl: false // Hide attribution for cleaner look
       });
 
+      // Add a minimal attribution control (required by Mapbox TOS)
+      newMap.addControl(new mapboxgl.AttributionControl({
+        compact: true
+      }));
+
       // Add navigation controls
-      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      newMap.addControl(new mapboxgl.NavigationControl({
+        showCompass: false, // Simpler controls for better performance
+        showZoom: true
+      }), 'top-right');
 
       map.current = newMap;
       
@@ -152,10 +221,14 @@ export const useMapInitialization = () => {
       // Add error handler for the map
       addMapListener('error', (e: any) => {
         console.error('Map error:', e.error);
-        toast.error('Map error occurred. Please refresh the page.');
+        
+        // Only show toast if not a common error type that can be recovered from
+        if (e.error.status !== 401 && e.error.status !== 429) {
+          toast.error('Map error occurred. Please refresh the page.');
+        }
       });
 
-      // Set initialized flag before style load to prevent multiple initializations
+      // Set initialized flag before style load
       initializedRef.current = true;
 
       // Create and store the style load listener
@@ -170,7 +243,7 @@ export const useMapInitialization = () => {
           initializationInProgressRef.current = false;
           return true;
         } else {
-          console.log('Style not loaded yet after style.load event, setting up interval check');
+          console.log('Style not loaded yet after style.load event, checking again');
           
           // If style isn't loaded yet, wait for it with an interval
           let attempts = 0;
@@ -215,7 +288,7 @@ export const useMapInitialization = () => {
         onStyleLoad();
       }
       
-      console.log('Map initialization completed');
+      console.log('Map initialization completed successfully');
       return true;
     } catch (error) {
       console.error('Error initializing map:', error);
@@ -226,7 +299,7 @@ export const useMapInitialization = () => {
       
       return false;
     }
-  }, [cleanupExistingMap]);
+  }, [cleanupExistingMap, getToken]);
 
   // Initial map setup
   useEffect(() => {
@@ -255,18 +328,27 @@ export const useMapInitialization = () => {
     };
   }, [initializeMap, cleanupExistingMap]);
 
+  // Function to force map reinitialization
   const reinitializeMap = useCallback((forceNewInstance = false) => {
     console.log(`Reinitializing map with force=${forceNewInstance}`);
     
-    // If forcing, make sure we reset the initialization flag to allow reinit
+    // Force reset the initialization flag if we're forcing a new instance
     if (forceNewInstance) {
+      console.log('Forcing map reinitialization, resetting in-progress flag');
       initializationInProgressRef.current = false;
     }
     
     // Reset the style loaded state to ensure we wait for the new style to load
     setIsStyleLoaded(false);
+    
     return initializeMap(forceNewInstance);
   }, [initializeMap]);
 
-  return { mapContainer, map, isStyleLoaded, reinitializeMap, resetMapInitializationState };
+  return { 
+    mapContainer, 
+    map, 
+    isStyleLoaded, 
+    reinitializeMap, 
+    resetMapInitializationState
+  };
 };

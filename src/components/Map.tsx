@@ -19,21 +19,27 @@ interface MapProps {
 
 const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded, reinitializeMap, resetMapInitializationState } = useMapInitialization();
+  const { 
+    mapContainer, 
+    map, 
+    isStyleLoaded, 
+    resetMapInitializationState, 
+    reinitializeMap 
+  } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const resetHandledRef = useRef(false);
   const resetTimerRef = useRef<number | null>(null);
-  const initRetryCountRef = useRef(0);
+  const retryCountRef = useRef(0);
   const maxRetries = 5;
 
   // Handle map reinitialization after password reset
   useEffect(() => {
     if (passwordReset && user && !resetHandledRef.current) {
-      console.log('Reinitializing map after password reset');
+      console.log('Password reset detected, preparing map reset sequence');
       toast.success('Password has been reset successfully');
       
-      // Mark that we've handled this reset
+      // Mark that we've handled this reset to prevent duplicate processing
       resetHandledRef.current = true;
       
       // Clear any existing timer
@@ -41,50 +47,60 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
         window.clearTimeout(resetTimerRef.current);
       }
       
-      // First, completely reset the map initialization state
-      resetMapInitializationState();
+      const executeReset = () => {
+        console.log('Executing map reset and reinitialization sequence');
+        
+        // First completely reset the map initialization state
+        resetMapInitializationState();
+        
+        // Delay before attempting reinitialization to ensure clean state
+        resetTimerRef.current = window.setTimeout(() => {
+          retryCountRef.current = 0;
+          executeReinitialization();
+        }, 500);
+      };
       
-      // Then delay before attempting reinitialization
-      resetTimerRef.current = window.setTimeout(() => {
-        console.log('Executing complete map reset and reinitialization');
-        
-        // Force a complete rebuild of the map
-        const result = reinitializeMap(true);
-        
-        if (!result) {
-          console.log('Initial reinitialization failed, scheduling retry sequence');
-          
-          // If first attempt fails, set up a retry sequence with exponential backoff
-          const retryWithBackoff = (attempt = 1) => {
-            if (attempt <= maxRetries) {
-              const delay = Math.min(2000 * Math.pow(1.5, attempt - 1), 10000); // Exponential backoff with cap
-              console.log(`Scheduling retry ${attempt} in ${delay}ms`);
-              
-              resetTimerRef.current = window.setTimeout(() => {
-                console.log(`Executing retry ${attempt}`);
-                const success = reinitializeMap(true);
-                
-                if (!success && attempt < maxRetries) {
-                  retryWithBackoff(attempt + 1);
-                } else if (success) {
-                  console.log(`Map successfully reinitialized on retry ${attempt}`);
-                  initRetryCountRef.current = 0;
-                } else {
-                  console.log('Max retries reached, map reinitialization failed');
-                  toast.error('Map failed to load. Please refresh the page.');
-                }
-              }, delay);
-            }
-          };
-          
-          retryWithBackoff();
-        } else {
-          console.log('Initial map reinitialization successful');
+      const executeReinitialization = () => {
+        if (retryCountRef.current >= maxRetries) {
+          console.error('Max retries reached, map reinitialization failed');
+          toast.error('Map failed to load. Please refresh the page.');
+          return;
         }
-      }, 1500);
+        
+        retryCountRef.current++;
+        const attempt = retryCountRef.current;
+        
+        console.log(`Executing map reinitialization attempt ${attempt}/${maxRetries}`);
+        
+        try {
+          // Force a complete rebuild of the map with escalating timeouts
+          const success = reinitializeMap(true);
+          
+          if (success) {
+            console.log(`Map reinitialization successful on attempt ${attempt}`);
+            retryCountRef.current = 0;
+          } else {
+            // If failed, retry with exponential backoff
+            const delay = Math.min(1000 * Math.pow(1.5, attempt - 1), 8000);
+            console.log(`Reinitialization attempt ${attempt} failed, retrying in ${delay}ms`);
+            
+            resetTimerRef.current = window.setTimeout(executeReinitialization, delay);
+          }
+        } catch (error) {
+          console.error('Error during map reinitialization:', error);
+          
+          // Retry even after errors with longer delay
+          const delay = Math.min(2000 * Math.pow(1.5, attempt - 1), 10000);
+          resetTimerRef.current = window.setTimeout(executeReinitialization, delay);
+        }
+      };
+      
+      // Start the process
+      executeReset();
     }
     
     return () => {
+      // Clean up any pending timers
       if (resetTimerRef.current) {
         window.clearTimeout(resetTimerRef.current);
         resetTimerRef.current = null;
@@ -96,7 +112,7 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   useEffect(() => {
     if (!passwordReset) {
       resetHandledRef.current = false;
-      initRetryCountRef.current = 0;
+      retryCountRef.current = 0;
     }
   }, [passwordReset]);
 

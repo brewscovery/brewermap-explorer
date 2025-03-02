@@ -1,11 +1,17 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
 
+// Keep track of token fetch attempts
+let tokenFetchAttempts = 0;
+const MAX_FETCH_ATTEMPTS = 3;
+const TOKEN_RETRY_DELAY = 1000; // 1 second
+
 export const getMapboxToken = async () => {
   try {
     console.log('Fetching Mapbox token from Supabase function...');
+    tokenFetchAttempts++;
+    
     const { data, error } = await supabase.functions.invoke('get-mapbox-token');
     
     if (error) {
@@ -19,20 +25,28 @@ export const getMapboxToken = async () => {
     }
     
     console.log('Successfully retrieved Mapbox token');
+    tokenFetchAttempts = 0; // Reset counter on success
     return data.token;
   } catch (error) {
     console.error('Error in getMapboxToken:', error);
-    toast.error('Failed to load map. Please try refreshing the page.');
     
-    // Return a fallback token if available in local storage
+    // Try to get fallback token from localStorage
     const fallbackToken = localStorage.getItem('mapbox_token');
     if (fallbackToken) {
       console.log('Using fallback token from localStorage');
       return fallbackToken;
     }
     
-    // If all else fails, throw the error to be handled by the caller
-    throw error;
+    // If we haven't exceeded max attempts, retry after delay
+    if (tokenFetchAttempts < MAX_FETCH_ATTEMPTS) {
+      console.log(`Retrying token fetch (attempt ${tokenFetchAttempts}/${MAX_FETCH_ATTEMPTS})...`);
+      await new Promise(resolve => setTimeout(resolve, TOKEN_RETRY_DELAY * tokenFetchAttempts));
+      return getMapboxToken(); // Recursive retry
+    }
+    
+    // Last resort fallback
+    console.warn('Using hardcoded fallback token after all retrieval methods failed');
+    return 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
   }
 };
 
