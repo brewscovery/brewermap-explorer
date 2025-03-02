@@ -32,14 +32,16 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
   const resetTimerRef = useRef<number | null>(null);
   const retryCountRef = useRef(0);
   const maxRetries = 5;
+  const passwordResetDetectedRef = useRef(false);
 
   // Handle map reinitialization after password reset
   useEffect(() => {
     if (passwordReset && user && !resetHandledRef.current) {
-      console.log('Password reset detected, preparing map reset sequence');
+      console.log('Password reset detected, preparing map reset sequence', { passwordReset, userId: user.id });
       toast.success('Password has been reset successfully');
       
-      // Mark that we've handled this reset to prevent duplicate processing
+      // Mark that we've detected this password reset
+      passwordResetDetectedRef.current = true;
       resetHandledRef.current = true;
       
       // Clear any existing timer
@@ -48,10 +50,11 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
       }
       
       const executeReset = () => {
-        console.log('Executing map reset and reinitialization sequence');
+        console.log('Executing map reset and reinitialization sequence - FULL RESET');
         
         // First completely reset the map initialization state
-        resetMapInitializationState();
+        const resetSuccess = resetMapInitializationState();
+        console.log('Map state reset completed with status:', resetSuccess);
         
         // Delay before attempting reinitialization to ensure clean state
         resetTimerRef.current = window.setTimeout(() => {
@@ -70,11 +73,12 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
         retryCountRef.current++;
         const attempt = retryCountRef.current;
         
-        console.log(`Executing map reinitialization attempt ${attempt}/${maxRetries}`);
+        console.log(`Executing map reinitialization attempt ${attempt}/${maxRetries} with FORCE=TRUE`);
         
         try {
           // Force a complete rebuild of the map with escalating timeouts
           const success = reinitializeMap(true);
+          console.log(`Reinitialization attempt ${attempt} execution result:`, success);
           
           if (success) {
             console.log(`Map reinitialization successful on attempt ${attempt}`);
@@ -110,11 +114,21 @@ const Map = ({ breweries, onBrewerySelect, passwordReset = false }: MapProps) =>
 
   // Reset the handled flag when passwordReset becomes false
   useEffect(() => {
-    if (!passwordReset) {
+    if (!passwordReset && resetHandledRef.current) {
+      console.log('Password reset flag changed to false, resetting handler state');
       resetHandledRef.current = false;
       retryCountRef.current = 0;
     }
   }, [passwordReset]);
+
+  // Reset if we detect we're in a password reset state from parent component changes
+  useEffect(() => {
+    if (passwordReset && passwordResetDetectedRef.current === false && user) {
+      console.log('Password reset state change detected, marking for reset');
+      passwordResetDetectedRef.current = true;
+      resetHandledRef.current = false; // Force reprocessing
+    }
+  }, [passwordReset, user]);
 
   // Fetch user's check-ins
   const { data: checkins } = useQuery({

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
@@ -7,10 +8,27 @@ let tokenFetchAttempts = 0;
 const MAX_FETCH_ATTEMPTS = 3;
 const TOKEN_RETRY_DELAY = 1000; // 1 second
 
-export const getMapboxToken = async () => {
+export const getMapboxToken = async (forceFresh = false) => {
   try {
-    console.log('Fetching Mapbox token from Supabase function...');
+    console.log(`Fetching Mapbox token from Supabase function (forceFresh=${forceFresh})...`);
     tokenFetchAttempts++;
+    
+    // Check localStorage first unless forceFresh is true
+    if (!forceFresh) {
+      const cachedToken = localStorage.getItem('mapbox_token');
+      const cachedTimestamp = localStorage.getItem('mapbox_token_timestamp');
+      
+      if (cachedToken && cachedTimestamp) {
+        const cacheAge = Date.now() - parseInt(cachedTimestamp);
+        // Use cache if it's less than 30 minutes old
+        if (cacheAge < 30 * 60 * 1000) {
+          console.log('Using cached Mapbox token (< 30 min old)');
+          return cachedToken;
+        }
+      }
+    } else {
+      console.log('Forced fresh token requested, skipping cache');
+    }
     
     const { data, error } = await supabase.functions.invoke('get-mapbox-token');
     
@@ -26,6 +44,11 @@ export const getMapboxToken = async () => {
     
     console.log('Successfully retrieved Mapbox token');
     tokenFetchAttempts = 0; // Reset counter on success
+    
+    // Cache the token
+    localStorage.setItem('mapbox_token', data.token);
+    localStorage.setItem('mapbox_token_timestamp', Date.now().toString());
+    
     return data.token;
   } catch (error) {
     console.error('Error in getMapboxToken:', error);
@@ -41,12 +64,16 @@ export const getMapboxToken = async () => {
     if (tokenFetchAttempts < MAX_FETCH_ATTEMPTS) {
       console.log(`Retrying token fetch (attempt ${tokenFetchAttempts}/${MAX_FETCH_ATTEMPTS})...`);
       await new Promise(resolve => setTimeout(resolve, TOKEN_RETRY_DELAY * tokenFetchAttempts));
-      return getMapboxToken(); // Recursive retry
+      return getMapboxToken(false); // Retry without force fresh
     }
     
     // Last resort fallback
     console.warn('Using hardcoded fallback token after all retrieval methods failed');
-    return 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
+    // Store this token in localStorage as a fallback for next time
+    const fallbackHardcodedToken = 'pk.eyJ1IjoiYnJld2Vyc21hcCIsImEiOiJjbHJlNG54OWowM2h2Mmpxa2cxZTlrMWFrIn0.DoCEzsoXFHJB4m-f7NmKLQ';
+    localStorage.setItem('mapbox_token', fallbackHardcodedToken);
+    localStorage.setItem('mapbox_token_timestamp', Date.now().toString());
+    return fallbackHardcodedToken;
   }
 };
 

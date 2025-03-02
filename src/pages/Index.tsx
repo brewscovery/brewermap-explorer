@@ -53,7 +53,7 @@ const Index = () => {
       if (authEventsProcessedRef.current.has(eventKey)) return;
       authEventsProcessedRef.current.add(eventKey);
       
-      console.log(`Auth event: ${event}`, session ? 'Session: Object' : 'Session: null');
+      console.log(`Auth event: ${event}`, session ? `Session: ${JSON.stringify(session.user?.id)}` : 'Session: null');
       
       // Handle password recovery event
       if (event === 'PASSWORD_RECOVERY') {
@@ -67,7 +67,7 @@ const Index = () => {
       
       // Handle user session established
       if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        console.log(`Current session: Object`);
+        console.log(`Current session: ${session?.user?.id}`);
         
         // Check if we're in a recovery flow
         const inRecoveryFlow = 
@@ -79,6 +79,7 @@ const Index = () => {
           console.log('Setting up recovery mode...');
           
           // For password change completion, we'll rely on USER_UPDATED event
+          console.log('Starting password update...');
         }
       }
       
@@ -95,6 +96,7 @@ const Index = () => {
         
         // Trigger map reinitialization
         setPasswordReset(true);
+        console.log('Password reset flag SET to true');
       }
     });
     
@@ -127,6 +129,7 @@ const Index = () => {
       
       // Set the state to trigger map reinitialization
       setPasswordReset(true);
+      console.log('Password reset flag SET to true from URL params');
       
       // Clean up URL without refreshing the page
       const newUrl = window.location.pathname;
@@ -136,12 +139,14 @@ const Index = () => {
     else if (resetFlag === 'true' && isRecentReset && user) {
       console.log('Password reset detected from localStorage flag');
       setPasswordReset(true);
+      console.log('Password reset flag SET to true from localStorage');
     }
   }, [user, searchParams]);
 
   // Reset passwordReset flag after a delay
   useEffect(() => {
     if (passwordReset) {
+      console.log('Password reset flag is active, scheduling reset timer');
       const timer = setTimeout(() => {
         console.log('Resetting password reset flag after timeout');
         setPasswordReset(false);
