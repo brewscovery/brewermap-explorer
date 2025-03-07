@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -20,7 +21,7 @@ import { LayoutDashboard } from 'lucide-react';
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userType } = useAuth();
+  const { user, userType, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
@@ -95,8 +96,7 @@ const Index = () => {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      await logout();
       navigate('/');
     } catch (error: any) {
       toast.error('Failed to logout. Please try again.');

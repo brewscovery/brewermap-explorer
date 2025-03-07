@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Auth = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
@@ -65,7 +66,11 @@ const Auth = () => {
         console.log('User updated event received');
         toast.success('Password updated successfully');
         setLoading(false);
-        navigate('/dashboard', { replace: true });
+        
+        // Use a timeout to ensure the navigation happens after state updates
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 500);
       }
     });
 
@@ -123,6 +128,7 @@ const Auth = () => {
       if (error) throw error;
 
       console.log('Password update successful');
+      // Navigation is handled by the USER_UPDATED event
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
