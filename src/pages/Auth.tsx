@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -65,8 +66,6 @@ const Auth = () => {
       // If the user's password was successfully updated, redirect to home
       if (event === 'USER_UPDATED') {
         console.log('User updated event received');
-        // Set the localStorage flag for password reset
-        localStorage.setItem('password_reset_completed', 'true');
         toast.success('Password updated successfully');
         setLoading(false);
         navigate('/', { replace: true });

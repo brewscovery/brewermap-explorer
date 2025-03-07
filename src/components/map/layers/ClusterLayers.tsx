@@ -9,25 +9,12 @@ interface ClusterLayersProps {
 
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const layersAdded = useRef(false);
-  const addAttempts = useRef(0);
-  const maxAttempts = 10;
 
   useEffect(() => {
-    // Function to add cluster layers to the map
     const addLayers = () => {
-      if (layersAdded.current) {
-        console.log('Cluster layers already added, skipping');
-        return true;
-      }
-
-      if (!map.getSource(source)) {
-        console.log('Source not found, cannot add cluster layers');
-        return false;
-      }
+      if (!map.isStyleLoaded() || layersAdded.current) return;
 
       try {
-        console.log('Adding cluster layers to map');
-
         // Add clusters layer
         if (!map.getLayer('clusters')) {
           map.addLayer({
@@ -78,59 +65,84 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           });
         }
 
+        // Add unclustered point layer
+        if (!map.getLayer('unclustered-point')) {
+          map.addLayer({
+            id: 'unclustered-point',
+            type: 'circle',
+            source: source,
+            filter: ['!', ['has', 'point_count']],
+            paint: {
+              'circle-color': '#fbbf24',
+              'circle-radius': 12,
+              'circle-stroke-width': 2,
+              'circle-stroke-color': '#ffffff'
+            }
+          });
+        }
+
+        // Add unclustered point label
+        if (!map.getLayer('unclustered-point-label')) {
+          map.addLayer({
+            id: 'unclustered-point-label',
+            type: 'symbol',
+            source: source,
+            filter: ['!', ['has', 'point_count']],
+            layout: {
+              'text-field': ['get', 'name'],
+              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+              'text-size': 12,
+              'text-offset': [0, 1.5],
+              'text-anchor': 'top'
+            },
+            paint: {
+              'text-color': '#374151',
+              'text-halo-color': '#ffffff',
+              'text-halo-width': 2
+            }
+          });
+        }
+        
         layersAdded.current = true;
         console.log('Cluster layers added successfully');
-        return true;
       } catch (error) {
         console.error('Error adding cluster layers:', error);
-        return false;
       }
     };
 
-    // Try to add layers if the style and source are ready
-    const attemptToAddLayers = () => {
-      addAttempts.current++;
-      
-      if (addAttempts.current > maxAttempts) {
-        console.warn('Exceeded maximum attempts to add cluster layers');
-        return;
+    const initialize = () => {
+      if (!map.getSource(source)) {
+        console.log('Waiting for source to be added...');
+        const checkSource = setInterval(() => {
+          if (map.getSource(source)) {
+            clearInterval(checkSource);
+            addLayers();
+          }
+        }, 100);
+
+        return () => clearInterval(checkSource);
       }
 
-      // Make sure map is available
-      if (!map) {
-        console.warn('Map not available for cluster layers');
-        return;
-      }
-
-      console.log(`Attempt ${addAttempts.current} to add cluster layers`);
-      
-      // Check if style is loaded and try to add layers
-      if (map.isStyleLoaded()) {
-        if (addLayers()) {
-          // Success, no need for further attempts
-          return;
-        }
-      }
-      
-      // Schedule another attempt
-      setTimeout(attemptToAddLayers, 300);
+      addLayers();
     };
 
-    // Start the process
-    attemptToAddLayers();
+    // Start initialization process
+    if (map.isStyleLoaded()) {
+      initialize();
+    } else {
+      map.once('style.load', initialize);
+    }
 
-    // Cleanup function
     return () => {
       if (!map.getStyle()) return;
       
       try {
-        ['cluster-count', 'clusters'].forEach(layer => {
+        ['cluster-count', 'clusters', 'unclustered-point', 'unclustered-point-label'].forEach(layer => {
           if (map.getLayer(layer)) {
             map.removeLayer(layer);
           }
         });
         layersAdded.current = false;
-        addAttempts.current = 0;
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }

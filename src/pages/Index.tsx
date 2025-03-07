@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
 import BreweryForm from '@/components/BreweryForm';
@@ -27,153 +27,17 @@ const Index = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordReset, setPasswordReset] = useState(false);
-  const initialSessionSetRef = useRef(false);
-  const authEventsProcessedRef = useRef(new Set<string>());
 
-  // Log current URL parameters for debugging
   useEffect(() => {
-    const typeParam = searchParams.get('type');
-    console.log(`Current URL type parameter: ${typeParam}`);
+    const type = searchParams.get('type');
+    const token = searchParams.get('token');
     
-    if (typeParam === 'recovery') {
-      console.log('Recovery URL detected, initializing recovery flow');
+    // Only redirect for recovery/signup verification if we're not already logged in
+    if ((type === 'recovery' || type === 'signup') && token && !user) {
+      navigate('/auth' + window.location.search);
     }
-  }, [searchParams]);
+  }, [navigate, searchParams, user]);
 
-  // Process auth state changes
-  useEffect(() => {
-    if (!user) return;
-
-    // Setup auth state change listener
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      const eventKey = `${event}-${Date.now()}`;
-      
-      // Prevent processing the same event multiple times
-      if (authEventsProcessedRef.current.has(eventKey)) return;
-      authEventsProcessedRef.current.add(eventKey);
-      
-      console.log(`Auth event: ${event}`, session ? `Session: ${JSON.stringify(session.user?.id)}` : 'Session: null');
-      
-      // Handle password recovery event
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('Password recovery event received');
-        console.log('Setting up recovery mode...');
-        
-        // Mark that a password reset is happening and store in localStorage
-        localStorage.setItem('password_reset_in_progress', 'true');
-        localStorage.setItem('password_reset_timestamp', Date.now().toString());
-      }
-      
-      // Handle user session established
-      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-        console.log(`Current session: ${session?.user?.id}`);
-        
-        // Check if we're in a recovery flow
-        const inRecoveryFlow = 
-          searchParams.get('type') === 'recovery' || 
-          localStorage.getItem('password_reset_in_progress') === 'true';
-        
-        if (inRecoveryFlow && session?.user) {
-          console.log('User authenticated in recovery flow');
-          console.log('Setting up recovery mode...');
-          
-          // For password change completion, we'll rely on USER_UPDATED event
-          console.log('Starting password update...');
-        }
-      }
-      
-      // Handle user update (which happens after password change)
-      if (event === 'USER_UPDATED' && session?.user) {
-        console.log('User updated event received');
-        
-        // Clear the in-progress flag
-        localStorage.removeItem('password_reset_in_progress');
-        
-        // Set successful completion flag with timestamp
-        localStorage.setItem('password_reset_completed', 'true');
-        localStorage.setItem('password_reset_timestamp', Date.now().toString());
-        
-        // Trigger map reinitialization
-        setPasswordReset(true);
-        console.log('Password reset flag SET to true');
-      }
-    });
-    
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
-  }, [user, searchParams]);
-
-  // Check for password reset flag in URL and localStorage
-  useEffect(() => {
-    // Only run once the user is loaded
-    if (!user) return;
-    
-    const typeParam = searchParams.get('type');
-    const resetFlag = localStorage.getItem('password_reset_completed');
-    const resetTimestamp = localStorage.getItem('password_reset_timestamp');
-    const currentTime = Date.now();
-    
-    // Only consider reset flag valid if it was set within the last 10 minutes
-    const isRecentReset = resetTimestamp && 
-      (currentTime - parseInt(resetTimestamp)) < 10 * 60 * 1000;
-    
-    // Check recovery from URL parameter
-    if (typeParam === 'recovery' && user) {
-      console.log('Password reset detected from URL params');
-      
-      // Store the flag in localStorage for persistence
-      localStorage.setItem('password_reset_completed', 'true');
-      localStorage.setItem('password_reset_timestamp', Date.now().toString());
-      
-      // Set the state to trigger map reinitialization
-      setPasswordReset(true);
-      console.log('Password reset flag SET to true from URL params');
-      
-      // Clean up URL without refreshing the page
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-    // Check recovery from localStorage flag
-    else if (resetFlag === 'true' && isRecentReset && user) {
-      console.log('Password reset detected from localStorage flag');
-      setPasswordReset(true);
-      console.log('Password reset flag SET to true from localStorage');
-    }
-  }, [user, searchParams]);
-
-  // Reset passwordReset flag after a delay
-  useEffect(() => {
-    if (passwordReset) {
-      console.log('Password reset flag is active, scheduling reset timer');
-      const timer = setTimeout(() => {
-        console.log('Resetting password reset flag after timeout');
-        setPasswordReset(false);
-        
-        // Clear the localStorage flags to avoid re-triggering on future page loads
-        localStorage.removeItem('password_reset_completed');
-        localStorage.removeItem('password_reset_timestamp');
-      }, 30000); // Extended timeout to ensure map has time to fully reinitialize
-      
-      return () => clearTimeout(timer);
-    }
-  }, [passwordReset]);
-
-  // Check if user is coming from Auth page with a password reset success
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'password_reset_completed' && e.newValue === 'true' && user) {
-        console.log('Password reset detected from storage event');
-        setPasswordReset(true);
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, [user]);
-
-  // Fetch breweries data
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
     queryFn: async () => {
@@ -211,7 +75,6 @@ const Index = () => {
     }
   });
 
-  // Login handler
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -231,7 +94,6 @@ const Index = () => {
     }
   };
 
-  // Logout handler
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -242,12 +104,10 @@ const Index = () => {
     }
   };
 
-  // Forgot password handler
   const handleForgotPassword = () => {
     navigate('/auth?forgot=true');
   };
 
-  // Handle errors from brewery fetching
   useEffect(() => {
     if (error) {
       toast.error('Failed to load breweries');
@@ -319,7 +179,6 @@ const Index = () => {
         <Map
           breweries={breweries}
           onBrewerySelect={setSelectedBrewery}
-          passwordReset={passwordReset}
         />
       </div>
       {userType === 'business' && (
