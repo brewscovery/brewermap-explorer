@@ -10,7 +10,9 @@ const Dashboard = () => {
 
   const handleLogout = async () => {
     try {
+      console.log("Dashboard - initiating logout");
       await logout();
+      console.log("Dashboard - logout completed, navigating to home");
       navigate('/');
     } catch (error) {
       console.error("Error during logout:", error);

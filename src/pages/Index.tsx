@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -33,10 +32,11 @@ const Index = () => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
     
-    if ((type === 'recovery' || type === 'signup') && token && !user) {
+    if ((type === 'recovery' || type === 'signup') && token) {
+      console.log('Recovery or signup link detected, redirecting to auth page');
       navigate('/auth' + window.location.search);
     }
-  }, [navigate, searchParams, user]);
+  }, [navigate, searchParams]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
@@ -96,8 +96,9 @@ const Index = () => {
 
   const handleLogout = async () => {
     try {
+      console.log("Index page - initiating logout");
       await logout();
-      navigate('/');
+      console.log("Index page - logout completed");
     } catch (error: any) {
       toast.error('Failed to logout. Please try again.');
     }

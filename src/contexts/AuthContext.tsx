@@ -25,15 +25,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
+      console.log("Starting logout process...");
       setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
       
-      // Clear local state regardless of the server response
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error.message);
+        throw error;
+      }
+      
+      // Clear local state
       setUser(null);
       setUserType(null);
       
       console.log("User logged out successfully");
+      toast.success('Logged out successfully');
     } catch (error: any) {
       console.error("Logout error:", error.message);
       toast.error('Failed to logout. Please try again.');
@@ -54,12 +60,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
           console.log('Auth event:', event);
-          setUser(session?.user ?? null);
-          if (session?.user) {
+          
+          if (event === 'SIGNED_OUT') {
+            console.log('SIGNED_OUT event - clearing user data');
+            setUser(null);
+            setUserType(null);
+          } else if (session?.user) {
+            console.log('Setting user from session');
+            setUser(session.user);
             await fetchUserType(session.user.id);
           } else {
+            setUser(null);
             setUserType(null);
           }
+          
           setLoading(false);
         });
 

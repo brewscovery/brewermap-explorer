@@ -34,7 +34,7 @@ const AppRoutes = () => {
   
   return (
     <Routes>
-      <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
+      <Route path="/auth" element={user && !window.location.search.includes('type=recovery') ? <Navigate to="/" replace /> : <Auth />} />
       <Route 
         path="/dashboard" 
         element={

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -24,71 +23,80 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const setupRecoveryMode = () => {
-      console.log('Setting up recovery mode...');
-      setIsPasswordRecovery(true);
-      setIsLogin(false);
-      setIsForgotPassword(false);
-    };
-
-    const handleRecoveryFlow = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        console.log('Current session:', data?.session);
-        if (error) throw error;
-        
-        if (data?.session?.user) {
-          console.log('User authenticated in recovery flow');
-          setupRecoveryMode();
-        }
-      } catch (error) {
-        console.error('Recovery flow error:', error);
-      }
-    };
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth event:', event, 'Session:', session);
-      
-      if (event === 'PASSWORD_RECOVERY') {
-        console.log('Password recovery event received');
-        setupRecoveryMode();
-      }
-
-      if (event === 'SIGNED_IN') {
-        console.log('Sign in event during recovery');
-        const type = searchParams.get('type');
-        if (type === 'recovery') {
-          setupRecoveryMode();
-        }
-      }
-
-      if (event === 'USER_UPDATED') {
-        console.log('User updated event received');
-        toast.success('Password updated successfully');
-        setLoading(false);
-        
-        // Use a timeout to ensure the navigation happens after state updates
-        setTimeout(() => {
-          navigate('/', { replace: true });
-        }, 500);
-      }
-    });
-
     const type = searchParams.get('type');
+    const token = searchParams.get('token') || searchParams.get('access_token');
     
-    console.log('Current URL type parameter:', type);
+    console.log('Auth page loaded. Type:', type, 'Token present:', !!token);
     
+    // Handle password recovery case
     if (type === 'recovery') {
-      console.log('Recovery URL detected, initializing recovery flow');
-      handleRecoveryFlow();
+      console.log('Recovery mode detected in URL');
+      
+      const handlePasswordRecovery = async () => {
+        try {
+          // Get session to check if we're authenticated from the recovery link
+          const { data, error } = await supabase.auth.getSession();
+          console.log('Current session in recovery flow:', data?.session ? 'Active' : 'None');
+          
+          if (error) {
+            console.error('Session error in recovery flow:', error);
+            toast.error('Error verifying your session. Please try again.');
+            return;
+          }
+          
+          // If we have a token directly in the URL, we need to set up recovery mode
+          if (token || data?.session) {
+            console.log('Setting up password recovery mode');
+            setIsPasswordRecovery(true);
+            setIsLogin(false);
+            setIsForgotPassword(false);
+          }
+        } catch (error) {
+          console.error('Recovery flow error:', error);
+          toast.error('Something went wrong with the password reset process.');
+        }
+      };
+      
+      handlePasswordRecovery();
     } else if (searchParams.get('forgot') === 'true') {
       setIsForgotPassword(true);
       setIsLogin(false);
       setIsPasswordRecovery(false);
     } else if (user && !isPasswordRecovery && !isForgotPassword) {
+      // Don't redirect if we're supposed to be in recovery mode
+      console.log('Detected logged in user, redirecting to home');
       navigate('/');
     }
-
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth event:', event, 'Session:', !!session);
+      
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('PASSWORD_RECOVERY event received');
+        setIsPasswordRecovery(true);
+        setIsLogin(false);
+        setIsForgotPassword(false);
+      }
+      
+      if (event === 'USER_UPDATED') {
+        console.log('USER_UPDATED event received - password was changed');
+        toast.success('Password updated successfully');
+        setLoading(false);
+        
+        // Wait briefly before redirecting
+        setTimeout(() => {
+          navigate('/', { replace: true });
+        }, 1500);
+      }
+      
+      // Don't redirect on SIGNED_IN event if we're in recovery mode
+      if (event === 'SIGNED_IN' && type !== 'recovery') {
+        console.log('SIGNED_IN event and not in recovery mode - redirecting to home');
+        navigate('/', { replace: true });
+      }
+    });
+    
     return () => {
       subscription.unsubscribe();
     };
