@@ -65,7 +65,7 @@ const Auth = () => {
         console.log('User updated event received');
         toast.success('Password updated successfully');
         setLoading(false);
-        navigate('/dashboard', { replace: true });
+        navigate('/', { replace: true });
       }
     });
 
@@ -123,6 +123,10 @@ const Auth = () => {
       if (error) throw error;
 
       console.log('Password update successful');
+      toast.success('Password updated successfully');
+      setLoading(false);
+      
+      navigate('/', { replace: true });
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
