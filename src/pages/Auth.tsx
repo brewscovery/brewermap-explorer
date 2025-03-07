@@ -128,8 +128,9 @@ const Auth = () => {
       setLoading(false);
       
       setTimeout(() => {
-        navigate('/', { replace: false });
-      }, 500);
+        console.log('Navigating to home page after password update');
+        navigate('/', { replace: true });
+      }, 800);
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
