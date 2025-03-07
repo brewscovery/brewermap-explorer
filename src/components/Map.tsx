@@ -75,7 +75,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && isStyleLoaded ? (
+      {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
           <MapLayers
@@ -90,7 +90,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
             onBrewerySelect={onBrewerySelect}
           />
         </>
-      ) : null}
+      )}
     </div>
   );
 };
