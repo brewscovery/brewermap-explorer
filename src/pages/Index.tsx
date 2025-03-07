@@ -28,6 +28,11 @@ const Index = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  const navigateToDashboard = () => {
+    console.log('[Index] Navigating to dashboard page');
+    navigate('/dashboard', { replace: true });
+  };
+
   useEffect(() => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
@@ -123,7 +128,7 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {userType === 'business' ? 'Business Account' : 'Regular Account'}
               </span>
-              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+              <Button variant="outline" onClick={navigateToDashboard}>
                 <LayoutDashboard className="mr-2" size={18} />
                 Dashboard
               </Button>

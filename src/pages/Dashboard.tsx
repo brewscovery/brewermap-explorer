@@ -8,6 +8,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { user, userType } = useAuth();
 
+  // Safe navigation helper with logging
+  const navigateToMap = () => {
+    console.log('[Dashboard] Navigating to map page');
+    // Use replace to ensure clean navigation
+    navigate('/', { replace: true });
+  };
+
   return (
     <div className="flex flex-col h-screen">
       <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
@@ -16,7 +23,7 @@ const Dashboard = () => {
           <span className="text-sm text-muted-foreground">
             {userType === 'business' ? 'Business Account' : 'Regular Account'}
           </span>
-          <Button variant="outline" onClick={() => navigate('/')}>
+          <Button variant="outline" onClick={navigateToMap}>
             <Map className="mr-2" size={18} />
             View Map
           </Button>
