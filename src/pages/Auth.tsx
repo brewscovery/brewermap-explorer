@@ -124,9 +124,12 @@ const Auth = () => {
 
       console.log('Password update successful');
       toast.success('Password updated successfully');
+      
       setLoading(false);
       
-      navigate('/', { replace: true });
+      setTimeout(() => {
+        navigate('/', { replace: false });
+      }, 500);
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);

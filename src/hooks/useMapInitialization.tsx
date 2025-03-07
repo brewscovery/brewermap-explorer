@@ -10,42 +10,68 @@ export const useMapInitialization = () => {
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
   const initializedRef = useRef(false);
   const onStyleLoadRef = useRef<(() => void) | null>(null);
+  const tokenRef = useRef<string | null>(null);
 
-  // Reset the initialization state when the component mounts
-  useEffect(() => {
-    // Force reset of initialization state on mount
-    initializedRef.current = false;
-    return () => {
-      // This ensures the next mount will trigger a fresh initialization
-      initializedRef.current = false;
-    };
+  // Load token only once to avoid multiple API calls
+  const loadMapboxToken = useCallback(async () => {
+    if (tokenRef.current) return tokenRef.current;
+    
+    try {
+      const token = await getMapboxToken();
+      tokenRef.current = token;
+      return token;
+    } catch (error) {
+      console.error('Failed to load Mapbox token:', error);
+      toast.error('Failed to load map resources');
+      throw error;
+    }
   }, []);
 
-  const initializeMap = useCallback(async () => {
-    // Don't initialize if container isn't available
-    if (!mapContainer.current) return;
+  // Complete cleanup of map instance
+  const cleanupMap = useCallback(() => {
+    console.log('Cleaning up map resources completely');
     
-    // If map is already initialized but we detect we need to recreate it
     if (map.current) {
-      console.log('Cleaning up existing map instance before reinitializing');
       try {
         if (onStyleLoadRef.current) {
           map.current.off('style.load', onStyleLoadRef.current);
         }
+        
+        // Remove all event listeners and the map
         map.current.remove();
       } catch (error) {
-        console.error('Error cleaning up existing map:', error);
+        console.error('Error during map cleanup:', error);
       }
-      map.current = null;
-      initializedRef.current = false;
     }
     
-    // Exit if already marked as initialized (prevents double init)
-    if (initializedRef.current) return;
+    // Reset all refs and state
+    map.current = null;
+    initializedRef.current = false;
+    onStyleLoadRef.current = null;
+    setIsStyleLoaded(false);
+  }, []);
+
+  const initializeMap = useCallback(async () => {
+    // Don't initialize if container isn't available
+    if (!mapContainer.current) {
+      console.log('Map container not available, skipping initialization');
+      return;
+    }
+    
+    // If already initialized, don't reinitialize
+    if (initializedRef.current && map.current) {
+      console.log('Map already initialized, skipping initialization');
+      return;
+    }
+    
+    // If we have a map instance but not marked as initialized, clean it up first
+    if (map.current && !initializedRef.current) {
+      cleanupMap();
+    }
     
     try {
-      console.log('Initializing map...');
-      const token = await getMapboxToken();
+      console.log('Starting map initialization');
+      const token = await loadMapboxToken();
       mapboxgl.accessToken = token;
       
       const newMap = new mapboxgl.Map({
@@ -60,7 +86,7 @@ export const useMapInitialization = () => {
 
       // Create and store the style load listener
       const onStyleLoad = () => {
-        console.log('Map style loaded');
+        console.log('Map style loaded successfully');
         if (newMap.isStyleLoaded()) {
           setIsStyleLoaded(true);
         } else {
@@ -89,36 +115,34 @@ export const useMapInitialization = () => {
 
       map.current = newMap;
       initializedRef.current = true;
-      console.log('Map initialization complete');
+      console.log('Map initialization completed successfully');
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map');
-      // Reset initialization state on error so we can retry
-      initializedRef.current = false;
+      // Reset initialization state on error
+      cleanupMap();
     }
-  }, []);
+  }, [cleanupMap, loadMapboxToken]);
 
-  // Initial map setup
+  // Initial map setup - with proper cleanup
   useEffect(() => {
-    console.log('Map component mounted, initializing map');
-    initializeMap();
+    console.log('Map hook mounted, initializing map');
+    let isMounted = true;
+    
+    const setupMap = async () => {
+      if (isMounted) {
+        await initializeMap();
+      }
+    };
+    
+    setupMap();
 
     return () => {
-      console.log('Map component unmounting, cleaning up map');
-      if (map.current && onStyleLoadRef.current) {
-        try {
-          map.current.off('style.load', onStyleLoadRef.current);
-          map.current.remove();
-        } catch (error) {
-          console.error('Error cleaning up map:', error);
-        }
-      }
-      map.current = null;
-      initializedRef.current = false;
-      onStyleLoadRef.current = null;
-      setIsStyleLoaded(false);
+      console.log('Map hook unmounting, cleaning up resources');
+      isMounted = false;
+      cleanupMap();
     };
-  }, [initializeMap]);
+  }, [initializeMap, cleanupMap]);
 
   return { mapContainer, map, isStyleLoaded };
 };

@@ -19,6 +19,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
+  const [mapLoading, setMapLoading] = useState(true);
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
@@ -72,9 +73,28 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     }
   }, [checkins, user]);
 
+  // Track when map is ready
+  useEffect(() => {
+    if (isStyleLoaded && map.current) {
+      setMapLoading(false);
+    } else {
+      setMapLoading(true);
+    }
+  }, [isStyleLoaded, map]);
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
+      
+      {mapLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/50 z-10">
+          <div className="text-center p-4 bg-card rounded-md shadow-lg">
+            <span className="block text-lg font-medium mb-2">Loading map...</span>
+            <div className="w-10 h-10 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto"></div>
+          </div>
+        </div>
+      )}
+      
       {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
