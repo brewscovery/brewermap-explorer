@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient({
@@ -28,6 +29,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/" element={<Index />} />
             </Routes>
           </BrowserRouter>
@@ -38,4 +40,3 @@ const App = () => {
 };
 
 export default App;
-

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -16,6 +15,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Label } from '@/components/ui/label';
+import { LayoutDashboard } from 'lucide-react';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ const Index = () => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
     
-    // Only redirect for recovery/signup verification if we're not already logged in
     if ((type === 'recovery' || type === 'signup') && token && !user) {
       navigate('/auth' + window.location.search);
     }
@@ -124,6 +123,10 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {userType === 'business' ? 'Business Account' : 'Regular Account'}
               </span>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
+                <LayoutDashboard className="mr-2" size={18} />
+                Dashboard
+              </Button>
               <Button variant="outline" onClick={handleLogout}>
                 Logout
               </Button>

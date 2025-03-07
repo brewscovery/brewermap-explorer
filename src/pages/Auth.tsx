@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,7 +45,6 @@ const Auth = () => {
       }
     };
 
-    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('Auth event:', event, 'Session:', session);
       
@@ -63,16 +61,14 @@ const Auth = () => {
         }
       }
 
-      // If the user's password was successfully updated, redirect to home
       if (event === 'USER_UPDATED') {
         console.log('User updated event received');
         toast.success('Password updated successfully');
         setLoading(false);
-        navigate('/', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     });
 
-    // Check URL parameters on mount
     const type = searchParams.get('type');
     
     console.log('Current URL type parameter:', type);
@@ -127,8 +123,6 @@ const Auth = () => {
       if (error) throw error;
 
       console.log('Password update successful');
-      // Note: The navigation and success message will be handled by the AUTH_STATE_CHANGE listener
-      
     } catch (error: any) {
       console.error('Password update error:', error);
       toast.error(error.message);
