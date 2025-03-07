@@ -1,23 +1,12 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Map, LogOut } from 'lucide-react';
+import { Map } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, userType, logout } = useAuth();
-
-  const handleLogout = async () => {
-    try {
-      console.log("Dashboard - initiating logout");
-      await logout();
-      console.log("Dashboard - logout completed, navigating to home");
-      navigate('/');
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
-  };
+  const { user, userType } = useAuth();
 
   return (
     <div className="flex flex-col h-screen">
@@ -30,10 +19,6 @@ const Dashboard = () => {
           <Button variant="outline" onClick={() => navigate('/')}>
             <Map className="mr-2" size={18} />
             View Map
-          </Button>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2" size={18} />
-            Logout
           </Button>
         </div>
       </div>

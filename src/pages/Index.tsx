@@ -20,7 +20,7 @@ import { LayoutDashboard } from 'lucide-react';
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userType, logout } = useAuth();
+  const { user, userType } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
@@ -32,11 +32,10 @@ const Index = () => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
     
-    if ((type === 'recovery' || type === 'signup') && token) {
-      console.log('Recovery or signup link detected, redirecting to auth page');
+    if ((type === 'recovery' || type === 'signup') && token && !user) {
       navigate('/auth' + window.location.search);
     }
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, user]);
 
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
@@ -96,9 +95,9 @@ const Index = () => {
 
   const handleLogout = async () => {
     try {
-      console.log("Index page - initiating logout");
-      await logout();
-      console.log("Index page - logout completed");
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/');
     } catch (error: any) {
       toast.error('Failed to logout. Please try again.');
     }
