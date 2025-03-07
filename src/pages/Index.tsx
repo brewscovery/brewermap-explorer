@@ -1,5 +1,4 @@
-
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
 import BreweryForm from '@/components/BreweryForm';
@@ -29,19 +28,11 @@ const Index = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Use a dedicated navigation function to ensure clean navigation
-  const navigateToDashboard = useCallback(() => {
-    console.log('Navigating from Map view to Dashboard');
-    // Use replace to ensure a clean navigation that removes the current page from history
-    navigate('/dashboard', { replace: true });
-  }, [navigate]);
-
   useEffect(() => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
     
     if ((type === 'recovery' || type === 'signup') && token && !user) {
-      console.log('Auth params detected, redirecting to auth page');
       navigate('/auth' + window.location.search);
     }
   }, [navigate, searchParams, user]);
@@ -49,29 +40,24 @@ const Index = () => {
   const { data: breweries = [], isLoading: breweriesLoading, error, refetch } = useQuery({
     queryKey: ['breweries', searchTerm, searchType],
     queryFn: async () => {
-      console.log('Fetching breweries with search:', searchTerm, searchType);
       if (!searchTerm) {
         const { data, error } = await supabase
           .from('breweries')
           .select('*');
 
         if (error) throw error;
-        console.log('Fetched all breweries:', data?.length || 0);
         return data || [];
       }
 
       if (searchType === 'city') {
-        console.log('Geocoding city:', searchTerm);
         const { data, error } = await supabase.functions.invoke('geocode-city', {
           body: { city: searchTerm }
         });
 
         if (error) throw error;
-        console.log('Geocoded city results:', data?.length || 0);
         return data || [];
       }
 
-      console.log('Searching breweries by', searchType);
       const { data, error } = await supabase
         .from('breweries')
         .select('*')
@@ -84,7 +70,6 @@ const Index = () => {
         );
 
       if (error) throw error;
-      console.log('Search results:', data?.length || 0);
       return data || [];
     }
   });
@@ -124,12 +109,9 @@ const Index = () => {
 
   useEffect(() => {
     if (error) {
-      console.error('Error fetching breweries:', error);
       toast.error('Failed to load breweries');
     }
   }, [error]);
-
-  console.log('Index rendering, map should be initialized or reinitialized');
 
   return (
     <div className="flex flex-col h-screen">
@@ -141,7 +123,7 @@ const Index = () => {
               <span className="text-sm text-muted-foreground">
                 {userType === 'business' ? 'Business Account' : 'Regular Account'}
               </span>
-              <Button variant="outline" onClick={navigateToDashboard}>
+              <Button variant="outline" onClick={() => navigate('/dashboard')}>
                 <LayoutDashboard className="mr-2" size={18} />
                 Dashboard
               </Button>
@@ -197,9 +179,7 @@ const Index = () => {
         </div>
       </div>
       <div className="flex-1 min-h-0 pt-[73px]">
-        {/* Use a key to force remount when breweries change */}
         <Map
-          key={`map-${breweries.length}`}
           breweries={breweries}
           onBrewerySelect={setSelectedBrewery}
         />

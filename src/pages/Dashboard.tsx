@@ -3,18 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Map } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useCallback } from 'react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, userType } = useAuth();
-
-  // Use a dedicated navigation function to ensure clean navigation
-  const navigateToMap = useCallback(() => {
-    console.log('Navigating from Dashboard to Map view');
-    // Use replace to ensure a clean navigation that removes the current page from history
-    navigate('/', { replace: true });
-  }, [navigate]);
 
   return (
     <div className="flex flex-col h-screen">
@@ -24,7 +16,7 @@ const Dashboard = () => {
           <span className="text-sm text-muted-foreground">
             {userType === 'business' ? 'Business Account' : 'Regular Account'}
           </span>
-          <Button variant="outline" onClick={navigateToMap}>
+          <Button variant="outline" onClick={() => navigate('/')}>
             <Map className="mr-2" size={18} />
             View Map
           </Button>

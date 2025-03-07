@@ -16,25 +16,15 @@ interface MapProps {
 }
 
 const Map = ({ breweries, onBrewerySelect }: MapProps) => {
-  console.log('Map component rendering with', breweries.length, 'breweries');
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    console.log('Map style loaded state changed:', isStyleLoaded);
-  }, [isStyleLoaded]);
-
-  useEffect(() => {
-    console.log('Map instance:', map.current ? 'exists' : 'null');
-  }, [map.current]);
-
   // Fetch user's check-ins
   const { data: checkins } = useQuery({
     queryKey: ['checkins', user?.id],
     queryFn: async () => {
-      console.log('Fetching checkins for user:', user?.id);
       if (!user) return [];
       const { data, error } = await supabase
         .from('checkins')
@@ -42,7 +32,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
         .eq('user_id', user.id);
       
       if (error) throw error;
-      console.log('Fetched', data?.length || 0, 'checkins');
       return data || [];
     },
     enabled: !!user
@@ -50,12 +39,8 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
 
   // Subscribe to realtime changes on checkins
   useEffect(() => {
-    if (!user) {
-      console.log('No user, skipping realtime subscription');
-      return;
-    }
+    if (!user) return;
 
-    console.log('Setting up realtime subscription for checkins');
     const channel = supabase
       .channel('checkins-changes')
       .on(
@@ -67,14 +52,12 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          console.log('Realtime checkin change detected');
           queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription');
       channel.unsubscribe();
     };
   }, [user, queryClient]);
@@ -82,11 +65,9 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   // Update visited breweries when check-ins data changes or when user logs out
   useEffect(() => {
     if (user && checkins) {
-      console.log('Updating visited breweries with', checkins.length, 'checkins');
       const visited = checkins.map(checkin => checkin.brewery_id);
       setVisitedBreweryIds(visited);
     } else {
-      console.log('Clearing visited breweries list');
       setVisitedBreweryIds([]);
     }
   }, [checkins, user]);
@@ -94,7 +75,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
-      {map.current && isStyleLoaded ? (
+      {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
           <MapLayers
@@ -109,10 +90,6 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
             onBrewerySelect={onBrewerySelect}
           />
         </>
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-          <p className="text-muted-foreground">Loading map...</p>
-        </div>
       )}
     </div>
   );
