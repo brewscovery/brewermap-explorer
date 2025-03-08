@@ -51,7 +51,11 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordFormProps) =
         type="button"
         variant="link"
         className="w-full"
-        onClick={onBackToLogin}
+        onClick={(e) => {
+          e.preventDefault();
+          console.log('Back to login button clicked');
+          onBackToLogin();
+        }}
       >
         Back to Login
       </Button>

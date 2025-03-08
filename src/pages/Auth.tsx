@@ -93,6 +93,7 @@ const Auth = () => {
     console.log('Switching to login view');
     setIsLogin(true);
     setIsForgotPassword(false);
+    setIsPasswordRecovery(false); // Make sure this is also reset
   };
 
   const handleForgotPassword = () => {
