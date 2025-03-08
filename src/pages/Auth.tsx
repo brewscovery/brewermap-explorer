@@ -14,16 +14,20 @@ const Auth = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
-  const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
-  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [authState, setAuthState] = useState({
+    isLogin: true,
+    isForgotPassword: false,
+    isPasswordRecovery: false
+  });
 
   useEffect(() => {
     const setupRecoveryMode = () => {
       console.log('Setting up recovery mode...');
-      setIsPasswordRecovery(true);
-      setIsLogin(false);
-      setIsForgotPassword(false);
+      setAuthState({
+        isLogin: false,
+        isForgotPassword: false,
+        isPasswordRecovery: true
+      });
     };
 
     const handleRecoveryFlow = async () => {
@@ -72,36 +76,46 @@ const Auth = () => {
       console.log('Recovery URL detected, initializing recovery flow');
       handleRecoveryFlow();
     } else if (searchParams.get('forgot') === 'true') {
-      setIsForgotPassword(true);
-      setIsLogin(false);
-      setIsPasswordRecovery(false);
-    } else if (user && !isPasswordRecovery && !isForgotPassword) {
+      setAuthState({
+        isLogin: false,
+        isForgotPassword: true,
+        isPasswordRecovery: false
+      });
+    } else if (user && !authState.isPasswordRecovery && !authState.isForgotPassword) {
       navigate('/');
     }
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, navigate, searchParams, isPasswordRecovery, isForgotPassword]);
+  }, [user, navigate, searchParams, authState.isPasswordRecovery, authState.isForgotPassword]);
 
   const handleSwitchToSignup = () => {
-    setIsLogin(false);
-    setIsForgotPassword(false);
+    setAuthState({
+      isLogin: false,
+      isForgotPassword: false,
+      isPasswordRecovery: false
+    });
   };
 
   const handleSwitchToLogin = () => {
     console.log('Switching to login view');
-    setIsLogin(true);
-    setIsForgotPassword(false);
-    setIsPasswordRecovery(false); // Make sure this is also reset
+    setAuthState({
+      isLogin: true,
+      isForgotPassword: false,
+      isPasswordRecovery: false
+    });
   };
 
   const handleForgotPassword = () => {
-    setIsForgotPassword(true);
-    setIsLogin(false);
+    setAuthState({
+      isLogin: false,
+      isForgotPassword: true,
+      isPasswordRecovery: false
+    });
   };
 
-  if (isPasswordRecovery) {
+  if (authState.isPasswordRecovery) {
     return (
       <AuthContainer 
         title="Set New Password" 
@@ -112,7 +126,7 @@ const Auth = () => {
     );
   }
 
-  if (isForgotPassword) {
+  if (authState.isForgotPassword) {
     return (
       <AuthContainer 
         title="Reset Password" 
@@ -125,12 +139,12 @@ const Auth = () => {
 
   return (
     <AuthContainer 
-      title={isLogin ? 'Login' : 'Sign Up'} 
-      description={isLogin 
+      title={authState.isLogin ? 'Login' : 'Sign Up'} 
+      description={authState.isLogin 
         ? 'Welcome back! Please login to continue.' 
         : 'Create an account to get started.'}
     >
-      {isLogin ? (
+      {authState.isLogin ? (
         <LoginForm 
           onForgotPassword={handleForgotPassword} 
           onSwitchToSignup={handleSwitchToSignup} 

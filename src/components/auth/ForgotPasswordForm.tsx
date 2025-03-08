@@ -32,6 +32,13 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordFormProps) =
     }
   };
 
+  const handleBackToLogin = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Back to login button clicked');
+    // Call the function immediately without any conditions
+    onBackToLogin();
+  };
+
   return (
     <form onSubmit={handlePasswordReset} className="space-y-4">
       <div className="space-y-2">
@@ -51,11 +58,7 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordFormProps) =
         type="button"
         variant="link"
         className="w-full"
-        onClick={(e) => {
-          e.preventDefault();
-          console.log('Back to login button clicked');
-          onBackToLogin();
-        }}
+        onClick={handleBackToLogin}
       >
         Back to Login
       </Button>
