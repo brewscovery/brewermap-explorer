@@ -90,6 +90,7 @@ const Auth = () => {
   };
 
   const handleSwitchToLogin = () => {
+    console.log('Switching to login view');
     setIsLogin(true);
     setIsForgotPassword(false);
   };
