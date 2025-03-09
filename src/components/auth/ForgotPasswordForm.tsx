@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { useNavigate } from 'react-router-dom';
 
 type ForgotPasswordFormProps = {
   onBackToLogin: () => void;
@@ -13,6 +14,7 @@ type ForgotPasswordFormProps = {
 export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordFormProps) => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handlePasswordReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +37,11 @@ export const ForgotPasswordForm = ({ onBackToLogin }: ForgotPasswordFormProps) =
   const handleBackToLogin = (e: React.MouseEvent) => {
     e.preventDefault();
     console.log('Back to login button clicked');
-    // Call the function immediately without any conditions
+    
+    // Remove any query parameters by navigating to the auth page without parameters
+    navigate('/auth', { replace: true });
+    
+    // Then call the function to update state
     onBackToLogin();
   };
 
