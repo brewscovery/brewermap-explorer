@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, userType, firstName, lastName } = useAuth();
+  const { user, userType, firstName } = useAuth();
 
   return (
     <div className="flex flex-col h-screen">
@@ -14,8 +14,7 @@ const Dashboard = () => {
         <h1 className="text-xl font-bold">Brewery Dashboard</h1>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
-            {userType === 'business' ? 'Business Account' : 'Regular Account'}
-            {firstName && lastName ? ` - ${firstName} ${lastName}` : ''}
+            Welcome, {firstName || 'User'}
           </span>
           <Button variant="outline" onClick={() => navigate('/')}>
             <Map className="mr-2" size={18} />

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -20,7 +21,7 @@ import { LayoutDashboard } from 'lucide-react';
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userType } = useAuth();
+  const { user, userType, firstName } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>('name');
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
@@ -121,7 +122,7 @@ const Index = () => {
           {user ? (
             <>
               <span className="text-sm text-muted-foreground">
-                {userType === 'business' ? 'Business Account' : 'Regular Account'}
+                Welcome, {firstName || 'User'}
               </span>
               <Button variant="outline" onClick={() => navigate('/dashboard')}>
                 <LayoutDashboard className="mr-2" size={18} />
