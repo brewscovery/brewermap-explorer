@@ -2,7 +2,6 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
-import BreweryForm from '@/components/BreweryForm';
 import { useBreweryData } from '@/hooks/useBreweryData';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
@@ -12,7 +11,7 @@ import { toast } from 'sonner';
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { user, userType } = useAuth();
+  const { user } = useAuth();
   
   const {
     breweries,
@@ -48,16 +47,9 @@ const Index = () => {
           onBrewerySelect={setSelectedBrewery}
         />
       </div>
-      {userType === 'business' && (
-        <div className="p-6 bg-card border-t">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold mb-4">Add New Brewery</h2>
-            <BreweryForm onSubmitSuccess={refetch} />
-          </div>
-        </div>
-      )}
     </div>
   );
 };
 
 export default Index;
+
