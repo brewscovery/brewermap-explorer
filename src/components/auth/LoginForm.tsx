@@ -23,12 +23,34 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
     setLoading(true);
 
     try {
+      // First, authenticate the user
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+      
       if (error) throw error;
-      navigate('/');
+      
+      // After successful authentication, fetch the user's profile to check user type
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user) {
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('id', session.user.id)
+          .single();
+          
+        // Redirect based on user type
+        if (profileData?.user_type === 'business') {
+          navigate('/dashboard');
+        } else {
+          navigate('/');
+        }
+      } else {
+        // Fallback to home if session is unexpectedly missing
+        navigate('/');
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
