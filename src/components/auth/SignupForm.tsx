@@ -36,7 +36,7 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
           data: {
             user_type: userType,
             first_name: firstName,
-            last_name: lastName,
+            last_name: userType === 'regular' ? lastName : '',
           },
         },
       });
@@ -47,6 +47,14 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
       toast.error(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUserTypeChange = (value: 'regular' | 'business') => {
+    setUserType(value);
+    // Clear lastName when switching to business type
+    if (value === 'business') {
+      setLastName('');
     }
   };
 
@@ -83,7 +91,9 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="firstName">First Name</Label>
+        <Label htmlFor="firstName">
+          {userType === 'business' ? 'Business/Brewery Name' : 'First Name'}
+        </Label>
         <Input
           id="firstName"
           type="text"
@@ -92,21 +102,23 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
           required
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="lastName">Last Name</Label>
-        <Input
-          id="lastName"
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          required
-        />
-      </div>
+      {userType === 'regular' && (
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last Name</Label>
+          <Input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+        </div>
+      )}
       <div className="space-y-2">
         <Label>User Type</Label>
         <RadioGroup
           value={userType}
-          onValueChange={(value: 'regular' | 'business') => setUserType(value)}
+          onValueChange={handleUserTypeChange}
           className="flex gap-4"
         >
           <div className="flex items-center space-x-2">
