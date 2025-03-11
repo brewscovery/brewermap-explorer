@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,14 +15,28 @@ import {
 import { Input } from './ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface VenueFormData {
+  name: string;
+  brewery_type: string;
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  phone: string;
+  website_url: string;
+  latitude: string;
+  longitude: string;
+}
+
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
 }
 
 const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
-  const form = useForm<Omit<Brewery, 'id'>>();
-  const { watch } = form;
+  const form = useForm<VenueFormData>();
+  const { watch, setValue } = form;
   const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Watch address fields for changes
   const street = watch('street');
@@ -30,71 +44,102 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
   const state = watch('state');
   const postalCode = watch('postal_code');
 
-  // Fetch coordinates when address fields change
-  useEffect(() => {
-    const fetchCoordinates = async () => {
-      // Only proceed if all required fields are filled
-      if (!street || !city || !state) return;
+  // Geocode the address when all required fields are filled
+  const handleGeocodeAddress = async () => {
+    // Only proceed if all required fields are filled
+    if (!street || !city || !state) {
+      return;
+    }
 
-      try {
-        const { data, error } = await supabase.functions.invoke('geocode', {
-          body: {
-            street,
-            city,
-            state,
-            postalCode,
-          },
-        });
+    try {
+      const { data, error } = await supabase.functions.invoke('geocode', {
+        body: {
+          street,
+          city,
+          state,
+          postalCode,
+        },
+      });
 
-        if (error) throw error;
+      if (error) throw error;
 
-        if (data.latitude && data.longitude) {
-          form.setValue('latitude', data.latitude);
-          form.setValue('longitude', data.longitude);
-        }
-      } catch (error) {
-        console.error('Error fetching coordinates:', error);
-        toast.error('Failed to fetch coordinates');
+      if (data.latitude && data.longitude) {
+        setValue('latitude', data.latitude);
+        setValue('longitude', data.longitude);
+        toast.success('Address geocoded successfully');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching coordinates:', error);
+      toast.error('Failed to fetch coordinates');
+    }
+  };
 
-    fetchCoordinates();
-  }, [street, city, state, postalCode, form]);
-
-  const onSubmit = async (data: Omit<Brewery, 'id'>) => {
+  const onSubmit = async (data: VenueFormData) => {
     if (!user) {
       toast.error('You must be logged in to add a brewery');
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
       // First, insert the brewery
-      const { data: breweryData, error: breweryError } = await supabase
+      const breweryData: Omit<Brewery, 'id'> = {
+        name: data.name,
+        brewery_type: data.brewery_type,
+        website_url: data.website_url || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data: newBrewery, error: breweryError } = await supabase
         .from('breweries')
-        .insert([data])
+        .insert(breweryData)
         .select()
         .single();
 
       if (breweryError) throw breweryError;
 
-      // Then, create the brewery ownership record
+      // Then, create the venue with the brewery ID
+      const venueData = {
+        brewery_id: newBrewery.id,
+        name: data.name,
+        street: data.street || null,
+        city: data.city,
+        state: data.state,
+        postal_code: data.postal_code || null,
+        phone: data.phone || null,
+        website_url: data.website_url || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null
+      };
+
+      const { error: venueError } = await supabase
+        .from('venues')
+        .insert(venueData);
+
+      if (venueError) throw venueError;
+
+      // Create the brewery ownership record
       const { error: ownershipError } = await supabase
         .from('brewery_owners')
         .insert([
           {
             user_id: user.id,
-            brewery_id: breweryData.id
+            brewery_id: newBrewery.id
           }
         ]);
 
       if (ownershipError) throw ownershipError;
 
-      toast.success('Brewery added successfully!');
+      toast.success('Brewery and venue added successfully!');
       form.reset();
       onSubmitSuccess();
     } catch (error: any) {
       console.error('Error adding brewery:', error);
-      toast.error('Failed to add brewery');
+      toast.error('Failed to add brewery and venue');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -211,9 +256,14 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
           />
         </div>
 
-        <Button type="submit" className="w-full">
-          Add Brewery
-        </Button>
+        <div className="flex gap-4">
+          <Button type="button" variant="outline" onClick={handleGeocodeAddress} disabled={!street || !city || !state}>
+            Get Coordinates
+          </Button>
+          <Button type="submit" className="flex-1" disabled={isSubmitting}>
+            {isSubmitting ? 'Adding...' : 'Add Brewery'}
+          </Button>
+        </div>
       </form>
     </Form>
   );
