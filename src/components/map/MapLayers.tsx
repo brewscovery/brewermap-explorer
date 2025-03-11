@@ -1,23 +1,23 @@
 
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
-import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import MapSource from './layers/MapSource';
 import ClusterLayers from './layers/ClusterLayers';
-import BreweryPoints from './layers/BreweryPoints';
+import VenuePoints from './layers/VenuePoints';
 
 interface MapLayersProps {
   map: mapboxgl.Map;
-  breweries: Brewery[];
-  visitedBreweryIds?: string[];
-  onBrewerySelect: (brewery: Brewery) => void;
+  venues: Venue[];
+  visitedVenueIds?: string[];
+  onVenueSelect: (venue: Venue) => void;
 }
 
-const MapLayers = ({ map, breweries, visitedBreweryIds, onBrewerySelect }: MapLayersProps) => {
+const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersProps) => {
   return (
-    <MapSource map={map} breweries={breweries}>
-      <ClusterLayers map={map} source="breweries" />
-      <BreweryPoints map={map} source="breweries" visitedBreweryIds={visitedBreweryIds} />
+    <MapSource map={map} venues={venues}>
+      <ClusterLayers map={map} source="venues" />
+      <VenuePoints map={map} source="venues" visitedVenueIds={visitedVenueIds} />
     </MapSource>
   );
 };

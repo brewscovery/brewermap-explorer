@@ -98,48 +98,48 @@ export type Database = {
       }
       checkins: {
         Row: {
-          brewery_id: string | null
           comment: string | null
           created_at: string
           id: string
           rating: number | null
           updated_at: string
           user_id: string | null
+          venue_id: string
           visited_at: string
         }
         Insert: {
-          brewery_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string
           rating?: number | null
           updated_at?: string
           user_id?: string | null
+          venue_id: string
           visited_at?: string
         }
         Update: {
-          brewery_id?: string | null
           comment?: string | null
           created_at?: string
           id?: string
           rating?: number | null
           updated_at?: string
           user_id?: string | null
+          venue_id?: string
           visited_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "checkins_brewery_id_fkey"
-            columns: ["brewery_id"]
-            isOneToOne: false
-            referencedRelation: "breweries"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "checkins_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checkins_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
             referencedColumns: ["id"]
           },
         ]
@@ -170,6 +170,65 @@ export type Database = {
           user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
+      }
+      venues: {
+        Row: {
+          brewery_id: string
+          city: string
+          country: string | null
+          created_at: string
+          id: string
+          latitude: string | null
+          longitude: string | null
+          name: string
+          phone: string | null
+          postal_code: string | null
+          state: string
+          street: string | null
+          updated_at: string
+          website_url: string | null
+        }
+        Insert: {
+          brewery_id: string
+          city: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          latitude?: string | null
+          longitude?: string | null
+          name: string
+          phone?: string | null
+          postal_code?: string | null
+          state: string
+          street?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Update: {
+          brewery_id?: string
+          city?: string
+          country?: string | null
+          created_at?: string
+          id?: string
+          latitude?: string | null
+          longitude?: string | null
+          name?: string
+          phone?: string | null
+          postal_code?: string | null
+          state?: string
+          street?: string | null
+          updated_at?: string
+          website_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venues_brewery_id_fkey"
+            columns: ["brewery_id"]
+            isOneToOne: false
+            referencedRelation: "breweries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

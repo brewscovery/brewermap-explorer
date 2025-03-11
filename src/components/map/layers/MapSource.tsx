@@ -1,42 +1,44 @@
 
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
-import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import type { Feature, Point, FeatureCollection } from 'geojson';
 
 interface MapSourceProps {
   map: mapboxgl.Map;
-  breweries: Brewery[];
+  venues: Venue[];
   children: React.ReactNode;
 }
 
-interface BreweryProperties {
+interface VenueProperties {
   id: string;
   name: string;
+  brewery_id: string;
 }
 
-const MapSource = ({ map, breweries, children }: MapSourceProps) => {
+const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
 
   useEffect(() => {
     const createGeoJsonData = () => {
-      const features: Feature<Point, BreweryProperties>[] = breweries
-        .filter(brewery => {
-          const lng = parseFloat(brewery.longitude || '');
-          const lat = parseFloat(brewery.latitude || '');
+      const features: Feature<Point, VenueProperties>[] = venues
+        .filter(venue => {
+          const lng = parseFloat(venue.longitude || '');
+          const lat = parseFloat(venue.latitude || '');
           return !isNaN(lng) && !isNaN(lat);
         })
-        .map(brewery => ({
+        .map(venue => ({
           type: 'Feature',
           properties: {
-            id: brewery.id,
-            name: brewery.name
+            id: venue.id,
+            name: venue.name,
+            brewery_id: venue.brewery_id
           },
           geometry: {
             type: 'Point',
             coordinates: [
-              parseFloat(brewery.longitude || '0'),
-              parseFloat(brewery.latitude || '0')
+              parseFloat(venue.longitude || '0'),
+              parseFloat(venue.latitude || '0')
             ]
           }
         }));
@@ -45,7 +47,7 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       return {
         type: 'FeatureCollection',
         features: features
-      } as FeatureCollection<Point, BreweryProperties>;
+      } as FeatureCollection<Point, VenueProperties>;
     };
 
     const addSourceAndLayers = () => {
@@ -58,12 +60,12 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
         }
       });
       
-      if (map.getSource('breweries')) {
-        map.removeSource('breweries');
+      if (map.getSource('venues')) {
+        map.removeSource('venues');
       }
       
       // Add new source with clustering enabled
-      map.addSource('breweries', {
+      map.addSource('venues', {
         type: 'geojson',
         data: createGeoJsonData(),
         cluster: true,
@@ -91,15 +93,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
       }
     };
 
-    // Initialize source when component mounts or breweries change
-    if (breweries.length > 0) {
-      console.log(`Initializing source with ${breweries.length} breweries`);
+    // Initialize source when component mounts or venues change
+    if (venues.length > 0) {
+      console.log(`Initializing source with ${venues.length} venues`);
       initializeSource();
     }
 
-    // Update source data when breweries change and source exists
+    // Update source data when venues change and source exists
     if (sourceAdded.current) {
-      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
       if (source) {
         console.log('Updating existing source data');
         source.setData(createGeoJsonData());
@@ -116,15 +118,15 @@ const MapSource = ({ map, breweries, children }: MapSourceProps) => {
             map.removeLayer(layer);
           }
         });
-        if (map.getSource('breweries')) {
-          map.removeSource('breweries');
+        if (map.getSource('venues')) {
+          map.removeSource('venues');
         }
         sourceAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up:', error);
       }
     };
-  }, [map, breweries]);
+  }, [map, venues]);
 
   return <>{children}</>;
 };

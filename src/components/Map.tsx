@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import MapLayers from './map/MapLayers';
 import MapInteractions from './map/MapInteractions';
 import MapGeolocation from './map/MapGeolocation';
@@ -11,14 +11,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface MapProps {
-  breweries: Brewery[];
-  onBrewerySelect: (brewery: Brewery) => void;
+  venues: Venue[];
+  onVenueSelect: (venue: Venue) => void;
 }
 
-const Map = ({ breweries, onBrewerySelect }: MapProps) => {
+const Map = ({ venues, onVenueSelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
-  const [visitedBreweryIds, setVisitedBreweryIds] = useState<string[]>([]);
+  const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
@@ -28,7 +28,7 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('checkins')
-        .select('brewery_id')
+        .select('venue_id')
         .eq('user_id', user.id);
       
       if (error) throw error;
@@ -62,13 +62,13 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
     };
   }, [user, queryClient]);
 
-  // Update visited breweries when check-ins data changes or when user logs out
+  // Update visited venues when check-ins data changes or when user logs out
   useEffect(() => {
     if (user && checkins) {
-      const visited = checkins.map(checkin => checkin.brewery_id);
-      setVisitedBreweryIds(visited);
+      const visited = checkins.map(checkin => checkin.venue_id);
+      setVisitedVenueIds(visited);
     } else {
-      setVisitedBreweryIds([]);
+      setVisitedVenueIds([]);
     }
   }, [checkins, user]);
 
@@ -80,14 +80,14 @@ const Map = ({ breweries, onBrewerySelect }: MapProps) => {
           <MapGeolocation map={map.current} />
           <MapLayers
             map={map.current}
-            breweries={breweries}
-            visitedBreweryIds={visitedBreweryIds}
-            onBrewerySelect={onBrewerySelect}
+            venues={venues}
+            visitedVenueIds={visitedVenueIds}
+            onVenueSelect={onVenueSelect}
           />
           <MapInteractions
             map={map.current}
-            breweries={breweries}
-            onBrewerySelect={onBrewerySelect}
+            venues={venues}
+            onVenueSelect={onVenueSelect}
           />
         </>
       )}

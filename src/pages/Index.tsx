@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
-import { useBreweryData } from '@/hooks/useBreweryData';
+import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
 import SearchBar from '@/components/search/SearchBar';
@@ -14,13 +14,13 @@ const Index = () => {
   const { user } = useAuth();
   
   const {
-    breweries,
+    venues,
     error,
     refetch,
-    selectedBrewery,
-    setSelectedBrewery,
+    selectedVenue,
+    setSelectedVenue,
     updateSearch
-  } = useBreweryData();
+  } = useVenueData();
 
   useEffect(() => {
     const type = searchParams.get('type');
@@ -33,7 +33,7 @@ const Index = () => {
 
   useEffect(() => {
     if (error) {
-      toast.error('Failed to load breweries');
+      toast.error('Failed to load venues');
     }
   }, [error]);
 
@@ -43,8 +43,8 @@ const Index = () => {
       <div className="flex-1 min-h-0 pt-[73px]">
         <SearchBar onSearch={updateSearch} />
         <Map
-          breweries={breweries}
-          onBrewerySelect={setSelectedBrewery}
+          venues={venues}
+          onVenueSelect={setSelectedVenue}
         />
       </div>
     </div>
@@ -52,4 +52,3 @@ const Index = () => {
 };
 
 export default Index;
-

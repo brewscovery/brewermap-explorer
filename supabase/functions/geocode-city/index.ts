@@ -1,3 +1,4 @@
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -46,9 +47,9 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // First get all breweries
-    const { data: breweries, error: dbError } = await supabase
-      .from('breweries')
+    // First get all venues
+    const { data: venues, error: dbError } = await supabase
+      .from('venues')
       .select('*')
       .not('latitude', 'is', null)
       .not('longitude', 'is', null)
@@ -59,24 +60,24 @@ serve(async (req) => {
     }
 
     // Then calculate distances and filter
-    const nearbyBreweries = []
-    for (const brewery of breweries) {
+    const nearbyVenues = []
+    for (const venue of venues) {
       const { data: distance } = await supabase.rpc('calculate_distance', {
         lat1: parseFloat(coordinates[1]),
         lon1: parseFloat(coordinates[0]),
-        lat2: parseFloat(brewery.latitude),
-        lon2: parseFloat(brewery.longitude)
+        lat2: parseFloat(venue.latitude),
+        lon2: parseFloat(venue.longitude)
       })
       
       if (distance && distance <= 100) {
-        nearbyBreweries.push(brewery)
+        nearbyVenues.push(venue)
       }
     }
 
-    console.log(`Found ${nearbyBreweries.length} breweries within 100km radius`)
+    console.log(`Found ${nearbyVenues.length} venues within 100km radius`)
 
     return new Response(
-      JSON.stringify(nearbyBreweries),
+      JSON.stringify(nearbyVenues),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error) {

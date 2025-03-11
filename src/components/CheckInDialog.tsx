@@ -3,7 +3,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,7 +24,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 
 interface CheckInDialogProps {
-  brewery: Brewery;
+  venue: Venue;
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -35,7 +35,7 @@ interface CheckInFormData {
   comment: string;
 }
 
-export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDialogProps) {
+export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDialogProps) {
   const { user } = useAuth();
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<CheckInFormData>();
 
@@ -50,7 +50,7 @@ export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDi
       const { error } = await supabase
         .from('checkins')
         .insert({
-          brewery_id: brewery.id,
+          venue_id: venue.id,
           user_id: user?.id,
           rating: rating, // Now properly parsed as a number
           comment: data.comment || null, // Handle empty comments
@@ -72,9 +72,9 @@ export function CheckInDialog({ brewery, isOpen, onClose, onSuccess }: CheckInDi
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Check in at {brewery.name}</DialogTitle>
+          <DialogTitle>Check in at {venue.name}</DialogTitle>
           <DialogDescription>
-            Share your experience at this brewery
+            Share your experience at this venue
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

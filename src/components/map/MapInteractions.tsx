@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
-import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,8 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 
 interface MapInteractionsProps {
   map: mapboxgl.Map;
-  breweries: Brewery[];
-  onBrewerySelect: (brewery: Brewery) => void;
+  venues: Venue[];
+  onVenueSelect: (venue: Venue) => void;
 }
 
 interface CheckIn {
@@ -20,8 +20,8 @@ interface CheckIn {
   created_at: string;
 }
 
-const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsProps) => {
-  const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
+const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) => {
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const { user, userType } = useAuth();
 
@@ -37,7 +37,7 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       if (!features.length) return;
 
       const clusterId = features[0].properties?.cluster_id;
-      const source = map.getSource('breweries') as mapboxgl.GeoJSONSource;
+      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
       
       if (!source) return;
 
@@ -64,19 +64,19 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       if (!features.length || !features[0].properties) return;
       
       const properties = features[0].properties;
-      const brewery = breweries.find(b => b.id === properties.id);
+      const venue = venues.find(v => v.id === properties.id);
       
-      if (!brewery || !features[0].geometry || features[0].geometry.type !== 'Point') return;
+      if (!venue || !features[0].geometry || features[0].geometry.type !== 'Point') return;
 
       const coordinates = features[0].geometry.coordinates as [number, number];
 
-      // Fetch user's check-ins for this specific brewery
+      // Fetch user's check-ins for this specific venue
       let checkinsHtml = '';
       if (user) {
         const { data: userCheckins, error } = await supabase
           .from('checkins')
           .select('rating, comment, created_at')
-          .eq('brewery_id', brewery.id)
+          .eq('venue_id', venue.id)
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
@@ -99,10 +99,10 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       // Create popup content
       const popupHTML = `
         <div class="space-y-2">
-          <h3 class="font-bold">${brewery.name}</h3>
-          <p class="text-sm">${brewery.street || ''}</p>
-          <p class="text-sm">${brewery.city}, ${brewery.state}</p>
-          ${brewery.website_url ? `<a href="${brewery.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
+          <h3 class="font-bold">${venue.name}</h3>
+          <p class="text-sm">${venue.street || ''}</p>
+          <p class="text-sm">${venue.city}, ${venue.state}</p>
+          ${venue.website_url ? `<a href="${venue.website_url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline text-sm">Visit Website</a>` : ''}
           ${user && userType === 'regular' ? '<button class="check-in-btn bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 rounded-md text-sm font-medium">Check In</button>' : ''}
           ${checkinsHtml}
         </div>
@@ -118,17 +118,17 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       if (checkInBtn) {
         checkInBtn.addEventListener('click', () => {
           if (!user) {
-            toast.error('Please log in to check in at breweries');
+            toast.error('Please log in to check in at venues');
             return;
           }
-          setSelectedBrewery(brewery);
+          setSelectedVenue(venue);
           setIsCheckInDialogOpen(true);
           popup.remove();
         });
       }
 
-      onBrewerySelect(brewery);
-      setSelectedBrewery(brewery);
+      onVenueSelect(venue);
+      setSelectedVenue(venue);
     };
 
     // Add cursor change handlers
@@ -154,17 +154,17 @@ const MapInteractions = ({ map, breweries, onBrewerySelect }: MapInteractionsPro
       map.off('mouseenter', 'unclustered-point', handleMouseEnter);
       map.off('mouseleave', 'unclustered-point', handleMouseLeave);
     };
-  }, [map, breweries, onBrewerySelect, user, userType]);
+  }, [map, venues, onVenueSelect, user, userType]);
 
   return (
     <>
-      {selectedBrewery && (
+      {selectedVenue && (
         <CheckInDialog
-          brewery={selectedBrewery}
+          venue={selectedVenue}
           isOpen={isCheckInDialogOpen}
           onClose={() => {
             setIsCheckInDialogOpen(false);
-            setSelectedBrewery(null);
+            setSelectedVenue(null);
           }}
           onSuccess={() => {
             // Handle successful check-in
