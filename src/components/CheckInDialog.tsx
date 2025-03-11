@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface CheckInDialogProps {
   venue: Venue;
@@ -37,7 +38,7 @@ interface CheckInFormData {
 
 export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDialogProps) {
   const { user } = useAuth();
-  const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<CheckInFormData>();
+  const { register, handleSubmit, setValue, reset, formState: { isSubmitting } } = useForm<CheckInFormData>();
 
   const onSubmit = async (data: CheckInFormData) => {
     try {
@@ -52,8 +53,9 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
         .insert({
           venue_id: venue.id,
           user_id: user?.id,
-          rating: rating, // Now properly parsed as a number
-          comment: data.comment || null, // Handle empty comments
+          rating: rating,
+          comment: data.comment || null,
+          visited_at: new Date().toISOString()
         });
 
       if (error) throw error;
@@ -68,6 +70,11 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
     }
   };
 
+  // Handle rating selection with the RadioGroup
+  const handleRatingChange = (value: string) => {
+    setValue('rating', value);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
@@ -80,23 +87,21 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="rating">Rating</Label>
-            <Select 
-              {...register('rating')}
-              onValueChange={(value) => {
-                register('rating').onChange({ target: { value } });
-              }}
+            <RadioGroup 
+              className="flex space-x-2" 
+              defaultValue="3" 
+              onValueChange={handleRatingChange}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a rating" />
-              </SelectTrigger>
-              <SelectContent>
-                {[1, 2, 3, 4, 5].map((rating) => (
-                  <SelectItem key={rating} value={rating.toString()}>
-                    {rating} {rating === 1 ? 'Star' : 'Stars'}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {[1, 2, 3, 4, 5].map((value) => (
+                <div key={value} className="flex flex-col items-center">
+                  <RadioGroupItem value={value.toString()} id={`rating-${value}`} />
+                  <Label htmlFor={`rating-${value}`} className="mt-1">
+                    {value}
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+            <input type="hidden" {...register('rating')} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="comment">Comment</Label>
