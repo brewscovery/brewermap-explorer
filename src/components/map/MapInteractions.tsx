@@ -5,7 +5,7 @@ import type { Venue } from '@/types/venue';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MapInteractionsProps {
@@ -24,6 +24,7 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const { user, userType } = useAuth();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!map) return;
@@ -156,6 +157,13 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
     };
   }, [map, venues, onVenueSelect, user, userType]);
 
+  const handleCheckInSuccess = () => {
+    // Invalidate checkins query to trigger a refresh of the visited venues
+    if (user) {
+      queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
+    }
+  };
+
   return (
     <>
       {selectedVenue && (
@@ -166,9 +174,7 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
             setIsCheckInDialogOpen(false);
             setSelectedVenue(null);
           }}
-          onSuccess={() => {
-            // Handle successful check-in
-          }}
+          onSuccess={handleCheckInSuccess}
         />
       )}
     </>

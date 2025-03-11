@@ -62,7 +62,7 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
 
       toast.success('Successfully checked in!');
       reset();
-      onSuccess();
+      onSuccess(); // This calls the success handler passed from MapInteractions
       onClose();
     } catch (error: any) {
       console.error('Error checking in:', error);
