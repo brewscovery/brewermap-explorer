@@ -5,7 +5,6 @@ import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/layout/Header';
-import SearchBar from '@/components/search/SearchBar';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -41,7 +40,6 @@ const Index = () => {
     <div className="flex flex-col h-screen">
       <Header />
       <div className="flex-1 min-h-0 pt-[73px]">
-        <SearchBar onSearch={updateSearch} />
         <Map
           venues={venues}
           onVenueSelect={setSelectedVenue}
