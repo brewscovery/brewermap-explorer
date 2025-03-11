@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Brewery } from '@/types/brewery';
+import type { Venue } from '@/types/venue';
 import { Button } from './ui/button';
 import {
   Form,
@@ -83,10 +84,10 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
     setIsSubmitting(true);
 
     try {
-      // First, insert the brewery
-      const breweryData: Omit<Brewery, 'id'> = {
+      // First, insert the brewery with minimal data
+      const breweryData = {
         name: data.name,
-        brewery_type: data.brewery_type,
+        brewery_type: data.brewery_type || null,
         website_url: data.website_url || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
@@ -100,7 +101,7 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
 
       if (breweryError) throw breweryError;
 
-      // Then, create the venue with the brewery ID
+      // Then, create the venue with the brewery ID and location details
       const venueData = {
         brewery_id: newBrewery.id,
         name: data.name,
@@ -123,12 +124,10 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
       // Create the brewery ownership record
       const { error: ownershipError } = await supabase
         .from('brewery_owners')
-        .insert([
-          {
-            user_id: user.id,
-            brewery_id: newBrewery.id
-          }
-        ]);
+        .insert({
+          user_id: user.id,
+          brewery_id: newBrewery.id
+        });
 
       if (ownershipError) throw ownershipError;
 
