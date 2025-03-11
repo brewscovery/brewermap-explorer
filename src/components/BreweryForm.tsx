@@ -84,11 +84,18 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
     setIsSubmitting(true);
 
     try {
-      // First, insert the brewery with minimal data
+      // First, insert the brewery with all required fields
       const breweryData = {
         name: data.name,
         brewery_type: data.brewery_type || null,
+        street: data.street || null,
+        city: data.city,
+        state: data.state,
+        postal_code: data.postal_code || null,
+        phone: data.phone || null,
         website_url: data.website_url || null,
+        latitude: data.latitude || null,
+        longitude: data.longitude || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
