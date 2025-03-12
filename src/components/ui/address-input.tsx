@@ -120,72 +120,52 @@ const AddressInput = ({
   };
 
   return (
-    <Popover 
-      open={isOpen} 
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        // Reset selection when closing
-        if (!open) {
-          setSelectedIndex(-1);
-        }
-      }}
-    >
-      <PopoverTrigger asChild>
-        <div className="relative w-full">
-          <Input
-            ref={inputRef}
-            value={inputValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            required={required}
-            disabled={disabled}
-            className={cn("pr-10", className)}
-            onFocus={() => {
-              if (suggestions.length > 0) {
-                setIsOpen(true);
-              }
-            }}
-          />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <MapPin className="h-4 w-4" />
-            )}
-          </div>
-        </div>
-      </PopoverTrigger>
-      <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
-        {suggestions.length > 0 ? (
+    <div className="relative w-full">
+      <Input
+        ref={inputRef}
+        value={inputValue}
+        onChange={handleInputChange}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        required={required}
+        disabled={disabled}
+        className={cn("pr-10", className)}
+        onFocus={() => {
+          if (suggestions.length > 0) {
+            setIsOpen(true);
+          }
+        }}
+      />
+      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+        {isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <MapPin className="h-4 w-4" />
+        )}
+      </div>
+
+      {suggestions.length > 0 && (
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover p-0 shadow-md">
           <div className="max-h-[300px] overflow-auto">
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
                 className={cn(
                   "flex items-center p-3 cursor-pointer transition-colors",
-                  selectedIndex === index && "bg-accent",
-                  selectedAddress?.fullAddress === suggestion.fullAddress && "bg-primary/10 font-medium",
-                  "hover:bg-accent"
+                  selectedIndex === index ? "bg-accent text-accent-foreground" : "",
+                  selectedAddress?.fullAddress === suggestion.fullAddress ? "bg-primary/10 font-medium" : "",
+                  "hover:bg-accent hover:text-accent-foreground"
                 )}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleSelectAddress(suggestion);
-                }}
-                onMouseEnter={() => setSelectedIndex(index)}
+                onClick={() => handleSelectAddress(suggestion)}
               >
                 <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span className="truncate">{suggestion.fullAddress}</span>
               </div>
             ))}
           </div>
-        ) : (
-          <div className="p-3 text-sm text-muted-foreground">
-            {isLoading ? 'Loading suggestions...' : 'Type to search for addresses'}
-          </div>
-        )}
-      </PopoverContent>
-    </Popover>
+        </div>
+      )}
+    </div>
   );
 };
 
