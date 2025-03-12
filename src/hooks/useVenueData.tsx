@@ -72,7 +72,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
             queryClient.invalidateQueries({ queryKey: ['venues'] });
             
             // Also invalidate any specific brewery venue queries
-            if (payload.new && payload.new.brewery_id) {
+            if (payload.new && typeof payload.new === 'object' && 'brewery_id' in payload.new) {
               queryClient.invalidateQueries({ 
                 queryKey: ['breweryVenues', payload.new.brewery_id] 
               });
@@ -85,12 +85,13 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
             queryClient.invalidateQueries({ queryKey: ['venues'] });
             
             // If this is the currently selected venue, update it
-            if (selectedVenue && selectedVenue.id === payload.new.id) {
+            if (selectedVenue && payload.new && typeof payload.new === 'object' && 'id' in payload.new && 
+                selectedVenue.id === payload.new.id) {
               setSelectedVenue(payload.new as Venue);
             }
             
             // Also invalidate specific brewery venue queries
-            if (payload.new && payload.new.brewery_id) {
+            if (payload.new && typeof payload.new === 'object' && 'brewery_id' in payload.new) {
               queryClient.invalidateQueries({ 
                 queryKey: ['breweryVenues', payload.new.brewery_id] 
               });
@@ -103,12 +104,13 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
             queryClient.invalidateQueries({ queryKey: ['venues'] });
             
             // If this is the currently selected venue, deselect it
-            if (selectedVenue && selectedVenue.id === payload.old.id) {
+            if (selectedVenue && payload.old && typeof payload.old === 'object' && 'id' in payload.old && 
+                selectedVenue.id === payload.old.id) {
               setSelectedVenue(null);
             }
             
             // Also invalidate specific brewery venue queries
-            if (payload.old && payload.old.brewery_id) {
+            if (payload.old && typeof payload.old === 'object' && 'brewery_id' in payload.old) {
               queryClient.invalidateQueries({ 
                 queryKey: ['breweryVenues', payload.old.brewery_id] 
               });
@@ -144,7 +146,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
           queryClient.invalidateQueries({ queryKey: ['breweries'] });
           
           // If a specific brewery was changed, invalidate its data
-          if (payload.new && payload.new.id) {
+          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
             queryClient.invalidateQueries({ 
               queryKey: ['brewery', payload.new.id]
             });
@@ -176,8 +178,12 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
           console.log('Venue hours change detected:', payload);
           
           // If venue hours change, invalidate the specific venue hours query
-          if ((payload.new || payload.old) && (payload.new?.venue_id || payload.old?.venue_id)) {
-            const venueId = payload.new?.venue_id || payload.old?.venue_id;
+          const venueId = 
+            (payload.new && typeof payload.new === 'object' && 'venue_id' in payload.new) ? payload.new.venue_id :
+            (payload.old && typeof payload.old === 'object' && 'venue_id' in payload.old) ? payload.old.venue_id :
+            null;
+            
+          if (venueId) {
             queryClient.invalidateQueries({ 
               queryKey: ['venueHours', venueId]
             });
