@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import { VenueForm } from './venue-form/VenueForm';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AddVenueDialogProps {
   open: boolean;
@@ -20,6 +21,8 @@ const AddVenueDialog = ({
   breweryId, 
   onVenueAdded 
 }: AddVenueDialogProps) => {
+  const queryClient = useQueryClient();
+  
   const {
     formData,
     addressInput,
@@ -80,6 +83,10 @@ const AddVenueDialog = ({
         throw error;
       }
 
+      // Explicitly invalidate venue queries to ensure real-time updates
+      queryClient.invalidateQueries({ queryKey: ['venues'] });
+      queryClient.invalidateQueries({ queryKey: ['breweryVenues', breweryId] });
+      
       toast.success('Venue added successfully');
       onVenueAdded();
       onOpenChange(false);

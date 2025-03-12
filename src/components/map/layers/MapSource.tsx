@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -18,65 +18,78 @@ interface VenueProperties {
 
 const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
+  const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Point, VenueProperties> | null>(null);
 
-  useEffect(() => {
-    const createGeoJsonData = () => {
-      const features: Feature<Point, VenueProperties>[] = venues
-        .filter(venue => {
-          const lng = parseFloat(venue.longitude || '');
-          const lat = parseFloat(venue.latitude || '');
-          return !isNaN(lng) && !isNaN(lat);
-        })
-        .map(venue => ({
-          type: 'Feature',
-          properties: {
-            id: venue.id,
-            name: venue.name,
-            brewery_id: venue.brewery_id
-          },
-          geometry: {
-            type: 'Point',
-            coordinates: [
-              parseFloat(venue.longitude || '0'),
-              parseFloat(venue.latitude || '0')
-            ]
-          }
-        }));
-
-      console.log(`Created GeoJSON with ${features.length} features`);
-      return {
-        type: 'FeatureCollection',
-        features: features
-      } as FeatureCollection<Point, VenueProperties>;
-    };
-
-    const addSourceAndLayers = () => {
-      console.log('Adding source and layers');
-      
-      // Clean up existing source and layers
-      ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-        if (map.getLayer(layer)) {
-          map.removeLayer(layer);
+  // Create GeoJSON data from venues
+  const createGeoJsonData = useCallback(() => {
+    const features: Feature<Point, VenueProperties>[] = venues
+      .filter(venue => {
+        const lng = parseFloat(venue.longitude || '');
+        const lat = parseFloat(venue.latitude || '');
+        return !isNaN(lng) && !isNaN(lat);
+      })
+      .map(venue => ({
+        type: 'Feature',
+        properties: {
+          id: venue.id,
+          name: venue.name,
+          brewery_id: venue.brewery_id
+        },
+        geometry: {
+          type: 'Point',
+          coordinates: [
+            parseFloat(venue.longitude || '0'),
+            parseFloat(venue.latitude || '0')
+          ]
         }
-      });
-      
-      if (map.getSource('venues')) {
-        map.removeSource('venues');
+      }));
+
+    console.log(`Created GeoJSON with ${features.length} features`);
+    return {
+      type: 'FeatureCollection',
+      features: features
+    } as FeatureCollection<Point, VenueProperties>;
+  }, [venues]);
+
+  // Update GeoJSON data when venues change
+  useEffect(() => {
+    setGeoJsonData(createGeoJsonData());
+  }, [venues, createGeoJsonData]);
+
+  // Add source and layers to map
+  const addSourceAndLayers = useCallback(() => {
+    if (!geoJsonData) return;
+    
+    console.log('Adding source and layers');
+    
+    // Clean up existing source and layers
+    ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+      if (map.getLayer(layer)) {
+        map.removeLayer(layer);
       }
-      
-      // Add new source with clustering enabled
-      map.addSource('venues', {
-        type: 'geojson',
-        data: createGeoJsonData(),
-        cluster: true,
-        clusterMaxZoom: 14,
-        clusterRadius: 50,
-        generateId: true // Ensures unique IDs for features
-      });
-      
-      sourceAdded.current = true;
-      console.log('Source added successfully');
-    };
+    });
+    
+    if (map.getSource('venues')) {
+      map.removeSource('venues');
+    }
+    
+    // Add new source with clustering enabled
+    map.addSource('venues', {
+      type: 'geojson',
+      data: geoJsonData,
+      cluster: true,
+      clusterMaxZoom: 14,
+      clusterRadius: 50,
+      generateId: true // Ensures unique IDs for features
+    });
+    
+    sourceAdded.current = true;
+    console.log('Source added successfully');
+  }, [map, geoJsonData]);
+
+  // Initialize the source when the map is loaded
+  useEffect(() => {
+    if (!geoJsonData) return;
 
     const initializeSource = () => {
       if (!map.isStyleLoaded()) {
@@ -99,15 +112,7 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       initializeSource();
     }
 
-    // Update source data when venues change and source exists
-    if (sourceAdded.current) {
-      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
-      if (source) {
-        console.log('Updating existing source data');
-        source.setData(createGeoJsonData());
-      }
-    }
-
+    // Cleanup function
     return () => {
       if (!map.getStyle()) return;
       
@@ -126,7 +131,20 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
         console.warn('Error cleaning up:', error);
       }
     };
-  }, [map, venues]);
+  }, [map, venues, geoJsonData, addSourceAndLayers]);
+
+  // Update source data when venues change and source exists
+  useEffect(() => {
+    if (!geoJsonData) return;
+    
+    if (sourceAdded.current) {
+      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
+      if (source) {
+        console.log('Updating existing source data');
+        source.setData(geoJsonData);
+      }
+    }
+  }, [map, geoJsonData]);
 
   return <>{children}</>;
 };
