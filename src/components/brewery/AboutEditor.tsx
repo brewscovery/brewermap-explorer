@@ -24,6 +24,12 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
     setCharCount(about.length);
   }, [about]);
 
+  useEffect(() => {
+    if (initialAbout !== null) {
+      setAbout(initialAbout);
+    }
+  }, [initialAbout]);
+
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     if (text.length <= MAX_CHARS) {
@@ -63,7 +69,7 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
       
       console.log('Current brewery data before update:', beforeData);
       
-      // Try using upsert instead of update
+      // Simple update with explicit fields
       const { data: updateData, error: updateError } = await supabase
         .from('breweries')
         .update({ 
@@ -80,7 +86,7 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
         throw updateError;
       }
       
-      // Verify the update was successful by fetching the latest data
+      // If the update succeeded but returned no data, fetch the latest data to verify
       const { data: verifyData, error: verifyError } = await supabase
         .from('breweries')
         .select('about')
@@ -97,28 +103,33 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
       if (verifyData.about !== about) {
         console.error('Update verification failed: Expected', about, 'but got', verifyData.about);
         
-        // One last attempt with a different approach
-        const { error: finalError } = await supabase.rpc('update_brewery_about', {
-          brewery_id: breweryId,
-          new_about: about
-        });
+        // Use the RPC function we created as a fallback
+        const { error: fallbackError } = await supabase
+          .rpc('update_brewery_about', {
+            brewery_id: breweryId,
+            new_about: about
+          });
         
-        if (finalError) {
-          console.error('RPC update error:', finalError);
+        if (fallbackError) {
+          console.error('Fallback update error:', fallbackError);
           throw new Error('All update attempts failed');
         }
         
-        // Check one more time
-        const { data: finalData } = await supabase
+        // Check one more time after the fallback
+        const { data: finalData, error: finalError } = await supabase
           .from('breweries')
           .select('about')
           .eq('id', breweryId)
           .single();
           
+        if (finalError) {
+          console.error('Final verification error:', finalError);
+          throw new Error('Failed to verify final update');
+        }
+        
         console.log('Final verification data:', finalData);
         
-        if (finalData && finalData.about === about) {
-          // Success with the RPC method
+        if (finalData?.about === about) {
           if (onUpdate) onUpdate(about);
           setIsEditing(false);
           toast.success('About section updated successfully');

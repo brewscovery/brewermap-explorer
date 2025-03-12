@@ -247,6 +247,13 @@ export type Database = {
         }
         Returns: number
       }
+      update_brewery_about: {
+        Args: {
+          brewery_id: string
+          new_about: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       user_type: "business" | "regular"
