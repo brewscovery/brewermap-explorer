@@ -1,7 +1,7 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ const AddressInput = ({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressSuggestion | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -136,14 +137,27 @@ const AddressInput = ({
           <div className="max-h-[300px] overflow-auto">
             {suggestions.map((suggestion, index) => {
               const isSelected = selectedAddress?.fullAddress === suggestion.fullAddress;
+              const isHovered = hoverIndex === index;
               return (
                 <div
                   key={index}
                   className={cn(
-                    "flex items-center p-3 cursor-pointer hover:bg-accent",
-                    isSelected && "bg-primary/10 font-medium"
+                    "flex items-center p-3 cursor-pointer transition-colors",
+                    isHovered && "bg-accent",
+                    isSelected && "bg-primary/10 font-medium",
+                    !isSelected && !isHovered && "hover:bg-accent/50"
                   )}
-                  onClick={() => handleSelectAddress(suggestion)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleSelectAddress(suggestion);
+                  }}
+                  onMouseDown={(e) => {
+                    // Prevent the div from taking focus
+                    e.preventDefault();
+                  }}
+                  onMouseEnter={() => setHoverIndex(index)}
+                  onMouseLeave={() => setHoverIndex(null)}
                 >
                   <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                   <span className="truncate">{suggestion.fullAddress}</span>
