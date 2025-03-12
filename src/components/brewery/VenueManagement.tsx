@@ -2,12 +2,13 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, MapPin } from 'lucide-react';
+import { Plus, MapPin, Trash2 } from 'lucide-react';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { toast } from 'sonner';
 import AddVenueDialog from './AddVenueDialog';
 import EditVenueDialog from './EditVenueDialog';
 import type { Venue } from '@/types/venue';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
 interface VenueManagementProps {
   breweryId: string | null;
@@ -16,7 +17,8 @@ interface VenueManagementProps {
 const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   const [showAddVenueDialog, setShowAddVenueDialog] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
-  const { venues, isLoading, refetch, updateVenue, isUpdating } = useBreweryVenues(breweryId);
+  const [deletingVenue, setDeletingVenue] = useState<Venue | null>(null);
+  const { venues, isLoading, refetch, updateVenue, deleteVenue, isUpdating, isDeleting } = useBreweryVenues(breweryId);
   
   const handleVenueAdded = () => {
     refetch();
@@ -24,6 +26,19 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   
   const handleEditVenue = (venue: Venue) => {
     setEditingVenue(venue);
+  };
+  
+  const handleDeleteVenue = (venue: Venue) => {
+    setDeletingVenue(venue);
+  };
+  
+  const confirmDeleteVenue = async () => {
+    if (!deletingVenue) return;
+    
+    const success = await deleteVenue(deletingVenue.id);
+    if (success) {
+      setDeletingVenue(null);
+    }
   };
   
   if (isLoading) {
@@ -85,13 +100,48 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
                   >
                     Edit
                   </Button>
-                  <Button variant="outline" size="sm" className="text-destructive">Delete</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                    onClick={() => handleDeleteVenue(venue)}
+                  >
+                    <Trash2 className="mr-1" size={16} />
+                    Delete
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deletingVenue} onOpenChange={(open) => !open && setDeletingVenue(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the venue "{deletingVenue?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => setDeletingVenue(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDeleteVenue}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete Venue'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {breweryId && (
         <>

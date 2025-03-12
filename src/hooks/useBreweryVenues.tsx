@@ -95,6 +95,35 @@ export const useBreweryVenues = (breweryId: string | null) => {
     }
   };
 
+  const deleteVenue = async (venueId: string) => {
+    if (!breweryId) {
+      toast.error('Brewery ID is missing');
+      return false;
+    }
+    
+    setIsDeleting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('venues')
+        .delete()
+        .eq('id', venueId)
+        .eq('brewery_id', breweryId);
+
+      if (error) throw error;
+
+      toast.success('Venue deleted successfully');
+      await refetch();
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting venue:', error);
+      toast.error(error.message || 'Failed to delete venue');
+      return false;
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   return {
     venues: venues || [],
     isLoading,
@@ -102,6 +131,7 @@ export const useBreweryVenues = (breweryId: string | null) => {
     refetch,
     isDeleting,
     isUpdating,
-    updateVenue
+    updateVenue,
+    deleteVenue
   };
 };
