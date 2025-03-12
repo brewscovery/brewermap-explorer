@@ -30,7 +30,7 @@ const AddVenueDialog = ({
     city: '',
     state: '',
     postal_code: '',
-    country: 'United States',
+    country: 'Australia', // Default to Australia
     phone: '',
     website_url: '',
     longitude: null as string | null,
@@ -47,7 +47,7 @@ const AddVenueDialog = ({
         city: '',
         state: '',
         postal_code: '',
-        country: 'United States',
+        country: 'Australia', // Default to Australia
         phone: '',
         website_url: '',
         longitude: null,

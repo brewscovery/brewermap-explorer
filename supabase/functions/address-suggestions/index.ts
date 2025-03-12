@@ -60,9 +60,9 @@ serve(async (req) => {
       let city = ''
       let state = ''
       let postalCode = ''
-      let country = 'United States'  // Default
+      let country = 'Australia'  // Default to Australia
       
-      // Get the main address line (usually the street)
+      // Get the main address line (usually the street with number)
       street = feature.text || ''
       
       // Parse context data (Mapbox provides location hierarchy details here)
@@ -78,17 +78,20 @@ serve(async (req) => {
         }
       })
       
-      // Handle Australian address formats and other international formats
-      // Australian format: "address, city state postal code, country"
+      // Handle Australian address formats
+      // Australian format: "streetnumber street, city state postal code, country"
       if (country === 'Australia') {
         // If we didn't get components from context, try to parse from place_name
         if ((!city || !state || !postalCode) && place_name) {
           const parts = place_name.split(', ')
           
           if (parts.length >= 2) {
-            // For Australian addresses, the second part usually contains city, state and postal code
-            if (!street) street = parts[0]
+            // For Australian addresses, ensure street includes the number
+            if (parts[0] && (!street || !street.match(/^\d+/))) {
+              street = parts[0] // This should contain "streetnumber street"
+            }
             
+            // Second part usually contains city, state and postal code
             if (parts[1] && (!city || !state || !postalCode)) {
               const locationParts = parts[1].trim().split(' ')
               // The last part is typically the postal code
@@ -103,6 +106,11 @@ serve(async (req) => {
               }
             }
           }
+        }
+        
+        // Ensure street number is included in the street field
+        if (feature.address && street && !street.startsWith(feature.address)) {
+          street = `${feature.address} ${street}`
         }
       }
       

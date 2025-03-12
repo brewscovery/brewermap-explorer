@@ -30,7 +30,7 @@ const EditVenueDialog = ({
     city: '',
     state: '',
     postal_code: '',
-    country: 'United States',
+    country: 'Australia', // Default to Australia
     phone: '',
     website_url: '',
     longitude: null,
@@ -47,7 +47,7 @@ const EditVenueDialog = ({
         city: venue.city || '',
         state: venue.state || '',
         postal_code: venue.postal_code || '',
-        country: venue.country || 'United States',
+        country: venue.country || 'Australia', // Default to Australia if missing
         phone: venue.phone || '',
         website_url: venue.website_url || '',
         longitude: venue.longitude,
