@@ -30,6 +30,7 @@ const AddVenueDialog = ({
     city: '',
     state: '',
     postal_code: '',
+    country: 'United States',
     phone: '',
     website_url: '',
     longitude: null as string | null,
@@ -46,6 +47,7 @@ const AddVenueDialog = ({
         city: '',
         state: '',
         postal_code: '',
+        country: 'United States',
         phone: '',
         website_url: '',
         longitude: null,
@@ -68,6 +70,7 @@ const AddVenueDialog = ({
         city: suggestion.city,
         state: suggestion.state,
         postal_code: suggestion.postalCode,
+        country: suggestion.country,
         longitude: suggestion.longitude,
         latitude: suggestion.latitude
       }));
@@ -128,6 +131,7 @@ const AddVenueDialog = ({
           city: formData.city,
           state: formData.state,
           postal_code: formData.postal_code || null,
+          country: formData.country || null,
           phone: formData.phone || null,
           website_url: formData.website_url || null,
           longitude,
@@ -198,7 +202,7 @@ const AddVenueDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="state">State *</Label>
+              <Label htmlFor="state">State/Province *</Label>
               <Input
                 id="state"
                 name="state"
@@ -210,15 +214,28 @@ const AddVenueDialog = ({
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="postal_code">Postal Code</Label>
-            <Input
-              id="postal_code"
-              name="postal_code"
-              value={formData.postal_code}
-              onChange={handleChange}
-              placeholder="97201"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="postal_code">Postal Code</Label>
+              <Input
+                id="postal_code"
+                name="postal_code"
+                value={formData.postal_code}
+                onChange={handleChange}
+                placeholder="97201"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleChange}
+                placeholder="United States"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">

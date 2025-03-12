@@ -30,6 +30,7 @@ const EditVenueDialog = ({
     city: '',
     state: '',
     postal_code: '',
+    country: 'United States',
     phone: '',
     website_url: '',
     longitude: null,
@@ -46,6 +47,7 @@ const EditVenueDialog = ({
         city: venue.city || '',
         state: venue.state || '',
         postal_code: venue.postal_code || '',
+        country: venue.country || 'United States',
         phone: venue.phone || '',
         website_url: venue.website_url || '',
         longitude: venue.longitude,
@@ -57,7 +59,8 @@ const EditVenueDialog = ({
         const fullAddress = [
           venue.street,
           venue.city,
-          `${venue.state}${venue.postal_code ? ' ' + venue.postal_code : ''}`
+          `${venue.state}${venue.postal_code ? ' ' + venue.postal_code : ''}`,
+          venue.country
         ].filter(Boolean).join(', ');
         setAddressInput(fullAddress);
       } else {
@@ -79,6 +82,7 @@ const EditVenueDialog = ({
         city: suggestion.city,
         state: suggestion.state,
         postal_code: suggestion.postalCode,
+        country: suggestion.country,
         longitude: suggestion.longitude,
         latitude: suggestion.latitude
       }));
@@ -149,7 +153,7 @@ const EditVenueDialog = ({
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="state">State *</Label>
+              <Label htmlFor="state">State/Province *</Label>
               <Input
                 id="state"
                 name="state"
@@ -161,15 +165,28 @@ const EditVenueDialog = ({
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="postal_code">Postal Code</Label>
-            <Input
-              id="postal_code"
-              name="postal_code"
-              value={formData.postal_code || ''}
-              onChange={handleChange}
-              placeholder="97201"
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="postal_code">Postal Code</Label>
+              <Input
+                id="postal_code"
+                name="postal_code"
+                value={formData.postal_code || ''}
+                onChange={handleChange}
+                placeholder="97201"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="country">Country</Label>
+              <Input
+                id="country"
+                name="country"
+                value={formData.country || ''}
+                onChange={handleChange}
+                placeholder="United States"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">

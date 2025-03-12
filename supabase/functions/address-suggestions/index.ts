@@ -53,21 +53,112 @@ serve(async (req) => {
     
     // Format suggestions for frontend use
     const suggestions = data.features.map(feature => {
-      const { place_name, center } = feature
+      const { place_name, center, context = [] } = feature
       
       // Parse address components
-      const addressParts = place_name.split(', ')
-      let street = addressParts[0] || ''
-      let city = addressParts[1] || ''
-      let stateZip = addressParts[2] || ''
+      let street = ''
+      let city = ''
       let state = ''
       let postalCode = ''
+      let country = 'United States'  // Default
       
-      // Extract state and zip
-      if (stateZip) {
-        const stateZipParts = stateZip.split(' ')
-        state = stateZipParts[0] || ''
-        postalCode = stateZipParts[1] || ''
+      // Get the main address line (usually the street)
+      street = feature.text || ''
+      
+      // Parse context data (Mapbox provides location hierarchy details here)
+      context.forEach(item => {
+        if (item.id.startsWith('place')) {
+          city = item.text
+        } else if (item.id.startsWith('region')) {
+          state = item.text
+        } else if (item.id.startsWith('postcode')) {
+          postalCode = item.text
+        } else if (item.id.startsWith('country')) {
+          country = item.text
+        }
+      })
+      
+      // Handle Australian address formats and other international formats
+      // Australian format: "address, city state postal code, country"
+      if (country === 'Australia') {
+        // If we didn't get components from context, try to parse from place_name
+        if ((!city || !state || !postalCode) && place_name) {
+          const parts = place_name.split(', ')
+          
+          if (parts.length >= 2) {
+            // For Australian addresses, the second part usually contains city, state and postal code
+            if (!street) street = parts[0]
+            
+            if (parts[1] && (!city || !state || !postalCode)) {
+              const locationParts = parts[1].trim().split(' ')
+              // The last part is typically the postal code
+              if (locationParts.length >= 2 && /^\d{4}$/.test(locationParts[locationParts.length - 1])) {
+                postalCode = locationParts.pop() || ''
+                // The second last part is typically the state abbreviation
+                if (locationParts.length >= 1) {
+                  state = locationParts.pop() || ''
+                  // Everything else would be the city
+                  city = locationParts.join(' ')
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // General international fallback parsing if components are missing
+      if ((!city || !state || !postalCode) && place_name) {
+        const addressParts = place_name.split(', ')
+        
+        if (!street && addressParts[0]) {
+          street = addressParts[0]
+        }
+        
+        // For remaining parts, try to extract city, state, postal code
+        if (addressParts.length > 1) {
+          const secondPart = addressParts[1] || ''
+          const thirdPart = addressParts[2] || ''
+          
+          // Handle city and country
+          if (!city && secondPart && !secondPart.includes(' ')) {
+            city = secondPart
+          } else if (!city && secondPart) {
+            // Try to extract city from second part
+            const cityParts = secondPart.split(' ')
+            if (cityParts.length > 1) {
+              // Look for postal code patterns
+              const postalCodeIndex = cityParts.findIndex(part => /^\d+$/.test(part))
+              if (postalCodeIndex >= 0) {
+                postalCode = cityParts[postalCodeIndex]
+                cityParts.splice(postalCodeIndex, 1)
+              }
+              
+              // Assume last part might be state abbreviation if it's 2-3 chars
+              if (cityParts.length > 1 && cityParts[cityParts.length-1].length <= 3) {
+                state = cityParts.pop() || ''
+              }
+              
+              city = cityParts.join(' ')
+            }
+          }
+          
+          // If we still don't have location data and there's a third part
+          if ((!state || !postalCode) && thirdPart) {
+            const stateParts = thirdPart.split(' ')
+            
+            // Postal code is often numeric
+            const postalIndex = stateParts.findIndex(part => /\d/.test(part))
+            if (postalIndex >= 0) {
+              postalCode = stateParts[postalIndex]
+              stateParts.splice(postalIndex, 1)
+            }
+            
+            // Rest could be state
+            if (!state && stateParts.length > 0) {
+              state = stateParts.join(' ')
+            }
+          }
+        }
       }
       
       return {
@@ -76,6 +167,7 @@ serve(async (req) => {
         city, 
         state,
         postalCode,
+        country,
         longitude: center[0]?.toString() || null,
         latitude: center[1]?.toString() || null
       }

@@ -10,7 +10,8 @@ import {
   Globe, 
   Edit, 
   Building, 
-  Clock 
+  Clock,
+  Flag
 } from 'lucide-react';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { toast } from 'sonner';
@@ -127,6 +128,12 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
                     <div className="text-sm text-muted-foreground">
                       {venue.street && <p>{venue.street}</p>}
                       <p>{venue.city}, {venue.state} {venue.postal_code || ''}</p>
+                      {venue.country && venue.country !== 'United States' && (
+                        <div className="flex items-center gap-1 mt-1">
+                          <Flag className="h-3 w-3 text-muted-foreground" />
+                          <span>{venue.country}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
