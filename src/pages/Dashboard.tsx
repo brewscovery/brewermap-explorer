@@ -5,6 +5,7 @@ import { Map, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import BreweryInfo from '@/components/brewery/BreweryInfo';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -41,10 +42,23 @@ const Dashboard = () => {
       </div>
       <div className="flex-1 pt-[73px] p-6">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-          <p className="text-muted-foreground">
-            Welcome to your brewery dashboard{firstName ? `, ${firstName}` : ''}. Future functionality will be added here.
-          </p>
+          <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
+          
+          {userType === 'business' ? (
+            <div className="space-y-8">
+              <BreweryInfo />
+              
+              <div className="border-t pt-6">
+                <p className="text-muted-foreground">
+                  More brewery management features coming soon.
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Welcome to your dashboard{firstName ? `, ${firstName}` : ''}. User features will be added here soon.
+            </p>
+          )}
         </div>
       </div>
     </div>
