@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
@@ -25,6 +24,7 @@ const AddressInput = ({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<AddressSuggestion | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Sync input value with prop value
   useEffect(() => {
@@ -99,16 +99,32 @@ const AddressInput = ({
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover open={isOpen} onOpenChange={(open) => {
+      // Only allow closing via selection or explicit user action
+      if (!open && suggestions.length > 0) {
+        // Keep focus on input when popover closes
+        setTimeout(() => {
+          inputRef.current?.focus();
+        }, 0);
+      }
+      setIsOpen(open);
+    }}>
       <PopoverTrigger asChild>
         <div className="relative w-full">
           <Input
+            ref={inputRef}
             value={inputValue}
             onChange={handleInputChange}
             placeholder={placeholder}
             required={required}
             disabled={disabled}
             className={cn("pr-10", className)}
+            onFocus={() => {
+              // Open suggestions if we have any when focusing
+              if (suggestions.length > 0) {
+                setIsOpen(true);
+              }
+            }}
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
             {isLoading ? (
@@ -126,8 +142,15 @@ const AddressInput = ({
               <Button
                 key={index}
                 variant="ghost"
-                className="w-full justify-start text-left p-3 rounded-none border-b last:border-0"
+                className={cn(
+                  "w-full justify-start text-left p-3 rounded-none border-b last:border-0",
+                  selectedAddress?.fullAddress === suggestion.fullAddress && "bg-primary/10 font-medium"
+                )}
                 onClick={() => handleSelectAddress(suggestion)}
+                onMouseDown={(e) => {
+                  // Prevent the button from taking focus, which would blur the input
+                  e.preventDefault();
+                }}
               >
                 <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
                 <span className="truncate">{suggestion.fullAddress}</span>
