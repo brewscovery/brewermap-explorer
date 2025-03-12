@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface AboutEditorProps {
   breweryId: string | null;
   initialAbout: string | null;
+  onUpdate?: (newAbout: string) => void;
 }
 
-const AboutEditor = ({ breweryId, initialAbout }: AboutEditorProps) => {
+const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) => {
   const [about, setAbout] = useState(initialAbout || '');
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -34,18 +35,32 @@ const AboutEditor = ({ breweryId, initialAbout }: AboutEditorProps) => {
     
     setIsSaving(true);
     try {
-      const { error } = await supabase
+      console.log('Updating brewery about section:', { breweryId, about });
+      
+      const { data, error } = await supabase
         .from('breweries')
-        .update({ about })
-        .eq('id', breweryId);
+        .update({ about: about })
+        .eq('id', breweryId)
+        .select('about');
       
       if (error) throw error;
       
-      setIsEditing(false);
-      toast.success('About section updated successfully');
+      console.log('Update response:', data);
+      
+      if (data && data.length > 0) {
+        // Notify parent component about the update if callback is provided
+        if (onUpdate) {
+          onUpdate(data[0].about || '');
+        }
+        
+        setIsEditing(false);
+        toast.success('About section updated successfully');
+      } else {
+        throw new Error('No data returned from update');
+      }
     } catch (error: any) {
-      toast.error('Failed to update about section');
       console.error('Error updating about section:', error);
+      toast.error('Failed to update about section');
     } finally {
       setIsSaving(false);
     }

@@ -10,43 +10,66 @@ const BreweryInfo = () => {
   const [breweryData, setBreweryData] = useState<{id: string, about: string | null} | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchBreweryData = async () => {
-      if (!user) return;
+  const fetchBreweryData = async () => {
+    if (!user) return;
+    
+    try {
+      console.log('Fetching brewery data for user:', user.id);
       
-      try {
-        // First check if the user owns any breweries
-        const { data: ownerData, error: ownerError } = await supabase
-          .from('brewery_owners')
-          .select('brewery_id')
-          .eq('user_id', user.id)
-          .single();
-        
-        if (ownerError && ownerError.code !== 'PGRST116') {
+      // First check if the user owns any breweries
+      const { data: ownerData, error: ownerError } = await supabase
+        .from('brewery_owners')
+        .select('brewery_id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (ownerError) {
+        console.error('Error fetching brewery owner data:', ownerError);
+        if (ownerError.code !== 'PGRST116') { // Not found error
           throw ownerError;
         }
-        
-        if (ownerData?.brewery_id) {
-          // If user owns a brewery, fetch its details
-          const { data, error } = await supabase
-            .from('breweries')
-            .select('id, about')
-            .eq('id', ownerData.brewery_id)
-            .single();
-          
-          if (error) throw error;
-          setBreweryData(data);
-        }
-      } catch (error: any) {
-        console.error('Error fetching brewery data:', error);
-        toast.error('Failed to load brewery information');
-      } finally {
         setLoading(false);
+        return;
       }
-    };
+      
+      if (ownerData?.brewery_id) {
+        console.log('Found brewery ID:', ownerData.brewery_id);
+        
+        // If user owns a brewery, fetch its details
+        const { data, error } = await supabase
+          .from('breweries')
+          .select('id, about')
+          .eq('id', ownerData.brewery_id)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching brewery details:', error);
+          throw error;
+        }
+        
+        console.log('Fetched brewery data:', data);
+        setBreweryData(data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching brewery data:', error);
+      toast.error('Failed to load brewery information');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBreweryData();
   }, [user]);
+
+  const handleAboutUpdate = (newAbout: string) => {
+    if (breweryData) {
+      setBreweryData({
+        ...breweryData,
+        about: newAbout
+      });
+    }
+  };
 
   if (loading) {
     return <div className="text-center p-4">Loading brewery information...</div>;
@@ -65,7 +88,11 @@ const BreweryInfo = () => {
 
   return (
     <div className="space-y-6">
-      <AboutEditor breweryId={breweryData.id} initialAbout={breweryData.about} />
+      <AboutEditor 
+        breweryId={breweryData.id} 
+        initialAbout={breweryData.about} 
+        onUpdate={handleAboutUpdate}
+      />
     </div>
   );
 };
