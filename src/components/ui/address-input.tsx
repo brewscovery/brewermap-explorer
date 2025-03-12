@@ -1,5 +1,5 @@
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
@@ -22,8 +22,8 @@ const AddressInput = ({
   const [inputValue, setInputValue] = useState(value || defaultValue);
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1);
   const [selectedAddress, setSelectedAddress] = useState<AddressSuggestion | null>(null);
-  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -34,8 +34,8 @@ const AddressInput = ({
     }
   }, [value]);
 
+  // Initialize with default value if provided
   useEffect(() => {
-    // Initialize with default value if provided
     if (defaultValue && !inputValue) {
       setInputValue(defaultValue);
     }
@@ -44,12 +44,13 @@ const AddressInput = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
     setInputValue(newValue);
+    setSelectedIndex(-1);
     
     if (onInputChange) {
       onInputChange(newValue);
     }
     
-    // If the input is cleared, clear the selected address
+    // If the input is cleared, clear everything
     if (!newValue.trim()) {
       setSelectedAddress(null);
       onChange(null);
@@ -57,7 +58,7 @@ const AddressInput = ({
       return;
     }
     
-    // Debounce requests to avoid too many API calls
+    // Debounce requests
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
@@ -97,22 +98,45 @@ const AddressInput = ({
     setInputValue(suggestion.fullAddress);
     onChange(suggestion);
     setIsOpen(false);
+    setSuggestions([]);
+    setSelectedIndex(-1);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (!suggestions.length) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < suggestions.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      handleSelectAddress(suggestions[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      // If closing, make sure input keeps focus
-      if (!open) {
-        setTimeout(() => inputRef.current?.focus(), 0);
-      }
-    }}>
+    <Popover 
+      open={isOpen} 
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        // Reset selection when closing
+        if (!open) {
+          setSelectedIndex(-1);
+        }
+      }}
+    >
       <PopoverTrigger asChild>
         <div className="relative w-full">
           <Input
             ref={inputRef}
             value={inputValue}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             placeholder={placeholder}
             required={required}
             disabled={disabled}
@@ -135,35 +159,25 @@ const AddressInput = ({
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
         {suggestions.length > 0 ? (
           <div className="max-h-[300px] overflow-auto">
-            {suggestions.map((suggestion, index) => {
-              const isSelected = selectedAddress?.fullAddress === suggestion.fullAddress;
-              const isHovered = hoverIndex === index;
-              return (
-                <div
-                  key={index}
-                  className={cn(
-                    "flex items-center p-3 cursor-pointer transition-colors",
-                    isHovered && "bg-accent",
-                    isSelected && "bg-primary/10 font-medium",
-                    !isSelected && !isHovered && "hover:bg-accent/50"
-                  )}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleSelectAddress(suggestion);
-                  }}
-                  onMouseDown={(e) => {
-                    // Prevent the div from taking focus
-                    e.preventDefault();
-                  }}
-                  onMouseEnter={() => setHoverIndex(index)}
-                  onMouseLeave={() => setHoverIndex(null)}
-                >
-                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                  <span className="truncate">{suggestion.fullAddress}</span>
-                </div>
-              );
-            })}
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "flex items-center p-3 cursor-pointer transition-colors",
+                  selectedIndex === index && "bg-accent",
+                  selectedAddress?.fullAddress === suggestion.fullAddress && "bg-primary/10 font-medium",
+                  "hover:bg-accent"
+                )}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelectAddress(suggestion);
+                }}
+                onMouseEnter={() => setSelectedIndex(index)}
+              >
+                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">{suggestion.fullAddress}</span>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="p-3 text-sm text-muted-foreground">
