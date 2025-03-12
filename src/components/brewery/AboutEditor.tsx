@@ -18,6 +18,7 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
   const [isSaving, setIsSaving] = useState(false);
   const [charCount, setCharCount] = useState(about?.length || 0);
   const MAX_CHARS = 1000;
+  const { user } = useAuth();
 
   useEffect(() => {
     setCharCount(about.length);
@@ -37,64 +38,52 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
     try {
       console.log('Updating brewery about section:', { breweryId, about });
       
-      // First check if the brewery exists
-      const { data: breweryCheck, error: checkError } = await supabase
-        .from('breweries')
-        .select('id')
-        .eq('id', breweryId)
+      // First, check that the user owns this brewery
+      const { data: ownerData, error: ownerError } = await supabase
+        .from('brewery_owners')
+        .select('brewery_id')
+        .eq('brewery_id', breweryId)
+        .eq('user_id', user?.id)
         .single();
-        
-      if (checkError) {
-        console.error('Error checking brewery:', checkError);
-        throw new Error('Brewery not found');
+      
+      if (ownerError) {
+        console.error('Error verifying brewery ownership:', ownerError);
+        throw new Error('You do not have permission to update this brewery');
       }
       
-      // Then update the about field
-      const { data, error } = await supabase
+      // Direct update without select to ensure it works
+      const { error: updateError } = await supabase
         .from('breweries')
         .update({ about: about })
+        .eq('id', breweryId);
+      
+      if (updateError) {
+        console.error('Supabase update error:', updateError);
+        throw updateError;
+      }
+      
+      // Verify the update was successful by fetching the latest data
+      const { data: verifyData, error: verifyError } = await supabase
+        .from('breweries')
+        .select('about')
         .eq('id', breweryId)
-        .select();
+        .single();
       
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
+      if (verifyError) {
+        console.error('Error verifying update:', verifyError);
+        throw new Error('Failed to verify update');
       }
       
-      console.log('Update response:', data);
+      console.log('Verified data after update:', verifyData);
       
-      if (data && data.length > 0) {
-        // Notify parent component about the update if callback is provided
-        if (onUpdate) {
-          onUpdate(data[0].about || '');
-        }
-        
-        setIsEditing(false);
-        toast.success('About section updated successfully');
-      } else {
-        console.error('No data returned from update');
-        // Even if no data is returned, the update might have succeeded
-        // Let's verify by fetching the latest data
-        const { data: verifyData, error: verifyError } = await supabase
-          .from('breweries')
-          .select('about')
-          .eq('id', breweryId)
-          .single();
-          
-        if (verifyError) {
-          throw new Error('Failed to verify update');
-        }
-        
-        if (verifyData) {
-          if (onUpdate) {
-            onUpdate(verifyData.about || '');
-          }
-          setIsEditing(false);
-          toast.success('About section updated successfully');
-        } else {
-          throw new Error('Failed to update about section');
-        }
+      // Update local state and notify parent
+      if (onUpdate) {
+        onUpdate(verifyData.about || '');
       }
+      
+      setAbout(verifyData.about || '');
+      setIsEditing(false);
+      toast.success('About section updated successfully');
     } catch (error: any) {
       console.error('Error updating about section:', error);
       toast.error('Failed to update about section');

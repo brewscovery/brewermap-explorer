@@ -64,6 +64,7 @@ const BreweryInfo = () => {
 
   const handleAboutUpdate = (newAbout: string) => {
     if (breweryData) {
+      console.log('Updating local brewery data with new about:', newAbout);
       setBreweryData({
         ...breweryData,
         about: newAbout
