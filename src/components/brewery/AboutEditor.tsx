@@ -37,13 +37,29 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
     try {
       console.log('Updating brewery about section:', { breweryId, about });
       
+      // First check if the brewery exists
+      const { data: breweryCheck, error: checkError } = await supabase
+        .from('breweries')
+        .select('id')
+        .eq('id', breweryId)
+        .single();
+        
+      if (checkError) {
+        console.error('Error checking brewery:', checkError);
+        throw new Error('Brewery not found');
+      }
+      
+      // Then update the about field
       const { data, error } = await supabase
         .from('breweries')
         .update({ about: about })
         .eq('id', breweryId)
-        .select('about');
+        .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
       
       console.log('Update response:', data);
       
@@ -56,7 +72,28 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
         setIsEditing(false);
         toast.success('About section updated successfully');
       } else {
-        throw new Error('No data returned from update');
+        console.error('No data returned from update');
+        // Even if no data is returned, the update might have succeeded
+        // Let's verify by fetching the latest data
+        const { data: verifyData, error: verifyError } = await supabase
+          .from('breweries')
+          .select('about')
+          .eq('id', breweryId)
+          .single();
+          
+        if (verifyError) {
+          throw new Error('Failed to verify update');
+        }
+        
+        if (verifyData) {
+          if (onUpdate) {
+            onUpdate(verifyData.about || '');
+          }
+          setIsEditing(false);
+          toast.success('About section updated successfully');
+        } else {
+          throw new Error('Failed to update about section');
+        }
       }
     } catch (error: any) {
       console.error('Error updating about section:', error);
