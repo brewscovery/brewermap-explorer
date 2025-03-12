@@ -100,14 +100,11 @@ const AddressInput = ({
 
   return (
     <Popover open={isOpen} onOpenChange={(open) => {
-      // Only allow closing via selection or explicit user action
-      if (!open && suggestions.length > 0) {
-        // Keep focus on input when popover closes
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 0);
-      }
       setIsOpen(open);
+      // If closing, make sure input keeps focus
+      if (!open) {
+        setTimeout(() => inputRef.current?.focus(), 0);
+      }
     }}>
       <PopoverTrigger asChild>
         <div className="relative w-full">
@@ -120,7 +117,6 @@ const AddressInput = ({
             disabled={disabled}
             className={cn("pr-10", className)}
             onFocus={() => {
-              // Open suggestions if we have any when focusing
               if (suggestions.length > 0) {
                 setIsOpen(true);
               }
@@ -138,24 +134,22 @@ const AddressInput = ({
       <PopoverContent className="p-0 w-[var(--radix-popover-trigger-width)]" align="start">
         {suggestions.length > 0 ? (
           <div className="max-h-[300px] overflow-auto">
-            {suggestions.map((suggestion, index) => (
-              <Button
-                key={index}
-                variant="ghost"
-                className={cn(
-                  "w-full justify-start text-left p-3 rounded-none border-b last:border-0",
-                  selectedAddress?.fullAddress === suggestion.fullAddress && "bg-primary/10 font-medium"
-                )}
-                onClick={() => handleSelectAddress(suggestion)}
-                onMouseDown={(e) => {
-                  // Prevent the button from taking focus, which would blur the input
-                  e.preventDefault();
-                }}
-              >
-                <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
-                <span className="truncate">{suggestion.fullAddress}</span>
-              </Button>
-            ))}
+            {suggestions.map((suggestion, index) => {
+              const isSelected = selectedAddress?.fullAddress === suggestion.fullAddress;
+              return (
+                <div
+                  key={index}
+                  className={cn(
+                    "flex items-center p-3 cursor-pointer hover:bg-accent",
+                    isSelected && "bg-primary/10 font-medium"
+                  )}
+                  onClick={() => handleSelectAddress(suggestion)}
+                >
+                  <MapPin className="h-4 w-4 mr-2 flex-shrink-0" />
+                  <span className="truncate">{suggestion.fullAddress}</span>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="p-3 text-sm text-muted-foreground">
