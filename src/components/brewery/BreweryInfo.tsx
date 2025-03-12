@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import AboutEditor from './AboutEditor';
+import VenueManagement from './VenueManagement';
 
 const BreweryInfo = () => {
   const { user } = useAuth();
@@ -93,12 +94,16 @@ const BreweryInfo = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <AboutEditor 
         breweryId={breweryData.id} 
         initialAbout={breweryData.about} 
         onUpdate={handleAboutUpdate}
       />
+      
+      <div className="border-t pt-6">
+        <VenueManagement breweryId={breweryData.id} />
+      </div>
     </div>
   );
 };

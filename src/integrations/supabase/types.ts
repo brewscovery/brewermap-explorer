@@ -13,51 +13,27 @@ export type Database = {
         Row: {
           about: string | null
           brewery_type: string | null
-          city: string
-          country: string | null
           created_at: string
           id: string
-          latitude: string | null
-          longitude: string | null
           name: string
-          phone: string | null
-          postal_code: string | null
-          state: string
-          street: string | null
           updated_at: string
           website_url: string | null
         }
         Insert: {
           about?: string | null
           brewery_type?: string | null
-          city: string
-          country?: string | null
           created_at?: string
           id?: string
-          latitude?: string | null
-          longitude?: string | null
           name: string
-          phone?: string | null
-          postal_code?: string | null
-          state: string
-          street?: string | null
           updated_at?: string
           website_url?: string | null
         }
         Update: {
           about?: string | null
           brewery_type?: string | null
-          city?: string
-          country?: string | null
           created_at?: string
           id?: string
-          latitude?: string | null
-          longitude?: string | null
           name?: string
-          phone?: string | null
-          postal_code?: string | null
-          state?: string
-          street?: string | null
           updated_at?: string
           website_url?: string | null
         }
