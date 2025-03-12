@@ -52,6 +52,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   useEffect(() => {
     console.log('Setting up realtime subscription for venues');
     
+    // Create a channel for all venue-related changes
     const channel = supabase
       .channel('venues-changes')
       .on(
@@ -63,15 +64,131 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         },
         (payload) => {
           console.log('Venue change detected:', payload);
-          // Invalidate and refetch venues data when changes occur
-          queryClient.invalidateQueries({ queryKey: ['venues'] });
+          
+          // Handle the specific type of change
+          if (payload.eventType === 'INSERT') {
+            console.log('New venue added:', payload.new);
+            // Invalidate all venue queries to ensure all views update
+            queryClient.invalidateQueries({ queryKey: ['venues'] });
+            
+            // Also invalidate any specific brewery venue queries
+            if (payload.new && payload.new.brewery_id) {
+              queryClient.invalidateQueries({ 
+                queryKey: ['breweryVenues', payload.new.brewery_id] 
+              });
+            }
+          } 
+          else if (payload.eventType === 'UPDATE') {
+            console.log('Venue updated:', payload.new);
+            
+            // Invalidate general venue queries
+            queryClient.invalidateQueries({ queryKey: ['venues'] });
+            
+            // If this is the currently selected venue, update it
+            if (selectedVenue && selectedVenue.id === payload.new.id) {
+              setSelectedVenue(payload.new as Venue);
+            }
+            
+            // Also invalidate specific brewery venue queries
+            if (payload.new && payload.new.brewery_id) {
+              queryClient.invalidateQueries({ 
+                queryKey: ['breweryVenues', payload.new.brewery_id] 
+              });
+            }
+          }
+          else if (payload.eventType === 'DELETE') {
+            console.log('Venue deleted:', payload.old);
+            
+            // Invalidate all venue queries
+            queryClient.invalidateQueries({ queryKey: ['venues'] });
+            
+            // If this is the currently selected venue, deselect it
+            if (selectedVenue && selectedVenue.id === payload.old.id) {
+              setSelectedVenue(null);
+            }
+            
+            // Also invalidate specific brewery venue queries
+            if (payload.old && payload.old.brewery_id) {
+              queryClient.invalidateQueries({ 
+                queryKey: ['breweryVenues', payload.old.brewery_id] 
+              });
+            }
+          }
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription');
+      console.log('Cleaning up realtime subscription for venues');
       supabase.removeChannel(channel);
+    };
+  }, [queryClient, selectedVenue]);
+
+  // Setup listener for brewery information changes
+  useEffect(() => {
+    console.log('Setting up realtime subscription for breweries');
+    
+    const breweryChannel = supabase
+      .channel('breweries-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'breweries'
+        },
+        (payload) => {
+          console.log('Brewery change detected:', payload);
+          
+          // Invalidate any queries that might contain brewery data
+          queryClient.invalidateQueries({ queryKey: ['breweries'] });
+          
+          // If a specific brewery was changed, invalidate its data
+          if (payload.new && payload.new.id) {
+            queryClient.invalidateQueries({ 
+              queryKey: ['brewery', payload.new.id]
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription for breweries');
+      supabase.removeChannel(breweryChannel);
+    };
+  }, [queryClient]);
+
+  // Setup listener for venue hours changes
+  useEffect(() => {
+    console.log('Setting up realtime subscription for venue hours');
+    
+    const hoursChannel = supabase
+      .channel('venue-hours-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'venue_hours'
+        },
+        (payload) => {
+          console.log('Venue hours change detected:', payload);
+          
+          // If venue hours change, invalidate the specific venue hours query
+          if ((payload.new || payload.old) && (payload.new?.venue_id || payload.old?.venue_id)) {
+            const venueId = payload.new?.venue_id || payload.old?.venue_id;
+            queryClient.invalidateQueries({ 
+              queryKey: ['venueHours', venueId]
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up realtime subscription for venue hours');
+      supabase.removeChannel(hoursChannel);
     };
   }, [queryClient]);
 

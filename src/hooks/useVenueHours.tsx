@@ -1,12 +1,13 @@
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
 import { toast } from 'sonner';
 
 export const useVenueHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const { 
     data: hours, 
@@ -34,6 +35,39 @@ export const useVenueHours = (venueId: string | null) => {
     },
     enabled: !!venueId
   });
+  
+  // Setup real-time listener for venue-specific hours changes
+  useEffect(() => {
+    if (!venueId) return;
+    
+    console.log(`Setting up realtime subscription for venue ${venueId} hours`);
+    
+    const venueHoursChannel = supabase
+      .channel(`venue-${venueId}-hours-changes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'venue_hours',
+          filter: `venue_id=eq.${venueId}`
+        },
+        (payload) => {
+          console.log(`Hours change detected for venue ${venueId}:`, payload);
+          
+          // Invalidate venue hours queries
+          queryClient.invalidateQueries({ 
+            queryKey: ['venueHours', venueId] 
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log(`Cleaning up realtime subscription for venue ${venueId} hours`);
+      supabase.removeChannel(venueHoursChannel);
+    };
+  }, [venueId, queryClient]);
   
   const updateVenueHours = async (venueHoursData: Partial<VenueHour>[]) => {
     if (!venueId) {

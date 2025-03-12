@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -51,10 +51,16 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     } as FeatureCollection<Point, VenueProperties>;
   }, [venues]);
 
+  // Memoize venues to detect changes
+  const venueIds = useMemo(() => {
+    return new Set(venues.map(venue => venue.id));
+  }, [venues]);
+
   // Update GeoJSON data when venues change
   useEffect(() => {
+    console.log('Venues changed, updating GeoJSON data');
     setGeoJsonData(createGeoJsonData());
-  }, [venues, createGeoJsonData]);
+  }, [venues, createGeoJsonData, venueIds]);
 
   // Add source and layers to map
   const addSourceAndLayers = useCallback(() => {

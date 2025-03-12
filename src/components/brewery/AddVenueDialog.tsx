@@ -41,7 +41,7 @@ const AddVenueDialog = ({
     if (!open) {
       resetForm();
     }
-  }, [open]);
+  }, [open, resetForm]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

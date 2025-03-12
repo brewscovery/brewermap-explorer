@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 import { toast } from 'sonner';
@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 export const useBreweryVenues = (breweryId: string | null) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
+  const queryClient = useQueryClient();
 
   const { 
     data: venues, 
@@ -35,6 +36,44 @@ export const useBreweryVenues = (breweryId: string | null) => {
     },
     enabled: !!breweryId
   });
+  
+  // Setup real-time listener for brewery-specific venue changes
+  useEffect(() => {
+    if (!breweryId) return;
+    
+    console.log(`Setting up realtime subscription for brewery ${breweryId} venues`);
+    
+    const breweryVenuesChannel = supabase
+      .channel(`brewery-${breweryId}-venues-changes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'venues',
+          filter: `brewery_id=eq.${breweryId}`
+        },
+        (payload) => {
+          console.log(`Venue change detected for brewery ${breweryId}:`, payload);
+          
+          // Invalidate brewery venues queries
+          queryClient.invalidateQueries({ 
+            queryKey: ['breweryVenues', breweryId] 
+          });
+          
+          // Also invalidate the general venues query
+          queryClient.invalidateQueries({ 
+            queryKey: ['venues'] 
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log(`Cleaning up realtime subscription for brewery ${breweryId} venues`);
+      supabase.removeChannel(breweryVenuesChannel);
+    };
+  }, [breweryId, queryClient]);
   
   const updateVenue = async (venueId: string, venueData: Partial<Venue>) => {
     if (!breweryId) {

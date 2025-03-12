@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/MapLayers';
@@ -36,6 +36,19 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     },
     enabled: !!user
   });
+
+  // Handle map updates when venues change
+  const updateMap = useCallback(() => {
+    if (map.current && isStyleLoaded) {
+      // The MapLayers component will handle updating the GeoJSON source
+      console.log('Map venues updated, source will be refreshed');
+    }
+  }, [map, isStyleLoaded]);
+
+  // Call updateMap when venues change
+  useEffect(() => {
+    updateMap();
+  }, [venues, updateMap]);
 
   // Subscribe to realtime changes on checkins
   useEffect(() => {
