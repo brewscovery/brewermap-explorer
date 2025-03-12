@@ -44,13 +44,19 @@ export const useVenueHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      // Upsert venue hours one by one
+      // Ensure each record has the required day_of_week field
       for (const hourData of venueHoursData) {
+        // Validate day_of_week is present
+        if (typeof hourData.day_of_week !== 'number') {
+          throw new Error('day_of_week is required and must be a number');
+        }
+        
         const { error } = await supabase
           .from('venue_hours')
           .upsert({
             ...hourData,
             venue_id: venueId,
+            day_of_week: hourData.day_of_week, // Ensure this is always included
             updated_at: new Date().toISOString()
           });
 
