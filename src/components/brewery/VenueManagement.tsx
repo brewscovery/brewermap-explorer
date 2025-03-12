@@ -6,13 +6,19 @@ import { Plus, MapPin } from 'lucide-react';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import AddVenueDialog from './AddVenueDialog';
 
 interface VenueManagementProps {
   breweryId: string | null;
 }
 
 const VenueManagement = ({ breweryId }: VenueManagementProps) => {
-  const { venues, isLoading } = useBreweryVenues(breweryId);
+  const [showAddVenueDialog, setShowAddVenueDialog] = useState(false);
+  const { venues, isLoading, refetch } = useBreweryVenues(breweryId);
+  
+  const handleVenueAdded = () => {
+    refetch();
+  };
   
   if (isLoading) {
     return <div className="text-center p-4">Loading venues...</div>;
@@ -22,7 +28,7 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Your Venues</h3>
-        <Button>
+        <Button onClick={() => setShowAddVenueDialog(true)}>
           <Plus className="mr-2" size={18} />
           Add Venue
         </Button>
@@ -73,6 +79,15 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
             </Card>
           ))}
         </div>
+      )}
+      
+      {breweryId && (
+        <AddVenueDialog
+          open={showAddVenueDialog}
+          onOpenChange={setShowAddVenueDialog}
+          breweryId={breweryId}
+          onVenueAdded={handleVenueAdded}
+        />
       )}
     </div>
   );
