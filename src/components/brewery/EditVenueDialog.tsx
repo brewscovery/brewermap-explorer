@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { MapPin } from 'lucide-react';
 import type { Venue } from '@/types/venue';
+import { AddressInput } from '@/components/ui/address-input';
+import type { AddressSuggestion } from '@/types/address';
 
 interface EditVenueDialogProps {
   open: boolean;
@@ -29,8 +31,11 @@ const EditVenueDialog = ({
     state: '',
     postal_code: '',
     phone: '',
-    website_url: ''
+    website_url: '',
+    longitude: null,
+    latitude: null
   });
+  const [addressInput, setAddressInput] = useState('');
 
   // Reset and populate form when dialog opens or venue changes
   useEffect(() => {
@@ -42,14 +47,42 @@ const EditVenueDialog = ({
         state: venue.state || '',
         postal_code: venue.postal_code || '',
         phone: venue.phone || '',
-        website_url: venue.website_url || ''
+        website_url: venue.website_url || '',
+        longitude: venue.longitude,
+        latitude: venue.latitude
       });
+      
+      // Set address input to show the full address if available
+      if (venue.street && venue.city && venue.state) {
+        const fullAddress = [
+          venue.street,
+          venue.city,
+          `${venue.state}${venue.postal_code ? ' ' + venue.postal_code : ''}`
+        ].filter(Boolean).join(', ');
+        setAddressInput(fullAddress);
+      } else {
+        setAddressInput('');
+      }
     }
   }, [venue, open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (suggestion: AddressSuggestion | null) => {
+    if (suggestion) {
+      setFormData(prev => ({
+        ...prev,
+        street: suggestion.street,
+        city: suggestion.city,
+        state: suggestion.state,
+        postal_code: suggestion.postalCode,
+        longitude: suggestion.longitude,
+        latitude: suggestion.latitude
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,13 +126,12 @@ const EditVenueDialog = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="street">Street Address</Label>
-            <Input
-              id="street"
-              name="street"
-              value={formData.street || ''}
-              onChange={handleChange}
-              placeholder="123 Brewery St"
+            <Label htmlFor="address">Address *</Label>
+            <AddressInput 
+              value={addressInput}
+              onChange={handleAddressChange}
+              onInputChange={setAddressInput}
+              placeholder="123 Brewery St, Portland, OR"
             />
           </div>
           

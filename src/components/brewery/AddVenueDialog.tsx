@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MapPin } from 'lucide-react';
+import { AddressInput } from '@/components/ui/address-input';
+import type { AddressSuggestion } from '@/types/address';
 
 interface AddVenueDialogProps {
   open: boolean;
@@ -29,8 +31,11 @@ const AddVenueDialog = ({
     state: '',
     postal_code: '',
     phone: '',
-    website_url: ''
+    website_url: '',
+    longitude: null as string | null,
+    latitude: null as string | null
   });
+  const [addressInput, setAddressInput] = useState('');
 
   // Reset form when dialog opens/closes
   useEffect(() => {
@@ -42,14 +47,31 @@ const AddVenueDialog = ({
         state: '',
         postal_code: '',
         phone: '',
-        website_url: ''
+        website_url: '',
+        longitude: null,
+        latitude: null
       });
+      setAddressInput('');
     }
   }, [open]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddressChange = (suggestion: AddressSuggestion | null) => {
+    if (suggestion) {
+      setFormData(prev => ({
+        ...prev,
+        street: suggestion.street,
+        city: suggestion.city,
+        state: suggestion.state,
+        postal_code: suggestion.postalCode,
+        longitude: suggestion.longitude,
+        latitude: suggestion.latitude
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,28 +90,31 @@ const AddVenueDialog = ({
     setIsLoading(true);
 
     try {
-      // First try to geocode the address if there's a street and city
-      let longitude = null;
-      let latitude = null;
+      // Use coordinates from address suggestion, or fallback to geocoding
+      let longitude = formData.longitude;
+      let latitude = formData.latitude;
 
-      if (formData.street && formData.city && formData.state) {
-        try {
-          const geocodeResponse = await supabase.functions.invoke('geocode', {
-            body: {
-              street: formData.street,
-              city: formData.city,
-              state: formData.state,
-              postalCode: formData.postal_code
+      // Only geocode if we don't already have coordinates and we have address components
+      if (!longitude || !latitude) {
+        if (formData.street && formData.city && formData.state) {
+          try {
+            const geocodeResponse = await supabase.functions.invoke('geocode', {
+              body: {
+                street: formData.street,
+                city: formData.city,
+                state: formData.state,
+                postalCode: formData.postal_code
+              }
+            });
+
+            if (geocodeResponse.data) {
+              longitude = geocodeResponse.data.longitude;
+              latitude = geocodeResponse.data.latitude;
             }
-          });
-
-          if (geocodeResponse.data) {
-            longitude = geocodeResponse.data.longitude;
-            latitude = geocodeResponse.data.latitude;
+          } catch (error) {
+            console.error('Geocoding error:', error);
+            // Continue without coordinates if geocoding fails
           }
-        } catch (error) {
-          console.error('Geocoding error:', error);
-          // Continue without coordinates if geocoding fails
         }
       }
 
@@ -149,13 +174,13 @@ const AddVenueDialog = ({
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="street">Street Address</Label>
-            <Input
-              id="street"
-              name="street"
-              value={formData.street}
-              onChange={handleChange}
-              placeholder="123 Brewery St"
+            <Label htmlFor="address">Address *</Label>
+            <AddressInput 
+              value={addressInput}
+              onChange={handleAddressChange}
+              onInputChange={setAddressInput}
+              placeholder="123 Brewery St, Portland, OR"
+              required
             />
           </div>
           
