@@ -10,12 +10,14 @@ import {
   Globe, 
   Edit, 
   Building, 
-  ChevronRight 
+  Clock 
 } from 'lucide-react';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { toast } from 'sonner';
 import AddVenueDialog from './AddVenueDialog';
 import EditVenueDialog from './EditVenueDialog';
+import VenueHoursDialog from './VenueHoursDialog';
+import VenueHoursDisplay from './VenueHoursDisplay';
 import type { Venue } from '@/types/venue';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +30,7 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   const [showAddVenueDialog, setShowAddVenueDialog] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
   const [deletingVenue, setDeletingVenue] = useState<Venue | null>(null);
+  const [hoursVenue, setHoursVenue] = useState<Venue | null>(null);
   const { venues, isLoading, refetch, updateVenue, deleteVenue, isUpdating, isDeleting } = useBreweryVenues(breweryId);
   
   const handleVenueAdded = () => {
@@ -40,6 +43,10 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   
   const handleDeleteVenue = (venue: Venue) => {
     setDeletingVenue(venue);
+  };
+  
+  const handleEditHours = (venue: Venue) => {
+    setHoursVenue(venue);
   };
   
   const confirmDeleteVenue = async () => {
@@ -143,6 +150,8 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
                       </a>
                     </div>
                   )}
+
+                  <VenueHoursDisplay venueId={venue.id} />
                   
                   <div className="flex gap-2 mt-4 pt-4 border-t">
                     <Button 
@@ -153,6 +162,15 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
                     >
                       <Edit className="mr-1" size={14} />
                       Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEditHours(venue)}
+                      className="flex-1"
+                    >
+                      <Clock className="mr-1" size={14} />
+                      Hours
                     </Button>
                     <Button 
                       variant="outline" 
@@ -213,6 +231,12 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
             venue={editingVenue}
             onVenueUpdated={updateVenue}
             isUpdating={isUpdating}
+          />
+
+          <VenueHoursDialog
+            open={!!hoursVenue}
+            onOpenChange={(open) => !open && setHoursVenue(null)}
+            venue={hoursVenue}
           />
         </>
       )}

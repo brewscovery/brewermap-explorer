@@ -150,6 +150,53 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_hours: {
+        Row: {
+          created_at: string | null
+          day_of_week: number
+          id: string
+          is_closed: boolean | null
+          kitchen_close_time: string | null
+          kitchen_open_time: string | null
+          updated_at: string | null
+          venue_close_time: string | null
+          venue_id: string
+          venue_open_time: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          day_of_week: number
+          id?: string
+          is_closed?: boolean | null
+          kitchen_close_time?: string | null
+          kitchen_open_time?: string | null
+          updated_at?: string | null
+          venue_close_time?: string | null
+          venue_id: string
+          venue_open_time?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          day_of_week?: number
+          id?: string
+          is_closed?: boolean | null
+          kitchen_close_time?: string | null
+          kitchen_open_time?: string | null
+          updated_at?: string | null
+          venue_close_time?: string | null
+          venue_id?: string
+          venue_open_time?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_hours_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           brewery_id: string
