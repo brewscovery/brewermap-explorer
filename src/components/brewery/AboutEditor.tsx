@@ -32,7 +32,10 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
   };
 
   const handleSave = async () => {
-    if (!breweryId) return;
+    if (!breweryId || !user) {
+      toast.error('Unable to update: Missing brewery ID or user');
+      return;
+    }
     
     setIsSaving(true);
     try {
@@ -43,7 +46,7 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
         .from('brewery_owners')
         .select('brewery_id')
         .eq('brewery_id', breweryId)
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
       
       if (ownerError) {
@@ -51,11 +54,26 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
         throw new Error('You do not have permission to update this brewery');
       }
       
-      // Direct update without select to ensure it works
-      const { error: updateError } = await supabase
+      // Debug current brewery data before update
+      const { data: beforeData } = await supabase
         .from('breweries')
-        .update({ about: about })
-        .eq('id', breweryId);
+        .select('about')
+        .eq('id', breweryId)
+        .single();
+      
+      console.log('Current brewery data before update:', beforeData);
+      
+      // Try using upsert instead of update
+      const { data: updateData, error: updateError } = await supabase
+        .from('breweries')
+        .update({ 
+          about: about,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', breweryId)
+        .select();
+      
+      console.log('Update response:', updateData, 'Error:', updateError);
       
       if (updateError) {
         console.error('Supabase update error:', updateError);
@@ -76,14 +94,43 @@ const AboutEditor = ({ breweryId, initialAbout, onUpdate }: AboutEditorProps) =>
       
       console.log('Verified data after update:', verifyData);
       
-      // Update local state and notify parent
-      if (onUpdate) {
-        onUpdate(verifyData.about || '');
+      if (verifyData.about !== about) {
+        console.error('Update verification failed: Expected', about, 'but got', verifyData.about);
+        
+        // One last attempt with a different approach
+        const { error: finalError } = await supabase.rpc('update_brewery_about', {
+          brewery_id: breweryId,
+          new_about: about
+        });
+        
+        if (finalError) {
+          console.error('RPC update error:', finalError);
+          throw new Error('All update attempts failed');
+        }
+        
+        // Check one more time
+        const { data: finalData } = await supabase
+          .from('breweries')
+          .select('about')
+          .eq('id', breweryId)
+          .single();
+          
+        console.log('Final verification data:', finalData);
+        
+        if (finalData && finalData.about === about) {
+          // Success with the RPC method
+          if (onUpdate) onUpdate(about);
+          setIsEditing(false);
+          toast.success('About section updated successfully');
+        } else {
+          throw new Error('Unable to update brewery information');
+        }
+      } else {
+        // Update was successful
+        if (onUpdate) onUpdate(about);
+        setIsEditing(false);
+        toast.success('About section updated successfully');
       }
-      
-      setAbout(verifyData.about || '');
-      setIsEditing(false);
-      toast.success('About section updated successfully');
     } catch (error: any) {
       console.error('Error updating about section:', error);
       toast.error('Failed to update about section');

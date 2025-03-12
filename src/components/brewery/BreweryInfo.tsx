@@ -69,6 +69,11 @@ const BreweryInfo = () => {
         ...breweryData,
         about: newAbout
       });
+      
+      // Refetch data to ensure UI is in sync with database
+      setTimeout(() => {
+        fetchBreweryData();
+      }, 1000);
     }
   };
 
