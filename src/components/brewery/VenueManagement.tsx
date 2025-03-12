@@ -4,9 +4,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Plus, MapPin } from 'lucide-react';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
-import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import AddVenueDialog from './AddVenueDialog';
+import EditVenueDialog from './EditVenueDialog';
+import type { Venue } from '@/types/venue';
 
 interface VenueManagementProps {
   breweryId: string | null;
@@ -14,10 +15,15 @@ interface VenueManagementProps {
 
 const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   const [showAddVenueDialog, setShowAddVenueDialog] = useState(false);
-  const { venues, isLoading, refetch } = useBreweryVenues(breweryId);
+  const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
+  const { venues, isLoading, refetch, updateVenue, isUpdating } = useBreweryVenues(breweryId);
   
   const handleVenueAdded = () => {
     refetch();
+  };
+  
+  const handleEditVenue = (venue: Venue) => {
+    setEditingVenue(venue);
   };
   
   if (isLoading) {
@@ -72,7 +78,13 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
                   )}
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm">Edit</Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => handleEditVenue(venue)}
+                  >
+                    Edit
+                  </Button>
                   <Button variant="outline" size="sm" className="text-destructive">Delete</Button>
                 </div>
               </CardContent>
@@ -82,12 +94,22 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
       )}
       
       {breweryId && (
-        <AddVenueDialog
-          open={showAddVenueDialog}
-          onOpenChange={setShowAddVenueDialog}
-          breweryId={breweryId}
-          onVenueAdded={handleVenueAdded}
-        />
+        <>
+          <AddVenueDialog
+            open={showAddVenueDialog}
+            onOpenChange={setShowAddVenueDialog}
+            breweryId={breweryId}
+            onVenueAdded={handleVenueAdded}
+          />
+          
+          <EditVenueDialog
+            open={!!editingVenue}
+            onOpenChange={(open) => !open && setEditingVenue(null)}
+            venue={editingVenue}
+            onVenueUpdated={updateVenue}
+            isUpdating={isUpdating}
+          />
+        </>
       )}
     </div>
   );
