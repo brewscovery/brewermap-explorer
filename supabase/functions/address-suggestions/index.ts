@@ -38,9 +38,9 @@ serve(async (req) => {
     
     console.log(`Fetching address suggestions for: ${query}`)
     
-    // Request address suggestions from Mapbox
+    // Request address suggestions from Mapbox - removed the country=us filter
     const response = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}&country=us&types=address&autocomplete=true&limit=${limit}`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedQuery}.json?access_token=${mapboxToken}&types=address&autocomplete=true&limit=${limit}`
     )
     
     if (!response.ok) {
