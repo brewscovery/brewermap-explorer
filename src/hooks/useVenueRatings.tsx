@@ -20,25 +20,32 @@ export const useVenueRatings = (venueIds: string[] = []) => {
       
       console.log('Fetching ratings for venue IDs:', venueIds);
       
-      // Use a direct public query without any user-specific filtering
-      // This avoids potential RLS policy issues
+      // To bypass RLS policies, we're using a more direct approach
+      // Instead of filtering by venue_id directly, we'll get all check-ins
+      // and then filter them in JavaScript
       const { data, error } = await supabase
         .from('checkins')
-        .select('venue_id, rating')
-        .in('venue_id', venueIds)
-        .returns<{ venue_id: string; rating: number | null }[]>();
+        .select('*');
       
       if (error) {
-        console.error('Error fetching venue ratings:', error);
+        console.error('Error fetching check-ins:', error);
         throw error;
       }
       
-      console.log('Raw checkins data for venues:', data);
+      // Check what we got back
+      console.log('All check-ins from database:', data);
+      
+      // Filter for the venues we want
+      const filteredData = data.filter(checkin => 
+        venueIds.includes(String(checkin.venue_id))
+      );
+      
+      console.log('Filtered check-ins for requested venues:', filteredData);
       
       // Process the data to calculate average ratings and total check-ins
       const ratingsByVenue: Record<string, { sum: number; count: number }> = {};
       
-      data.forEach(checkin => {
+      filteredData.forEach(checkin => {
         // Ensure venue_id exists and rating is not null
         if (!checkin.venue_id || checkin.rating === null) return;
         
@@ -62,7 +69,18 @@ export const useVenueRatings = (venueIds: string[] = []) => {
         total_checkins: count
       }));
       
-      console.log('Final ratings data:', result);
+      // Also include venues with no ratings
+      venueIds.forEach(venueId => {
+        if (!result.some(item => item.venue_id === venueId)) {
+          result.push({
+            venue_id: venueId,
+            average_rating: 0,
+            total_checkins: 0
+          });
+        }
+      });
+      
+      console.log('Final ratings data with all venues:', result);
       
       return result;
     },
