@@ -22,7 +22,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
-  const { data: checkins } = useQuery({
+  const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -66,6 +66,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
           filter: `user_id=eq.${user.id}`
         },
         () => {
+          console.log('Checkin data changed, invalidating query');
           queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
         }
       )
@@ -82,10 +83,11 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
       const visited = checkins.map(checkin => checkin.venue_id);
       console.log(`Setting ${visited.length} visited venue IDs`);
       setVisitedVenueIds(visited);
-    } else {
+    } else if (!isLoading) {
+      console.log('No user or checkins, clearing visited venue IDs');
       setVisitedVenueIds([]);
     }
-  }, [checkins, user]);
+  }, [checkins, user, isLoading]);
 
   return (
     <div className="relative w-full h-full">
