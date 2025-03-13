@@ -32,6 +32,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
         .eq('user_id', user.id);
       
       if (error) throw error;
+      console.log(`Fetched ${data?.length || 0} check-ins for user ${user.id}`);
       return data || [];
     },
     enabled: !!user
@@ -79,6 +80,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   useEffect(() => {
     if (user && checkins) {
       const visited = checkins.map(checkin => checkin.venue_id);
+      console.log(`Setting ${visited.length} visited venue IDs`);
       setVisitedVenueIds(visited);
     } else {
       setVisitedVenueIds([]);

@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 
@@ -9,20 +10,10 @@ interface VenuePointsProps {
 
 const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) => {
   const layersAdded = useRef(false);
+  const previousVisitedIds = useRef<string[]>([]);
 
+  // This effect handles the creation and cleanup of map layers
   useEffect(() => {
-    const updatePointColors = () => {
-      if (!map.getLayer('unclustered-point')) return;
-
-      // Update the layer paint properties when visitedVenueIds changes
-      map.setPaintProperty('unclustered-point', 'circle-color', [
-        'case',
-        ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-        '#22c55e', // Green color for visited venues
-        '#fbbf24'  // Default yellow color for unvisited venues
-      ]);
-    };
-
     const addLayers = () => {
       try {
         if (!map.getSource(source)) {
@@ -74,10 +65,10 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
           layersAdded.current = true;
           console.log('Point layers added successfully');
-        } else {
-          // Update colors if layers already exist
-          updatePointColors();
         }
+        
+        // Update colors regardless of whether layers were just added or already existed
+        updatePointColors();
       } catch (error) {
         console.error('Error adding point layers:', error);
       }
@@ -109,11 +100,6 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
     initialize();
 
-    // Listen for changes to visitedVenueIds and update colors
-    if (layersAdded.current) {
-      updatePointColors();
-    }
-
     return () => {
       if (!map.getStyle()) return;
       
@@ -128,7 +114,33 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
         console.warn('Error cleaning up point layers:', error);
       }
     };
-  }, [map, source, visitedVenueIds]);
+  }, [map, source]);
+
+  // This separate effect handles updates to visitedVenueIds
+  useEffect(() => {
+    // Update the layer paint properties when visitedVenueIds changes
+    const updatePointColors = () => {
+      if (!map.getLayer('unclustered-point')) return;
+
+      console.log(`Updating venue point colors with ${visitedVenueIds.length} visited venues`);
+      
+      map.setPaintProperty('unclustered-point', 'circle-color', [
+        'case',
+        ['in', ['get', 'id'], ['literal', visitedVenueIds]],
+        '#22c55e', // Green color for visited venues
+        '#fbbf24'  // Default yellow color for unvisited venues
+      ]);
+    };
+
+    // Only update colors if the ids have actually changed
+    if (JSON.stringify(previousVisitedIds.current) !== JSON.stringify(visitedVenueIds)) {
+      if (layersAdded.current && map.getLayer('unclustered-point')) {
+        updatePointColors();
+        previousVisitedIds.current = [...visitedVenueIds];
+        console.log('Updated venue point colors due to visitedVenueIds change');
+      }
+    }
+  }, [map, visitedVenueIds]);
 
   return null;
 };
