@@ -1,14 +1,18 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
 import { toast } from 'sonner';
+import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 
 export const useVenueHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  const queryClient = useQueryClient();
+  
+  // Setup realtime subscriptions
+  useVenueHoursRealtimeUpdates(venueId);
 
+  // Fetch venue hours
   const { 
     data: hours, 
     isLoading, 
@@ -36,39 +40,9 @@ export const useVenueHours = (venueId: string | null) => {
     enabled: !!venueId
   });
   
-  // Setup real-time listener for venue-specific hours changes
-  useEffect(() => {
-    if (!venueId) return;
-    
-    console.log(`Setting up realtime subscription for venue ${venueId} hours`);
-    
-    const venueHoursChannel = supabase
-      .channel(`venue-${venueId}-hours-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'venue_hours',
-          filter: `venue_id=eq.${venueId}`
-        },
-        (payload) => {
-          console.log(`Hours change detected for venue ${venueId}:`, payload);
-          
-          // Invalidate venue hours queries
-          queryClient.invalidateQueries({ 
-            queryKey: ['venueHours', venueId] 
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log(`Cleaning up realtime subscription for venue ${venueId} hours`);
-      supabase.removeChannel(venueHoursChannel);
-    };
-  }, [venueId, queryClient]);
-  
+  /**
+   * Update venue hours data
+   */
   const updateVenueHours = async (venueHoursData: Partial<VenueHour>[]) => {
     if (!venueId) {
       toast.error('Venue ID is missing');
@@ -90,7 +64,7 @@ export const useVenueHours = (venueId: string | null) => {
           .upsert({
             ...hourData,
             venue_id: venueId,
-            day_of_week: hourData.day_of_week, // Ensure this is always included
+            day_of_week: hourData.day_of_week,
             updated_at: new Date().toISOString()
           });
 
@@ -109,6 +83,9 @@ export const useVenueHours = (venueId: string | null) => {
     }
   };
 
+  /**
+   * Delete a venue hour record
+   */
   const deleteVenueHours = async (hourId: string) => {
     if (!venueId) {
       toast.error('Venue ID is missing');

@@ -1,10 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { Clock, ChevronDown, ChevronUp, Utensils } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import type { VenueHour } from '@/types/venueHours';
+import { getTodayDayOfWeek } from '@/utils/dateTimeUtils';
+import TodayHours from './hours/TodayHours';
+import HoursRow from './hours/HoursRow';
 
 interface VenueHoursDisplayProps {
   venueId: string;
@@ -17,32 +20,15 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
   
   useEffect(() => {
     if (hours && hours.length > 0) {
-      const today = new Date().getDay(); // 0 = Sunday, 6 = Saturday
+      const today = getTodayDayOfWeek();
       const todayData = hours.find(h => h.day_of_week === today);
       setTodayHours(todayData || null);
     }
   }, [hours]);
 
-  const formatTime = (time: string | null) => {
-    if (!time) return 'Closed';
-    
-    try {
-      // Convert 24-hour time string to 12-hour time with AM/PM
-      const [hours, minutes] = time.split(':');
-      const hour = parseInt(hours, 10);
-      const ampm = hour >= 12 ? 'PM' : 'AM';
-      const formattedHour = hour % 12 || 12; // Convert 0 to 12 for 12 AM
-      
-      return `${formattedHour}:${minutes} ${ampm}`;
-    } catch (e) {
-      return time;
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
-        <Clock size={14} />
         <span>Loading hours...</span>
       </div>
     );
@@ -51,7 +37,6 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
   if (hours.length === 0) {
     return (
       <div className="text-sm text-muted-foreground flex items-center gap-2 mt-2">
-        <Clock size={14} />
         <span>No hours available</span>
       </div>
     );
@@ -60,52 +45,30 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
   return (
     <div className="mt-2 space-y-2">
       {/* Today's hours summary */}
-      {todayHours && (
-        <div className="flex justify-between items-start">
-          <div className="text-sm flex items-center gap-2">
-            <Clock size={14} className="text-muted-foreground" />
-            {todayHours.is_closed ? (
-              <span className="text-muted-foreground">Closed today</span>
-            ) : (
-              <span>Open today: {formatTime(todayHours.venue_open_time)} - {formatTime(todayHours.venue_close_time)}</span>
-            )}
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setExpanded(!expanded)}
-            className="h-6 px-1"
-          >
-            {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          </Button>
-        </div>
-      )}
+      <div className="flex justify-between items-start">
+        <TodayHours todayHours={todayHours} />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setExpanded(!expanded)}
+          className="h-6 px-1"
+        >
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </Button>
+      </div>
       
       {/* Expanded hours view */}
       {expanded && (
         <div className="pt-2 text-sm space-y-2">
-          {hours.sort((a, b) => a.day_of_week - b.day_of_week).map((hour) => (
-            <div key={hour.id} className="grid grid-cols-[80px_1fr] gap-1">
-              <div className="font-medium">{DAYS_OF_WEEK[hour.day_of_week]}</div>
-              {hour.is_closed ? (
-                <div className="text-muted-foreground">Closed</div>
-              ) : (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-1">
-                    <Clock size={12} className="text-muted-foreground" />
-                    <span>{formatTime(hour.venue_open_time)} - {formatTime(hour.venue_close_time)}</span>
-                  </div>
-                  
-                  {(hour.kitchen_open_time || hour.kitchen_close_time) && (
-                    <div className="flex items-center gap-1">
-                      <Utensils size={12} className="text-muted-foreground" />
-                      <span>Kitchen: {formatTime(hour.kitchen_open_time)} - {formatTime(hour.kitchen_close_time)}</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+          {hours
+            .sort((a, b) => a.day_of_week - b.day_of_week)
+            .map((hour) => (
+              <HoursRow 
+                key={hour.id} 
+                day={DAYS_OF_WEEK[hour.day_of_week]} 
+                hourData={hour} 
+              />
+            ))}
         </div>
       )}
     </div>
