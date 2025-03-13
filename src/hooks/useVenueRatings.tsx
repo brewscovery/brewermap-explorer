@@ -18,6 +18,8 @@ export const useVenueRatings = (venueIds: string[] = []) => {
     queryFn: async () => {
       if (!venueIds.length) return [];
       
+      console.log('Fetching ratings for venue IDs:', venueIds);
+      
       const { data, error } = await supabase
         .from('checkins')
         .select('venue_id, rating')
@@ -28,19 +30,27 @@ export const useVenueRatings = (venueIds: string[] = []) => {
         throw error;
       }
       
+      console.log('Raw checkins data:', data);
+      
       // Process the data to calculate average ratings and total check-ins
       const ratingsByVenue: Record<string, { sum: number; count: number }> = {};
       
       data.forEach(checkin => {
+        // Ensure venue_id exists and rating is not null
         if (!checkin.venue_id || checkin.rating === null) return;
         
-        if (!ratingsByVenue[checkin.venue_id]) {
-          ratingsByVenue[checkin.venue_id] = { sum: 0, count: 0 };
+        // Convert venue_id to string to ensure consistent comparison
+        const venueId = String(checkin.venue_id);
+        
+        if (!ratingsByVenue[venueId]) {
+          ratingsByVenue[venueId] = { sum: 0, count: 0 };
         }
         
-        ratingsByVenue[checkin.venue_id].sum += checkin.rating;
-        ratingsByVenue[checkin.venue_id].count += 1;
+        ratingsByVenue[venueId].sum += checkin.rating;
+        ratingsByVenue[venueId].count += 1;
       });
+      
+      console.log('Processed ratings by venue:', ratingsByVenue);
       
       // Convert to the expected return format
       const result: VenueRatingData[] = Object.entries(ratingsByVenue).map(([venue_id, { sum, count }]) => ({
@@ -48,6 +58,8 @@ export const useVenueRatings = (venueIds: string[] = []) => {
         average_rating: count > 0 ? Number((sum / count).toFixed(1)) : 0,
         total_checkins: count
       }));
+      
+      console.log('Final ratings data:', result);
       
       return result;
     },
@@ -59,8 +71,15 @@ export const useVenueRatings = (venueIds: string[] = []) => {
     isLoading,
     error,
     getRatingData: (venueId: string) => {
-      return ratingsData?.find(data => data.venue_id === venueId) || { 
-        venue_id: venueId, 
+      // Convert the passed venueId to string for consistent comparison
+      const stringVenueId = String(venueId);
+      console.log(`Looking for rating data for venue ID: ${stringVenueId}`);
+      
+      const foundRating = ratingsData?.find(data => String(data.venue_id) === stringVenueId);
+      console.log(`Found rating data:`, foundRating);
+      
+      return foundRating || { 
+        venue_id: stringVenueId, 
         average_rating: 0, 
         total_checkins: 0 
       };

@@ -30,6 +30,8 @@ interface VenueCardProps {
 }
 
 const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCardProps) => {
+  console.log(`VenueCard for ${venue.name} (ID: ${venue.id}) with rating data:`, ratingData);
+  
   const { average_rating = 0, total_checkins = 0 } = ratingData || {};
   
   return (

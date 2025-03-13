@@ -22,10 +22,14 @@ const VenueList = ({
   onDeleteVenue, 
   onAddVenue 
 }: VenueListProps) => {
+  console.log('Venues in VenueList:', venues);
+  
   // Get ratings data for all venues
   const { ratingsData, isLoading: isLoadingRatings, getRatingData } = useVenueRatings(
-    venues.map(venue => venue.id)
+    venues.map(venue => String(venue.id))
   );
+  
+  console.log('Ratings data in VenueList:', ratingsData);
   
   if (isLoading) {
     return (
@@ -46,7 +50,7 @@ const VenueList = ({
         <VenueCard
           key={venue.id}
           venue={venue}
-          ratingData={getRatingData(venue.id)}
+          ratingData={getRatingData(String(venue.id))}
           onEdit={onEditVenue}
           onEditHours={onEditHours}
           onDelete={onDeleteVenue}
