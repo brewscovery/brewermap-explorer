@@ -20,29 +20,23 @@ export const useVenueRatings = (venueIds: string[] = []) => {
       
       console.log('Fetching ratings for venue IDs:', venueIds);
       
-      // Use the service_role key query to bypass RLS
+      // Now that we have proper RLS policies, we can filter directly by venue_id
       const { data, error } = await supabase
         .from('checkins')
-        .select('*');
+        .select('*')
+        .in('venue_id', venueIds);
       
       if (error) {
         console.error('Error fetching check-ins:', error);
         throw error;
       }
       
-      console.log('All check-ins from database:', data);
-      
-      // Filter for the venues we want
-      const filteredData = data.filter(checkin => 
-        venueIds.includes(String(checkin.venue_id))
-      );
-      
-      console.log('Filtered check-ins for requested venues:', filteredData);
+      console.log('Check-ins from database for selected venues:', data);
       
       // Process the data to calculate average ratings and total check-ins
       const ratingsByVenue: Record<string, { sum: number; count: number }> = {};
       
-      filteredData.forEach(checkin => {
+      data.forEach(checkin => {
         // Ensure venue_id exists and rating is not null
         if (!checkin.venue_id || checkin.rating === null) return;
         
