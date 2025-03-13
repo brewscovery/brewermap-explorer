@@ -14,6 +14,19 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
   // This effect handles the creation and cleanup of map layers
   useEffect(() => {
+    const updatePointColors = () => {
+      if (!map.getLayer('unclustered-point')) return;
+
+      console.log(`Updating venue point colors with ${visitedVenueIds.length} visited venues`);
+      
+      map.setPaintProperty('unclustered-point', 'circle-color', [
+        'case',
+        ['in', ['get', 'id'], ['literal', visitedVenueIds]],
+        '#22c55e', // Green color for visited venues
+        '#fbbf24'  // Default yellow color for unvisited venues
+      ]);
+    };
+
     const addLayers = () => {
       try {
         if (!map.getSource(source)) {
@@ -114,7 +127,7 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
         console.warn('Error cleaning up point layers:', error);
       }
     };
-  }, [map, source]);
+  }, [map, source, visitedVenueIds]);
 
   // This separate effect handles updates to visitedVenueIds
   useEffect(() => {
