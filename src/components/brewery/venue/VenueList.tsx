@@ -3,6 +3,7 @@ import { MapPin } from 'lucide-react';
 import type { Venue } from '@/types/venue';
 import VenueCard from './VenueCard';
 import EmptyVenueState from './EmptyVenueState';
+import { useVenueRatings } from '@/hooks/useVenueRatings';
 
 interface VenueListProps {
   venues: Venue[];
@@ -21,6 +22,10 @@ const VenueList = ({
   onDeleteVenue, 
   onAddVenue 
 }: VenueListProps) => {
+  // Get ratings data for all venues
+  const { ratingsData, isLoading: isLoadingRatings, getRatingData } = useVenueRatings(
+    venues.map(venue => venue.id)
+  );
   
   if (isLoading) {
     return (
@@ -41,6 +46,7 @@ const VenueList = ({
         <VenueCard
           key={venue.id}
           venue={venue}
+          ratingData={getRatingData(venue.id)}
           onEdit={onEditVenue}
           onEditHours={onEditHours}
           onDelete={onDeleteVenue}

@@ -8,25 +8,47 @@ import {
   Building, 
   Phone, 
   Globe,
-  Flag
+  Flag,
+  Star
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import type { Venue } from '@/types/venue';
 import VenueHoursDisplay from '../VenueHoursDisplay';
 
+interface RatingData {
+  venue_id: string;
+  average_rating: number;
+  total_checkins: number;
+}
+
 interface VenueCardProps {
   venue: Venue;
+  ratingData?: RatingData;
   onEdit: (venue: Venue) => void;
   onEditHours: (venue: Venue) => void;
   onDelete: (venue: Venue) => void;
 }
 
-const VenueCard = ({ venue, onEdit, onEditHours, onDelete }: VenueCardProps) => {
+const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCardProps) => {
+  const { average_rating = 0, total_checkins = 0 } = ratingData || {};
+  
   return (
     <Card key={venue.id} className="overflow-hidden transition-all hover:shadow-md">
       <CardHeader className="pb-2 border-b bg-muted/20">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-xl line-clamp-1">{venue.name}</CardTitle>
+          <div>
+            <CardTitle className="text-xl line-clamp-1">{venue.name}</CardTitle>
+            {total_checkins > 0 && (
+              <div className="flex items-center mt-1 text-sm text-muted-foreground">
+                <Star className="h-4 w-4 text-amber-500 mr-1 fill-current" />
+                <span>{average_rating.toFixed(1)}</span>
+                <span className="ml-1">({total_checkins} {total_checkins === 1 ? 'check-in' : 'check-ins'})</span>
+              </div>
+            )}
+            {total_checkins === 0 && (
+              <div className="text-sm text-muted-foreground mt-1">No check-ins yet</div>
+            )}
+          </div>
           {venue.latitude && venue.longitude ? (
             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
               Mapped
