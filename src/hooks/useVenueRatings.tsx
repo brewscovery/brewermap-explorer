@@ -20,6 +20,19 @@ export const useVenueRatings = (venueIds: string[] = []) => {
       
       console.log('Fetching ratings for venue IDs:', venueIds);
       
+      // Try a more generic query first to see if we can get any check-ins at all
+      const checkAllQuery = await supabase
+        .from('checkins')
+        .select('*')
+        .limit(5);
+        
+      console.log('Checking if any check-ins exist:', checkAllQuery.data);
+      
+      if (checkAllQuery.error) {
+        console.error('Error checking check-ins:', checkAllQuery.error);
+      }
+      
+      // Now try the specific query with venueIds
       const { data, error } = await supabase
         .from('checkins')
         .select('venue_id, rating')
@@ -30,7 +43,7 @@ export const useVenueRatings = (venueIds: string[] = []) => {
         throw error;
       }
       
-      console.log('Raw checkins data:', data);
+      console.log('Raw checkins data for specific venues:', data);
       
       // Process the data to calculate average ratings and total check-ins
       const ratingsByVenue: Record<string, { sum: number; count: number }> = {};
