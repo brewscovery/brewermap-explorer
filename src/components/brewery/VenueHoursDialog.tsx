@@ -3,11 +3,11 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Clock, X, Utensils } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { VenueHour } from '@/types/venueHours';
 import type { Venue } from '@/types/venue';
 
@@ -16,6 +16,12 @@ interface VenueHoursDialogProps {
   onOpenChange: (open: boolean) => void;
   venue: Venue | null;
 }
+
+const HOURS = Array.from({ length: 24 }, (_, i) => {
+  const hour = i % 12 || 12;
+  const ampm = i < 12 ? 'AM' : 'PM';
+  return { value: `${i.toString().padStart(2, '0')}:00`, label: `${hour}:00 ${ampm}` };
+});
 
 const VenueHoursDialog = ({ 
   open, 
@@ -71,7 +77,7 @@ const VenueHoursDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -79,14 +85,14 @@ const VenueHoursDialog = ({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="mt-4">
+        <div className="mt-4 overflow-y-auto flex-1 pr-2">
           {isLoading ? (
             <div className="text-center py-8">
               <p>Loading hours...</p>
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="grid grid-cols-[130px_1fr] gap-4 font-medium px-4 py-2 bg-muted/40 rounded-md">
+              <div className="grid grid-cols-[130px_1fr] gap-4 font-medium px-4 py-2 bg-muted/40 rounded-md sticky top-0">
                 <div>Day</div>
                 <div className="grid grid-cols-2 gap-6">
                   <div>Venue Hours</div>
@@ -110,23 +116,41 @@ const VenueHoursDialog = ({
                       <div className="flex gap-2 items-end">
                         <div className="flex-1">
                           <Label htmlFor={`venue-open-${index}`} className="text-xs">Open</Label>
-                          <Input
-                            id={`venue-open-${index}`}
-                            type="time"
+                          <Select
                             value={day.venue_open_time || ''}
-                            onChange={(e) => handleTimeChange(index, 'venue_open_time', e.target.value)}
+                            onValueChange={(value) => handleTimeChange(index, 'venue_open_time', value)}
                             disabled={day.is_closed}
-                          />
+                          >
+                            <SelectTrigger id={`venue-open-${index}`}>
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour.value} value={hour.value}>
+                                  {hour.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex-1">
                           <Label htmlFor={`venue-close-${index}`} className="text-xs">Close</Label>
-                          <Input
-                            id={`venue-close-${index}`}
-                            type="time"
+                          <Select
                             value={day.venue_close_time || ''}
-                            onChange={(e) => handleTimeChange(index, 'venue_close_time', e.target.value)}
+                            onValueChange={(value) => handleTimeChange(index, 'venue_close_time', value)}
                             disabled={day.is_closed}
-                          />
+                          >
+                            <SelectTrigger id={`venue-close-${index}`}>
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour.value} value={hour.value}>
+                                  {hour.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
@@ -135,23 +159,41 @@ const VenueHoursDialog = ({
                       <div className="flex gap-2 items-end">
                         <div className="flex-1">
                           <Label htmlFor={`kitchen-open-${index}`} className="text-xs">Open</Label>
-                          <Input
-                            id={`kitchen-open-${index}`}
-                            type="time"
+                          <Select
                             value={day.kitchen_open_time || ''}
-                            onChange={(e) => handleTimeChange(index, 'kitchen_open_time', e.target.value)}
+                            onValueChange={(value) => handleTimeChange(index, 'kitchen_open_time', value)}
                             disabled={day.is_closed}
-                          />
+                          >
+                            <SelectTrigger id={`kitchen-open-${index}`}>
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour.value} value={hour.value}>
+                                  {hour.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                         <div className="flex-1">
                           <Label htmlFor={`kitchen-close-${index}`} className="text-xs">Close</Label>
-                          <Input
-                            id={`kitchen-close-${index}`}
-                            type="time"
+                          <Select
                             value={day.kitchen_close_time || ''}
-                            onChange={(e) => handleTimeChange(index, 'kitchen_close_time', e.target.value)}
+                            onValueChange={(value) => handleTimeChange(index, 'kitchen_close_time', value)}
                             disabled={day.is_closed}
-                          />
+                          >
+                            <SelectTrigger id={`kitchen-close-${index}`}>
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {HOURS.map((hour) => (
+                                <SelectItem key={hour.value} value={hour.value}>
+                                  {hour.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
