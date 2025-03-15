@@ -1,15 +1,22 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Map, LogOut } from 'lucide-react';
+import { Map, User, ChevronDown, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import BreweryInfo from '@/components/brewery/BreweryInfo';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user, userType, firstName } = useAuth();
+  const { user, userType, firstName, lastName } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -27,17 +34,28 @@ const Dashboard = () => {
       <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
         <h1 className="text-xl font-bold">Brewery Dashboard</h1>
         <div className="flex items-center gap-4">
-          <span className="text-sm text-muted-foreground">
-            Welcome, {firstName || 'User'}
-          </span>
-          <Button variant="outline" onClick={() => navigate('/')}>
-            <Map className="mr-2" size={18} />
-            View Map
-          </Button>
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2" size={18} />
-            Logout
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2">
+                <User size={18} />
+                <span>
+                  {firstName || ''} {lastName || 'User'}
+                </span>
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => navigate('/')}>
+                <Map className="mr-2" size={18} />
+                View Map
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2" size={18} />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
       <div className="flex-1 pt-[73px] p-6">
