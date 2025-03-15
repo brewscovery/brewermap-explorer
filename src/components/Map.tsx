@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -80,9 +79,10 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   // Update visited venues when check-ins data changes or when user logs out
   useEffect(() => {
     if (user && checkins) {
-      const visited = checkins.map(checkin => checkin.venue_id);
-      console.log(`Setting ${visited.length} visited venue IDs`);
-      setVisitedVenueIds(visited);
+      // Extract unique venue IDs using a Set
+      const uniqueVenueIds = [...new Set(checkins.map(checkin => checkin.venue_id))];
+      console.log(`Setting ${uniqueVenueIds.length} unique visited venue IDs`);
+      setVisitedVenueIds(uniqueVenueIds);
     } else if (!isLoading) {
       console.log('No user or checkins, clearing visited venue IDs');
       setVisitedVenueIds([]);
