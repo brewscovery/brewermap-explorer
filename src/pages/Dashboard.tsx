@@ -17,6 +17,11 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, userType, firstName, lastName } = useAuth();
+  
+  // Display name based on user type
+  const displayName = userType === 'business' 
+    ? firstName || 'Business'
+    : `${firstName || ''} ${lastName || 'User'}`.trim();
 
   const handleLogout = async () => {
     try {
@@ -38,9 +43,7 @@ const Dashboard = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <User size={18} />
-                <span>
-                  {firstName || ''} {lastName || 'User'}
-                </span>
+                <span>{displayName}</span>
                 <ChevronDown size={16} />
               </Button>
             </DropdownMenuTrigger>

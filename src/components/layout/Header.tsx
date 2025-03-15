@@ -23,8 +23,13 @@ import {
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, firstName, lastName } = useAuth();
+  const { user, userType, firstName, lastName } = useAuth();
   const isOnDashboard = location.pathname.includes('/dashboard');
+  
+  // Display name based on user type
+  const displayName = userType === 'business' 
+    ? firstName || 'Business'
+    : `${firstName || ''} ${lastName || 'User'}`.trim();
 
   const handleLogout = async () => {
     try {
@@ -45,9 +50,7 @@ const Header = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="flex items-center gap-2">
                 <User size={18} />
-                <span>
-                  {firstName || ''} {lastName || 'User'}
-                </span>
+                <span>{displayName}</span>
                 <ChevronDown size={16} />
               </Button>
             </DropdownMenuTrigger>
