@@ -10,6 +10,8 @@ import type { Venue } from '@/types/venue';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { Badge } from '@/components/ui/badge';
 import { getTodayDayOfWeek } from '@/utils/dateTimeUtils';
+import { useVenueHours } from '@/hooks/useVenueHours';
+import { formatTime } from '@/utils/dateTimeUtils';
 
 interface VenueSidebarProps {
   venue: Venue | null;
@@ -27,36 +29,15 @@ interface CheckIn {
   last_name: string | null;
 }
 
-interface VenueHour {
-  day_of_week: number;
-  venue_open_time: string | null;
-  venue_close_time: string | null;
-  kitchen_open_time: string | null;
-  kitchen_close_time: string | null;
-  is_closed: boolean;
-}
-
 interface BreweryInfo {
   id: string;
   name: string;
   about: string | null;
 }
 
-const formatTime = (time: string | null) => {
-  if (!time) return 'Closed';
-  
-  // Convert "HH:MM:SS" to a Date object to format it
-  const [hours, minutes] = time.split(':');
-  const date = new Date();
-  date.setHours(parseInt(hours, 10));
-  date.setMinutes(parseInt(minutes, 10));
-  
-  return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-};
-
 const HoursSection = ({ title, hours, showKitchenHours = false }: { 
   title: string; 
-  hours: VenueHour[]; 
+  hours: any[]; 
   showKitchenHours?: boolean;
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -76,7 +57,7 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: {
     );
   }
   
-  const getHoursText = (hour: VenueHour) => {
+  const getHoursText = (hour: any) => {
     if (hour.is_closed) return 'Closed';
     
     if (showKitchenHours) {
@@ -137,6 +118,9 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
+  // Use the useVenueHours hook to fetch venue hours - enabled regardless of auth status
+  const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venue?.id || null);
+  
   // Fetch brewery information including the "about" section
   const { data: breweryInfo } = useQuery({
     queryKey: ['brewery', venue?.brewery_id],
@@ -153,24 +137,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       return data as BreweryInfo;
     },
     enabled: !!venue?.brewery_id
-  });
-  
-  // Fetch venue hours - Always enabled regardless of authentication
-  const { data: venueHours = [] } = useQuery({
-    queryKey: ['venueHours', venue?.id],
-    queryFn: async () => {
-      if (!venue?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('venue_hours')
-        .select('day_of_week, venue_open_time, venue_close_time, kitchen_open_time, kitchen_close_time, is_closed')
-        .eq('venue_id', venue.id)
-        .order('day_of_week');
-      
-      if (error) throw error;
-      return data as VenueHour[];
-    },
-    enabled: !!venue?.id
   });
   
   // Fetch check-ins for this venue - Only if user is logged in
@@ -311,15 +277,22 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         )}
         
         {/* Hours - Always display regardless of user authentication */}
-        <HoursSection title="Operating Hours" hours={venueHours} />
-        
-        {/* Kitchen Hours - Always display regardless of user authentication */}
-        <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+        {isLoadingHours ? (
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Hours</h3>
+            <p className="text-sm text-muted-foreground">Loading hours...</p>
+          </div>
+        ) : (
+          <>
+            <HoursSection title="Operating Hours" hours={venueHours} />
+            <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+          </>
+        )}
         
         <Separator />
         
         {/* Check-ins - Only show if user is authenticated */}
-        {user && (
+        {user ? (
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <h3 className="font-medium">Check-ins</h3>
@@ -385,10 +358,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
               </div>
             )}
           </div>
-        )}
-        
-        {/* Show message for non-authenticated users */}
-        {!user && (
+        ) : (
           <div className="space-y-3">
             <h3 className="font-medium">Check-ins</h3>
             <p className="text-sm text-muted-foreground">Sign in to view and add check-ins</p>
