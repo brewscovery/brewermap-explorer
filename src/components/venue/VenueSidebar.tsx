@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -251,7 +252,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const otherCheckins = checkins.filter(checkin => !user || checkin.user_id !== user.id);
   
   return (
-    <div className="fixed right-0 top-0 z-40 flex h-screen w-full max-w-md flex-col bg-white shadow-lg">
+    <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-xl font-bold truncate pr-2">{venue.name}</h2>
