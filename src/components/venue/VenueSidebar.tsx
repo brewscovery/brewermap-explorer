@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -156,7 +155,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     enabled: !!venue?.brewery_id
   });
   
-  // Fetch venue hours
+  // Fetch venue hours - Always enabled regardless of authentication
   const { data: venueHours = [] } = useQuery({
     queryKey: ['venueHours', venue?.id],
     queryFn: async () => {
@@ -174,11 +173,12 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     enabled: !!venue?.id
   });
   
-  // Fetch check-ins for this venue
+  // Fetch check-ins for this venue - Only if user is logged in
   const { data: checkins = [] } = useQuery({
     queryKey: ['venueCheckins', venue?.id],
     queryFn: async () => {
       if (!venue?.id) return [];
+      if (!user) return []; // Only fetch if user is logged in
       
       let query = supabase
         .from('checkins')
@@ -227,7 +227,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         last_name: item.profiles?.last_name || null
       }));
     },
-    enabled: !!venue?.id
+    enabled: !!venue?.id && !!user
   });
   
   const handleCheckInSuccess = () => {
@@ -310,84 +310,94 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
           </div>
         )}
         
-        {/* Hours */}
+        {/* Hours - Always display regardless of user authentication */}
         <HoursSection title="Operating Hours" hours={venueHours} />
         
-        {/* Kitchen Hours */}
+        {/* Kitchen Hours - Always display regardless of user authentication */}
         <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
         
         <Separator />
         
-        {/* Check-ins */}
-        <div className="space-y-3">
-          <div className="flex justify-between items-center">
-            <h3 className="font-medium">Check-ins</h3>
-            {user && userType === 'regular' && (
-              <Button 
-                size="sm" 
-                variant="default"
-                onClick={() => setIsCheckInDialogOpen(true)}
-              >
-                Check In
-              </Button>
-            )}
-          </div>
-          
-          {checkins.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No check-ins yet</p>
-          ) : (
-            <div className="space-y-4">
-              {/* User's check-ins */}
-              {userCheckins.length > 0 && (
-                <div className="space-y-3">
-                  <h4 className="text-sm font-medium">Your Check-ins</h4>
-                  {userCheckins.map(checkin => (
-                    <div key={checkin.id} className="bg-muted/30 p-3 rounded-md space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div className="flex">{renderStars(checkin.rating)}</div>
-                        <Badge variant="outline" className="text-xs">
-                          {new Date(checkin.visited_at).toLocaleDateString()}
-                        </Badge>
-                      </div>
-                      {checkin.comment && (
-                        <p className="text-sm">{checkin.comment}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Other users' check-ins */}
-              {otherCheckins.length > 0 && (
-                <div className="space-y-3">
-                  {userCheckins.length > 0 && <h4 className="text-sm font-medium">Other Check-ins</h4>}
-                  {otherCheckins.map(checkin => (
-                    <div key={checkin.id} className="border border-border p-3 rounded-md space-y-2">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <div className="flex">{renderStars(checkin.rating)}</div>
-                          <p className="text-xs text-muted-foreground">
-                            {checkin.first_name ? `${checkin.first_name} ${checkin.last_name || ''}`.trim() : 'Anonymous'}
-                          </p>
-                        </div>
-                        <Badge variant="outline" className="text-xs">
-                          {new Date(checkin.visited_at).toLocaleDateString()}
-                        </Badge>
-                      </div>
-                      {checkin.comment && (
-                        <p className="text-sm">{checkin.comment}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
+        {/* Check-ins - Only show if user is authenticated */}
+        {user && (
+          <div className="space-y-3">
+            <div className="flex justify-between items-center">
+              <h3 className="font-medium">Check-ins</h3>
+              {user && userType === 'regular' && (
+                <Button 
+                  size="sm" 
+                  variant="default"
+                  onClick={() => setIsCheckInDialogOpen(true)}
+                >
+                  Check In
+                </Button>
               )}
             </div>
-          )}
-        </div>
+            
+            {checkins.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No check-ins yet</p>
+            ) : (
+              <div className="space-y-4">
+                {/* User's check-ins */}
+                {userCheckins.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium">Your Check-ins</h4>
+                    {userCheckins.map(checkin => (
+                      <div key={checkin.id} className="bg-muted/30 p-3 rounded-md space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="flex">{renderStars(checkin.rating)}</div>
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(checkin.visited_at).toLocaleDateString()}
+                          </Badge>
+                        </div>
+                        {checkin.comment && (
+                          <p className="text-sm">{checkin.comment}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Other users' check-ins */}
+                {otherCheckins.length > 0 && (
+                  <div className="space-y-3">
+                    {userCheckins.length > 0 && <h4 className="text-sm font-medium">Other Check-ins</h4>}
+                    {otherCheckins.map(checkin => (
+                      <div key={checkin.id} className="border border-border p-3 rounded-md space-y-2">
+                        <div className="flex justify-between items-start">
+                          <div className="space-y-1">
+                            <div className="flex">{renderStars(checkin.rating)}</div>
+                            <p className="text-xs text-muted-foreground">
+                              {checkin.first_name ? `${checkin.first_name} ${checkin.last_name || ''}`.trim() : 'Anonymous'}
+                            </p>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(checkin.visited_at).toLocaleDateString()}
+                          </Badge>
+                        </div>
+                        {checkin.comment && (
+                          <p className="text-sm">{checkin.comment}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Show message for non-authenticated users */}
+        {!user && (
+          <div className="space-y-3">
+            <h3 className="font-medium">Check-ins</h3>
+            <p className="text-sm text-muted-foreground">Sign in to view and add check-ins</p>
+          </div>
+        )}
       </div>
       
       {/* Check-in Dialog */}
-      {venue && (
+      {venue && user && (
         <CheckInDialog
           venue={venue}
           isOpen={isCheckInDialogOpen}
