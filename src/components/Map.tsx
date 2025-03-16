@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -8,6 +9,7 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import VenueSidebar from './venue/VenueSidebar';
 
 interface MapProps {
   venues: Venue[];
@@ -18,6 +20,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch user's check-ins
@@ -89,6 +92,17 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
+  // Handle venue selection from map interactions
+  const handleVenueSelect = (venue: Venue) => {
+    setSelectedVenue(venue);
+    onVenueSelect(venue);
+  };
+
+  // Handle sidebar closing
+  const handleSidebarClose = () => {
+    setSelectedVenue(null);
+  };
+
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
@@ -99,14 +113,22 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
             map={map.current}
             venues={venues}
             visitedVenueIds={visitedVenueIds}
-            onVenueSelect={onVenueSelect}
+            onVenueSelect={handleVenueSelect}
           />
           <MapInteractions
             map={map.current}
             venues={venues}
-            onVenueSelect={onVenueSelect}
+            onVenueSelect={handleVenueSelect}
           />
         </>
+      )}
+      
+      {/* Venue sidebar */}
+      {selectedVenue && (
+        <VenueSidebar 
+          venue={selectedVenue} 
+          onClose={handleSidebarClose}
+        />
       )}
     </div>
   );
