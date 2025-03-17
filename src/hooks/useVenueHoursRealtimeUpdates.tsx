@@ -7,7 +7,9 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    console.log('Setting up realtime subscription for venue hours');
+    if (!venueId) return; // Only set up subscription if we have a venueId
+    
+    console.log('Setting up realtime subscription for venue hours:', venueId);
     
     const hoursChannel = supabase
       .channel('venue-hours-changes')
@@ -16,7 +18,8 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
         {
           event: '*',
           schema: 'public',
-          table: 'venue_hours'
+          table: 'venue_hours',
+          filter: venueId ? `venue_id=eq.${venueId}` : undefined
         },
         (payload) => {
           console.log('Venue hours change detected:', payload);
@@ -27,8 +30,7 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
             (payload.old && typeof payload.old === 'object' && 'venue_id' in payload.old) ? payload.old.venue_id :
             null;
             
-          // Only invalidate if we're watching all venues or if this is the specific venue we're watching
-          if (payloadVenueId && (!venueId || payloadVenueId === venueId)) {
+          if (payloadVenueId) {
             queryClient.invalidateQueries({ 
               queryKey: ['venueHours', payloadVenueId]
             });

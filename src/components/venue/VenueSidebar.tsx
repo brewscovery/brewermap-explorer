@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -228,86 +229,90 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       </div>
       
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
-        {/* About section */}
-        {breweryInfo?.about && (
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm">About</h3>
-            <p className="text-sm text-muted-foreground whitespace-pre-line">{breweryInfo.about}</p>
-          </div>
-        )}
-        
-        {/* Address */}
-        <div className="space-y-2">
-          <h3 className="font-medium text-sm">Address</h3>
-          <div className="flex items-start gap-2">
-            <MapPin size={16} className="text-muted-foreground mt-0.5 flex-shrink-0" />
-            <div className="text-sm">
-              {venue.street && <p>{venue.street}</p>}
-              <p>{venue.city}, {venue.state} {venue.postal_code || ''}</p>
-              {venue.country && venue.country !== 'United States' && <p>{venue.country}</p>}
+      <div className="flex-1 overflow-y-auto p-4">
+        <div className="space-y-5">
+          {/* About section */}
+          {breweryInfo?.about && (
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm">About</h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-line">{breweryInfo.about}</p>
             </div>
+          )}
+          
+          {/* Address */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Address</h3>
+            <div className="flex items-start gap-2">
+              <MapPin size={16} className="text-muted-foreground mt-0.5 flex-shrink-0" />
+              <div className="text-sm">
+                {venue.street && <p>{venue.street}</p>}
+                <p>{venue.city}, {venue.state} {venue.postal_code || ''}</p>
+                {venue.country && venue.country !== 'United States' && <p>{venue.country}</p>}
+              </div>
+            </div>
+          </div>
+          
+          {/* Contact */}
+          {(venue.phone || venue.website_url) && (
+            <div className="space-y-2">
+              <h3 className="font-medium text-sm">Contact</h3>
+              {venue.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone size={16} className="text-muted-foreground flex-shrink-0" />
+                  <span className="text-sm">{venue.phone}</span>
+                </div>
+              )}
+              {venue.website_url && (
+                <div className="flex items-center gap-2">
+                  <Globe size={16} className="text-muted-foreground flex-shrink-0" />
+                  <a 
+                    href={venue.website_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
+                  >
+                    {venue.website_url.replace(/^https?:\/\//, '')}
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+          
+          {/* Hours - Always display regardless of user authentication */}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Hours</h3>
+            {isLoadingHours ? (
+              <p className="text-sm text-muted-foreground">Loading hours...</p>
+            ) : venueHours.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No hours available</p>
+            ) : (
+              <div className="space-y-3">
+                <HoursSection title="Operating Hours" hours={venueHours} />
+                <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+              </div>
+            )}
           </div>
         </div>
         
-        {/* Contact */}
-        {(venue.phone || venue.website_url) && (
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm">Contact</h3>
-            {venue.phone && (
-              <div className="flex items-center gap-2">
-                <Phone size={16} className="text-muted-foreground flex-shrink-0" />
-                <span className="text-sm">{venue.phone}</span>
-              </div>
-            )}
-            {venue.website_url && (
-              <div className="flex items-center gap-2">
-                <Globe size={16} className="text-muted-foreground flex-shrink-0" />
-                <a 
-                  href={venue.website_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
-                >
-                  {venue.website_url.replace(/^https?:\/\//, '')}
-                </a>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Hours - Always display regardless of user authentication */}
-        {isLoadingHours ? (
-          <div className="space-y-2">
-            <h3 className="font-medium text-sm">Hours</h3>
-            <p className="text-sm text-muted-foreground">Loading hours...</p>
-          </div>
-        ) : (
-          <>
-            <HoursSection title="Operating Hours" hours={venueHours} />
-            <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
-          </>
-        )}
-        
-        <Separator />
+        <Separator className="my-5" />
         
         {/* Check-ins - Only show if user is authenticated */}
-        {user ? (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="font-medium">Check-ins</h3>
-              {user && userType === 'regular' && (
-                <Button 
-                  size="sm" 
-                  variant="default"
-                  onClick={() => setIsCheckInDialogOpen(true)}
-                >
-                  Check In
-                </Button>
-              )}
-            </div>
-            
-            {checkins.length === 0 ? (
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h3 className="font-medium">Check-ins</h3>
+            {user && userType === 'regular' && (
+              <Button 
+                size="sm" 
+                variant="default"
+                onClick={() => setIsCheckInDialogOpen(true)}
+              >
+                Check In
+              </Button>
+            )}
+          </div>
+          
+          {user ? (
+            checkins.length === 0 ? (
               <p className="text-sm text-muted-foreground">No check-ins yet</p>
             ) : (
               <div className="space-y-4">
@@ -356,14 +361,11 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        ) : (
-          <div className="space-y-3">
-            <h3 className="font-medium">Check-ins</h3>
+            )
+          ) : (
             <p className="text-sm text-muted-foreground">Sign in to view and add check-ins</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       {/* Check-in Dialog */}
