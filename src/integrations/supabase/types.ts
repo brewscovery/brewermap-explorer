@@ -14,7 +14,9 @@ export type Database = {
           about: string | null
           brewery_type: string | null
           created_at: string
+          facebook_url: string | null
           id: string
+          instagram_url: string | null
           name: string
           updated_at: string
           website_url: string | null
@@ -23,7 +25,9 @@ export type Database = {
           about?: string | null
           brewery_type?: string | null
           created_at?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           name: string
           updated_at?: string
           website_url?: string | null
@@ -32,7 +36,9 @@ export type Database = {
           about?: string | null
           brewery_type?: string | null
           created_at?: string
+          facebook_url?: string | null
           id?: string
+          instagram_url?: string | null
           name?: string
           updated_at?: string
           website_url?: string | null

@@ -16,7 +16,7 @@ import {
 import { Input } from './ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface VenueFormData {
+interface BreweryFormData {
   name: string;
   brewery_type: string;
   street: string;
@@ -25,6 +25,8 @@ interface VenueFormData {
   postal_code: string;
   phone: string;
   website_url: string;
+  facebook_url: string;
+  instagram_url: string;
   latitude: string;
   longitude: string;
 }
@@ -34,7 +36,7 @@ interface BreweryFormProps {
 }
 
 const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
-  const form = useForm<VenueFormData>();
+  const form = useForm<BreweryFormData>();
   const { watch, setValue } = form;
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -75,7 +77,7 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
     }
   };
 
-  const onSubmit = async (data: VenueFormData) => {
+  const onSubmit = async (data: BreweryFormData) => {
     if (!user) {
       toast.error('You must be logged in to add a brewery');
       return;
@@ -94,6 +96,8 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
         postal_code: data.postal_code || null,
         phone: data.phone || null,
         website_url: data.website_url || null,
+        facebook_url: data.facebook_url || null,
+        instagram_url: data.instagram_url || null,
         latitude: data.latitude || null,
         longitude: data.longitude || null,
         created_at: new Date().toISOString(),
@@ -256,6 +260,34 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
                 <FormLabel>Website URL</FormLabel>
                 <FormControl>
                   <Input placeholder="Website URL" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="facebook_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Facebook URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="Facebook page URL" {...field} />
+                </FormControl>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="instagram_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Instagram URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="Instagram profile URL" {...field} />
                 </FormControl>
               </FormItem>
             )}
