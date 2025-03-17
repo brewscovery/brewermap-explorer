@@ -37,7 +37,7 @@ export const useVenueHours = (venueId: string | null) => {
       
       return data as VenueHour[];
     },
-    enabled: !!venueId
+    enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state
   });
   
   /**

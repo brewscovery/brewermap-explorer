@@ -20,8 +20,6 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
           filter: venueId ? `venue_id=eq.${venueId}` : undefined
         },
         (payload) => {
-          console.log('Venue hours change detected:', payload);
-          
           // If venue hours change, invalidate the specific venue hours query
           const payloadVenueId = 
             (payload.new && typeof payload.new === 'object' && 'venue_id' in payload.new) ? payload.new.venue_id :

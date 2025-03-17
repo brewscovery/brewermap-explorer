@@ -23,7 +23,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   // Set up realtime updates
   useVenueRealtimeUpdates(selectedVenue, setSelectedVenue);
   useBreweryRealtimeUpdates();
-  useVenueHoursRealtimeUpdates();
+  useVenueHoursRealtimeUpdates(selectedVenue?.id || null);
 
   return {
     venues,
