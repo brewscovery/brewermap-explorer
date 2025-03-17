@@ -5,11 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import AboutEditor from './AboutEditor';
 import VenueManagement from './VenueManagement';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
+import CreateBreweryDialog from './CreateBreweryDialog';
 
 const BreweryInfo = () => {
   const { user } = useAuth();
   const [breweryData, setBreweryData] = useState<{id: string, about: string | null} | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const fetchBreweryData = async () => {
     if (!user) return;
@@ -84,11 +88,26 @@ const BreweryInfo = () => {
 
   if (!breweryData) {
     return (
-      <div className="bg-muted/50 p-4 rounded-md text-center">
-        <p>No brewery associated with this account.</p>
-        <p className="text-sm text-muted-foreground mt-2">
-          If you own a brewery and want to claim it, please contact support.
-        </p>
+      <div>
+        <div className="bg-muted/50 p-6 rounded-md text-center">
+          <h3 className="text-lg font-medium mb-2">No brewery associated with this account</h3>
+          <p className="text-sm text-muted-foreground mb-4">
+            As a business user, you can create and manage your own brewery.
+          </p>
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="mx-auto"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Create Your Brewery
+          </Button>
+        </div>
+
+        <CreateBreweryDialog 
+          open={isCreateDialogOpen} 
+          onOpenChange={setIsCreateDialogOpen}
+          onSuccess={fetchBreweryData}
+        />
       </div>
     );
   }

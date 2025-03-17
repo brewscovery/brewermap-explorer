@@ -69,11 +69,7 @@ const Dashboard = () => {
             <div className="space-y-8">
               <BreweryInfo />
               
-              <div className="border-t pt-6">
-                <p className="text-muted-foreground">
-                  More brewery management features coming soon.
-                </p>
-              </div>
+              {/* Additional business-specific content */}
             </div>
           ) : (
             <p className="text-muted-foreground">
