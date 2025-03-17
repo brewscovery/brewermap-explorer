@@ -1,5 +1,6 @@
+
 import React, { useEffect, useState } from 'react';
-import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star } from 'lucide-react';
+import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star, Facebook, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckInDialog } from '@/components/CheckInDialog';
@@ -33,6 +34,9 @@ interface BreweryInfo {
   id: string;
   name: string;
   about: string | null;
+  website_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
 }
 
 const HoursSection = ({ title, hours, showKitchenHours = false }: { 
@@ -130,7 +134,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       
       const { data, error } = await supabase
         .from('breweries')
-        .select('id, name, about')
+        .select('id, name, about, website_url, facebook_url, instagram_url')
         .eq('id', venue.brewery_id)
         .single();
       
@@ -242,30 +246,54 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             </div>
           </div>
           
-          {(venue.phone || venue.website_url) && (
-            <div className="space-y-2">
-              <h3 className="font-medium text-sm">Contact</h3>
-              {venue.phone && (
-                <div className="flex items-center gap-2">
-                  <Phone size={16} className="text-muted-foreground flex-shrink-0" />
-                  <span className="text-sm">{venue.phone}</span>
-                </div>
-              )}
-              {venue.website_url && (
-                <div className="flex items-center gap-2">
-                  <Globe size={16} className="text-muted-foreground flex-shrink-0" />
-                  <a 
-                    href={venue.website_url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
-                  >
-                    {venue.website_url.replace(/^https?:\/\//, '')}
-                  </a>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="space-y-2">
+            <h3 className="font-medium text-sm">Contact</h3>
+            {venue.phone && (
+              <div className="flex items-center gap-2">
+                <Phone size={16} className="text-muted-foreground flex-shrink-0" />
+                <span className="text-sm">{venue.phone}</span>
+              </div>
+            )}
+            {breweryInfo?.website_url && (
+              <div className="flex items-center gap-2">
+                <Globe size={16} className="text-muted-foreground flex-shrink-0" />
+                <a 
+                  href={breweryInfo.website_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
+                >
+                  {breweryInfo.website_url.replace(/^https?:\/\//, '')}
+                </a>
+              </div>
+            )}
+            {breweryInfo?.facebook_url && (
+              <div className="flex items-center gap-2">
+                <Facebook size={16} className="text-muted-foreground flex-shrink-0" />
+                <a 
+                  href={breweryInfo.facebook_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
+                >
+                  Facebook
+                </a>
+              </div>
+            )}
+            {breweryInfo?.instagram_url && (
+              <div className="flex items-center gap-2">
+                <Instagram size={16} className="text-muted-foreground flex-shrink-0" />
+                <a 
+                  href={breweryInfo.instagram_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm text-blue-500 hover:text-blue-700 hover:underline"
+                >
+                  Instagram
+                </a>
+              </div>
+            )}
+          </div>
           
           <div className="space-y-2">
             <h3 className="font-medium text-sm">Hours</h3>
