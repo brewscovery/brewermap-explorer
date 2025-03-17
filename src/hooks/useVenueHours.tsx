@@ -9,6 +9,8 @@ import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 export const useVenueHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
   
+  console.log(`useVenueHours called with venueId: ${venueId}`);
+  
   // Setup realtime subscriptions
   useVenueHoursRealtimeUpdates(venueId);
 
@@ -21,6 +23,8 @@ export const useVenueHours = (venueId: string | null) => {
   } = useQuery({
     queryKey: ['venueHours', venueId],
     queryFn: async () => {
+      console.log(`[DEBUG] Fetching venue hours for venueId: ${venueId}`);
+      
       if (!venueId) return [];
       
       const { data, error } = await supabase
@@ -35,6 +39,7 @@ export const useVenueHours = (venueId: string | null) => {
         throw error;
       }
       
+      console.log(`[DEBUG] Venue hours data fetched:`, data);
       return data as VenueHour[];
     },
     enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state

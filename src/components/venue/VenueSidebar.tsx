@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { X, Clock, MapPin, Phone, Globe, ChevronDown, ChevronUp, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,6 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: {
   const [expanded, setExpanded] = useState(false);
   const todayIndex = getTodayDayOfWeek();
   
-  // Find today's hours
   const todayHours = hours.find(h => h.day_of_week === todayIndex);
   
   if (!hours.length) {
@@ -119,10 +117,12 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
-  // Use the useVenueHours hook to fetch venue hours - enabled regardless of auth status
+  console.log(`VenueSidebar rendering with venue ID: ${venue?.id || 'none'}`);
+  
   const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venue?.id || null);
   
-  // Fetch brewery information including the "about" section
+  console.log(`[DEBUG] VenueSidebar received hours data:`, venueHours);
+  
   const { data: breweryInfo } = useQuery({
     queryKey: ['brewery', venue?.brewery_id],
     queryFn: async () => {
@@ -140,7 +140,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     enabled: !!venue?.brewery_id
   });
   
-  // Fetch check-ins for this venue - Only if user is logged in
   const { data: checkins = [] } = useQuery({
     queryKey: ['venueCheckins', venue?.id],
     queryFn: async () => {
@@ -156,14 +155,12 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         .eq('venue_id', venue.id)
         .order('created_at', { ascending: false });
       
-      // If user is logged in, prioritize their check-ins
       if (user) {
         const { data: userCheckins, error: userCheckinsError } = await query
           .eq('user_id', user.id);
           
         if (userCheckinsError) throw userCheckinsError;
         
-        // Get other users' check-ins
         const { data: otherCheckins, error: otherCheckinsError } = await supabase
           .from('checkins')
           .select(`
@@ -176,7 +173,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
           
         if (otherCheckinsError) throw otherCheckinsError;
         
-        // Combine and return user's check-ins first, then others
         return [...(userCheckins || []), ...(otherCheckins || [])].map(item => ({
           ...item,
           first_name: item.profiles?.first_name || null,
@@ -184,7 +180,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         }));
       }
       
-      // If not logged in, just get all check-ins
       const { data, error } = await query;
       if (error) throw error;
       
@@ -198,7 +193,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   });
   
   const handleCheckInSuccess = () => {
-    // Invalidate checkins query to trigger a refresh
     queryClient.invalidateQueries({ queryKey: ['venueCheckins', venue?.id] });
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
@@ -220,7 +214,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h2 className="text-xl font-bold truncate pr-2">{venue.name}</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>
@@ -228,10 +221,8 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         </Button>
       </div>
       
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-5">
-          {/* About section */}
           {breweryInfo?.about && (
             <div className="space-y-2">
               <h3 className="font-medium text-sm">About</h3>
@@ -239,7 +230,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             </div>
           )}
           
-          {/* Address */}
           <div className="space-y-2">
             <h3 className="font-medium text-sm">Address</h3>
             <div className="flex items-start gap-2">
@@ -252,7 +242,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             </div>
           </div>
           
-          {/* Contact */}
           {(venue.phone || venue.website_url) && (
             <div className="space-y-2">
               <h3 className="font-medium text-sm">Contact</h3>
@@ -278,7 +267,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             </div>
           )}
           
-          {/* Hours - Always display regardless of user authentication */}
           <div className="space-y-2">
             <h3 className="font-medium text-sm">Hours</h3>
             {isLoadingHours ? (
@@ -296,7 +284,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         
         <Separator className="my-5" />
         
-        {/* Check-ins - Only show if user is authenticated */}
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <h3 className="font-medium">Check-ins</h3>
@@ -316,7 +303,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
               <p className="text-sm text-muted-foreground">No check-ins yet</p>
             ) : (
               <div className="space-y-4">
-                {/* User's check-ins */}
                 {userCheckins.length > 0 && (
                   <div className="space-y-3">
                     <h4 className="text-sm font-medium">Your Check-ins</h4>
@@ -336,7 +322,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
                   </div>
                 )}
                 
-                {/* Other users' check-ins */}
                 {otherCheckins.length > 0 && (
                   <div className="space-y-3">
                     {userCheckins.length > 0 && <h4 className="text-sm font-medium">Other Check-ins</h4>}
@@ -368,7 +353,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         </div>
       </div>
       
-      {/* Check-in Dialog */}
       {venue && user && (
         <CheckInDialog
           venue={venue}
