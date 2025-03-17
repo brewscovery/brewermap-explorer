@@ -10,3 +10,12 @@ export interface Brewery {
   created_at: string;
   updated_at: string;
 }
+
+export interface BreweryFormData {
+  name: string;
+  brewery_type: string;
+  website_url: string;
+  about: string;
+  facebook_url: string;
+  instagram_url: string;
+}

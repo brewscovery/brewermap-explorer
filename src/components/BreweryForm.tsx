@@ -4,24 +4,11 @@ import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from './ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from './ui/form';
-import { Input } from './ui/input';
+import { Form } from './ui/form';
 import { useAuth } from '@/contexts/AuthContext';
-
-interface BreweryFormData {
-  name: string;
-  brewery_type: string;
-  website_url: string;
-  about: string;
-  facebook_url: string;
-  instagram_url: string;
-}
+import { BreweryFormData } from '@/types/brewery';
+import GeneralInfoSection from './brewery/form/GeneralInfoSection';
+import WebsiteSection from './brewery/form/WebsiteSection';
 
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
@@ -84,86 +71,9 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Brewery name" {...field} required />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="brewery_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Type</FormLabel>
-              <FormControl>
-                <Input placeholder="micro, brewpub, etc." {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="about"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>About</FormLabel>
-              <FormControl>
-                <Input placeholder="Brief description of your brewery" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="website_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Website URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com" {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="facebook_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Facebook URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://facebook.com/yourbrewery" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="instagram_url"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Instagram URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://instagram.com/yourbrewery" {...field} />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        <GeneralInfoSection form={form} />
+        <WebsiteSection form={form} />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? 'Adding...' : 'Add Brewery'}
