@@ -41,13 +41,11 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
   // Check when the source is ready
   useEffect(() => {
     if (!sourceReady && map.getSource(source)) {
-      console.log('Source detected as ready:', source);
       setSourceReady(true);
     }
 
     const checkSource = () => {
       if (map.getSource(source)) {
-        console.log('Source ready event detected:', source);
         setSourceReady(true);
       }
     };

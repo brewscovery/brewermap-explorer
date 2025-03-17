@@ -9,8 +9,6 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
   useEffect(() => {
     if (!venueId) return; // Only set up subscription if we have a venueId
     
-    console.log('Setting up realtime subscription for venue hours:', venueId);
-    
     const hoursChannel = supabase
       .channel('venue-hours-changes')
       .on(
@@ -40,7 +38,6 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription for venue hours');
       supabase.removeChannel(hoursChannel);
     };
   }, [queryClient, venueId]);
