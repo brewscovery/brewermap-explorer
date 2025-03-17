@@ -44,13 +44,6 @@ export const useVenueHours = (venueId: string | null) => {
       
       console.log(`[DEBUG] Venue hours data fetched:`, data);
       
-      // Try a direct database query to verify if data exists
-      const { data: rawData, error: rawError } = await supabase
-        .rpc('debug_venue_hours', { venue_id_param: venueId });
-        
-      console.log('[DEBUG] Raw database query result:', rawData);
-      if (rawError) console.error('[DEBUG] Raw query error:', rawError);
-      
       return data as VenueHour[];
     },
     enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state
