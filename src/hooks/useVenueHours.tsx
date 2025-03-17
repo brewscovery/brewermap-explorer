@@ -27,6 +27,9 @@ export const useVenueHours = (venueId: string | null) => {
       
       if (!venueId) return [];
       
+      // Log the SQL query we're effectively executing
+      console.log(`[DEBUG] SQL equivalent: SELECT * FROM venue_hours WHERE venue_id = '${venueId}' ORDER BY day_of_week`);
+      
       const { data, error } = await supabase
         .from('venue_hours')
         .select('*')
@@ -40,6 +43,14 @@ export const useVenueHours = (venueId: string | null) => {
       }
       
       console.log(`[DEBUG] Venue hours data fetched:`, data);
+      
+      // Try a direct database query to verify if data exists
+      const { data: rawData, error: rawError } = await supabase
+        .rpc('debug_venue_hours', { venue_id_param: venueId });
+        
+      console.log('[DEBUG] Raw database query result:', rawData);
+      if (rawError) console.error('[DEBUG] Raw query error:', rawError);
+      
       return data as VenueHour[];
     },
     enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state
