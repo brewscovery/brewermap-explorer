@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 import { Button } from '@/components/ui/button';
@@ -14,15 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface CheckInDialogProps {
   venue: Venue;
@@ -39,6 +32,7 @@ interface CheckInFormData {
 export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDialogProps) {
   const { user } = useAuth();
   const { register, handleSubmit, setValue, reset, formState: { isSubmitting } } = useForm<CheckInFormData>();
+  const [selectedRating, setSelectedRating] = useState<number>(3);
 
   const onSubmit = async (data: CheckInFormData) => {
     try {
@@ -70,9 +64,10 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
     }
   };
 
-  // Handle rating selection with the RadioGroup
-  const handleRatingChange = (value: string) => {
-    setValue('rating', value);
+  // Handle star rating selection
+  const handleRatingChange = (value: number) => {
+    setSelectedRating(value);
+    setValue('rating', value.toString());
   };
 
   return (
@@ -87,21 +82,22 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="rating">Rating</Label>
-            <RadioGroup 
-              className="flex space-x-2" 
-              defaultValue="3" 
-              onValueChange={handleRatingChange}
-            >
+            <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((value) => (
-                <div key={value} className="flex flex-col items-center">
-                  <RadioGroupItem value={value.toString()} id={`rating-${value}`} />
-                  <Label htmlFor={`rating-${value}`} className="mt-1">
-                    {value}
-                  </Label>
-                </div>
+                <button
+                  key={value}
+                  type="button"
+                  className="flex flex-col items-center focus:outline-none"
+                  onClick={() => handleRatingChange(value)}
+                >
+                  <Star
+                    size={24}
+                    className={`${value <= selectedRating ? 'fill-amber-500 text-amber-500' : 'text-gray-300'} transition-colors`}
+                  />
+                </button>
               ))}
-            </RadioGroup>
-            <input type="hidden" {...register('rating')} />
+            </div>
+            <input type="hidden" {...register('rating')} defaultValue="3" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="comment">Comment</Label>
