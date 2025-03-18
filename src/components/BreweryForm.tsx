@@ -1,34 +1,59 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from './ui/button';
 import { Form } from './ui/form';
 import { useAuth } from '@/contexts/AuthContext';
-import { BreweryFormData } from '@/types/brewery';
+import { BreweryFormData, Brewery } from '@/types/brewery';
 import GeneralInfoSection from './brewery/form/GeneralInfoSection';
 import WebsiteSection from './brewery/form/WebsiteSection';
 
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
+  initialData?: Brewery;
+  isEditing?: boolean;
 }
 
-const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
-  const form = useForm<BreweryFormData>();
+const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormProps) => {
+  const form = useForm<BreweryFormData>({
+    defaultValues: initialData ? {
+      name: initialData.name,
+      brewery_type: initialData.brewery_type || '',
+      website_url: initialData.website_url || '',
+      about: initialData.about || '',
+      facebook_url: initialData.facebook_url || '',
+      instagram_url: initialData.instagram_url || '',
+    } : undefined
+  });
+  
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Update form when initialData changes (for editing mode)
+  useEffect(() => {
+    if (initialData && isEditing) {
+      form.reset({
+        name: initialData.name,
+        brewery_type: initialData.brewery_type || '',
+        website_url: initialData.website_url || '',
+        about: initialData.about || '',
+        facebook_url: initialData.facebook_url || '',
+        instagram_url: initialData.instagram_url || '',
+      });
+    }
+  }, [initialData, isEditing, form]);
+
   const onSubmit = async (data: BreweryFormData) => {
     if (!user) {
-      toast.error('You must be logged in to add a brewery');
+      toast.error('You must be logged in to add or edit a brewery');
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      // Insert the brewery with all required fields
       const breweryData = {
         name: data.name,
         brewery_type: data.brewery_type || null,
@@ -36,34 +61,50 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
         about: data.about || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
-        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      const { data: newBrewery, error: breweryError } = await supabase
-        .from('breweries')
-        .insert(breweryData)
-        .select()
-        .single();
+      if (isEditing && initialData) {
+        // Update existing brewery
+        const { error: breweryError } = await supabase
+          .from('breweries')
+          .update(breweryData)
+          .eq('id', initialData.id);
 
-      if (breweryError) throw breweryError;
+        if (breweryError) throw breweryError;
 
-      // Create the brewery ownership record
-      const { error: ownershipError } = await supabase
-        .from('brewery_owners')
-        .insert({
-          user_id: user.id,
-          brewery_id: newBrewery.id
-        });
+        toast.success('Brewery updated successfully!');
+      } else {
+        // Insert a new brewery
+        const { data: newBrewery, error: breweryError } = await supabase
+          .from('breweries')
+          .insert({
+            ...breweryData,
+            created_at: new Date().toISOString()
+          })
+          .select()
+          .single();
 
-      if (ownershipError) throw ownershipError;
+        if (breweryError) throw breweryError;
 
-      toast.success('Brewery added successfully!');
+        // Create the brewery ownership record
+        const { error: ownershipError } = await supabase
+          .from('brewery_owners')
+          .insert({
+            user_id: user.id,
+            brewery_id: newBrewery.id
+          });
+
+        if (ownershipError) throw ownershipError;
+
+        toast.success('Brewery added successfully!');
+      }
+
       form.reset();
       onSubmitSuccess();
     } catch (error: any) {
-      console.error('Error adding brewery:', error);
-      toast.error('Failed to add brewery');
+      console.error('Error managing brewery:', error);
+      toast.error(isEditing ? 'Failed to update brewery' : 'Failed to add brewery');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +117,9 @@ const BreweryForm = ({ onSubmitSuccess }: BreweryFormProps) => {
         <WebsiteSection form={form} />
 
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? 'Adding...' : 'Add Brewery'}
+          {isSubmitting 
+            ? (isEditing ? 'Updating...' : 'Adding...') 
+            : (isEditing ? 'Update Brewery' : 'Add Brewery')}
         </Button>
       </form>
     </Form>

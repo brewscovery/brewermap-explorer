@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Map, User, ChevronDown, LogOut, Plus } from 'lucide-react';
@@ -161,6 +160,7 @@ const Dashboard = () => {
                   selectedBrewery={selectedBrewery}
                   isLoading={isLoading}
                   onBrewerySelect={handleBrewerySelect}
+                  onAddBrewery={() => setIsCreateDialogOpen(true)}
                 />
                 
                 <CreateBreweryDialog 
@@ -170,9 +170,9 @@ const Dashboard = () => {
                 />
               </div>
               
-              {/* Show BreweryInfo only if a brewery is selected */}
+              {/* Show VenueManagement only if a brewery is selected */}
               {selectedBrewery && (
-                <div className="border-t pt-6">
+                <div>
                   <BreweryInfo breweryId={selectedBrewery.id} />
                 </div>
               )}

@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import AboutEditor from './AboutEditor';
 import VenueManagement from './VenueManagement';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -14,7 +13,7 @@ interface BreweryInfoProps {
 
 const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
   const { user } = useAuth();
-  const [breweryData, setBreweryData] = useState<{id: string, about: string | null} | null>(null);
+  const [breweryData, setBreweryData] = useState<{id: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -30,7 +29,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
         
         const { data, error } = await supabase
           .from('breweries')
-          .select('id, about')
+          .select('id')
           .eq('id', propBreweryId)
           .single();
         
@@ -69,7 +68,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
         // If user owns a brewery, fetch its details
         const { data, error } = await supabase
           .from('breweries')
-          .select('id, about')
+          .select('id')
           .eq('id', ownerData.brewery_id)
           .single();
         
@@ -92,21 +91,6 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
   useEffect(() => {
     fetchBreweryData();
   }, [user, propBreweryId]);
-
-  const handleAboutUpdate = (newAbout: string) => {
-    if (breweryData) {
-      console.log('Updating local brewery data with new about:', newAbout);
-      setBreweryData({
-        ...breweryData,
-        about: newAbout
-      });
-      
-      // Refetch data to ensure UI is in sync with database
-      setTimeout(() => {
-        fetchBreweryData();
-      }, 1000);
-    }
-  };
 
   if (loading) {
     return <div className="text-center p-4">Loading brewery information...</div>;
@@ -140,15 +124,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
 
   return (
     <div className="space-y-8">
-      <AboutEditor 
-        breweryId={breweryData.id} 
-        initialAbout={breweryData.about} 
-        onUpdate={handleAboutUpdate}
-      />
-      
-      <div className="border-t pt-6">
-        <VenueManagement breweryId={breweryData.id} />
-      </div>
+      <VenueManagement breweryId={breweryData.id} />
     </div>
   );
 };

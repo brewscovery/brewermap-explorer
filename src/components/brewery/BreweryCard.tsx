@@ -3,7 +3,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
   Edit, 
-  Building, 
   Globe,
   Facebook,
   Instagram,
