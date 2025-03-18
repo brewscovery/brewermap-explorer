@@ -69,7 +69,7 @@ const Dashboard = () => {
             <div className="space-y-8">
               <BreweryInfo />
               
-              {/* Additional business-specific content */}
+              {/* Additional business-specific content can be added here */}
             </div>
           ) : (
             <p className="text-muted-foreground">

@@ -1,4 +1,3 @@
-
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -14,6 +13,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import type { Venue } from '@/types/venue';
 import VenueHoursDisplay from '../VenueHoursDisplay';
+import { useState } from 'react';
+import VenueCheckInsDialog from './VenueCheckInsDialog';
 
 interface RatingData {
   venue_id: string;
@@ -33,6 +34,7 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
   console.log(`VenueCard for ${venue.name} (ID: ${venue.id}) with rating data:`, ratingData);
   
   const { average_rating = 0, total_checkins = 0 } = ratingData || {};
+  const [showCheckInsDialog, setShowCheckInsDialog] = useState(false);
   
   return (
     <Card key={venue.id} className="overflow-hidden transition-all hover:shadow-md">
@@ -41,7 +43,12 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
           <div>
             <CardTitle className="text-xl line-clamp-1">{venue.name}</CardTitle>
             {total_checkins > 0 && (
-              <div className="flex items-center mt-1 text-sm text-muted-foreground">
+              <div 
+                className="flex items-center mt-1 text-sm text-muted-foreground cursor-pointer hover:text-foreground"
+                onClick={() => setShowCheckInsDialog(true)}
+                role="button"
+                aria-label="View check-ins"
+              >
                 <Star className="h-4 w-4 text-amber-500 mr-1 fill-current" />
                 <span>{average_rating.toFixed(1)}</span>
                 <span className="ml-1">({total_checkins} {total_checkins === 1 ? 'check-in' : 'check-ins'})</span>
@@ -132,6 +139,12 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
           </div>
         </div>
       </CardContent>
+      
+      <VenueCheckInsDialog 
+        venue={venue}
+        isOpen={showCheckInsDialog}
+        onClose={() => setShowCheckInsDialog(false)}
+      />
     </Card>
   );
 };
