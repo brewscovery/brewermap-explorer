@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +8,11 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import CreateBreweryDialog from './CreateBreweryDialog';
 
-const BreweryInfo = () => {
+interface BreweryInfoProps {
+  breweryId?: string | null;
+}
+
+const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
   const { user } = useAuth();
   const [breweryData, setBreweryData] = useState<{id: string, about: string | null} | null>(null);
   const [loading, setLoading] = useState(true);
@@ -19,6 +22,29 @@ const BreweryInfo = () => {
     if (!user) return;
     
     try {
+      setLoading(true);
+      
+      // If a breweryId was passed directly, use that
+      if (propBreweryId) {
+        console.log('Using provided brewery ID:', propBreweryId);
+        
+        const { data, error } = await supabase
+          .from('breweries')
+          .select('id, about')
+          .eq('id', propBreweryId)
+          .single();
+        
+        if (error) {
+          console.error('Error fetching brewery details:', error);
+          throw error;
+        }
+        
+        console.log('Fetched brewery data:', data);
+        setBreweryData(data);
+        return;
+      }
+      
+      // Otherwise, find the user's brewery
       console.log('Fetching brewery data for user:', user.id);
       
       // First check if the user owns any breweries
@@ -65,7 +91,7 @@ const BreweryInfo = () => {
 
   useEffect(() => {
     fetchBreweryData();
-  }, [user]);
+  }, [user, propBreweryId]);
 
   const handleAboutUpdate = (newAbout: string) => {
     if (breweryData) {

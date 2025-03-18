@@ -1,7 +1,7 @@
 
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Map, User, ChevronDown, LogOut } from 'lucide-react';
+import { Map, User, ChevronDown, LogOut, Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -13,15 +13,89 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { useState, useEffect } from 'react';
+import { Brewery } from '@/types/brewery';
+import BreweryList from '@/components/brewery/BreweryList';
+import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user, userType, firstName, lastName } = useAuth();
+  const [breweries, setBreweries] = useState<Brewery[]>([]);
+  const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
   // Display name based on user type
   const displayName = userType === 'business' 
     ? firstName || 'Business'
     : `${firstName || ''} ${lastName || 'User'}`.trim();
+
+  const fetchBreweries = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      
+      // First fetch brewery IDs owned by this user
+      const { data: ownerData, error: ownerError } = await supabase
+        .from('brewery_owners')
+        .select('brewery_id')
+        .eq('user_id', user.id);
+      
+      if (ownerError) throw ownerError;
+      
+      if (ownerData && ownerData.length > 0) {
+        // Get all brewery IDs
+        const breweryIds = ownerData.map(item => item.brewery_id);
+        
+        // Fetch the brewery details
+        const { data: breweriesData, error: breweriesError } = await supabase
+          .from('breweries')
+          .select('*')
+          .in('id', breweryIds);
+          
+        if (breweriesError) throw breweriesError;
+        
+        if (breweriesData && breweriesData.length > 0) {
+          setBreweries(breweriesData);
+          
+          // If there's only one brewery, select it automatically
+          if (breweriesData.length === 1) {
+            setSelectedBrewery(breweriesData[0]);
+          } else if (selectedBrewery === null && breweriesData.length > 0) {
+            // Default to first brewery if none selected
+            setSelectedBrewery(breweriesData[0]);
+          } else if (selectedBrewery) {
+            // Make sure the selected brewery is still in the list
+            const stillExists = breweriesData.find(b => b.id === selectedBrewery.id);
+            if (!stillExists) {
+              setSelectedBrewery(breweriesData[0]);
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching breweries:', error);
+      toast.error('Failed to load breweries');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user && userType === 'business') {
+      fetchBreweries();
+    }
+  }, [user, userType]);
+
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+  };
+
+  const handleNewBreweryAdded = () => {
+    fetchBreweries();
+  };
 
   const handleLogout = async () => {
     try {
@@ -67,9 +141,41 @@ const Dashboard = () => {
           
           {userType === 'business' ? (
             <div className="space-y-8">
-              <BreweryInfo />
+              {/* Brewery Management Section */}
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">Your Breweries</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Select a brewery to manage its venues
+                    </p>
+                  </div>
+                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                    <Plus className="mr-2" size={18} />
+                    Add Brewery
+                  </Button>
+                </div>
+                
+                <BreweryList 
+                  breweries={breweries}
+                  selectedBrewery={selectedBrewery}
+                  isLoading={isLoading}
+                  onBrewerySelect={handleBrewerySelect}
+                />
+                
+                <CreateBreweryDialog 
+                  open={isCreateDialogOpen} 
+                  onOpenChange={setIsCreateDialogOpen}
+                  onSuccess={handleNewBreweryAdded}
+                />
+              </div>
               
-              {/* Additional business-specific content can be added here */}
+              {/* Show BreweryInfo only if a brewery is selected */}
+              {selectedBrewery && (
+                <div className="border-t pt-6">
+                  <BreweryInfo breweryId={selectedBrewery.id} />
+                </div>
+              )}
             </div>
           ) : (
             <p className="text-muted-foreground">
