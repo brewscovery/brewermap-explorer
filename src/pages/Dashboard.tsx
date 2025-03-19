@@ -28,10 +28,8 @@ const Dashboard = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
-  // Enable real-time updates for breweries and pass the selected brewery
   useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery);
   
-  // Display name based on user type
   const displayName = userType === 'business' 
     ? firstName || 'Business'
     : `${firstName || ''} ${lastName || 'User'}`.trim();
@@ -43,7 +41,6 @@ const Dashboard = () => {
       setIsLoading(true);
       console.log('Fetching breweries for user:', user.id);
       
-      // First fetch brewery IDs owned by this user
       const { data: ownerData, error: ownerError } = await supabase
         .from('brewery_owners')
         .select('brewery_id')
@@ -52,11 +49,9 @@ const Dashboard = () => {
       if (ownerError) throw ownerError;
       
       if (ownerData && ownerData.length > 0) {
-        // Get all brewery IDs
         const breweryIds = ownerData.map(item => item.brewery_id);
         console.log('Found brewery IDs:', breweryIds);
         
-        // Fetch the brewery details
         const { data: breweriesData, error: breweriesError } = await supabase
           .from('breweries')
           .select('*')
@@ -67,23 +62,18 @@ const Dashboard = () => {
         if (breweriesData && breweriesData.length > 0) {
           console.log('Fetched brewery data:', breweriesData);
           
-          // Update React Query cache with the fresh data
           queryClient.setQueryData(['breweries'], breweriesData);
           
           setBreweries(breweriesData);
           
-          // If there's only one brewery, select it automatically
           if (breweriesData.length === 1) {
             setSelectedBrewery(breweriesData[0]);
           } else if (selectedBrewery === null && breweriesData.length > 0) {
-            // Default to first brewery if none selected
             setSelectedBrewery(breweriesData[0]);
           } else if (selectedBrewery) {
-            // Make sure the selected brewery is still in the list and update it with latest data
             const updatedBrewery = breweriesData.find(b => b.id === selectedBrewery.id);
             if (updatedBrewery) {
               setSelectedBrewery(updatedBrewery);
-              // Also update the specific brewery in the cache
               queryClient.setQueryData(['brewery', updatedBrewery.id], updatedBrewery);
             } else {
               setSelectedBrewery(breweriesData[0]);
@@ -107,18 +97,15 @@ const Dashboard = () => {
     }
   };
 
-  // Simpler approach to react to cache invalidation
   useEffect(() => {
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      // Only refresh if we have a user and they're a business type
       if (!user || userType !== 'business') return;
       
-      // Check if any brewery queries were invalidated
-      if (event.type === 'invalidated' || event.type === 'removed') {
+      if (event.type === 'updated' || event.type === 'removed') {
         const queryKey = event.query?.queryKey;
         if (Array.isArray(queryKey) && 
             (queryKey[0] === 'breweries' || queryKey[0] === 'brewery')) {
-          console.log('Brewery query was invalidated, refreshing data');
+          console.log('Brewery query was updated, refreshing data');
           fetchBreweries();
         }
       }
@@ -135,7 +122,6 @@ const Dashboard = () => {
     }
   }, [user, userType]);
 
-  // Subscribe to real-time updates for brewery-related tables
   useEffect(() => {
     if (!user) return;
     
@@ -215,7 +201,6 @@ const Dashboard = () => {
           
           {userType === 'business' ? (
             <div className="space-y-8">
-              {/* Brewery Management Section */}
               <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                   <div>
@@ -245,7 +230,6 @@ const Dashboard = () => {
                 />
               </div>
               
-              {/* Show VenueManagement only if a brewery is selected */}
               {selectedBrewery && (
                 <div>
                   <BreweryInfo breweryId={selectedBrewery.id} />
