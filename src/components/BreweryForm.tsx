@@ -54,6 +54,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
 
     setIsSubmitting(true);
     console.log('Form submission started with data:', data);
+    console.log('Current user ID:', user.id);
 
     try {
       const breweryData = {
@@ -69,6 +70,25 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
 
       if (isEditing && initialData) {
         console.log('Updating existing brewery with ID:', initialData.id);
+        
+        // Check brewery ownership first
+        const { data: ownershipData, error: ownershipError } = await supabase
+          .from('brewery_owners')
+          .select('brewery_id')
+          .eq('brewery_id', initialData.id)
+          .eq('user_id', user.id);
+          
+        if (ownershipError) {
+          console.error('Error checking brewery ownership:', ownershipError);
+          throw new Error(`Ownership verification failed: ${ownershipError.message}`);
+        }
+        
+        console.log('Ownership check result:', ownershipData);
+        
+        if (!ownershipData || ownershipData.length === 0) {
+          console.error('User does not own this brewery. User ID:', user.id, 'Brewery ID:', initialData.id);
+          throw new Error('You do not have permission to update this brewery');
+        }
         
         // Update existing brewery
         const { data: updatedData, error: breweryError } = await supabase
