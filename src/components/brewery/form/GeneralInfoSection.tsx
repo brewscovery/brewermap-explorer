@@ -7,6 +7,7 @@ import {
   FormLabel,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { BreweryFormData } from '../../../types/brewery';
 
@@ -52,7 +53,12 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
           <FormItem>
             <FormLabel>About</FormLabel>
             <FormControl>
-              <Input placeholder="Brief description of your brewery" {...field} />
+              <Textarea 
+                placeholder="Describe your brewery (up to 1000 characters)" 
+                className="min-h-[120px]"
+                maxLength={1000}
+                {...field} 
+              />
             </FormControl>
           </FormItem>
         )}
