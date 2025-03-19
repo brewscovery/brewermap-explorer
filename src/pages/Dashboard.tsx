@@ -18,6 +18,7 @@ import { Brewery } from '@/types/brewery';
 import BreweryList from '@/components/brewery/BreweryList';
 import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
 import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const Dashboard = () => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   // Enable real-time updates for breweries
   useBreweryRealtimeUpdates();
@@ -65,6 +67,10 @@ const Dashboard = () => {
         
         if (breweriesData && breweriesData.length > 0) {
           console.log('Fetched brewery data:', breweriesData);
+          
+          // Update React Query cache with the fresh data
+          queryClient.setQueryData(['breweries'], breweriesData);
+          
           setBreweries(breweriesData);
           
           // If there's only one brewery, select it automatically
@@ -78,6 +84,8 @@ const Dashboard = () => {
             const updatedBrewery = breweriesData.find(b => b.id === selectedBrewery.id);
             if (updatedBrewery) {
               setSelectedBrewery(updatedBrewery);
+              // Also update the specific brewery in the cache
+              queryClient.setQueryData(['brewery', updatedBrewery.id], updatedBrewery);
             } else {
               setSelectedBrewery(breweriesData[0]);
             }
@@ -99,6 +107,26 @@ const Dashboard = () => {
       setIsLoading(false);
     }
   };
+
+  // Refresh brewery data when React Query signals cache invalidation
+  useEffect(() => {
+    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
+      const breweryQueries = queryClient.getQueryCache().findAll({
+        predicate: query => query.queryKey[0] === 'breweries' || 
+                           (Array.isArray(query.queryKey) && 
+                            query.queryKey[0] === 'brewery')
+      });
+      
+      if (breweryQueries.some(query => query.state.status === 'success' && query.state.dataUpdateCount > 0)) {
+        console.log('Brewery queries were updated, refreshing data');
+        fetchBreweries();
+      }
+    });
+    
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     if (user && userType === 'business') {
