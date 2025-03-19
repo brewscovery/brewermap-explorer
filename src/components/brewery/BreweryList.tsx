@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { Brewery } from "@/types/brewery";
 import BreweryCard from "./BreweryCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import BreweryForm from "@/components/BreweryForm";
 
@@ -26,28 +26,6 @@ const BreweryList = ({
 }: BreweryListProps) => {
   const [editingBrewery, setEditingBrewery] = useState<Brewery | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
-
-  // Update editing brewery when the selected brewery changes or when breweries array updates
-  useEffect(() => {
-    if (editingBrewery) {
-      const updatedBrewery = breweries.find(b => b.id === editingBrewery.id);
-      if (updatedBrewery && JSON.stringify(updatedBrewery) !== JSON.stringify(editingBrewery)) {
-        console.log('Updating editing brewery with latest data:', updatedBrewery);
-        setEditingBrewery(updatedBrewery);
-      }
-    }
-  }, [breweries, editingBrewery]);
-
-  // Also update the selected brewery when breweries change (real-time updates)
-  useEffect(() => {
-    if (selectedBrewery) {
-      const updatedSelectedBrewery = breweries.find(b => b.id === selectedBrewery.id);
-      if (updatedSelectedBrewery && JSON.stringify(updatedSelectedBrewery) !== JSON.stringify(selectedBrewery)) {
-        console.log('Updating selected brewery with latest data:', updatedSelectedBrewery);
-        onBrewerySelect(updatedSelectedBrewery);
-      }
-    }
-  }, [breweries, selectedBrewery, onBrewerySelect]);
 
   const handleEditBrewery = (brewery: Brewery) => {
     console.log('Starting to edit brewery:', brewery);

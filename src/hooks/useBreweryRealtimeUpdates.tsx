@@ -6,7 +6,9 @@ import type { Brewery } from '@/types/brewery';
 
 export const useBreweryRealtimeUpdates = (
   selectedBrewery: Brewery | null,
-  setSelectedBrewery: (brewery: Brewery | null) => void
+  setSelectedBrewery: (brewery: Brewery | null) => void,
+  breweries?: Brewery[],
+  setBreweries?: (breweries: Brewery[]) => void
 ) => {
   const queryClient = useQueryClient();
 
@@ -42,6 +44,16 @@ export const useBreweryRealtimeUpdates = (
               setSelectedBrewery(payload.new as Brewery);
             }
             
+            // If we have access to the breweries array and the setBreweries function, update it directly
+            if (breweries && setBreweries && payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+              const updatedBrewery = payload.new as Brewery;
+              const updatedBreweries = breweries.map(brewery => 
+                brewery.id === updatedBrewery.id ? updatedBrewery : brewery
+              );
+              console.log('Directly updating breweries array with real-time data');
+              setBreweries(updatedBreweries);
+            }
+            
             // Just invalidate, don't update the cache directly
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
@@ -64,6 +76,14 @@ export const useBreweryRealtimeUpdates = (
                 selectedBrewery.id === payload.old.id) {
               console.log('Selected brewery was deleted, deselecting it');
               setSelectedBrewery(null);
+            }
+            
+            // If we have access to the breweries array and the setBreweries function, update it directly
+            if (breweries && setBreweries && payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
+              const deletedBreweryId = payload.old.id;
+              const updatedBreweries = breweries.filter(brewery => brewery.id !== deletedBreweryId);
+              console.log('Directly updating breweries array after deletion');
+              setBreweries(updatedBreweries);
             }
             
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
@@ -108,5 +128,5 @@ export const useBreweryRealtimeUpdates = (
       supabase.removeChannel(breweryChangesChannel);
       supabase.removeChannel(ownersChannel);
     };
-  }, [queryClient, selectedBrewery, setSelectedBrewery]);
+  }, [queryClient, selectedBrewery, setSelectedBrewery, breweries, setBreweries]);
 };

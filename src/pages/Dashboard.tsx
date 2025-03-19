@@ -17,7 +17,6 @@ import { Brewery } from '@/types/brewery';
 import BreweryList from '@/components/brewery/BreweryList';
 import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
 import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
-import { useQueryClient } from '@tanstack/react-query';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -26,10 +25,9 @@ const Dashboard = () => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const queryClient = useQueryClient();
   const isUpdatingRef = useRef(false);
   
-  useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery);
+  useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery, breweries, setBreweries);
   
   const displayName = userType === 'business' 
     ? firstName || 'Business'
