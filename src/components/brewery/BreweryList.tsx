@@ -27,7 +27,7 @@ const BreweryList = ({
   const [editingBrewery, setEditingBrewery] = useState<Brewery | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
-  // Update editing brewery when the selected brewery changes
+  // Update editing brewery when the selected brewery changes or when breweries array updates
   useEffect(() => {
     if (editingBrewery) {
       const updatedBrewery = breweries.find(b => b.id === editingBrewery.id);
@@ -37,6 +37,17 @@ const BreweryList = ({
       }
     }
   }, [breweries, editingBrewery]);
+
+  // Also update the selected brewery when breweries change (real-time updates)
+  useEffect(() => {
+    if (selectedBrewery) {
+      const updatedSelectedBrewery = breweries.find(b => b.id === selectedBrewery.id);
+      if (updatedSelectedBrewery && JSON.stringify(updatedSelectedBrewery) !== JSON.stringify(selectedBrewery)) {
+        console.log('Updating selected brewery with latest data:', updatedSelectedBrewery);
+        onBrewerySelect(updatedSelectedBrewery);
+      }
+    }
+  }, [breweries, selectedBrewery, onBrewerySelect]);
 
   const handleEditBrewery = (brewery: Brewery) => {
     console.log('Starting to edit brewery:', brewery);

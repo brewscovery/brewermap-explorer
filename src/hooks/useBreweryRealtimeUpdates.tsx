@@ -9,9 +9,9 @@ export const useBreweryRealtimeUpdates = () => {
   useEffect(() => {
     console.log('Setting up realtime subscription for breweries');
     
-    // Subscribe to changes in the breweries table
-    const breweryChannel = supabase
-      .channel('breweries-changes')
+    // Create a single channel for all brewery-related changes to make it more efficient
+    const breweryChangesChannel = supabase
+      .channel('brewery-data-changes')
       .on(
         'postgres_changes',
         {
@@ -20,28 +20,47 @@ export const useBreweryRealtimeUpdates = () => {
           table: 'breweries'
         },
         (payload) => {
-          console.log('Brewery change detected:', payload);
+          console.log('Brewery data change detected:', payload);
           
-          // Invalidate any queries that might contain brewery data
-          queryClient.invalidateQueries({ queryKey: ['breweries'] });
-          
-          // If a specific brewery was changed, invalidate its data
-          if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
-            console.log('Invalidating query for specific brewery:', payload.new.id);
-            queryClient.invalidateQueries({ 
-              queryKey: ['brewery', payload.new.id]
-            });
+          // Handle different types of events
+          if (payload.eventType === 'INSERT') {
+            console.log('New brewery created:', payload.new);
+            // Invalidate the breweries list query
+            queryClient.invalidateQueries({ queryKey: ['breweries'] });
+          } 
+          else if (payload.eventType === 'UPDATE') {
+            console.log('Brewery updated:', payload.new);
+            // Invalidate both the collection and the specific item
+            queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
-            // Also invalidate brewery stats
-            queryClient.invalidateQueries({
-              queryKey: ['brewery-stats', payload.new.id]
-            });
+            if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
+              console.log('Invalidating query for specific brewery:', payload.new.id);
+              queryClient.invalidateQueries({ 
+                queryKey: ['brewery', payload.new.id]
+              });
+              
+              // Also invalidate brewery stats
+              queryClient.invalidateQueries({
+                queryKey: ['brewery-stats', payload.new.id]
+              });
+            }
+          }
+          else if (payload.eventType === 'DELETE') {
+            console.log('Brewery deleted:', payload.old);
+            // Invalidate the breweries list query
+            queryClient.invalidateQueries({ queryKey: ['breweries'] });
+            
+            if (payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
+              // Remove the specific brewery from the cache
+              queryClient.removeQueries({ queryKey: ['brewery', payload.old.id] });
+              queryClient.removeQueries({ queryKey: ['brewery-stats', payload.old.id] });
+            }
           }
         }
       )
       .subscribe();
 
-    // Subscribe to changes in the brewery_owners table
+    // Subscribe to changes in the brewery_owners table (separate channel)
     const ownersChannel = supabase
       .channel('brewery-owners-changes')
       .on(
@@ -69,7 +88,7 @@ export const useBreweryRealtimeUpdates = () => {
 
     return () => {
       console.log('Cleaning up realtime subscriptions for breweries');
-      supabase.removeChannel(breweryChannel);
+      supabase.removeChannel(breweryChangesChannel);
       supabase.removeChannel(ownersChannel);
     };
   }, [queryClient]);
