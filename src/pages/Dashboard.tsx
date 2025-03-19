@@ -1,3 +1,4 @@
+
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Map, User, ChevronDown, LogOut, Plus } from 'lucide-react';
@@ -16,6 +17,7 @@ import { useState, useEffect } from 'react';
 import { Brewery } from '@/types/brewery';
 import BreweryList from '@/components/brewery/BreweryList';
 import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
+import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -24,6 +26,9 @@ const Dashboard = () => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  // Enable real-time updates for breweries
+  useBreweryRealtimeUpdates();
   
   // Display name based on user type
   const displayName = userType === 'business' 
@@ -35,6 +40,7 @@ const Dashboard = () => {
     
     try {
       setIsLoading(true);
+      console.log('Fetching breweries for user:', user.id);
       
       // First fetch brewery IDs owned by this user
       const { data: ownerData, error: ownerError } = await supabase
@@ -47,6 +53,7 @@ const Dashboard = () => {
       if (ownerData && ownerData.length > 0) {
         // Get all brewery IDs
         const breweryIds = ownerData.map(item => item.brewery_id);
+        console.log('Found brewery IDs:', breweryIds);
         
         // Fetch the brewery details
         const { data: breweriesData, error: breweriesError } = await supabase
@@ -57,6 +64,7 @@ const Dashboard = () => {
         if (breweriesError) throw breweriesError;
         
         if (breweriesData && breweriesData.length > 0) {
+          console.log('Fetched brewery data:', breweriesData);
           setBreweries(breweriesData);
           
           // If there's only one brewery, select it automatically
@@ -66,13 +74,23 @@ const Dashboard = () => {
             // Default to first brewery if none selected
             setSelectedBrewery(breweriesData[0]);
           } else if (selectedBrewery) {
-            // Make sure the selected brewery is still in the list
-            const stillExists = breweriesData.find(b => b.id === selectedBrewery.id);
-            if (!stillExists) {
+            // Make sure the selected brewery is still in the list and update it with latest data
+            const updatedBrewery = breweriesData.find(b => b.id === selectedBrewery.id);
+            if (updatedBrewery) {
+              setSelectedBrewery(updatedBrewery);
+            } else {
               setSelectedBrewery(breweriesData[0]);
             }
           }
+        } else {
+          console.log('No breweries found for this user');
+          setBreweries([]);
+          setSelectedBrewery(null);
         }
+      } else {
+        console.log('No brewery ownership records found for this user');
+        setBreweries([]);
+        setSelectedBrewery(null);
       }
     } catch (error) {
       console.error('Error fetching breweries:', error);
@@ -87,6 +105,34 @@ const Dashboard = () => {
       fetchBreweries();
     }
   }, [user, userType]);
+
+  // Subscribe to real-time updates for brewery-related tables
+  useEffect(() => {
+    if (!user) return;
+    
+    console.log('Setting up subscription to brewery_owners table');
+    const ownershipChannel = supabase
+      .channel('brewery-ownership-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'brewery_owners',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Brewery ownership change detected:', payload);
+          fetchBreweries();
+        }
+      )
+      .subscribe();
+      
+    return () => {
+      console.log('Cleaning up brewery_owners subscription');
+      supabase.removeChannel(ownershipChannel);
+    };
+  }, [user]);
 
   const handleBrewerySelect = (brewery: Brewery) => {
     setSelectedBrewery(brewery);

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import type { Brewery } from "@/types/brewery";
 import BreweryCard from "./BreweryCard";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import BreweryForm from "@/components/BreweryForm";
 
@@ -27,15 +27,27 @@ const BreweryList = ({
   const [editingBrewery, setEditingBrewery] = useState<Brewery | null>(null);
   const [isEditSheetOpen, setIsEditSheetOpen] = useState(false);
 
+  // Update editing brewery when the selected brewery changes
+  useEffect(() => {
+    if (editingBrewery) {
+      const updatedBrewery = breweries.find(b => b.id === editingBrewery.id);
+      if (updatedBrewery && JSON.stringify(updatedBrewery) !== JSON.stringify(editingBrewery)) {
+        console.log('Updating editing brewery with latest data:', updatedBrewery);
+        setEditingBrewery(updatedBrewery);
+      }
+    }
+  }, [breweries, editingBrewery]);
+
   const handleEditBrewery = (brewery: Brewery) => {
+    console.log('Starting to edit brewery:', brewery);
     setEditingBrewery(brewery);
     setIsEditSheetOpen(true);
   };
 
   const handleEditSuccess = () => {
     setIsEditSheetOpen(false);
-    // Typically we would refetch the breweries list here
-    // But for now, we're just closing the sheet
+    // The brewery list will update automatically via the real-time subscription
+    console.log('Edit successful, closing sheet');
   };
 
   if (isLoading) {
