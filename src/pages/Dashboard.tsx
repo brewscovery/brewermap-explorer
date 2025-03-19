@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Brewery } from '@/types/brewery';
 import BreweryList from '@/components/brewery/BreweryList';
 import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
@@ -27,6 +27,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const isUpdatingRef = useRef(false);
   
   useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery);
   
@@ -35,9 +36,10 @@ const Dashboard = () => {
     : `${firstName || ''} ${lastName || 'User'}`.trim();
 
   const fetchBreweries = async () => {
-    if (!user) return;
+    if (!user || isUpdatingRef.current) return;
     
     try {
+      isUpdatingRef.current = true;
       setIsLoading(true);
       console.log('Fetching breweries for user:', user.id);
       
@@ -62,8 +64,6 @@ const Dashboard = () => {
         if (breweriesData && breweriesData.length > 0) {
           console.log('Fetched brewery data:', breweriesData);
           
-          queryClient.setQueryData(['breweries'], breweriesData);
-          
           setBreweries(breweriesData);
           
           if (breweriesData.length === 1) {
@@ -74,7 +74,6 @@ const Dashboard = () => {
             const updatedBrewery = breweriesData.find(b => b.id === selectedBrewery.id);
             if (updatedBrewery) {
               setSelectedBrewery(updatedBrewery);
-              queryClient.setQueryData(['brewery', updatedBrewery.id], updatedBrewery);
             } else {
               setSelectedBrewery(breweriesData[0]);
             }
@@ -94,27 +93,11 @@ const Dashboard = () => {
       toast.error('Failed to load breweries');
     } finally {
       setIsLoading(false);
+      setTimeout(() => {
+        isUpdatingRef.current = false;
+      }, 500);
     }
   };
-
-  useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
-      if (!user || userType !== 'business') return;
-      
-      if (event.type === 'updated' || event.type === 'removed') {
-        const queryKey = event.query?.queryKey;
-        if (Array.isArray(queryKey) && 
-            (queryKey[0] === 'breweries' || queryKey[0] === 'brewery')) {
-          console.log('Brewery query was updated, refreshing data');
-          fetchBreweries();
-        }
-      }
-    });
-    
-    return () => {
-      unsubscribe();
-    };
-  }, [queryClient, user, userType]);
 
   useEffect(() => {
     if (user && userType === 'business') {
@@ -138,7 +121,9 @@ const Dashboard = () => {
         },
         (payload) => {
           console.log('Brewery ownership change detected:', payload);
-          fetchBreweries();
+          if (!isUpdatingRef.current) {
+            fetchBreweries();
+          }
         }
       )
       .subscribe();
@@ -154,7 +139,9 @@ const Dashboard = () => {
   };
 
   const handleNewBreweryAdded = () => {
-    fetchBreweries();
+    if (!isUpdatingRef.current) {
+      fetchBreweries();
+    }
   };
 
   const handleLogout = async () => {

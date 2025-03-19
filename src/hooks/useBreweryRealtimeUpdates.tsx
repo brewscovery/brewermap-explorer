@@ -29,7 +29,7 @@ export const useBreweryRealtimeUpdates = (
           // Handle different types of events
           if (payload.eventType === 'INSERT') {
             console.log('New brewery created:', payload.new);
-            // Invalidate the breweries list query
+            // Only invalidate queries, don't directly update them
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
           } 
           else if (payload.eventType === 'UPDATE') {
@@ -42,7 +42,7 @@ export const useBreweryRealtimeUpdates = (
               setSelectedBrewery(payload.new as Brewery);
             }
             
-            // Invalidate both the collection and the specific item
+            // Just invalidate, don't update the cache directly
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
             if (payload.new && typeof payload.new === 'object' && 'id' in payload.new) {
@@ -51,7 +51,6 @@ export const useBreweryRealtimeUpdates = (
                 queryKey: ['brewery', payload.new.id]
               });
               
-              // Also invalidate brewery stats
               queryClient.invalidateQueries({
                 queryKey: ['brewery-stats', payload.new.id]
               });
@@ -67,11 +66,9 @@ export const useBreweryRealtimeUpdates = (
               setSelectedBrewery(null);
             }
             
-            // Invalidate the breweries list query
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
             if (payload.old && typeof payload.old === 'object' && 'id' in payload.old) {
-              // Remove the specific brewery from the cache
               queryClient.removeQueries({ queryKey: ['brewery', payload.old.id] });
               queryClient.removeQueries({ queryKey: ['brewery-stats', payload.old.id] });
             }
@@ -93,7 +90,7 @@ export const useBreweryRealtimeUpdates = (
         (payload) => {
           console.log('Brewery ownership change detected:', payload);
           
-          // Invalidate broader queries that might be affected by ownership changes
+          // Only invalidate, don't update
           queryClient.invalidateQueries({ queryKey: ['breweries'] });
           
           if (payload.new && typeof payload.new === 'object' && 'brewery_id' in payload.new) {
