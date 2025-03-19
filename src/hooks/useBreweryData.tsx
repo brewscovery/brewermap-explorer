@@ -46,18 +46,9 @@ export const useBreweryData = (initialSearchTerm = '', initialSearchType: 'name'
       if (error) throw error;
       return data || [];
     },
-    // Ensure we're not caching this data for too long
-    staleTime: 1000 * 60, // 1 minute
+    // Short stale time to ensure fresh data
+    staleTime: 1000 * 30, // 30 seconds
   });
-
-  // Update the selected brewery if it's in the new data
-  if (selectedBrewery && breweries) {
-    const updatedBrewery = breweries.find(b => b.id === selectedBrewery.id);
-    if (updatedBrewery && JSON.stringify(updatedBrewery) !== JSON.stringify(selectedBrewery)) {
-      console.log('Updating selected brewery in useBreweryData:', updatedBrewery);
-      setSelectedBrewery(updatedBrewery);
-    }
-  }
 
   const updateSearch = (newTerm: string, newType: 'name' | 'city' | 'country') => {
     setSearchTerm(newTerm);

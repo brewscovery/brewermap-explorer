@@ -1,4 +1,3 @@
-
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Map, User, ChevronDown, LogOut, Plus } from 'lucide-react';
@@ -29,8 +28,8 @@ const Dashboard = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
-  // Enable real-time updates for breweries
-  useBreweryRealtimeUpdates();
+  // Enable real-time updates for breweries and pass the selected brewery
+  useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery);
   
   // Display name based on user type
   const displayName = userType === 'business' 
@@ -108,25 +107,27 @@ const Dashboard = () => {
     }
   };
 
-  // Refresh brewery data when React Query signals cache invalidation
+  // Simpler approach to react to cache invalidation
   useEffect(() => {
-    const unsubscribe = queryClient.getQueryCache().subscribe(() => {
-      const breweryQueries = queryClient.getQueryCache().findAll({
-        predicate: query => query.queryKey[0] === 'breweries' || 
-                           (Array.isArray(query.queryKey) && 
-                            query.queryKey[0] === 'brewery')
-      });
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      // Only refresh if we have a user and they're a business type
+      if (!user || userType !== 'business') return;
       
-      if (breweryQueries.some(query => query.state.status === 'success' && query.state.dataUpdateCount > 0)) {
-        console.log('Brewery queries were updated, refreshing data');
-        fetchBreweries();
+      // Check if any brewery queries were invalidated
+      if (event.type === 'invalidated' || event.type === 'removed') {
+        const queryKey = event.query?.queryKey;
+        if (Array.isArray(queryKey) && 
+            (queryKey[0] === 'breweries' || queryKey[0] === 'brewery')) {
+          console.log('Brewery query was invalidated, refreshing data');
+          fetchBreweries();
+        }
       }
     });
     
     return () => {
       unsubscribe();
     };
-  }, [queryClient]);
+  }, [queryClient, user, userType]);
 
   useEffect(() => {
     if (user && userType === 'business') {

@@ -2,8 +2,12 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { Brewery } from '@/types/brewery';
 
-export const useBreweryRealtimeUpdates = () => {
+export const useBreweryRealtimeUpdates = (
+  selectedBrewery: Brewery | null,
+  setSelectedBrewery: (brewery: Brewery | null) => void
+) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -30,6 +34,14 @@ export const useBreweryRealtimeUpdates = () => {
           } 
           else if (payload.eventType === 'UPDATE') {
             console.log('Brewery updated:', payload.new);
+            
+            // If this is the currently selected brewery, update it directly
+            if (selectedBrewery && payload.new && typeof payload.new === 'object' && 'id' in payload.new && 
+                selectedBrewery.id === payload.new.id) {
+              console.log('Directly updating selected brewery with real-time data:', payload.new);
+              setSelectedBrewery(payload.new as Brewery);
+            }
+            
             // Invalidate both the collection and the specific item
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
@@ -47,6 +59,14 @@ export const useBreweryRealtimeUpdates = () => {
           }
           else if (payload.eventType === 'DELETE') {
             console.log('Brewery deleted:', payload.old);
+            
+            // If this is the currently selected brewery, deselect it
+            if (selectedBrewery && payload.old && typeof payload.old === 'object' && 'id' in payload.old && 
+                selectedBrewery.id === payload.old.id) {
+              console.log('Selected brewery was deleted, deselecting it');
+              setSelectedBrewery(null);
+            }
+            
             // Invalidate the breweries list query
             queryClient.invalidateQueries({ queryKey: ['breweries'] });
             
@@ -91,5 +111,5 @@ export const useBreweryRealtimeUpdates = () => {
       supabase.removeChannel(breweryChangesChannel);
       supabase.removeChannel(ownersChannel);
     };
-  }, [queryClient]);
+  }, [queryClient, selectedBrewery, setSelectedBrewery]);
 };
