@@ -34,6 +34,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
   // Update form when initialData changes (for editing mode)
   useEffect(() => {
     if (initialData && isEditing) {
+      console.log('Updating form with initialData:', initialData);
       form.reset({
         name: initialData.name,
         brewery_type: initialData.brewery_type || '',
@@ -52,6 +53,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
     }
 
     setIsSubmitting(true);
+    console.log('Form submission started with data:', data);
 
     try {
       const breweryData = {
@@ -63,18 +65,32 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         instagram_url: data.instagram_url || null,
         updated_at: new Date().toISOString()
       };
+      console.log('Prepared brewery data for submission:', breweryData);
 
       if (isEditing && initialData) {
+        console.log('Updating existing brewery with ID:', initialData.id);
+        
         // Update existing brewery
-        const { error: breweryError } = await supabase
+        const { data: updatedData, error: breweryError } = await supabase
           .from('breweries')
           .update(breweryData)
-          .eq('id', initialData.id);
+          .eq('id', initialData.id)
+          .select();
 
-        if (breweryError) throw breweryError;
+        if (breweryError) {
+          console.error('Error updating brewery:', breweryError);
+          throw breweryError;
+        }
 
+        if (!updatedData || updatedData.length === 0) {
+          console.error('No rows were updated in the database. This could be a permissions issue.');
+          throw new Error('Failed to update brewery. No rows were affected.');
+        }
+
+        console.log('Brewery successfully updated:', updatedData);
         toast.success('Brewery updated successfully!');
       } else {
+        console.log('Creating new brewery');
         // Insert a new brewery
         const { data: newBrewery, error: breweryError } = await supabase
           .from('breweries')
@@ -85,18 +101,28 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
           .select()
           .single();
 
-        if (breweryError) throw breweryError;
+        if (breweryError) {
+          console.error('Error creating brewery:', breweryError);
+          throw breweryError;
+        }
+
+        console.log('New brewery created:', newBrewery);
 
         // Create the brewery ownership record
-        const { error: ownershipError } = await supabase
+        const { data: ownershipData, error: ownershipError } = await supabase
           .from('brewery_owners')
           .insert({
             user_id: user.id,
             brewery_id: newBrewery.id
-          });
+          })
+          .select();
 
-        if (ownershipError) throw ownershipError;
+        if (ownershipError) {
+          console.error('Error creating brewery ownership record:', ownershipError);
+          throw ownershipError;
+        }
 
+        console.log('Brewery ownership record created:', ownershipData);
         toast.success('Brewery added successfully!');
       }
 
@@ -104,7 +130,9 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       onSubmitSuccess();
     } catch (error: any) {
       console.error('Error managing brewery:', error);
-      toast.error(isEditing ? 'Failed to update brewery' : 'Failed to add brewery');
+      toast.error(isEditing 
+        ? `Failed to update brewery: ${error.message || 'Unknown error'}` 
+        : `Failed to add brewery: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSubmitting(false);
     }
