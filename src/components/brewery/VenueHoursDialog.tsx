@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -23,6 +22,11 @@ const HOURS = Array.from({ length: 24 }, (_, i) => {
   return { value: `${i.toString().padStart(2, '0')}:00`, label: `${hour}:00 ${ampm}` };
 });
 
+const formatTimeForForm = (time: string | null) => {
+  if (!time) return null;
+  return time.substring(0, 5); // Convert "HH:MM:SS" to "HH:MM"
+};
+
 const VenueHoursDialog = ({ 
   open, 
   onOpenChange,
@@ -30,48 +34,37 @@ const VenueHoursDialog = ({
 }: VenueHoursDialogProps) => {
   const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
   const { hours, isLoading, isUpdating, updateVenueHours } = useVenueHours(venue?.id || null);
-  const [formInitialized, setFormInitialized] = useState(false);
 
-  // Initialize form data with default values when the dialog opens
+  // Initialize or reset form data when dialog opens or venue changes
   useEffect(() => {
     if (open && venue) {
-      // Initialize with default values for all days
-      const initialData = DAYS_OF_WEEK.map((_, index) => ({
-        venue_id: venue.id,
-        day_of_week: index,
-        venue_open_time: '09:00',
-        venue_close_time: '18:00',
-        kitchen_open_time: '11:00',
-        kitchen_close_time: '17:00',
-        is_closed: index === 0, // Default to closed on Sundays
-      }));
-      
-      setFormData(initialData);
-      setFormInitialized(false);  // Reset form initialization flag
-    }
-  }, [open, venue]);
-
-  // Update form data with existing hours once they're loaded
-  useEffect(() => {
-    if (open && venue && hours.length > 0 && !isLoading && !formInitialized) {
-      console.log('Updating form with loaded hours:', hours);
-      
-      const updatedFormData = [...formData];
-      
-      // Update the form data with any existing hours
-      hours.forEach(hour => {
-        const dayIndex = hour.day_of_week;
-        if (dayIndex >= 0 && dayIndex < updatedFormData.length) {
-          updatedFormData[dayIndex] = {
-            ...hour
+      const initialData = DAYS_OF_WEEK.map((_, index) => {
+        const existingHour = hours.find(h => h.day_of_week === index);
+        
+        if (existingHour) {
+          return {
+            ...existingHour,
+            venue_open_time: formatTimeForForm(existingHour.venue_open_time),
+            venue_close_time: formatTimeForForm(existingHour.venue_close_time),
+            kitchen_open_time: formatTimeForForm(existingHour.kitchen_open_time),
+            kitchen_close_time: formatTimeForForm(existingHour.kitchen_close_time),
           };
         }
+
+        return {
+          venue_id: venue.id,
+          day_of_week: index,
+          venue_open_time: '09:00',
+          venue_close_time: '18:00',
+          kitchen_open_time: '11:00',
+          kitchen_close_time: '17:00',
+          is_closed: index === 0, // Default to closed on Sundays
+        };
       });
       
-      setFormData(updatedFormData);
-      setFormInitialized(true);  // Mark form as initialized with real data
+      setFormData(initialData);
     }
-  }, [hours, isLoading, open, venue, formData, formInitialized]);
+  }, [open, venue, hours]);
 
   const handleTimeChange = (dayIndex: number, field: string, value: string) => {
     setFormData(prev => prev.map((day, idx) => 
@@ -88,7 +81,15 @@ const VenueHoursDialog = ({
   const handleSave = async () => {
     if (!venue) return;
     
-    const success = await updateVenueHours(formData);
+    const formattedData = formData.map(day => ({
+      ...day,
+      venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
+      venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
+      kitchen_open_time: day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
+      kitchen_close_time: day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
+    }));
+    
+    const success = await updateVenueHours(formattedData);
     if (success) {
       onOpenChange(false);
     }
