@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatTime } from '@/utils/dateTimeUtils';
+import { formatTime, sortHoursStartingWithToday } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 
 interface HoursSectionProps { 
@@ -44,6 +44,9 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
     ? getHoursText(todayHours)
     : 'Hours not available';
   
+  // Sort hours to start with today
+  const sortedHours = sortHoursStartingWithToday(hours);
+  
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
@@ -66,17 +69,15 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
         
         {expanded && (
           <div className="mt-2 space-y-1.5">
-            {hours
-              .sort((a, b) => a.day_of_week - b.day_of_week)
-              .map((hour) => (
-                <div 
-                  key={hour.day_of_week} 
-                  className={`flex justify-between ${hour.day_of_week === todayIndex ? 'font-medium' : ''}`}
-                >
-                  <span>{DAYS_OF_WEEK[hour.day_of_week]}</span>
-                  <span>{getHoursText(hour)}</span>
-                </div>
-              ))}
+            {sortedHours.map((hour) => (
+              <div 
+                key={hour.day_of_week} 
+                className={`flex justify-between ${hour.day_of_week === todayIndex ? 'font-medium' : ''}`}
+              >
+                <span>{DAYS_OF_WEEK[hour.day_of_week]}</span>
+                <span>{getHoursText(hour)}</span>
+              </div>
+            ))}
           </div>
         )}
       </div>

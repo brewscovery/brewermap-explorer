@@ -32,3 +32,24 @@ export const formatTime = (time: string | null): string => {
 export const getTodayDayOfWeek = (): number => {
   return new Date().getDay();
 };
+
+/**
+ * Sorts an array of venue hours so that today's day appears first,
+ * followed by the rest of the week in order
+ * @param hours Array of venue hours with day_of_week property
+ * @returns Sorted array with today first, then the rest in order
+ */
+export const sortHoursStartingWithToday = <T extends { day_of_week: number }>(hours: T[]): T[] => {
+  if (!hours.length) return hours;
+  
+  const todayIndex = getTodayDayOfWeek();
+  
+  return [...hours].sort((a, b) => {
+    // Calculate distance from today for each day (0 = today, 1 = tomorrow, etc.)
+    const distanceA = (a.day_of_week - todayIndex + 7) % 7;
+    const distanceB = (b.day_of_week - todayIndex + 7) % 7;
+    
+    // Sort by distance from today
+    return distanceA - distanceB;
+  });
+};
