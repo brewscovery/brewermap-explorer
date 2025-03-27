@@ -30,27 +30,48 @@ const VenueHoursDialog = ({
 }: VenueHoursDialogProps) => {
   const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
   const { hours, isLoading, isUpdating, updateVenueHours } = useVenueHours(venue?.id || null);
+  const [formInitialized, setFormInitialized] = useState(false);
 
-  // Initialize form data with existing hours or default values for all days
+  // Initialize form data with default values when the dialog opens
   useEffect(() => {
     if (open && venue) {
-      const initialData = DAYS_OF_WEEK.map((_, index) => {
-        const existingHour = hours.find(h => h.day_of_week === index);
-        
-        return existingHour || {
-          venue_id: venue.id,
-          day_of_week: index,
-          venue_open_time: '09:00',
-          venue_close_time: '18:00',
-          kitchen_open_time: '11:00',
-          kitchen_close_time: '17:00',
-          is_closed: index === 0, // Default to closed on Sundays
-        };
-      });
+      // Initialize with default values for all days
+      const initialData = DAYS_OF_WEEK.map((_, index) => ({
+        venue_id: venue.id,
+        day_of_week: index,
+        venue_open_time: '09:00',
+        venue_close_time: '18:00',
+        kitchen_open_time: '11:00',
+        kitchen_close_time: '17:00',
+        is_closed: index === 0, // Default to closed on Sundays
+      }));
       
       setFormData(initialData);
+      setFormInitialized(false);  // Reset form initialization flag
     }
-  }, [open, venue, hours]);
+  }, [open, venue]);
+
+  // Update form data with existing hours once they're loaded
+  useEffect(() => {
+    if (open && venue && hours.length > 0 && !isLoading && !formInitialized) {
+      console.log('Updating form with loaded hours:', hours);
+      
+      const updatedFormData = [...formData];
+      
+      // Update the form data with any existing hours
+      hours.forEach(hour => {
+        const dayIndex = hour.day_of_week;
+        if (dayIndex >= 0 && dayIndex < updatedFormData.length) {
+          updatedFormData[dayIndex] = {
+            ...hour
+          };
+        }
+      });
+      
+      setFormData(updatedFormData);
+      setFormInitialized(true);  // Mark form as initialized with real data
+    }
+  }, [hours, isLoading, open, venue, formData, formInitialized]);
 
   const handleTimeChange = (dayIndex: number, field: string, value: string) => {
     setFormData(prev => prev.map((day, idx) => 
