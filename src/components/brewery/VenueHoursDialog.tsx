@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Clock, X, Utensils } from 'lucide-react';
+import { Clock, Utensils } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { Switch } from '@/components/ui/switch';
@@ -40,6 +40,8 @@ const VenueHoursDialog = ({
   // Initialize or reset form data when dialog opens or venue changes
   useEffect(() => {
     if (open && venue) {
+      console.log("Updating form with loaded hours:", hours);
+      
       const initialData = DAYS_OF_WEEK.map((_, index) => {
         const existingHour = hours.find(h => h.day_of_week === index);
         
@@ -101,7 +103,7 @@ const VenueHoursDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -109,148 +111,150 @@ const VenueHoursDialog = ({
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="flex-1 pr-1 max-h-[calc(80vh-120px)]">
-          <div className="px-1 py-4">
-            {isLoading ? (
-              <div className="text-center py-8">
-                <p>Loading hours...</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <div className="grid grid-cols-[130px_1fr] gap-4 font-medium px-4 py-2 bg-muted/40 rounded-md sticky top-0 z-10">
-                  <div>Day</div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div>Venue Hours</div>
-                    <div>Kitchen Hours</div>
-                  </div>
+        <div className="flex-1 overflow-hidden">
+          <ScrollArea className="h-[calc(80vh-120px)] pr-4">
+            <div className="px-1 py-4">
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <p>Loading hours...</p>
                 </div>
-                
-                {formData.map((day, index) => (
-                  <div key={index} className={`grid grid-cols-[130px_1fr] gap-4 ${day.is_closed ? 'opacity-50' : ''}`}>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{DAYS_OF_WEEK[index]}</span>
-                      <Switch 
-                        id={`closed-${index}`} 
-                        checked={!day.is_closed}
-                        onCheckedChange={(checked) => handleClosedToggle(index, !checked)}
-                      />
-                    </div>
-                    
+              ) : (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-[130px_1fr] gap-4 font-medium px-4 py-2 bg-muted/40 rounded-md sticky top-0 z-10">
+                    <div>Day</div>
                     <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <div className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <Label htmlFor={`venue-open-${index}`} className="text-xs">Open</Label>
-                            <Select
-                              value={day.venue_open_time || ''}
-                              onValueChange={(value) => handleTimeChange(index, 'venue_open_time', value)}
-                              disabled={day.is_closed}
-                            >
-                              <SelectTrigger id={`venue-open-${index}`}>
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[var(--radix-select-content-available-height)]">
-                                <ScrollArea className="h-[200px]">
-                                  {HOURS.map((hour) => (
-                                    <SelectItem key={hour.value} value={hour.value}>
-                                      {hour.label}
-                                    </SelectItem>
-                                  ))}
-                                </ScrollArea>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          <div className="flex-1">
-                            <Label htmlFor={`venue-close-${index}`} className="text-xs">Close</Label>
-                            <Select
-                              value={day.venue_close_time || ''}
-                              onValueChange={(value) => handleTimeChange(index, 'venue_close_time', value)}
-                              disabled={day.is_closed}
-                            >
-                              <SelectTrigger id={`venue-close-${index}`}>
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[var(--radix-select-content-available-height)]">
-                                <ScrollArea className="h-[200px]">
-                                  {HOURS.map((hour) => (
-                                    <SelectItem key={hour.value} value={hour.value}>
-                                      {hour.label}
-                                    </SelectItem>
-                                  ))}
-                                </ScrollArea>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
+                      <div>Venue Hours</div>
+                      <div>Kitchen Hours</div>
+                    </div>
+                  </div>
+                  
+                  {formData.map((day, index) => (
+                    <div key={index} className={`grid grid-cols-[130px_1fr] gap-4 ${day.is_closed ? 'opacity-50' : ''}`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium">{DAYS_OF_WEEK[index]}</span>
+                        <Switch 
+                          id={`closed-${index}`} 
+                          checked={!day.is_closed}
+                          onCheckedChange={(checked) => handleClosedToggle(index, !checked)}
+                        />
                       </div>
                       
-                      <div className="space-y-3">
-                        <div className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <Label htmlFor={`kitchen-open-${index}`} className="text-xs">Open</Label>
-                            <Select
-                              value={day.kitchen_open_time || ''}
-                              onValueChange={(value) => handleTimeChange(index, 'kitchen_open_time', value)}
-                              disabled={day.is_closed}
-                            >
-                              <SelectTrigger id={`kitchen-open-${index}`}>
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[var(--radix-select-content-available-height)]">
-                                <ScrollArea className="h-[200px]">
-                                  {HOURS.map((hour) => (
-                                    <SelectItem key={hour.value} value={hour.value}>
-                                      {hour.label}
-                                    </SelectItem>
-                                  ))}
-                                </ScrollArea>
-                              </SelectContent>
-                            </Select>
+                      <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                              <Label htmlFor={`venue-open-${index}`} className="text-xs">Open</Label>
+                              <Select
+                                value={day.venue_open_time || ''}
+                                onValueChange={(value) => handleTimeChange(index, 'venue_open_time', value)}
+                                disabled={day.is_closed}
+                              >
+                                <SelectTrigger id={`venue-open-${index}`}>
+                                  <SelectValue placeholder="Select time" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                                    {HOURS.map((hour) => (
+                                      <SelectItem key={hour.value} value={hour.value}>
+                                        {hour.label}
+                                      </SelectItem>
+                                    ))}
+                                  </ScrollArea>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex-1">
+                              <Label htmlFor={`venue-close-${index}`} className="text-xs">Close</Label>
+                              <Select
+                                value={day.venue_close_time || ''}
+                                onValueChange={(value) => handleTimeChange(index, 'venue_close_time', value)}
+                                disabled={day.is_closed}
+                              >
+                                <SelectTrigger id={`venue-close-${index}`}>
+                                  <SelectValue placeholder="Select time" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                                    {HOURS.map((hour) => (
+                                      <SelectItem key={hour.value} value={hour.value}>
+                                        {hour.label}
+                                      </SelectItem>
+                                    ))}
+                                  </ScrollArea>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
-                          <div className="flex-1">
-                            <Label htmlFor={`kitchen-close-${index}`} className="text-xs">Close</Label>
-                            <Select
-                              value={day.kitchen_close_time || ''}
-                              onValueChange={(value) => handleTimeChange(index, 'kitchen_close_time', value)}
-                              disabled={day.is_closed}
-                            >
-                              <SelectTrigger id={`kitchen-close-${index}`}>
-                                <SelectValue placeholder="Select time" />
-                              </SelectTrigger>
-                              <SelectContent className="max-h-[var(--radix-select-content-available-height)]">
-                                <ScrollArea className="h-[200px]">
-                                  {HOURS.map((hour) => (
-                                    <SelectItem key={hour.value} value={hour.value}>
-                                      {hour.label}
-                                    </SelectItem>
-                                  ))}
-                                </ScrollArea>
-                              </SelectContent>
-                            </Select>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <div className="flex gap-2 items-end">
+                            <div className="flex-1">
+                              <Label htmlFor={`kitchen-open-${index}`} className="text-xs">Open</Label>
+                              <Select
+                                value={day.kitchen_open_time || ''}
+                                onValueChange={(value) => handleTimeChange(index, 'kitchen_open_time', value)}
+                                disabled={day.is_closed}
+                              >
+                                <SelectTrigger id={`kitchen-open-${index}`}>
+                                  <SelectValue placeholder="Select time" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                                    {HOURS.map((hour) => (
+                                      <SelectItem key={hour.value} value={hour.value}>
+                                        {hour.label}
+                                      </SelectItem>
+                                    ))}
+                                  </ScrollArea>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div className="flex-1">
+                              <Label htmlFor={`kitchen-close-${index}`} className="text-xs">Close</Label>
+                              <Select
+                                value={day.kitchen_close_time || ''}
+                                onValueChange={(value) => handleTimeChange(index, 'kitchen_close_time', value)}
+                                disabled={day.is_closed}
+                              >
+                                <SelectTrigger id={`kitchen-close-${index}`}>
+                                  <SelectValue placeholder="Select time" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                                    {HOURS.map((hour) => (
+                                      <SelectItem key={hour.value} value={hour.value}>
+                                        {hour.label}
+                                      </SelectItem>
+                                    ))}
+                                  </ScrollArea>
+                                </SelectContent>
+                              </Select>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
 
-                <div className="grid grid-cols-[130px_1fr] gap-4 mt-4">
-                  <div></div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock size={14} />
-                      <span>Venue hours</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Utensils size={14} />
-                      <span>Kitchen hours</span>
+                  <div className="grid grid-cols-[130px_1fr] gap-4 mt-4">
+                    <div></div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock size={14} />
+                        <span>Venue hours</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Utensils size={14} />
+                        <span>Kitchen hours</span>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
+              )}
+            </div>
+          </ScrollArea>
+        </div>
         
         <DialogFooter className="mt-6">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
