@@ -3,6 +3,7 @@ import { VenueDetailsSection } from './VenueDetailsSection';
 import { LocationSection } from './LocationSection';
 import { ContactSection } from './ContactSection';
 import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import type { AddressSuggestion } from '@/types/address';
 
 interface VenueFormData {
@@ -42,39 +43,41 @@ export const VenueForm = ({
   onCancel
 }: VenueFormProps) => {
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <VenueDetailsSection
-        name={formData.name}
-        addressInput={addressInput}
-        handleChange={handleChange}
-        handleAddressChange={handleAddressChange}
-        onAddressInputChange={setAddressInput}
-      />
-      
-      <LocationSection
-        city={formData.city}
-        state={formData.state}
-        postalCode={formData.postal_code}
-        country={formData.country}
-        handleChange={handleChange}
-      />
-      
-      <ContactSection
-        phone={formData.phone}
-        websiteUrl={formData.website_url}
-        handleChange={handleChange}
-      />
-      
-      <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelLabel}
+    <ScrollArea className="max-h-[calc(100vh-200px)] pr-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <VenueDetailsSection
+          name={formData.name}
+          addressInput={addressInput}
+          handleChange={handleChange}
+          handleAddressChange={handleAddressChange}
+          onAddressInputChange={setAddressInput}
+        />
+        
+        <LocationSection
+          city={formData.city}
+          state={formData.state}
+          postalCode={formData.postal_code}
+          country={formData.country}
+          handleChange={handleChange}
+        />
+        
+        <ContactSection
+          phone={formData.phone}
+          websiteUrl={formData.website_url}
+          handleChange={handleChange}
+        />
+        
+        <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              {cancelLabel}
+            </Button>
+          )}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : submitLabel}
           </Button>
-        )}
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : submitLabel}
-        </Button>
-      </div>
-    </form>
+        </div>
+      </form>
+    </ScrollArea>
   );
 };

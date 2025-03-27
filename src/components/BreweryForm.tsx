@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from './ui/button';
 import { Form } from './ui/form';
+import { ScrollArea } from './ui/scroll-area';
 import { useAuth } from '@/contexts/AuthContext';
 import { BreweryFormData, Brewery } from '@/types/brewery';
 import GeneralInfoSection from './brewery/form/GeneralInfoSection';
@@ -159,18 +160,20 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <GeneralInfoSection form={form} />
-        <WebsiteSection form={form} />
+    <ScrollArea className="h-[calc(100vh-220px)] pr-4">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <GeneralInfoSection form={form} />
+          <WebsiteSection form={form} />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting 
-            ? (isEditing ? 'Updating...' : 'Adding...') 
-            : (isEditing ? 'Update Brewery' : 'Add Brewery')}
-        </Button>
-      </form>
-    </Form>
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting 
+              ? (isEditing ? 'Updating...' : 'Adding...') 
+              : (isEditing ? 'Update Brewery' : 'Add Brewery')}
+          </Button>
+        </form>
+      </Form>
+    </ScrollArea>
   );
 };
 
