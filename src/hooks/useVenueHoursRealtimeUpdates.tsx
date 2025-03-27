@@ -1,13 +1,16 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
   const queryClient = useQueryClient();
+  const channelRef = useRef(null);
 
   useEffect(() => {
     if (!venueId) return; // Only set up subscription if we have a venueId
+    
+    console.log(`Setting up realtime subscription for venue hours (venueId: ${venueId})`);
     
     const hoursChannel = supabase
       .channel('venue-hours-changes')
@@ -27,16 +30,26 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
             null;
             
           if (payloadVenueId) {
+            console.log(`Venue hours changed for venue ${payloadVenueId}, invalidating query`);
             queryClient.invalidateQueries({ 
               queryKey: ['venueHours', payloadVenueId]
             });
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Venue hours channel subscription status:`, status);
+      });
+
+    // Store channel reference for cleanup
+    channelRef.current = hoursChannel;
 
     return () => {
-      supabase.removeChannel(hoursChannel);
+      console.log(`Cleaning up venue hours subscription for venue ${venueId}`);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [queryClient, venueId]);
 };

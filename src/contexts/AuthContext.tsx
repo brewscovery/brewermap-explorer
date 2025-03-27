@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -27,52 +26,74 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const setupAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (session?.user) {
-        setUser(session.user);
-        await fetchUserProfile(session.user.id);
-      }
-
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-        console.log('Auth event:', event);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await fetchUserProfile(session.user.id);
-        } else {
-          setUserType(null);
-          setFirstName(null);
-          setLastName(null);
+    const fetchInitialSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          setUser(session.user);
+          
+          // Fetch additional user data if needed
+          if (session.user) {
+            const { data } = await supabase
+              .from('profiles')
+              .select('user_type, first_name, last_name')
+              .eq('id', session.user.id)
+              .single();
+              
+            if (data) {
+              setUserType(data.user_type || 'regular');
+              setFirstName(data.first_name || '');
+              setLastName(data.last_name || '');
+            }
+          }
         }
+      } catch (error) {
+        console.error('Error fetching session:', error);
+      } finally {
         setLoading(false);
-      });
-
-      setLoading(false);
-      return () => {
-        subscription.unsubscribe();
-      };
+      }
     };
 
-    setupAuth();
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth event:', event);
+        
+        if (session) {
+          setUser(session.user);
+          
+          // Don't make additional Supabase calls directly in the callback
+          // Use setTimeout to avoid potential deadlocks
+          if (session.user) {
+            setTimeout(async () => {
+              const { data } = await supabase
+                .from('profiles')
+                .select('user_type, first_name, last_name')
+                .eq('id', session.user.id)
+                .single();
+                
+              if (data) {
+                setUserType(data.user_type || 'regular');
+                setFirstName(data.first_name || '');
+                setLastName(data.last_name || '');
+              }
+            }, 0);
+          }
+        } else {
+          setUser(null);
+          setUserType('regular');
+          setFirstName('');
+          setLastName('');
+        }
+      }
+    );
+
+    fetchInitialSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('user_type, first_name, last_name')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error('Error fetching user profile:', error);
-      return;
-    }
-
-    setUserType(data.user_type);
-    setFirstName(data.first_name);
-    setLastName(data.last_name);
-  };
 
   return (
     <AuthContext.Provider value={{ user, userType, firstName, lastName, loading }}>

@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Brewery } from '@/types/brewery';
@@ -11,6 +11,8 @@ export const useBreweryRealtimeUpdates = (
   setBreweries?: (breweries: Brewery[]) => void
 ) => {
   const queryClient = useQueryClient();
+  const breweryChannelRef = useRef(null);
+  const ownersChannelRef = useRef(null);
 
   useEffect(() => {
     console.log('Setting up realtime subscription for breweries');
@@ -95,7 +97,12 @@ export const useBreweryRealtimeUpdates = (
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Brewery channel subscription status:', status);
+      });
+      
+    // Store channel reference for cleanup
+    breweryChannelRef.current = breweryChangesChannel;
 
     // Subscribe to changes in the brewery_owners table (separate channel)
     const ownersChannel = supabase
@@ -121,12 +128,23 @@ export const useBreweryRealtimeUpdates = (
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Brewery owners channel subscription status:', status);
+      });
+      
+    // Store channel reference for cleanup
+    ownersChannelRef.current = ownersChannel;
 
     return () => {
       console.log('Cleaning up realtime subscriptions for breweries');
-      supabase.removeChannel(breweryChangesChannel);
-      supabase.removeChannel(ownersChannel);
+      if (breweryChannelRef.current) {
+        supabase.removeChannel(breweryChannelRef.current);
+        breweryChannelRef.current = null;
+      }
+      if (ownersChannelRef.current) {
+        supabase.removeChannel(ownersChannelRef.current);
+        ownersChannelRef.current = null;
+      }
     };
   }, [queryClient, selectedBrewery, setSelectedBrewery, breweries, setBreweries]);
 };

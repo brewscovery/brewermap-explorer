@@ -1,11 +1,12 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 
 export const useVenueRealtimeUpdates = (selectedVenue: Venue | null, setSelectedVenue: (venue: Venue | null) => void) => {
   const queryClient = useQueryClient();
+  const channelRef = useRef(null);
 
   useEffect(() => {
     console.log('Setting up realtime subscription for venues');
@@ -76,11 +77,18 @@ export const useVenueRealtimeUpdates = (selectedVenue: Venue | null, setSelected
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Venue channel subscription status:', status);
+      });
+      
+    // Store the channel in the ref for cleanup
+    channelRef.current = channel;
 
     return () => {
       console.log('Cleaning up realtime subscription for venues');
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
     };
   }, [queryClient, selectedVenue, setSelectedVenue]);
 };

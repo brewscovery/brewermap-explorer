@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
@@ -9,6 +9,7 @@ export const useBreweryVenues = (breweryId: string | null) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const queryClient = useQueryClient();
+  const channelRef = useRef(null);
 
   const { 
     data: venues, 
@@ -67,11 +68,19 @@ export const useBreweryVenues = (breweryId: string | null) => {
           });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Brewery venues channel subscription status:`, status);
+      });
 
+    // Store channel reference for cleanup
+    channelRef.current = breweryVenuesChannel;
+      
     return () => {
       console.log(`Cleaning up realtime subscription for brewery ${breweryId} venues`);
-      supabase.removeChannel(breweryVenuesChannel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [breweryId, queryClient]);
   
