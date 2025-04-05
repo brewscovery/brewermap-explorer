@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { Clock, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import type { VenueHappyHour } from '@/types/venueHappyHours';
+import TimeSelector from './TimeSelector';
 
 interface HappyHourFormProps {
   happyHour: Partial<VenueHappyHour>;
@@ -67,47 +67,21 @@ const HappyHourForm = ({
         </div>
         
         <div className="flex gap-4 items-center">
-          <div className="w-full space-y-1">
-            <Label htmlFor={`happy-hour-start-${index}`} className="text-xs">Start Time</Label>
-            <Select
-              value={happyHour.start_time || ''}
-              onValueChange={(value) => onChange('start_time', value)}
-            >
-              <SelectTrigger id={`happy-hour-start-${index}`}>
-                <SelectValue placeholder="Select time" />
-              </SelectTrigger>
-              <SelectContent>
-                <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
-                  {HOURS.map((hour) => (
-                    <SelectItem key={hour.value} value={hour.value}>
-                      {hour.label}
-                    </SelectItem>
-                  ))}
-                </ScrollArea>
-              </SelectContent>
-            </Select>
-          </div>
+          <TimeSelector
+            label="Start Time"
+            id={`happy-hour-start-${index}`}
+            value={happyHour.start_time || ''}
+            onChange={(value) => onChange('start_time', value)}
+            options={HOURS}
+          />
           
-          <div className="w-full space-y-1">
-            <Label htmlFor={`happy-hour-end-${index}`} className="text-xs">End Time</Label>
-            <Select
-              value={happyHour.end_time || ''}
-              onValueChange={(value) => onChange('end_time', value)}
-            >
-              <SelectTrigger id={`happy-hour-end-${index}`}>
-                <SelectValue placeholder="Select time" />
-              </SelectTrigger>
-              <SelectContent>
-                <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
-                  {HOURS.map((hour) => (
-                    <SelectItem key={hour.value} value={hour.value}>
-                      {hour.label}
-                    </SelectItem>
-                  ))}
-                </ScrollArea>
-              </SelectContent>
-            </Select>
-          </div>
+          <TimeSelector
+            label="End Time"
+            id={`happy-hour-end-${index}`}
+            value={happyHour.end_time || ''}
+            onChange={(value) => onChange('end_time', value)}
+            options={HOURS}
+          />
         </div>
         
         <div className="space-y-1">
