@@ -156,6 +156,50 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_happy_hours: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          description: string | null
+          end_time: string | null
+          id: string
+          is_active: boolean
+          start_time: string | null
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          start_time?: string | null
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          description?: string | null
+          end_time?: string | null
+          id?: string
+          is_active?: boolean
+          start_time?: string | null
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_happy_hours_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_hours: {
         Row: {
           created_at: string | null

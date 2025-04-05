@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Clock } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
+import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { VenueHour } from '@/types/venueHours';
@@ -12,6 +13,7 @@ import VenueHoursDayItem from './hours/VenueHoursDayItem';
 import VenueHoursHeader from './hours/VenueHoursHeader';
 import VenueHoursColumnHeaders from './hours/VenueHoursColumnHeaders';
 import VenueHoursLegend from './hours/VenueHoursLegend';
+import HappyHoursSection from './happy-hours/HappyHoursSection';
 import { formatTimeForForm, generateHourOptions } from './hours/hoursUtils';
 
 interface VenueHoursDialogProps {
@@ -30,7 +32,21 @@ const VenueHoursDialog = ({
   const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
   const [kitchenClosedDays, setKitchenClosedDays] = useState<Set<number>>(new Set());
-  const { hours, isLoading, isUpdating, updateVenueHours } = useVenueHours(venue?.id || null);
+  const [activeTab, setActiveTab] = useState<'regular' | 'happy'>('regular');
+  
+  const { 
+    hours, 
+    isLoading, 
+    isUpdating, 
+    updateVenueHours 
+  } = useVenueHours(venue?.id || null);
+  
+  const {
+    happyHours,
+    isLoading: isLoadingHappyHours,
+    isUpdating: isUpdatingHappyHours,
+    updateHappyHours
+  } = useVenueHappyHours(venue?.id || null);
 
   // Initialize or reset form data when dialog opens or venue changes
   useEffect(() => {
@@ -158,22 +174,24 @@ const VenueHoursDialog = ({
   const handleSave = async () => {
     if (!venue) return;
     
-    const formattedData = formData.map(day => {
-      const dayIndex = day.day_of_week as number;
-      const isKitchenClosed = kitchenClosedDays.has(dayIndex);
+    if (activeTab === 'regular') {
+      const formattedData = formData.map(day => {
+        const dayIndex = day.day_of_week as number;
+        const isKitchenClosed = kitchenClosedDays.has(dayIndex);
+        
+        return {
+          ...day,
+          venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
+          venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
+          kitchen_open_time: hasKitchen && !isKitchenClosed && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
+          kitchen_close_time: hasKitchen && !isKitchenClosed && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
+        };
+      });
       
-      return {
-        ...day,
-        venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
-        venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
-        kitchen_open_time: hasKitchen && !isKitchenClosed && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
-        kitchen_close_time: hasKitchen && !isKitchenClosed && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
-      };
-    });
-    
-    const success = await updateVenueHours(formattedData);
-    if (success) {
-      onOpenChange(false);
+      const success = await updateVenueHours(formattedData);
+      if (success) {
+        onOpenChange(false);
+      }
     }
   };
 
@@ -189,14 +207,29 @@ const VenueHoursDialog = ({
           </DialogTitle>
         </DialogHeader>
         
+        <div className="flex border-b mb-4">
+          <button
+            className={`px-4 py-2 text-sm font-medium ${activeTab === 'regular' ? 'border-b-2 border-primary' : 'text-muted-foreground'}`}
+            onClick={() => setActiveTab('regular')}
+          >
+            Regular Hours
+          </button>
+          <button
+            className={`px-4 py-2 text-sm font-medium ${activeTab === 'happy' ? 'border-b-2 border-primary' : 'text-muted-foreground'}`}
+            onClick={() => setActiveTab('happy')}
+          >
+            Happy Hours
+          </button>
+        </div>
+        
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[calc(80vh-120px)] pr-4">
+          <ScrollArea className="h-[calc(80vh-160px)] pr-4">
             <div className="px-1 py-4">
               {isLoading ? (
                 <div className="text-center py-8">
                   <p>Loading hours...</p>
                 </div>
-              ) : (
+              ) : activeTab === 'regular' ? (
                 <div className="space-y-6">
                   <VenueHoursHeader 
                     hasKitchen={hasKitchen}
@@ -222,6 +255,14 @@ const VenueHoursDialog = ({
 
                   <VenueHoursLegend hasKitchen={hasKitchen} />
                 </div>
+              ) : (
+                <HappyHoursSection 
+                  venueId={venue.id}
+                  happyHours={happyHours}
+                  HOURS={HOURS}
+                  onSave={updateHappyHours}
+                  isUpdating={isUpdatingHappyHours}
+                />
               )}
             </div>
           </ScrollArea>
@@ -231,9 +272,11 @@ const VenueHoursDialog = ({
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isUpdating}>
-            {isUpdating ? 'Saving...' : 'Save Hours'}
-          </Button>
+          {activeTab === 'regular' && (
+            <Button onClick={handleSave} disabled={isUpdating}>
+              {isUpdating ? 'Saving...' : 'Save Hours'}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

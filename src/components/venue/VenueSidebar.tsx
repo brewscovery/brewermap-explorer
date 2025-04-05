@@ -9,10 +9,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Venue } from '@/types/venue';
 import { useVenueHours } from '@/hooks/useVenueHours';
+import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import AboutSection from './sections/AboutSection';
 import AddressSection from './sections/AddressSection';
 import ContactSection from './sections/ContactSection';
 import VenueHoursSection from './sections/VenueHoursSection';
+import HappyHoursSection from './sections/HappyHoursSection';
 import CheckInsSection from './sections/CheckInsSection';
 import type { Brewery } from '@/types/brewery';
 
@@ -40,6 +42,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   console.log(`VenueSidebar rendering with venue ID: ${venue?.id || 'none'}`);
   
   const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venue?.id || null);
+  const { happyHours = [], isLoading: isLoadingHappyHours } = useVenueHappyHours(venue?.id || null);
   
   console.log(`[DEBUG] VenueSidebar received hours data:`, venueHours);
   
@@ -134,6 +137,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
           <AddressSection venue={venue} />
           <ContactSection venue={venue} breweryInfo={breweryInfo} />
           <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
+          <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
         </div>
         
         <Separator className="my-5" />

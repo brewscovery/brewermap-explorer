@@ -5,6 +5,7 @@ import { useVenueSearch } from './useVenueSearch';
 import { useVenueRealtimeUpdates } from './useVenueRealtimeUpdates';
 import { useBreweryRealtimeUpdates } from './useBreweryRealtimeUpdates';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
+import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -27,6 +28,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   useBreweryRealtimeUpdates(null, () => null);
   
   useVenueHoursRealtimeUpdates(selectedVenue?.id || null);
+  useVenueHappyHoursRealtimeUpdates(selectedVenue?.id || null);
 
   return {
     venues,
