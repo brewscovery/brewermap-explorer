@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -61,16 +62,29 @@ export const useVenueHappyHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      // Instead of deleting and reinserting, we'll use upsert logic
-      // Prepare data for upsert with proper IDs
-      const dataToUpsert = happyHoursData.map(hour => {
+      // Map existing happy hours to a lookup object by day_of_week
+      const existingHappyHoursByDay = new Map();
+      happyHours.forEach(hour => {
+        existingHappyHoursByDay.set(hour.day_of_week, hour);
+      });
+      
+      console.log('Existing happy hours by day:', existingHappyHoursByDay);
+      console.log('Updating with data:', happyHoursData);
+      
+      // Instead of using upsert, we'll handle new and existing records separately
+      // Process each happy hour record to determine if it's new or existing
+      const recordsToUpdate: Partial<VenueHappyHour>[] = [];
+      const recordsToInsert: Partial<VenueHappyHour>[] = [];
+      
+      for (const hour of happyHoursData) {
         if (typeof hour.day_of_week !== 'number') {
           throw new Error(`Missing required field 'day_of_week' for happy hour`);
         }
         
-        return {
-          // Keep id if it exists (for existing records)
-          id: hour.id || undefined, // undefined will trigger auto-generation
+        // Check if we have an existing record for this day
+        const existingHour = existingHappyHoursByDay.get(hour.day_of_week);
+        
+        const record = {
           venue_id: venueId,
           day_of_week: hour.day_of_week,
           start_time: hour.start_time,
@@ -79,26 +93,53 @@ export const useVenueHappyHours = (venueId: string | null) => {
           is_active: hour.is_active !== undefined ? hour.is_active : true,
           updated_at: new Date().toISOString()
         };
-      });
-
-      // Use upsert operation (insert with onConflict handling)
-      const { error: upsertError } = await supabase
-        .from('venue_happy_hours')
-        .upsert(dataToUpsert, { 
-          onConflict: 'id', 
-          ignoreDuplicates: false 
-        });
+        
+        if (existingHour) {
+          // This is an update to an existing record
+          recordsToUpdate.push({
+            ...record,
+            id: existingHour.id
+          });
+        } else {
+          // This is a new record
+          recordsToInsert.push(record);
+        }
+      }
+      
+      console.log('Records to update:', recordsToUpdate);
+      console.log('Records to insert:', recordsToInsert);
+      
+      // Update existing records
+      if (recordsToUpdate.length > 0) {
+        const { error: updateError } = await supabase
+          .from('venue_happy_hours')
+          .upsert(recordsToUpdate);
           
-      if (upsertError) throw upsertError;
+        if (updateError) {
+          console.error('Error updating existing happy hours:', updateError);
+          throw updateError;
+        }
+      }
+      
+      // Insert new records
+      if (recordsToInsert.length > 0) {
+        const { error: insertError } = await supabase
+          .from('venue_happy_hours')
+          .insert(recordsToInsert);
+          
+        if (insertError) {
+          console.error('Error inserting new happy hours:', insertError);
+          throw insertError;
+        }
+      }
 
       // Find happy hours that exist in the database but aren't in the updated data
       // (these need to be deleted)
-      const existingIds = happyHours.map(hour => hour.id);
-      const updatedIds = dataToUpsert
-        .filter(hour => hour.id)
-        .map(hour => hour.id as string);
-        
-      const idsToDelete = existingIds.filter(id => !updatedIds.includes(id));
+      const daysInUpdate = new Set(happyHoursData.map(hour => hour.day_of_week));
+      const happyHoursToDelete = happyHours.filter(hour => !daysInUpdate.has(hour.day_of_week));
+      const idsToDelete = happyHoursToDelete.map(hour => hour.id);
+      
+      console.log('Happy hours to delete:', happyHoursToDelete);
       
       // Delete any happy hours that were removed in the UI
       if (idsToDelete.length > 0) {
@@ -107,7 +148,10 @@ export const useVenueHappyHours = (venueId: string | null) => {
           .delete()
           .in('id', idsToDelete);
           
-        if (deleteError) throw deleteError;
+        if (deleteError) {
+          console.error('Error deleting happy hours:', deleteError);
+          throw deleteError;
+        }
       }
 
       toast.success('Happy hours updated successfully');

@@ -55,3 +55,28 @@ export const formatTimeForForm = (timeString: string | null): string => {
   
   return timeString;
 };
+
+/**
+ * Ensure time string is in proper format for database (HH:MM:SS)
+ */
+export const formatTimeForDatabase = (timeString: string | null): string | null => {
+  if (!timeString) return null;
+  
+  // If the time already has seconds, return as is
+  if (timeString.match(/^\d{2}:\d{2}:\d{2}$/)) {
+    return timeString;
+  }
+  
+  // If the time has hours and minutes but no seconds, add :00 for seconds
+  if (timeString.match(/^\d{2}:\d{2}$/)) {
+    return `${timeString}:00`;
+  }
+  
+  // Return null for invalid formats
+  if (!timeString.match(/^\d{2}:\d{2}$/)) {
+    console.warn(`Invalid time format: ${timeString}`);
+    return null;
+  }
+  
+  return timeString;
+};
