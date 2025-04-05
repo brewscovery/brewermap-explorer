@@ -8,6 +8,11 @@ interface VenueHoursSectionProps {
 }
 
 const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProps) => {
+  // Check if venue has any kitchen hours set
+  const hasKitchenHours = venueHours.some(
+    hour => hour.kitchen_open_time !== null || hour.kitchen_close_time !== null
+  );
+  
   return (
     <div className="space-y-2">
       <h3 className="font-medium text-sm">Hours</h3>
@@ -18,7 +23,9 @@ const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProp
       ) : (
         <div className="space-y-3">
           <HoursSection title="Operating Hours" hours={venueHours} />
-          <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+          {hasKitchenHours && (
+            <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+          )}
         </div>
       )}
     </div>

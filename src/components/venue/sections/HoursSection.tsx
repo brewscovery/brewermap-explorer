@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatTime, sortHoursStartingWithToday } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
@@ -50,7 +50,14 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium text-sm">{title}</h3>
+        <h3 className="font-medium text-sm flex items-center">
+          {showKitchenHours ? (
+            <Utensils size={14} className="mr-1 text-muted-foreground" />
+          ) : (
+            <Clock size={14} className="mr-1 text-muted-foreground" />
+          )}
+          {title}
+        </h3>
         <Button 
           variant="ghost" 
           size="sm" 

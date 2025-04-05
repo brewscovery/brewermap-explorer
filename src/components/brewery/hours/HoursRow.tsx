@@ -9,6 +9,8 @@ interface HoursRowProps {
 }
 
 const HoursRow = ({ day, hourData }: HoursRowProps) => {
+  const hasKitchenHours = hourData.kitchen_open_time !== null && hourData.kitchen_close_time !== null;
+  
   if (hourData.is_closed) {
     return (
       <div className="grid grid-cols-[80px_1fr] gap-1">
@@ -29,7 +31,7 @@ const HoursRow = ({ day, hourData }: HoursRowProps) => {
           </span>
         </div>
         
-        {(hourData.kitchen_open_time || hourData.kitchen_close_time) && (
+        {hasKitchenHours && (
           <div className="flex items-center gap-1">
             <Utensils size={12} className="text-muted-foreground" />
             <span>
