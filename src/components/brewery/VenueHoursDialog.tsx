@@ -6,15 +6,12 @@ import { Clock } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import type { VenueHour } from '@/types/venueHours';
 import type { Venue } from '@/types/venue';
-import VenueHoursDayItem from './hours/VenueHoursDayItem';
-import VenueHoursHeader from './hours/VenueHoursHeader';
-import VenueHoursColumnHeaders from './hours/VenueHoursColumnHeaders';
-import VenueHoursLegend from './hours/VenueHoursLegend';
-import HappyHoursSection from './happy-hours/HappyHoursSection';
 import { formatTimeForForm, generateHourOptions } from './hours/hoursUtils';
+import HoursDialogTabs from './hours/HoursDialogTabs';
+import RegularHoursTab from './hours/RegularHoursTab';
+import HappyHoursTab from './happy-hours/HappyHoursTab';
 
 interface VenueHoursDialogProps {
   open: boolean;
@@ -97,80 +94,6 @@ const VenueHoursDialog = ({
     }
   }, [open, venue, hours]);
 
-  const handleTimeChange = (dayIndex: number, field: string, value: string) => {
-    setFormData(prev => prev.map((day, idx) => 
-      idx === dayIndex ? { ...day, [field]: value } : day
-    ));
-  };
-
-  const handleClosedToggle = (dayIndex: number, value: boolean) => {
-    setFormData(prev => prev.map((day, idx) => 
-      idx === dayIndex ? { ...day, is_closed: value } : day
-    ));
-    
-    // If venue is closed, also remove from kitchen closed days
-    if (value) {
-      setKitchenClosedDays(prev => {
-        const updated = new Set(prev);
-        updated.delete(dayIndex);
-        return updated;
-      });
-    }
-  };
-
-  const handleKitchenClosedToggle = (dayIndex: number, isClosed: boolean) => {
-    setKitchenClosedDays(prev => {
-      const updated = new Set(prev);
-      if (isClosed) {
-        updated.add(dayIndex);
-      } else {
-        updated.delete(dayIndex);
-      }
-      return updated;
-    });
-    
-    // If kitchen is marked as closed, clear kitchen hours
-    if (isClosed) {
-      setFormData(prev => prev.map((day, idx) => 
-        idx === dayIndex ? { 
-          ...day, 
-          kitchen_open_time: null, 
-          kitchen_close_time: null 
-        } : day
-      ));
-    } else {
-      // Set default kitchen hours when re-enabling kitchen
-      setFormData(prev => prev.map((day, idx) => 
-        idx === dayIndex ? { 
-          ...day, 
-          kitchen_open_time: '11:00', 
-          kitchen_close_time: '17:00' 
-        } : day
-      ));
-    }
-  };
-
-  const handleHasKitchenToggle = (value: boolean) => {
-    setHasKitchen(value);
-    
-    if (!value) {
-      // Clear all kitchen hours when toggling kitchen off
-      setFormData(prev => prev.map(day => ({
-        ...day,
-        kitchen_open_time: null,
-        kitchen_close_time: null
-      })));
-      setKitchenClosedDays(new Set());
-    } else {
-      // Set default kitchen hours when toggling kitchen on
-      setFormData(prev => prev.map(day => ({
-        ...day,
-        kitchen_open_time: day.is_closed ? null : '11:00',
-        kitchen_close_time: day.is_closed ? null : '17:00'
-      })));
-    }
-  };
-
   const handleSave = async () => {
     if (!venue) return;
     
@@ -197,6 +120,41 @@ const VenueHoursDialog = ({
 
   if (!venue) return null;
 
+  const renderActiveTab = () => {
+    if (isLoading) {
+      return (
+        <div className="text-center py-8">
+          <p>Loading hours...</p>
+        </div>
+      );
+    }
+
+    if (activeTab === 'regular') {
+      return (
+        <RegularHoursTab
+          hours={hours}
+          formData={formData}
+          setFormData={setFormData}
+          hasKitchen={hasKitchen}
+          setHasKitchen={setHasKitchen}
+          kitchenClosedDays={kitchenClosedDays}
+          setKitchenClosedDays={setKitchenClosedDays}
+          HOURS={HOURS}
+        />
+      );
+    } else {
+      return (
+        <HappyHoursTab
+          venueId={venue.id}
+          happyHours={happyHours}
+          HOURS={HOURS}
+          onSave={updateHappyHours}
+          isUpdating={isUpdatingHappyHours}
+        />
+      );
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
@@ -207,65 +165,10 @@ const VenueHoursDialog = ({
           </DialogTitle>
         </DialogHeader>
         
-        <div className="flex border-b mb-4">
-          <button
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'regular' ? 'border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('regular')}
-          >
-            Regular Hours
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium ${activeTab === 'happy' ? 'border-b-2 border-primary' : 'text-muted-foreground'}`}
-            onClick={() => setActiveTab('happy')}
-          >
-            Happy Hours
-          </button>
-        </div>
+        <HoursDialogTabs activeTab={activeTab} setActiveTab={setActiveTab} />
         
         <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-[calc(80vh-160px)] pr-4">
-            <div className="px-1 py-4">
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <p>Loading hours...</p>
-                </div>
-              ) : activeTab === 'regular' ? (
-                <div className="space-y-6">
-                  <VenueHoursHeader 
-                    hasKitchen={hasKitchen}
-                    onHasKitchenToggle={handleHasKitchenToggle}
-                  />
-                  
-                  <VenueHoursColumnHeaders hasKitchen={hasKitchen} />
-                  
-                  {formData.map((day, index) => (
-                    <VenueHoursDayItem
-                      key={index}
-                      day={DAYS_OF_WEEK[index]}
-                      dayIndex={index}
-                      dayData={day}
-                      hasKitchen={hasKitchen}
-                      kitchenClosedDays={kitchenClosedDays}
-                      HOURS={HOURS}
-                      onClosedToggle={handleClosedToggle}
-                      onTimeChange={handleTimeChange}
-                      onKitchenClosedToggle={handleKitchenClosedToggle}
-                    />
-                  ))}
-
-                  <VenueHoursLegend hasKitchen={hasKitchen} />
-                </div>
-              ) : (
-                <HappyHoursSection 
-                  venueId={venue.id}
-                  happyHours={happyHours}
-                  HOURS={HOURS}
-                  onSave={updateHappyHours}
-                  isUpdating={isUpdatingHappyHours}
-                />
-              )}
-            </div>
-          </ScrollArea>
+          {renderActiveTab()}
         </div>
         
         <DialogFooter className="mt-6">
