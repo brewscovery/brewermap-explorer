@@ -72,15 +72,23 @@ export const useVenueHappyHours = (venueId: string | null) => {
       
       // Then insert the new ones
       if (happyHoursData.length > 0) {
+        // Ensure all required fields are present
+        const dataToInsert = happyHoursData.map(hour => {
+          if (typeof hour.day_of_week !== 'number') {
+            throw new Error(`Missing required field 'day_of_week' for happy hour`);
+          }
+          
+          return {
+            ...hour,
+            venue_id: venueId,
+            day_of_week: hour.day_of_week, // Explicitly include to satisfy TypeScript
+            updated_at: new Date().toISOString()
+          };
+        });
+
         const { error: insertError } = await supabase
           .from('venue_happy_hours')
-          .insert(
-            happyHoursData.map(hour => ({
-              ...hour,
-              venue_id: venueId,
-              updated_at: new Date().toISOString()
-            }))
-          );
+          .insert(dataToInsert);
           
         if (insertError) throw insertError;
       }
