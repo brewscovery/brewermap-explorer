@@ -34,7 +34,9 @@ export const useVenueHappyHours = (venueId: string | null) => {
     queryFn: async () => {
       if (!venueId) return [];
       
-      const { data, error } = await supabase
+      // Use any() cast to avoid TypeScript errors with the new table
+      // This is because the Supabase types haven't been updated yet to include the new table
+      const { data, error } = await (supabase as any)
         .from('venue_happy_hours')
         .select('*')
         .eq('venue_id', venueId)
@@ -63,7 +65,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
     
     try {
       // First, delete existing happy hours for this venue
-      const { error: deleteError } = await supabase
+      const { error: deleteError } = await (supabase as any)
         .from('venue_happy_hours')
         .delete()
         .eq('venue_id', venueId);
@@ -72,7 +74,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
       
       // Then insert the new ones
       if (happyHoursData.length > 0) {
-        const { error: insertError } = await supabase
+        const { error: insertError } = await (supabase as any)
           .from('venue_happy_hours')
           .insert(
             happyHoursData.map(hour => ({
@@ -102,7 +104,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
    */
   const deleteHappyHour = async (happyHourId: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('venue_happy_hours')
         .delete()
         .eq('id', happyHourId);
