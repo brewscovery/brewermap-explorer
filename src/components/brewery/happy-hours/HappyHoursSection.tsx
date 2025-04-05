@@ -70,14 +70,16 @@ const HappyHoursSection = ({
 
   const handleSave = async () => {
     console.log('Saving happy hours data:', formData);
-    // Format time strings for database
-    const formattedData = formData.map(hour => ({
-      ...hour,
-      start_time: hour.start_time ? `${hour.start_time}:00` : null,
-      end_time: hour.end_time ? `${hour.end_time}:00` : null
-    }));
+    // Validate that all entries have day_of_week
+    const validData = formData.map(hour => {
+      if (typeof hour.day_of_week !== 'number') {
+        console.error('Missing day_of_week for hour:', hour);
+        throw new Error('All happy hours must have a day of week selected');
+      }
+      return hour;
+    });
     
-    await onSave(formattedData);
+    await onSave(validData);
   };
 
   return (

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
+import { formatTimeForDatabase } from '@/utils/dateTimeUtils';
 
 export interface VenueHappyHour {
   id: string;
@@ -15,6 +16,18 @@ export interface VenueHappyHour {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+}
+
+// Interface for creating or updating - requires day_of_week
+export interface VenueHappyHourInput {
+  id?: string;
+  venue_id: string;
+  day_of_week: number;
+  start_time?: string | null;
+  end_time?: string | null;
+  description?: string | null;
+  is_active?: boolean;
+  updated_at?: string;
 }
 
 export const useVenueHappyHours = (venueId: string | null) => {
@@ -63,7 +76,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
     
     try {
       // Map existing happy hours to a lookup object by day_of_week
-      const existingHappyHoursByDay = new Map();
+      const existingHappyHoursByDay = new Map<number, VenueHappyHour>();
       happyHours.forEach(hour => {
         existingHappyHoursByDay.set(hour.day_of_week, hour);
       });
@@ -71,24 +84,28 @@ export const useVenueHappyHours = (venueId: string | null) => {
       console.log('Existing happy hours by day:', existingHappyHoursByDay);
       console.log('Updating with data:', happyHoursData);
       
-      // Instead of using upsert, we'll handle new and existing records separately
       // Process each happy hour record to determine if it's new or existing
-      const recordsToUpdate: Partial<VenueHappyHour>[] = [];
-      const recordsToInsert: Partial<VenueHappyHour>[] = [];
+      const recordsToUpdate: VenueHappyHourInput[] = [];
+      const recordsToInsert: VenueHappyHourInput[] = [];
       
       for (const hour of happyHoursData) {
         if (typeof hour.day_of_week !== 'number') {
+          console.error(`Missing required day_of_week for happy hour:`, hour);
           throw new Error(`Missing required field 'day_of_week' for happy hour`);
         }
         
         // Check if we have an existing record for this day
         const existingHour = existingHappyHoursByDay.get(hour.day_of_week);
         
-        const record = {
+        // Format time strings for database
+        const formattedStartTime = formatTimeForDatabase(hour.start_time);
+        const formattedEndTime = formatTimeForDatabase(hour.end_time);
+        
+        const record: VenueHappyHourInput = {
           venue_id: venueId,
           day_of_week: hour.day_of_week,
-          start_time: hour.start_time,
-          end_time: hour.end_time,
+          start_time: formattedStartTime,
+          end_time: formattedEndTime,
           description: hour.description,
           is_active: hour.is_active !== undefined ? hour.is_active : true,
           updated_at: new Date().toISOString()
@@ -111,13 +128,16 @@ export const useVenueHappyHours = (venueId: string | null) => {
       
       // Update existing records
       if (recordsToUpdate.length > 0) {
-        const { error: updateError } = await supabase
-          .from('venue_happy_hours')
-          .upsert(recordsToUpdate);
-          
-        if (updateError) {
-          console.error('Error updating existing happy hours:', updateError);
-          throw updateError;
+        for (const record of recordsToUpdate) {
+          const { error: updateError } = await supabase
+            .from('venue_happy_hours')
+            .update(record)
+            .eq('id', record.id!);
+            
+          if (updateError) {
+            console.error('Error updating existing happy hour:', updateError);
+            throw updateError;
+          }
         }
       }
       
