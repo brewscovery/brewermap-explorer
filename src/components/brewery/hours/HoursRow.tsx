@@ -1,5 +1,5 @@
 
-import { Clock, Utensils } from 'lucide-react';
+import { Clock, Utensils, XCircle } from 'lucide-react';
 import type { VenueHour } from '@/types/venueHours';
 import { formatTime } from '@/utils/dateTimeUtils';
 
@@ -10,6 +10,7 @@ interface HoursRowProps {
 
 const HoursRow = ({ day, hourData }: HoursRowProps) => {
   const hasKitchenHours = hourData.kitchen_open_time !== null && hourData.kitchen_close_time !== null;
+  const kitchenClosedForDay = !hourData.is_closed && !hasKitchenHours;
   
   if (hourData.is_closed) {
     return (
@@ -31,7 +32,14 @@ const HoursRow = ({ day, hourData }: HoursRowProps) => {
           </span>
         </div>
         
-        {hasKitchenHours && (
+        {kitchenClosedForDay ? (
+          <div className="flex items-center gap-1">
+            <XCircle size={12} className="text-muted-foreground" />
+            <span className="text-muted-foreground">
+              Kitchen closed
+            </span>
+          </div>
+        ) : hasKitchenHours && (
           <div className="flex items-center gap-1">
             <Utensils size={12} className="text-muted-foreground" />
             <span>

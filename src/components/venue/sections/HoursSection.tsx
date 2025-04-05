@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Utensils } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Utensils, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatTime, sortHoursStartingWithToday } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
@@ -32,7 +32,7 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
     if (hour.is_closed) return 'Closed';
     
     if (showKitchenHours) {
-      if (!hour.kitchen_open_time || !hour.kitchen_close_time) return 'Closed';
+      if (!hour.kitchen_open_time || !hour.kitchen_close_time) return 'Kitchen closed';
       return `${formatTime(hour.kitchen_open_time)} - ${formatTime(hour.kitchen_close_time)}`;
     } else {
       if (!hour.venue_open_time || !hour.venue_close_time) return 'Closed';
@@ -71,7 +71,12 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
       <div className="text-sm">
         <div className="flex justify-between">
           <span className="font-medium">Today:</span>
-          <span>{todayHoursText}</span>
+          <span className="flex items-center gap-1">
+            {showKitchenHours && todayHours && !todayHours.is_closed && (!todayHours.kitchen_open_time || !todayHours.kitchen_close_time) && (
+              <XCircle size={12} className="text-muted-foreground" />
+            )}
+            {todayHoursText}
+          </span>
         </div>
         
         {expanded && (
@@ -82,7 +87,12 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
                 className={`flex justify-between ${hour.day_of_week === todayIndex ? 'font-medium' : ''}`}
               >
                 <span>{DAYS_OF_WEEK[hour.day_of_week]}</span>
-                <span>{getHoursText(hour)}</span>
+                <span className="flex items-center gap-1">
+                  {showKitchenHours && !hour.is_closed && (!hour.kitchen_open_time || !hour.kitchen_close_time) && (
+                    <XCircle size={12} className="text-muted-foreground" />
+                  )}
+                  {getHoursText(hour)}
+                </span>
               </div>
             ))}
           </div>

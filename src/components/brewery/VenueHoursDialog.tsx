@@ -36,6 +36,7 @@ const VenueHoursDialog = ({
 }: VenueHoursDialogProps) => {
   const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
+  const [kitchenClosedDays, setKitchenClosedDays] = useState<Set<number>>(new Set());
   const { hours, isLoading, isUpdating, updateVenueHours } = useVenueHours(venue?.id || null);
 
   // Initialize or reset form data when dialog opens or venue changes
@@ -74,6 +75,16 @@ const VenueHoursDialog = ({
         hour => hour.kitchen_open_time !== null || hour.kitchen_close_time !== null
       );
       setHasKitchen(venueHasKitchen || hours.length === 0);
+      
+      // Initialize kitchen closed days
+      const closedKitchenDays = new Set<number>();
+      hours.forEach(hour => {
+        if (!hour.is_closed && hour.venue_open_time && hour.venue_close_time && 
+            (!hour.kitchen_open_time || !hour.kitchen_close_time)) {
+          closedKitchenDays.add(hour.day_of_week);
+        }
+      });
+      setKitchenClosedDays(closedKitchenDays);
     }
   }, [open, venue, hours]);
 
@@ -87,6 +98,47 @@ const VenueHoursDialog = ({
     setFormData(prev => prev.map((day, idx) => 
       idx === dayIndex ? { ...day, is_closed: value } : day
     ));
+    
+    // If venue is closed, also remove from kitchen closed days
+    if (value) {
+      setKitchenClosedDays(prev => {
+        const updated = new Set(prev);
+        updated.delete(dayIndex);
+        return updated;
+      });
+    }
+  };
+
+  const handleKitchenClosedToggle = (dayIndex: number, isClosed: boolean) => {
+    setKitchenClosedDays(prev => {
+      const updated = new Set(prev);
+      if (isClosed) {
+        updated.add(dayIndex);
+      } else {
+        updated.delete(dayIndex);
+      }
+      return updated;
+    });
+    
+    // If kitchen is marked as closed, clear kitchen hours
+    if (isClosed) {
+      setFormData(prev => prev.map((day, idx) => 
+        idx === dayIndex ? { 
+          ...day, 
+          kitchen_open_time: null, 
+          kitchen_close_time: null 
+        } : day
+      ));
+    } else {
+      // Set default kitchen hours when re-enabling kitchen
+      setFormData(prev => prev.map((day, idx) => 
+        idx === dayIndex ? { 
+          ...day, 
+          kitchen_open_time: '11:00', 
+          kitchen_close_time: '17:00' 
+        } : day
+      ));
+    }
   };
 
   const handleHasKitchenToggle = (value: boolean) => {
@@ -99,6 +151,7 @@ const VenueHoursDialog = ({
         kitchen_open_time: null,
         kitchen_close_time: null
       })));
+      setKitchenClosedDays(new Set());
     } else {
       // Set default kitchen hours when toggling kitchen on
       setFormData(prev => prev.map(day => ({
@@ -112,13 +165,18 @@ const VenueHoursDialog = ({
   const handleSave = async () => {
     if (!venue) return;
     
-    const formattedData = formData.map(day => ({
-      ...day,
-      venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
-      venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
-      kitchen_open_time: hasKitchen && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
-      kitchen_close_time: hasKitchen && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
-    }));
+    const formattedData = formData.map(day => {
+      const dayIndex = day.day_of_week as number;
+      const isKitchenClosed = kitchenClosedDays.has(dayIndex);
+      
+      return {
+        ...day,
+        venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
+        venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
+        kitchen_open_time: hasKitchen && !isKitchenClosed && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
+        kitchen_close_time: hasKitchen && !isKitchenClosed && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
+      };
+    });
     
     const success = await updateVenueHours(formattedData);
     if (success) {
@@ -227,13 +285,29 @@ const VenueHoursDialog = ({
                         
                         {hasKitchen && (
                           <div className="space-y-3">
-                            <div className="flex gap-2 items-end">
+                            {!day.is_closed && (
+                              <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <BellOff className="h-3 w-3" />
+                                  <span>Kitchen closed this day</span>
+                                </div>
+                                <Switch 
+                                  id={`kitchen-closed-${index}`} 
+                                  checked={kitchenClosedDays.has(index)}
+                                  onCheckedChange={(checked) => handleKitchenClosedToggle(index, checked)}
+                                  disabled={day.is_closed}
+                                  size="sm"
+                                />
+                              </div>
+                            )}
+                            
+                            <div className={`flex gap-2 items-end ${kitchenClosedDays.has(index) ? 'opacity-50' : ''}`}>
                               <div className="flex-1">
                                 <Label htmlFor={`kitchen-open-${index}`} className="text-xs">Open</Label>
                                 <Select
                                   value={day.kitchen_open_time || ''}
                                   onValueChange={(value) => handleTimeChange(index, 'kitchen_open_time', value)}
-                                  disabled={day.is_closed}
+                                  disabled={day.is_closed || kitchenClosedDays.has(index)}
                                 >
                                   <SelectTrigger id={`kitchen-open-${index}`}>
                                     <SelectValue placeholder="Select time" />
@@ -254,7 +328,7 @@ const VenueHoursDialog = ({
                                 <Select
                                   value={day.kitchen_close_time || ''}
                                   onValueChange={(value) => handleTimeChange(index, 'kitchen_close_time', value)}
-                                  disabled={day.is_closed}
+                                  disabled={day.is_closed || kitchenClosedDays.has(index)}
                                 >
                                   <SelectTrigger id={`kitchen-close-${index}`}>
                                     <SelectValue placeholder="Select time" />

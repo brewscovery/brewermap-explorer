@@ -1,5 +1,5 @@
 
-import { Clock, Utensils } from 'lucide-react';
+import { Clock, Utensils, XCircle } from 'lucide-react';
 import type { VenueHour } from '@/types/venueHours';
 import { formatTime } from '@/utils/dateTimeUtils';
 
@@ -18,6 +18,7 @@ const TodayHours = ({ todayHours }: TodayHoursProps) => {
   }
   
   const hasKitchenHours = todayHours.kitchen_open_time !== null && todayHours.kitchen_close_time !== null;
+  const kitchenClosedToday = !todayHours.is_closed && !hasKitchenHours;
 
   return (
     <div className="text-sm">
@@ -31,6 +32,15 @@ const TodayHours = ({ todayHours }: TodayHoursProps) => {
           </span>
         )}
       </div>
+      
+      {kitchenClosedToday && !todayHours.is_closed && (
+        <div className="flex items-center gap-2 mt-1">
+          <XCircle size={14} className="text-muted-foreground" />
+          <span className="text-muted-foreground">
+            Kitchen closed today
+          </span>
+        </div>
+      )}
       
       {hasKitchenHours && !todayHours.is_closed && (
         <div className="flex items-center gap-2 mt-1">
