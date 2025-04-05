@@ -38,3 +38,20 @@ export const sortHoursStartingWithToday = (hours: any[]): any[] => {
     return aDiff - bDiff;
   });
 };
+
+/**
+ * Convert database time format (HH:MM:SS) to form input format (HH:MM)
+ */
+export const formatTimeForForm = (timeString: string | null): string => {
+  if (!timeString) return '';
+  
+  // If the time already has seconds, remove them
+  if (timeString.includes(':')) {
+    const parts = timeString.split(':');
+    if (parts.length >= 2) {
+      return `${parts[0]}:${parts[1]}`;
+    }
+  }
+  
+  return timeString;
+};

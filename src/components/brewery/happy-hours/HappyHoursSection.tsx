@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Beer, Clock, Plus, X } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -26,21 +26,25 @@ const HappyHoursSection = ({
   onSave,
   isUpdating
 }: HappyHoursSectionProps) => {
-  const [formData, setFormData] = useState<Partial<VenueHappyHour>[]>(() => {
-    // Initialize with existing happy hours or empty array
+  const [formData, setFormData] = useState<Partial<VenueHappyHour>[]>([]);
+  
+  // Initialize with existing happy hours or empty array
+  useEffect(() => {
+    console.log('Initializing happy hours form data with:', happyHours);
     if (happyHours.length > 0) {
-      return happyHours.map(hour => ({
+      setFormData(happyHours.map(hour => ({
         ...hour,
         start_time: formatTimeForForm(hour.start_time),
         end_time: formatTimeForForm(hour.end_time)
-      }));
+      })));
+    } else {
+      // Clear form data if there are no happy hours
+      setFormData([]);
     }
-    
-    // Default to no happy hours
-    return [];
-  });
+  }, [happyHours]);
 
   const addHappyHour = () => {
+    console.log('Adding new happy hour to form data');
     setFormData(prev => [
       ...prev,
       {
@@ -65,6 +69,7 @@ const HappyHoursSection = ({
   };
 
   const handleSave = async () => {
+    console.log('Saving happy hours data:', formData);
     // Format time strings for database
     const formattedData = formData.map(hour => ({
       ...hour,

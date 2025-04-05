@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,35 +61,53 @@ export const useVenueHappyHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      // First, delete existing happy hours for this venue
-      const { error: deleteError } = await supabase
-        .from('venue_happy_hours')
-        .delete()
-        .eq('venue_id', venueId);
+      // Instead of deleting and reinserting, we'll use upsert logic
+      // Prepare data for upsert with proper IDs
+      const dataToUpsert = happyHoursData.map(hour => {
+        if (typeof hour.day_of_week !== 'number') {
+          throw new Error(`Missing required field 'day_of_week' for happy hour`);
+        }
         
-      if (deleteError) throw deleteError;
-      
-      // Then insert the new ones
-      if (happyHoursData.length > 0) {
-        // Ensure all required fields are present
-        const dataToInsert = happyHoursData.map(hour => {
-          if (typeof hour.day_of_week !== 'number') {
-            throw new Error(`Missing required field 'day_of_week' for happy hour`);
-          }
-          
-          return {
-            ...hour,
-            venue_id: venueId,
-            day_of_week: hour.day_of_week, // Explicitly include to satisfy TypeScript
-            updated_at: new Date().toISOString()
-          };
-        });
+        return {
+          // Keep id if it exists (for existing records)
+          id: hour.id || undefined, // undefined will trigger auto-generation
+          venue_id: venueId,
+          day_of_week: hour.day_of_week,
+          start_time: hour.start_time,
+          end_time: hour.end_time,
+          description: hour.description,
+          is_active: hour.is_active !== undefined ? hour.is_active : true,
+          updated_at: new Date().toISOString()
+        };
+      });
 
-        const { error: insertError } = await supabase
-          .from('venue_happy_hours')
-          .insert(dataToInsert);
+      // Use upsert operation (insert with onConflict handling)
+      const { error: upsertError } = await supabase
+        .from('venue_happy_hours')
+        .upsert(dataToUpsert, { 
+          onConflict: 'id', 
+          ignoreDuplicates: false 
+        });
           
-        if (insertError) throw insertError;
+      if (upsertError) throw upsertError;
+
+      // Find happy hours that exist in the database but aren't in the updated data
+      // (these need to be deleted)
+      const existingIds = happyHours.map(hour => hour.id);
+      const updatedIds = dataToUpsert
+        .filter(hour => hour.id)
+        .map(hour => hour.id as string);
+        
+      const idsToDelete = existingIds.filter(id => !updatedIds.includes(id));
+      
+      // Delete any happy hours that were removed in the UI
+      if (idsToDelete.length > 0) {
+        const { error: deleteError } = await supabase
+          .from('venue_happy_hours')
+          .delete()
+          .in('id', idsToDelete);
+          
+        if (deleteError) throw deleteError;
       }
 
       toast.success('Happy hours updated successfully');
