@@ -2,7 +2,7 @@
 import React from 'react';
 import { Beer, Clock } from 'lucide-react';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
-import { formatTime } from '@/utils/dateTimeUtils';
+import { formatTime, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
 import type { VenueHappyHour } from '@/hooks/useVenueHappyHours';
 
 interface HappyHoursSectionProps {
@@ -33,9 +33,8 @@ const HappyHoursSection = ({ happyHours, isLoading }: HappyHoursSectionProps) =>
   const sortedHappyHours = [...activeHappyHours].sort((a, b) => a.day_of_week - b.day_of_week);
   
   // Get today's happy hours
-  const today = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-  const adjustedToday = today === 0 ? 6 : today - 1; // Adjust to our 0-6 format (0 = Monday)
-  const todayHappyHours = sortedHappyHours.filter(hour => hour.day_of_week === adjustedToday);
+  const todayIndex = getTodayDayOfWeek(); // Using the consistent function
+  const todayHappyHours = sortedHappyHours.filter(hour => hour.day_of_week === todayIndex);
   
   // Check if any happy hour is currently active
   const isHappyHourActive = () => {

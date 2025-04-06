@@ -18,8 +18,7 @@ export const formatTime = (timeString: string | null): string => {
 
 /**
  * Get the current day of week (0 = Monday, 6 = Sunday)
- * Note: JavaScript's getDay() returns 0 for Sunday, 1 for Monday, etc.
- * But our application uses 0 for Monday, 6 for Sunday
+ * This matches our database storage format and DAYS_OF_WEEK array indexing
  */
 export const getTodayDayOfWeek = (): number => {
   const jsDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
