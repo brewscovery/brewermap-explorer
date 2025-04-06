@@ -30,6 +30,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
     const logoUrl = form.getValues('logo_url');
     if (logoUrl) {
       setPreviewUrl(logoUrl);
+      console.log('Setting logo preview from form value:', logoUrl);
     }
   }, [form]);
   
@@ -69,16 +70,33 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
       
       setUploading(true);
       
+      // Create the bucket if it doesn't exist
+      const { data: bucketExists } = await supabase.storage.getBucket('brewery_logos');
+      if (!bucketExists) {
+        const { error: bucketError } = await supabase.storage.createBucket('brewery_logos', { 
+          public: true 
+        });
+        if (bucketError) {
+          console.error('Error creating bucket:', bucketError);
+          toast.error(`Error creating storage bucket: ${bucketError.message}`);
+          setUploading(false);
+          return;
+        }
+      }
+      
       // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
         .from('brewery_logos')
         .upload(filePath, file, {
           upsert: true,
+          cacheControl: '3600',
+          contentType: file.type
         });
         
       if (error) {
         console.error('Error uploading logo:', error);
         toast.error(`Error uploading logo: ${error.message}`);
+        setUploading(false);
         return;
       }
       
@@ -88,6 +106,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
         .getPublicUrl(filePath);
         
       const publicUrl = publicUrlData.publicUrl;
+      console.log('Logo uploaded successfully, public URL:', publicUrl);
       
       // Update the form
       form.setValue('logo_url', publicUrl);
@@ -126,7 +145,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
                   <div className="relative">
                     <Avatar className="w-24 h-24 border">
                       <AvatarImage src={previewUrl} alt="Brewery logo" />
-                      <AvatarFallback>{form.getValues('name').substring(0, 2)}</AvatarFallback>
+                      <AvatarFallback>{form.getValues('name').substring(0, 2).toUpperCase()}</AvatarFallback>
                     </Avatar>
                     <Button
                       variant="destructive"

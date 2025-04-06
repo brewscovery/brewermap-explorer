@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Edit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,9 +15,21 @@ interface BreweryCardProps {
 }
 
 const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps) => {
+  const [imageError, setImageError] = useState(false);
+  
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onEdit();
+  };
+
+  const handleImageError = () => {
+    console.log('Logo image failed to load:', brewery.logo_url);
+    setImageError(true);
+  };
+
+  // Get the initials for the fallback
+  const getInitials = () => {
+    return brewery.name.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -28,8 +40,14 @@ const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps)
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border">
-            <AvatarImage src={brewery.logo_url || ''} alt={brewery.name} />
-            <AvatarFallback>{brewery.name.substring(0, 2)}</AvatarFallback>
+            {brewery.logo_url && !imageError ? (
+              <AvatarImage 
+                src={brewery.logo_url} 
+                alt={brewery.name} 
+                onError={handleImageError}
+              />
+            ) : null}
+            <AvatarFallback>{getInitials()}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">
             <CardTitle className="text-lg">{brewery.name}</CardTitle>

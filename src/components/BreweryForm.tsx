@@ -28,7 +28,15 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       facebook_url: initialData.facebook_url || '',
       instagram_url: initialData.instagram_url || '',
       logo_url: initialData.logo_url || '',
-    } : undefined
+    } : {
+      name: '',
+      brewery_type: '',
+      website_url: '',
+      about: '',
+      facebook_url: '',
+      instagram_url: '',
+      logo_url: '',
+    }
   });
   
   const { user } = useAuth();
