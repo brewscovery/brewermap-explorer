@@ -7,6 +7,7 @@ export interface Brewery {
   about: string | null;
   facebook_url: string | null;
   instagram_url: string | null;
+  logo_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -18,4 +19,5 @@ export interface BreweryFormData {
   about: string;
   facebook_url: string;
   instagram_url: string;
+  logo_url: string;
 }

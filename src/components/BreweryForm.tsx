@@ -10,6 +10,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BreweryFormData, Brewery } from '@/types/brewery';
 import GeneralInfoSection from './brewery/form/GeneralInfoSection';
 import WebsiteSection from './brewery/form/WebsiteSection';
+import LogoUploadSection from './brewery/form/LogoUploadSection';
 
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
@@ -26,11 +27,13 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       about: initialData.about || '',
       facebook_url: initialData.facebook_url || '',
       instagram_url: initialData.instagram_url || '',
+      logo_url: initialData.logo_url || '',
     } : undefined
   });
   
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [breweryId, setBreweryId] = useState<string | undefined>(initialData?.id);
 
   // Update form when initialData changes (for editing mode)
   useEffect(() => {
@@ -43,7 +46,9 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         about: initialData.about || '',
         facebook_url: initialData.facebook_url || '',
         instagram_url: initialData.instagram_url || '',
+        logo_url: initialData.logo_url || '',
       });
+      setBreweryId(initialData.id);
     }
   }, [initialData, isEditing, form]);
 
@@ -65,6 +70,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         about: data.about || null,
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
+        logo_url: data.logo_url || null,
         updated_at: new Date().toISOString()
       };
       console.log('Prepared brewery data for submission:', breweryData);
@@ -128,6 +134,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         }
 
         console.log('New brewery created:', newBrewery);
+        setBreweryId(newBrewery.id);
 
         // Create the brewery ownership record
         const { data: ownershipData, error: ownershipError } = await supabase
@@ -165,6 +172,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           <GeneralInfoSection form={form} />
           <WebsiteSection form={form} />
+          <LogoUploadSection form={form} breweryId={breweryId} />
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting 

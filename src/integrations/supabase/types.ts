@@ -17,6 +17,7 @@ export type Database = {
           facebook_url: string | null
           id: string
           instagram_url: string | null
+          logo_url: string | null
           name: string
           updated_at: string
           website_url: string | null
@@ -28,6 +29,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_url?: string | null
           name: string
           updated_at?: string
           website_url?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          logo_url?: string | null
           name?: string
           updated_at?: string
           website_url?: string | null
