@@ -46,7 +46,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
       }
       
       if (!breweryId) {
-        toast.error('Brewery ID is required to upload a logo');
+        toast.error('Please save the brewery first before uploading a logo');
         return;
       }
       
@@ -69,20 +69,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
       }
       
       setUploading(true);
-      
-      // Create the bucket if it doesn't exist
-      const { data: bucketExists } = await supabase.storage.getBucket('brewery_logos');
-      if (!bucketExists) {
-        const { error: bucketError } = await supabase.storage.createBucket('brewery_logos', { 
-          public: true 
-        });
-        if (bucketError) {
-          console.error('Error creating bucket:', bucketError);
-          toast.error(`Error creating storage bucket: ${bucketError.message}`);
-          setUploading(false);
-          return;
-        }
-      }
+      console.log('Starting upload process for file:', fileName);
       
       // Upload the file to Supabase Storage
       const { data, error } = await supabase.storage
@@ -95,7 +82,16 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
         
       if (error) {
         console.error('Error uploading logo:', error);
-        toast.error(`Error uploading logo: ${error.message}`);
+        
+        // Provide more specific error messages based on error code
+        if (error.message.includes('storage/unauthorized')) {
+          toast.error('You do not have permission to upload files. Please check if you are logged in.');
+        } else if (error.message.includes('storage/object_too_large')) {
+          toast.error('File is too large. Maximum size is 2MB.');
+        } else {
+          toast.error(`Error uploading logo: ${error.message}`);
+        }
+        
         setUploading(false);
         return;
       }
@@ -163,7 +159,9 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
                       <Upload className="h-5 w-5" />
                     </div>
                     <p className="text-sm text-muted-foreground text-center">
-                      Upload a logo for your brewery
+                      {breweryId 
+                        ? 'Upload a logo for your brewery' 
+                        : 'Save brewery first before uploading a logo'}
                     </p>
                   </div>
                 )}
