@@ -22,8 +22,9 @@ export const formatTime = (timeString: string | null): string => {
  * But our application uses 0 for Monday, 6 for Sunday
  */
 export const getTodayDayOfWeek = (): number => {
-  const day = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
-  return day === 0 ? 6 : day - 1; // Convert to 0 = Monday, 6 = Sunday
+  const jsDay = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+  // Convert JS day (0-6, Sunday-Saturday) to our format (0-6, Monday-Sunday)
+  return jsDay === 0 ? 6 : jsDay - 1;
 };
 
 /**

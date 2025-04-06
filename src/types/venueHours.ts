@@ -12,12 +12,14 @@ export interface VenueHour {
   updated_at: string;
 }
 
+// Days of week array (0 = Monday, 6 = Sunday)
+// This matches the database storage format
 export const DAYS_OF_WEEK = [
-  'Sunday',
   'Monday',
   'Tuesday',
   'Wednesday',
   'Thursday',
   'Friday',
-  'Saturday'
+  'Saturday',
+  'Sunday'
 ];

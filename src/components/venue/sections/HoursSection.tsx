@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronUp, Clock, Utensils, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatTime, sortHoursStartingWithToday } from '@/utils/dateTimeUtils';
+import { formatTime, sortHoursStartingWithToday, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 
 interface HoursSectionProps { 
@@ -13,7 +13,7 @@ interface HoursSectionProps {
 
 const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionProps) => {
   const [expanded, setExpanded] = useState(false);
-  const todayIndex = new Date().getDay();
+  const todayIndex = getTodayDayOfWeek();
   
   const todayHours = hours.find(h => h.day_of_week === todayIndex);
   
