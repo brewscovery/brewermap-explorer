@@ -43,19 +43,20 @@ export const useBreweryFetching = (userId: string | undefined) => {
         if (breweriesData && breweriesData.length > 0) {
           console.log('Fetched brewery data:', breweriesData);
           
-          setBreweries(breweriesData);
+          // Type assertion to make TypeScript happy
+          setBreweries(breweriesData as Brewery[]);
           
           if (breweriesData.length === 1) {
-            setSelectedBrewery(breweriesData[0]);
+            setSelectedBrewery(breweriesData[0] as Brewery);
           } else if (selectedBrewery === null && breweriesData.length > 0) {
-            setSelectedBrewery(breweriesData[0]);
+            setSelectedBrewery(breweriesData[0] as Brewery);
           } else if (selectedBrewery) {
             const updatedBrewery = breweriesData.find(b => b.id === selectedBrewery.id);
             if (updatedBrewery) {
               console.log('Updating selected brewery with latest data:', updatedBrewery);
-              setSelectedBrewery(updatedBrewery);
+              setSelectedBrewery(updatedBrewery as Brewery);
             } else {
-              setSelectedBrewery(breweriesData[0]);
+              setSelectedBrewery(breweriesData[0] as Brewery);
             }
           }
         } else {
