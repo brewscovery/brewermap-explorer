@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Clock } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
+import { useVenueDailySpecials } from '@/hooks/useVenueDailySpecials';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import type { VenueHour } from '@/types/venueHours';
 import type { Venue } from '@/types/venue';
@@ -12,6 +13,7 @@ import { formatTimeForForm, generateHourOptions } from './hours/hoursUtils';
 import HoursDialogTabs from './hours/HoursDialogTabs';
 import RegularHoursTab from './hours/RegularHoursTab';
 import HappyHoursTab from './happy-hours/HappyHoursTab';
+import DailySpecialsTab from './daily-specials/DailySpecialsTab';
 
 interface VenueHoursDialogProps {
   open: boolean;
@@ -29,7 +31,7 @@ const VenueHoursDialog = ({
   const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
   const [kitchenClosedDays, setKitchenClosedDays] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<'regular' | 'happy'>('regular');
+  const [activeTab, setActiveTab] = useState<'regular' | 'happy' | 'daily'>('regular');
   
   const { 
     hours, 
@@ -44,6 +46,13 @@ const VenueHoursDialog = ({
     isUpdating: isUpdatingHappyHours,
     updateHappyHours
   } = useVenueHappyHours(venue?.id || null);
+
+  const {
+    dailySpecials,
+    isLoading: isLoadingDailySpecials,
+    isUpdating: isUpdatingDailySpecials,
+    updateDailySpecials
+  } = useVenueDailySpecials(venue?.id || null);
 
   // Initialize or reset form data when dialog opens or venue changes
   useEffect(() => {
@@ -121,7 +130,7 @@ const VenueHoursDialog = ({
   if (!venue) return null;
 
   const renderActiveTab = () => {
-    if (isLoading) {
+    if (isLoading && activeTab === 'regular') {
       return (
         <div className="text-center py-8">
           <p>Loading hours...</p>
@@ -129,29 +138,58 @@ const VenueHoursDialog = ({
       );
     }
 
-    if (activeTab === 'regular') {
+    if (isLoadingHappyHours && activeTab === 'happy') {
       return (
-        <RegularHoursTab
-          hours={hours}
-          formData={formData}
-          setFormData={setFormData}
-          hasKitchen={hasKitchen}
-          setHasKitchen={setHasKitchen}
-          kitchenClosedDays={kitchenClosedDays}
-          setKitchenClosedDays={setKitchenClosedDays}
-          HOURS={HOURS}
-        />
+        <div className="text-center py-8">
+          <p>Loading happy hours...</p>
+        </div>
       );
-    } else {
+    }
+
+    if (isLoadingDailySpecials && activeTab === 'daily') {
       return (
-        <HappyHoursTab
-          venueId={venue.id}
-          happyHours={happyHours}
-          HOURS={HOURS}
-          onSave={updateHappyHours}
-          isUpdating={isUpdatingHappyHours}
-        />
+        <div className="text-center py-8">
+          <p>Loading daily specials...</p>
+        </div>
       );
+    }
+
+    switch (activeTab) {
+      case 'regular':
+        return (
+          <RegularHoursTab
+            hours={hours}
+            formData={formData}
+            setFormData={setFormData}
+            hasKitchen={hasKitchen}
+            setHasKitchen={setHasKitchen}
+            kitchenClosedDays={kitchenClosedDays}
+            setKitchenClosedDays={setKitchenClosedDays}
+            HOURS={HOURS}
+          />
+        );
+      case 'happy':
+        return (
+          <HappyHoursTab
+            venueId={venue.id}
+            happyHours={happyHours}
+            HOURS={HOURS}
+            onSave={updateHappyHours}
+            isUpdating={isUpdatingHappyHours}
+          />
+        );
+      case 'daily':
+        return (
+          <DailySpecialsTab
+            venueId={venue.id}
+            dailySpecials={dailySpecials}
+            HOURS={HOURS}
+            onSave={updateDailySpecials}
+            isUpdating={isUpdatingDailySpecials}
+          />
+        );
+      default:
+        return null;
     }
   };
 
