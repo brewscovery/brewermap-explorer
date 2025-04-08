@@ -87,7 +87,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           // Fetch additional user data if needed
           if (session.user) {
-            await fetchUserProfile(session.user.id);
+            // Use setTimeout to avoid potential deadlocks
+            setTimeout(async () => {
+              if (mounted) {
+                await fetchUserProfile(session.user.id);
+              }
+            }, 0);
           }
         } else {
           console.log('No initial session found');

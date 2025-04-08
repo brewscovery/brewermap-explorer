@@ -35,25 +35,28 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .rpc('get_user_profile', { profile_id: session.user.id });
+            
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            toast.error('Error fetching user profile. Some features may be limited.');
+            navigate('/');
+            return;
+          }
           
-        if (profileError) {
-          console.error('Error fetching profile:', profileError);
-          toast.error('Error fetching user profile. Some features may be limited.');
-          navigate('/');
-          return;
-        }
-          
-        // Redirect based on user type
-        if (profileData?.user_type === 'admin') {
-          navigate('/admin');
-        } else if (profileData?.user_type === 'business') {
-          navigate('/dashboard');
-        } else {
+          // Redirect based on user type
+          if (profileData?.user_type === 'admin') {
+            navigate('/admin');
+          } else if (profileData?.user_type === 'business') {
+            navigate('/dashboard');
+          } else {
+            navigate('/');
+          }
+        } catch (profileErr) {
+          console.error('Error in profile fetch:', profileErr);
+          toast.error('Error fetching user profile data');
           navigate('/');
         }
       } else {

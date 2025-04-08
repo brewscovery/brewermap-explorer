@@ -38,21 +38,19 @@ Deno.serve(async (req) => {
       )
     }
     
-    // Get the user's profile to check if they are an admin
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('user_type')
-      .eq('id', user.id)
-      .single()
+    // Get the user's profile to check if they are an admin using the security definer function
+    const { data: profileData, error: profileError } = await supabase
+      .rpc('get_user_profile', { profile_id: user.id })
       
-    if (profileError || !profile) {
+    if (profileError || !profileData) {
+      console.error('Error fetching user profile:', profileError || 'No profile data found')
       return new Response(
         JSON.stringify({ error: 'Could not verify user type' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
     
-    if (profile.user_type !== 'admin') {
+    if (profileData.user_type !== 'admin') {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
