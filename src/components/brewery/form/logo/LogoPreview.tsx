@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { X } from 'lucide-react';
+import { X, Upload } from 'lucide-react';
 
 interface LogoPreviewProps {
   previewUrl: string | null;
