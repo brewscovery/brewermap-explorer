@@ -28,6 +28,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('user_type, first_name, last_name')
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
       
+      console.log('Profile data received:', data);
       if (data) {
         setUserType(data.user_type || 'regular');
         setFirstName(data.first_name || '');
@@ -52,14 +54,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const fetchInitialSession = async () => {
       try {
+        console.log('Fetching initial session...');
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
+          console.log('Initial session found', session.user.id);
           setUser(session.user);
           
           // Fetch additional user data if needed
           if (session.user) {
             await fetchUserProfile(session.user.id);
           }
+        } else {
+          console.log('No initial session found');
         }
       } catch (error) {
         console.error('Error fetching session:', error);
@@ -74,6 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.log('Auth event:', event);
         
         if (session) {
+          console.log('Session found in auth state change', session.user.id);
           setUser(session.user);
           
           // Don't make additional Supabase calls directly in the callback
@@ -84,6 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }, 0);
           }
         } else {
+          console.log('No session in auth state change');
           setUser(null);
           setUserType(null);
           setFirstName(null);

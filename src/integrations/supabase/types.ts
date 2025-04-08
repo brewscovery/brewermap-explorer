@@ -412,6 +412,10 @@ export type Database = {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
       }
+      get_auth_user_type: {
+        Args: { user_id: string }
+        Returns: string
+      }
       update_brewery_about: {
         Args: { brewery_id: string; new_about: string }
         Returns: undefined
