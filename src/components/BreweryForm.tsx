@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -10,7 +9,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BreweryFormData, Brewery } from '@/types/brewery';
 import GeneralInfoSection from './brewery/form/GeneralInfoSection';
 import WebsiteSection from './brewery/form/WebsiteSection';
-import LogoUploadSection from './brewery/form/LogoUploadSection';
+import LogoUploadSection from './brewery/form/logo';
 
 interface BreweryFormProps {
   onSubmitSuccess: () => void;
@@ -43,7 +42,6 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [breweryId, setBreweryId] = useState<string | undefined>(initialData?.id);
 
-  // Update form when initialData changes (for editing mode)
   useEffect(() => {
     if (initialData && isEditing) {
       console.log('Updating form with initialData:', initialData);
@@ -86,7 +84,6 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       if (isEditing && initialData) {
         console.log('Updating existing brewery with ID:', initialData.id);
         
-        // Check brewery ownership first
         const { data: ownershipData, error: ownershipError } = await supabase
           .from('brewery_owners')
           .select('brewery_id')
@@ -105,7 +102,6 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
           throw new Error('You do not have permission to update this brewery');
         }
         
-        // Update existing brewery
         const { data: updatedData, error: breweryError } = await supabase
           .from('breweries')
           .update(breweryData)
@@ -126,7 +122,6 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         toast.success('Brewery updated successfully!');
       } else {
         console.log('Creating new brewery');
-        // Insert a new brewery
         const { data: newBrewery, error: breweryError } = await supabase
           .from('breweries')
           .insert({
@@ -144,7 +139,6 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         console.log('New brewery created:', newBrewery);
         setBreweryId(newBrewery.id);
 
-        // Create the brewery ownership record
         const { data: ownershipData, error: ownershipError } = await supabase
           .from('brewery_owners')
           .insert({
