@@ -421,6 +421,10 @@ export type Database = {
           last_name: string
         }[]
       }
+      get_user_profile: {
+        Args: { profile_id: string }
+        Returns: Json
+      }
       update_brewery_about: {
         Args: { brewery_id: string; new_about: string }
         Returns: undefined

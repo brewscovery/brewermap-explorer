@@ -37,13 +37,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Fetching profile for user:', userId);
       
-      // Use a direct query to the profiles table with a type assertion
-      // This avoids RPC typing issues while still benefiting from the secure RLS policies
+      // Use the security definer function to avoid infinite recursion
       const { data, error } = await supabase
-        .from('profiles')
-        .select('user_type, first_name, last_name')
-        .eq('id', userId)
-        .single();
+        .rpc('get_user_profile', { profile_id: userId });
         
       if (error) {
         console.error('Error fetching profile:', error);
