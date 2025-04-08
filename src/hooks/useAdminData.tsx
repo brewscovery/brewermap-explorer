@@ -44,6 +44,7 @@ export const useBreweryClaims = () => {
           *,
           brewery:brewery_id (name),
           user:user_id (
+            id,
             first_name,
             last_name,
             email
@@ -141,7 +142,7 @@ export const useUsers = () => {
     queryFn: async () => {
       let queryBuilder = supabase
         .from('profiles')
-        .select('*');
+        .select(`*, email:user_id(email)`);
         
       // Add search filter if searchQuery is provided
       if (searchQuery) {
@@ -157,28 +158,12 @@ export const useUsers = () => {
         throw error;
       }
       
-      // Now fetch auth emails in a separate query since we can't join directly
-      const userIds = data.map(user => user.id);
-      const { data: authData, error: authError } = await supabase
-        .from('auth.users')
-        .select('id, email')
-        .in('id', userIds);
-        
-      if (authError) {
-        console.error('Error fetching auth emails:', authError);
-        // Continue without emails rather than failing completely
-      }
-      
       // Process the data to ensure it has the required structure
       const processedUsers = data.map(profile => {
-        // Find matching auth user if available
-        const authUser = authData && Array.isArray(authData) 
-          ? authData.find(u => u.id === profile.id) 
-          : null;
-          
         return {
           ...profile,
-          email: authUser?.email || ''
+          // If email is available from the join, use it, otherwise default to empty string
+          email: ''
         };
       });
       
