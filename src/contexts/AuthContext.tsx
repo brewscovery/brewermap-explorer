@@ -49,7 +49,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log('Profile data received:', data);
       if (data) {
-        setUserType(data.user_type as 'business' | 'regular' | 'admin' || 'regular');
+        // Safely handle the JSON response from our RPC function
+        setUserType((data.user_type as 'business' | 'regular' | 'admin') || 'regular');
         setFirstName(data.first_name || '');
         setLastName(data.last_name || '');
       } else {
