@@ -12,6 +12,13 @@ type AuthContextType = {
   loading: boolean;
 };
 
+// Define a type for our profile data structure
+interface UserProfileData {
+  user_type: 'business' | 'regular' | 'admin';
+  first_name: string | null;
+  last_name: string | null;
+}
+
 const AuthContext = createContext<AuthContextType>({
   user: null,
   userType: null,
@@ -49,10 +56,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log('Profile data received:', data);
       if (data) {
-        // Safely handle the JSON response from our RPC function
-        setUserType((data.user_type as 'business' | 'regular' | 'admin') || 'regular');
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
+        // Properly cast the JSON response to our interface
+        const profileData = data as unknown as UserProfileData;
+        setUserType(profileData.user_type || 'regular');
+        setFirstName(profileData.first_name || '');
+        setLastName(profileData.last_name || '');
       } else {
         console.log('No profile found for user:', userId);
         setUserType('regular');
