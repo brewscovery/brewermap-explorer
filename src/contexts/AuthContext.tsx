@@ -26,6 +26,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [lastName, setLastName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_type, first_name, last_name')
+        .eq('id', userId)
+        .single();
+        
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+      
+      if (data) {
+        setUserType(data.user_type || 'regular');
+        setFirstName(data.first_name || '');
+        setLastName(data.last_name || '');
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+    }
+  };
+
   useEffect(() => {
     const fetchInitialSession = async () => {
       try {
@@ -35,17 +58,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           // Fetch additional user data if needed
           if (session.user) {
-            const { data } = await supabase
-              .from('profiles')
-              .select('user_type, first_name, last_name')
-              .eq('id', session.user.id)
-              .single();
-              
-            if (data) {
-              setUserType(data.user_type || 'regular');
-              setFirstName(data.first_name || '');
-              setLastName(data.last_name || '');
-            }
+            await fetchUserProfile(session.user.id);
           }
         }
       } catch (error) {
@@ -67,17 +80,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Use setTimeout to avoid potential deadlocks
           if (session.user) {
             setTimeout(async () => {
-              const { data } = await supabase
-                .from('profiles')
-                .select('user_type, first_name, last_name')
-                .eq('id', session.user.id)
-                .single();
-                
-              if (data) {
-                setUserType(data.user_type || 'regular');
-                setFirstName(data.first_name || '');
-                setLastName(data.last_name || '');
-              }
+              await fetchUserProfile(session.user.id);
             }, 0);
           }
         } else {

@@ -29,9 +29,13 @@ const Header = () => {
   const isOnAdmin = location.pathname.includes('/admin');
   
   // Display name based on user type
-  const displayName = userType === 'business' 
-    ? firstName || 'Business'
-    : `${firstName || ''} ${lastName || 'User'}`.trim();
+  const displayName = firstName || lastName 
+    ? `${firstName || ''} ${lastName || ''}`.trim()
+    : userType === 'business' 
+      ? 'Business'
+      : userType === 'admin'
+        ? 'Admin'
+        : 'User';
 
   const handleLogout = async () => {
     try {

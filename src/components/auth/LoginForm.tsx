@@ -35,14 +35,23 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const { data: profileData } = await supabase
+        const { data: profileData, error: profileError } = await supabase
           .from('profiles')
           .select('user_type')
           .eq('id', session.user.id)
           .single();
           
+        if (profileError) {
+          console.error('Error fetching profile:', profileError);
+          toast.error('Error fetching user profile. Some features may be limited.');
+          navigate('/');
+          return;
+        }
+          
         // Redirect based on user type
-        if (profileData?.user_type === 'business') {
+        if (profileData?.user_type === 'admin') {
+          navigate('/admin');
+        } else if (profileData?.user_type === 'business') {
           navigate('/dashboard');
         } else {
           navigate('/');
