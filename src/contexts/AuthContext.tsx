@@ -2,6 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 type AuthContextType = {
   user: User | null;
@@ -25,18 +26,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileFetchAttempted, setProfileFetchAttempted] = useState(false);
 
   const fetchUserProfile = async (userId: string) => {
+    // Skip if we've already attempted to fetch for this session
+    if (profileFetchAttempted) return;
+    
+    setProfileFetchAttempted(true);
+    
     try {
       console.log('Fetching profile for user:', userId);
       const { data, error } = await supabase
         .from('profiles')
         .select('user_type, first_name, last_name')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
         
       if (error) {
         console.error('Error fetching profile:', error);
+        // Show a toast with a friendly error message
+        toast.error('Unable to load user profile. Some features may be limited.');
         return;
       }
       
@@ -45,17 +54,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUserType(data.user_type || 'regular');
         setFirstName(data.first_name || '');
         setLastName(data.last_name || '');
+      } else {
+        console.log('No profile found for user:', userId);
+        setUserType('regular');
       }
     } catch (error) {
       console.error('Error in fetchUserProfile:', error);
+      toast.error('Something went wrong while loading your profile.');
     }
   };
 
   useEffect(() => {
+    let mounted = true;
+    
     const fetchInitialSession = async () => {
       try {
         console.log('Fetching initial session...');
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
         if (session) {
           console.log('Initial session found', session.user.id);
           setUser(session.user);
@@ -66,28 +84,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } else {
           console.log('No initial session found');
+          setUserType(null);
         }
       } catch (error) {
         console.error('Error fetching session:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('Auth event:', event);
         
         if (session) {
           console.log('Session found in auth state change', session.user.id);
           setUser(session.user);
+          setProfileFetchAttempted(false); // Reset flag on new auth event
           
-          // Don't make additional Supabase calls directly in the callback
           // Use setTimeout to avoid potential deadlocks
           if (session.user) {
             setTimeout(async () => {
-              await fetchUserProfile(session.user.id);
+              if (mounted) {
+                await fetchUserProfile(session.user.id);
+              }
             }, 0);
           }
         } else {
@@ -96,6 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUserType(null);
           setFirstName(null);
           setLastName(null);
+          setProfileFetchAttempted(false);
         }
       }
     );
@@ -103,6 +127,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     fetchInitialSession();
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
