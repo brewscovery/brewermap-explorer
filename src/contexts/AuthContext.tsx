@@ -1,10 +1,11 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 type AuthContextType = {
   user: User | null;
-  userType: 'business' | 'regular' | null;
+  userType: 'business' | 'regular' | 'admin' | null;
   firstName: string | null;
   lastName: string | null;
   loading: boolean;
@@ -20,7 +21,7 @@ const AuthContext = createContext<AuthContextType>({
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userType, setUserType] = useState<'business' | 'regular' | null>(null);
+  const [userType, setUserType] = useState<'business' | 'regular' | 'admin' | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -81,9 +82,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } else {
           setUser(null);
-          setUserType('regular');
-          setFirstName('');
-          setLastName('');
+          setUserType(null);
+          setFirstName(null);
+          setLastName(null);
         }
       }
     );
