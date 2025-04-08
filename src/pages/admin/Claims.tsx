@@ -151,12 +151,8 @@ const ClaimsManagement = () => {
             ) : claims && claims.length > 0 ? (
               claims.map((claim) => (
                 <TableRow key={claim.id}>
-                  <TableCell className="font-medium">{claim.brewery?.name || 'Unknown Brewery'}</TableCell>
-                  <TableCell>
-                    {claim.user?.first_name && claim.user?.last_name
-                      ? `${claim.user.first_name} ${claim.user.last_name}`
-                      : 'Unknown User'}
-                  </TableCell>
+                  <TableCell className="font-medium">{claim.brewery_name || 'Unknown Brewery'}</TableCell>
+                  <TableCell>{claim.user_name || 'Unknown User'}</TableCell>
                   <TableCell>
                     {claim.contact_email || claim.contact_phone || 'No contact info'}
                   </TableCell>
@@ -229,7 +225,7 @@ const ClaimsManagement = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <h3 className="font-semibold text-sm">Brewery</h3>
-                  <p>{selectedClaim.brewery?.name || 'Unknown Brewery'}</p>
+                  <p>{selectedClaim.brewery_name || 'Unknown Brewery'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">Status</h3>
@@ -239,11 +235,7 @@ const ClaimsManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">Claimed By</h3>
-                  <p>
-                    {selectedClaim.user?.first_name && selectedClaim.user?.last_name
-                      ? `${selectedClaim.user.first_name} ${selectedClaim.user.last_name}`
-                      : 'Unknown User'}
-                  </p>
+                  <p>{selectedClaim.user_name || 'Unknown User'}</p>
                 </div>
                 <div>
                   <h3 className="font-semibold text-sm">Submitted On</h3>
@@ -311,12 +303,8 @@ const ClaimsManagement = () => {
           {selectedClaim && (
             <div className="space-y-4 py-4">
               <div>
-                <p><span className="font-medium">Brewery:</span> {selectedClaim.brewery?.name}</p>
-                <p><span className="font-medium">Claimed by:</span> {
-                  selectedClaim.user?.first_name && selectedClaim.user?.last_name
-                    ? `${selectedClaim.user.first_name} ${selectedClaim.user.last_name}`
-                    : 'Unknown User'
-                }</p>
+                <p><span className="font-medium">Brewery:</span> {selectedClaim.brewery_name}</p>
+                <p><span className="font-medium">Claimed by:</span> {selectedClaim.user_name}</p>
               </div>
               
               <div className="space-y-2">

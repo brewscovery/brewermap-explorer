@@ -149,7 +149,7 @@ const BreweriesManagement = () => {
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
-                      <span>{brewery.venues?.count || 0}</span>
+                      <span>{brewery.venue_count || 0}</span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -164,11 +164,7 @@ const BreweriesManagement = () => {
                     )}
                   </TableCell>
                   <TableCell>
-                    {brewery.owners && brewery.owners.length > 0 
-                      ? brewery.owners.map(owner => 
-                          owner.user ? `${owner.user.first_name || ''} ${owner.user.last_name || ''}`.trim() : 'Unknown'
-                        ).join(', ')
-                      : 'No owner'}
+                    {brewery.owner_name || 'No owner'}
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
