@@ -93,7 +93,6 @@ const UsersManagement = () => {
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Email</TableHead>
               <TableHead>User Type</TableHead>
               <TableHead>Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -103,7 +102,6 @@ const UsersManagement = () => {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, index) => (
                 <TableRow key={index}>
-                  <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-24" /></TableCell>
@@ -118,7 +116,6 @@ const UsersManagement = () => {
                       ? `${user.first_name} ${user.last_name}` 
                       : 'Unnamed User'}
                   </TableCell>
-                  <TableCell>{user.email || 'No email available'}</TableCell>
                   <TableCell>{getUserTypeBadge(user.user_type)}</TableCell>
                   <TableCell>{format(new Date(user.created_at), 'MMM d, yyyy')}</TableCell>
                   <TableCell className="text-right">

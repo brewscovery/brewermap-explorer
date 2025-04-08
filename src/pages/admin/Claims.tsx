@@ -158,7 +158,7 @@ const ClaimsManagement = () => {
                       : 'Unknown User'}
                   </TableCell>
                   <TableCell>
-                    {claim.contact_email || 'No contact info'}
+                    {claim.contact_email || claim.contact_phone || 'No contact info'}
                   </TableCell>
                   <TableCell>
                     {getStatusBadge(claim.status)}

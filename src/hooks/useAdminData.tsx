@@ -33,30 +33,103 @@ export interface AdminStats {
   pendingClaims: number;
 }
 
+// Type for user data
+export interface UserData {
+  id: string;
+  user_type: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string | null;
+  created_at: string;
+}
+
+// Type for brewery data
+export interface BreweryData {
+  id: string;
+  name: string;
+  brewery_type: string | null;
+  is_verified: boolean;
+  website_url: string | null;
+  created_at: string;
+  venues: {
+    count: number;
+  };
+  owners: {
+    user_id: string;
+    user?: {
+      first_name: string | null;
+      last_name: string | null;
+    } | null;
+  }[];
+}
+
 // Hook for fetching brewery claims
 export const useBreweryClaims = () => {
   return useQuery({
     queryKey: ['admin', 'brewery-claims'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('brewery_claims')
-        .select(`
-          *,
-          brewery:brewery_id (name),
-          user:user_id (
-            first_name,
-            last_name,
-            email
-          )
-        `);
+      try {
+        // Fetch claims
+        const { data: claims, error: claimsError } = await supabase
+          .from('brewery_claims')
+          .select('*');
 
-      if (error) {
+        if (claimsError) throw claimsError;
+
+        // Fetch breweries and profiles separately to avoid RLS recursion
+        const breweriesMap = new Map();
+        const usersMap = new Map();
+        
+        if (claims && claims.length > 0) {
+          // Get brewery IDs and user IDs from claims
+          const breweryIds = claims.map(claim => claim.brewery_id);
+          const userIds = claims.map(claim => claim.user_id);
+          
+          // Fetch breweries data
+          if (breweryIds.length > 0) {
+            const { data: breweries } = await supabase
+              .from('breweries')
+              .select('id, name')
+              .in('id', breweryIds);
+              
+            if (breweries) {
+              breweries.forEach(brewery => {
+                breweriesMap.set(brewery.id, brewery);
+              });
+            }
+          }
+          
+          // Fetch profiles data
+          if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from('profiles')
+              .select('id, first_name, last_name')
+              .in('id', userIds);
+              
+            if (profiles) {
+              profiles.forEach(profile => {
+                usersMap.set(profile.id, profile);
+              });
+            }
+          }
+        }
+        
+        // Map the results to the expected format
+        const claimsWithDetails = claims.map(claim => ({
+          ...claim,
+          brewery: breweriesMap.get(claim.brewery_id) ? { name: breweriesMap.get(claim.brewery_id).name } : { name: 'Unknown Brewery' },
+          user: usersMap.get(claim.user_id) ? {
+            first_name: usersMap.get(claim.user_id).first_name,
+            last_name: usersMap.get(claim.user_id).last_name,
+            email: null // We don't have direct access to emails
+          } : null
+        }));
+
+        return claimsWithDetails as BreweryClaim[];
+      } catch (error) {
         console.error('Error fetching brewery claims:', error);
         throw error;
       }
-      
-      // Safely cast the data to the expected type
-      return (data as unknown) as BreweryClaim[];
     },
   });
 };
@@ -138,34 +211,39 @@ export const useUsers = () => {
   const query = useQuery({
     queryKey: ['admin', 'users', searchQuery],
     queryFn: async () => {
-      let queryBuilder = supabase
-        .from('profiles')
-        .select('*');
+      try {
+        let queryBuilder = supabase
+          .from('profiles')
+          .select('*');
+          
+        // Add search filter if searchQuery is provided
+        if (searchQuery) {
+          queryBuilder = queryBuilder.or(
+            `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%`
+          );
+        }
         
-      // Add search filter if searchQuery is provided
-      if (searchQuery) {
-        queryBuilder = queryBuilder.or(
-          `first_name.ilike.%${searchQuery}%,last_name.ilike.%${searchQuery}%`
-        );
-      }
-      
-      const { data, error } = await queryBuilder;
+        const { data, error } = await queryBuilder;
+          
+        if (error) {
+          console.error('Error fetching users:', error);
+          throw error;
+        }
         
-      if (error) {
-        console.error('Error fetching users:', error);
+        // Process the data with default values for missing fields
+        const processedUsers = data.map(profile => {
+          return {
+            ...profile,
+            email: null, // We don't have direct access to emails
+            created_at: profile.created_at || new Date().toISOString()
+          };
+        });
+        
+        return processedUsers as UserData[];
+      } catch (error) {
+        console.error('Error in useUsers:', error);
         throw error;
       }
-      
-      // Process the data - we need to manually add email for each user
-      // since we can't directly join with auth.users
-      const processedUsers = data.map(profile => {
-        return {
-          ...profile,
-          email: '' // We can't easily get emails without admin access
-        };
-      });
-      
-      return processedUsers;
     },
     enabled: true,
   });
@@ -219,77 +297,93 @@ export const useBreweries = () => {
   const query = useQuery({
     queryKey: ['admin', 'breweries', searchQuery],
     queryFn: async () => {
-      let queryBuilder = supabase
-        .from('breweries')
-        .select(`
-          *,
-          brewery_owners (
-            user_id
-          )
-        `);
-        
-      // Add search filter if searchQuery is provided
-      if (searchQuery) {
-        queryBuilder = queryBuilder.ilike('name', `%${searchQuery}%`);
-      }
-      
-      const { data, error } = await queryBuilder;
-        
-      if (error) {
-        console.error('Error fetching breweries:', error);
-        throw error;
-      }
-      
-      // First get all the breweries
-      const breweries = data;
-      
-      // Then for each brewery, count its venues in a separate query
-      const breweriesWithVenues = await Promise.all(
-        breweries.map(async (brewery) => {
-          // Count venues for this brewery
-          const { count, error: venueError } = await supabase
-            .from('venues')
-            .select('*', { count: 'exact', head: true })
-            .eq('brewery_id', brewery.id);
+      try {
+        // First, get all breweries
+        let queryBuilder = supabase
+          .from('breweries')
+          .select('*');
           
-          if (venueError) {
-            console.error('Error counting venues:', venueError);
-          }
+        // Add search filter if searchQuery is provided
+        if (searchQuery) {
+          queryBuilder = queryBuilder.ilike('name', `%${searchQuery}%`);
+        }
+        
+        const { data: breweries, error } = await queryBuilder;
           
-          // Get owner information for display
-          const ownerPromises = brewery.brewery_owners?.map(async (owner: { user_id: string }) => {
-            if (!owner.user_id) return null;
+        if (error) {
+          console.error('Error fetching breweries:', error);
+          throw error;
+        }
+        
+        // Get brewery owners (separate query to avoid RLS recursion)
+        const { data: owners } = await supabase
+          .from('brewery_owners')
+          .select('brewery_id, user_id');
+        
+        // Create a map of brewery IDs to owners
+        const ownersMap = new Map();
+        if (owners) {
+          owners.forEach(owner => {
+            if (!ownersMap.has(owner.brewery_id)) {
+              ownersMap.set(owner.brewery_id, []);
+            }
+            ownersMap.get(owner.brewery_id).push(owner);
+          });
+        }
+        
+        // Get venue counts for each brewery (separate query)
+        const breweriesWithDetails = await Promise.all(
+          breweries.map(async (brewery) => {
+            // Count venues for this brewery
+            const { count, error: venueError } = await supabase
+              .from('venues')
+              .select('*', { count: 'exact', head: true })
+              .eq('brewery_id', brewery.id);
             
-            const { data: userData, error: userError } = await supabase
-              .from('profiles')
-              .select('first_name, last_name')
-              .eq('id', owner.user_id)
-              .single();
+            if (venueError) {
+              console.error('Error counting venues:', venueError);
+            }
+            
+            // Get owner information
+            const breweryOwners = ownersMap.get(brewery.id) || [];
+            let enrichedOwners = breweryOwners;
+            
+            if (breweryOwners.length > 0) {
+              const ownerIds = breweryOwners.map(owner => owner.user_id);
               
-            if (userError) {
-              console.error('Error fetching owner data:', userError);
-              return null;
+              const { data: ownerProfiles } = await supabase
+                .from('profiles')
+                .select('id, first_name, last_name')
+                .in('id', ownerIds);
+                
+              if (ownerProfiles) {
+                const ownerProfilesMap = new Map();
+                ownerProfiles.forEach(profile => {
+                  ownerProfilesMap.set(profile.id, profile);
+                });
+                
+                enrichedOwners = breweryOwners.map(owner => ({
+                  ...owner,
+                  user: ownerProfilesMap.get(owner.user_id) || null
+                }));
+              }
             }
             
             return {
-              ...owner,
-              user: userData
+              ...brewery,
+              venues: {
+                count: count || 0
+              },
+              owners: enrichedOwners
             };
-          }) || [];
-          
-          const owners = await Promise.all(ownerPromises);
-          
-          return {
-            ...brewery,
-            venues: {
-              count: count || 0
-            },
-            owners: owners.filter(Boolean)
-          };
-        })
-      );
-      
-      return breweriesWithVenues;
+          })
+        );
+        
+        return breweriesWithDetails as BreweryData[];
+      } catch (error) {
+        console.error('Error in useBreweries:', error);
+        throw error;
+      }
     },
   });
   
@@ -340,41 +434,46 @@ export const useAdminStats = () => {
   return useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: async () => {
-      // Get counts from different tables
-      const usersPromise = supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
+      try {
+        // Get counts from different tables with separate queries
+        const usersPromise = supabase
+          .from('profiles')
+          .select('*', { count: 'exact', head: true });
+          
+        const breweriesPromise = supabase
+          .from('breweries')
+          .select('*', { count: 'exact', head: true });
+          
+        const pendingClaimsPromise = supabase
+          .from('brewery_claims')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'pending');
+          
+        // Execute all queries in parallel
+        const [
+          { count: usersCount, error: usersError },
+          { count: breweriesCount, error: breweriesError },
+          { count: pendingClaimsCount, error: claimsError }
+        ] = await Promise.all([
+          usersPromise,
+          breweriesPromise,
+          pendingClaimsPromise
+        ]);
+          
+        if (usersError || breweriesError || claimsError) {
+          console.error('Error fetching admin stats:', usersError || breweriesError || claimsError);
+          throw usersError || breweriesError || claimsError;
+        }
         
-      const breweriesPromise = supabase
-        .from('breweries')
-        .select('*', { count: 'exact', head: true });
-        
-      const pendingClaimsPromise = supabase
-        .from('brewery_claims')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'pending');
-        
-      // Execute all queries in parallel
-      const [
-        { count: usersCount, error: usersError },
-        { count: breweriesCount, error: breweriesError },
-        { count: pendingClaimsCount, error: claimsError }
-      ] = await Promise.all([
-        usersPromise,
-        breweriesPromise,
-        pendingClaimsPromise
-      ]);
-        
-      if (usersError || breweriesError || claimsError) {
-        console.error('Error fetching admin stats:', usersError || breweriesError || claimsError);
-        throw usersError || breweriesError || claimsError;
+        return {
+          totalUsers: usersCount || 0,
+          totalBreweries: breweriesCount || 0,
+          pendingClaims: pendingClaimsCount || 0
+        };
+      } catch (error) {
+        console.error('Error in useAdminStats:', error);
+        throw error;
       }
-      
-      return {
-        totalUsers: usersCount || 0,
-        totalBreweries: breweriesCount || 0,
-        pendingClaims: pendingClaimsCount || 0
-      };
     },
   });
 };
