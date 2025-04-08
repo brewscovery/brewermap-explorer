@@ -36,24 +36,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     
     try {
       console.log('Fetching profile for user:', userId);
+      
+      // Use the security definer function instead of direct table query
       const { data, error } = await supabase
-        .from('profiles')
-        .select('user_type, first_name, last_name')
-        .eq('id', userId)
-        .maybeSingle();
+        .rpc('get_profile_by_id', { profile_id: userId });
         
       if (error) {
         console.error('Error fetching profile:', error);
-        // Show a toast with a friendly error message
         toast.error('Unable to load user profile. Some features may be limited.');
         return;
       }
       
       console.log('Profile data received:', data);
-      if (data) {
-        setUserType(data.user_type || 'regular');
-        setFirstName(data.first_name || '');
-        setLastName(data.last_name || '');
+      if (data && data.length > 0) {
+        const profileData = data[0];
+        setUserType(profileData.user_type as 'business' | 'regular' | 'admin' || 'regular');
+        setFirstName(profileData.first_name || '');
+        setLastName(profileData.last_name || '');
       } else {
         console.log('No profile found for user:', userId);
         setUserType('regular');
