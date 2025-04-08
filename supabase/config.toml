@@ -1,1 +1,23 @@
+
 project_id = "hvpylervaaklqwiafuag"
+
+[functions.admin-get-users]
+verify_jwt = true
+
+[functions.admin-get-breweries]
+verify_jwt = true
+
+[functions.admin-get-claims]
+verify_jwt = true
+
+[functions.admin-get-stats]
+verify_jwt = true
+
+[functions.admin-update-brewery]
+verify_jwt = true
+
+[functions.admin-update-claim]
+verify_jwt = true
+
+[functions.admin-update-user]
+verify_jwt = true
