@@ -118,7 +118,7 @@ const UsersManagement = () => {
                       ? `${user.first_name} ${user.last_name}` 
                       : 'Unnamed User'}
                   </TableCell>
-                  <TableCell>{user.email}</TableCell>
+                  <TableCell>{user.email || 'No email available'}</TableCell>
                   <TableCell>{getUserTypeBadge(user.user_type)}</TableCell>
                   <TableCell>{format(new Date(user.created_at), 'MMM d, yyyy')}</TableCell>
                   <TableCell className="text-right">

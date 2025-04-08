@@ -13,6 +13,12 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       
+      {error && (
+        <div className="p-4 border rounded-md bg-red-50 text-red-800">
+          Error loading dashboard stats: {error.message}
+        </div>
+      )}
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Link to="/admin/claims">
           <Card className="hover:bg-muted/50 transition-colors">
