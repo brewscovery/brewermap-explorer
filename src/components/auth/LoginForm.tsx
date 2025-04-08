@@ -12,6 +12,13 @@ type LoginFormProps = {
   onSwitchToSignup: () => void;
 };
 
+// Define a type for the profile data returned from the RPC
+interface UserProfileData {
+  user_type: 'business' | 'regular' | 'admin';
+  first_name: string | null;
+  last_name: string | null;
+}
+
 export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -46,10 +53,13 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
             return;
           }
           
+          // Properly cast the JSON response to our interface
+          const userProfile = profileData as unknown as UserProfileData;
+          
           // Redirect based on user type
-          if (profileData?.user_type === 'admin') {
+          if (userProfile.user_type === 'admin') {
             navigate('/admin');
-          } else if (profileData?.user_type === 'business') {
+          } else if (userProfile.user_type === 'business') {
             navigate('/dashboard');
           } else {
             navigate('/');

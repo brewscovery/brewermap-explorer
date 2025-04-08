@@ -5,6 +5,13 @@ import { corsHeaders } from '../_shared/cors.ts'
 const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
+// Define a type for the profile data returned from the RPC
+interface UserProfileData {
+  user_type: 'business' | 'regular' | 'admin';
+  first_name: string | null;
+  last_name: string | null;
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight request
   if (req.method === 'OPTIONS') {
@@ -50,7 +57,10 @@ Deno.serve(async (req) => {
       )
     }
     
-    if (profileData.user_type !== 'admin') {
+    // Properly cast the JSON response to our interface
+    const userProfile = profileData as unknown as UserProfileData
+    
+    if (userProfile.user_type !== 'admin') {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
