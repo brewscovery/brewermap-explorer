@@ -429,6 +429,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: string
       }
+      is_admin: {
+        Args: { user_id: string }
+        Returns: boolean
+      }
       is_venue_in_user_brewery: {
         Args: { user_id: string; venue_id: string }
         Returns: boolean

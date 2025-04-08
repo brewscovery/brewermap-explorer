@@ -12,6 +12,13 @@ import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
+// Define a type for the profile data returned from the RPC
+interface UserProfileData {
+  user_type: 'business' | 'regular' | 'admin';
+  first_name: string | null;
+  last_name: string | null;
+}
+
 const LoginPopover = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -35,17 +42,30 @@ const LoginPopover = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('id', session.user.id)
-          .single();
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .rpc('get_user_profile', { profile_id: session.user.id });
+            
+          if (profileError) {
+            console.error('Error fetching profile:', profileError);
+            toast.error('Unable to load user profile. Some features may be limited.');
+            return;
+          }
           
-        // Redirect based on user type
-        if (profileData?.user_type === 'business') {
-          navigate('/dashboard');
-        } else {
-          toast.success('Logged in successfully');
+          // Properly cast the JSON response to our interface
+          const userProfile = profileData as unknown as UserProfileData;
+          
+          // Redirect based on user type
+          if (userProfile.user_type === 'admin') {
+            navigate('/admin');
+          } else if (userProfile.user_type === 'business') {
+            navigate('/dashboard');
+          } else {
+            toast.success('Logged in successfully');
+          }
+        } catch (error: any) {
+          console.error('Error processing login:', error);
+          toast.error('Error processing login. Please try again.');
         }
       } else {
         toast.success('Logged in successfully');

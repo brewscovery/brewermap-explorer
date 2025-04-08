@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -58,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data) {
         // Properly cast the JSON response to our interface
         const profileData = data as unknown as UserProfileData;
-        setUserType(profileData.user_type || 'regular');
+        setUserType(profileData.user_type);
         setFirstName(profileData.first_name || '');
         setLastName(profileData.last_name || '');
       } else {
