@@ -9,6 +9,12 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import AdminRoute from "./components/protected/AdminRoute";
+import AdminLayout from "./components/admin/AdminLayout";
+import AdminDashboard from "./pages/admin/Index";
+import ClaimsManagement from "./pages/admin/Claims";
+import BreweriesManagement from "./pages/admin/Breweries";
+import UsersManagement from "./pages/admin/Users";
 import { useWindowFocus } from "./hooks/useWindowFocus";
 import { refreshSupabaseConnection } from "./integrations/supabase/connection";
 
@@ -45,6 +51,17 @@ const App = () => {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminRoute />}>
+                <Route element={<AdminLayout />}>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="claims" element={<ClaimsManagement />} />
+                  <Route path="breweries" element={<BreweriesManagement />} />
+                  <Route path="users" element={<UsersManagement />} />
+                </Route>
+              </Route>
+              
               <Route path="/" element={<Index />} />
             </Routes>
           </BrowserRouter>
