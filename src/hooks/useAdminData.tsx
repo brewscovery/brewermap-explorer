@@ -23,7 +23,7 @@ export interface BreweryClaim {
     first_name: string | null;
     last_name: string | null;
     email: string;
-  };
+  } | null;
 }
 
 // Type for admin dashboard stats
@@ -56,7 +56,8 @@ export const useBreweryClaims = () => {
         throw error;
       }
       
-      return data as BreweryClaim[];
+      // Safely cast the data to the expected type
+      return (data as unknown) as BreweryClaim[];
     },
   });
 };
@@ -94,7 +95,7 @@ export const useBreweryClaimUpdate = () => {
       }
 
       // If the claim was approved, handle brewery ownership
-      if (status === 'approved') {
+      if (status === 'approved' && data && data.length > 0) {
         const claim = data[0] as BreweryClaim;
         
         // Update brewery verification status
@@ -122,7 +123,7 @@ export const useBreweryClaimUpdate = () => {
         }
       }
       
-      return data[0] as BreweryClaim;
+      return (data && data.length > 0) ? (data[0] as unknown as BreweryClaim) : null;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'brewery-claims'] });
@@ -158,25 +159,16 @@ export const useUsers = () => {
       
       // Get auth user emails separately since we can't join directly
       const userIds = data.map(user => user.id);
-      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers({
-        perPage: 1000
-      });
       
-      if (authError) {
-        console.error('Error fetching auth users:', authError);
-        throw authError;
-      }
-      
-      // Merge profile data with auth user data
-      const usersWithEmail = data.map(profile => {
-        const authUser = authUsers.users.find(user => user.id === profile.id);
+      // Process the data to ensure it has the required structure
+      const processedUsers = data.map(profile => {
         return {
           ...profile,
-          email: authUser?.email || ''
+          email: profile.auth_user?.email || ''
         };
       });
       
-      return usersWithEmail;
+      return processedUsers;
     },
     enabled: true,
   });
@@ -256,7 +248,13 @@ export const useBreweries = () => {
         throw error;
       }
       
-      return data;
+      // Process the data to ensure venues has the correct structure
+      return data.map(brewery => ({
+        ...brewery,
+        venues: {
+          count: Array.isArray(brewery.venues) ? brewery.venues.length : 0
+        }
+      }));
     },
   });
   
