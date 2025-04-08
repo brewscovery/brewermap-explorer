@@ -17,6 +17,7 @@ export type Database = {
           facebook_url: string | null
           id: string
           instagram_url: string | null
+          is_verified: boolean | null
           logo_url: string | null
           name: string
           updated_at: string
@@ -29,6 +30,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          is_verified?: boolean | null
           logo_url?: string | null
           name: string
           updated_at?: string
@@ -41,12 +43,60 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          is_verified?: boolean | null
           logo_url?: string | null
           name?: string
           updated_at?: string
           website_url?: string | null
         }
         Relationships: []
+      }
+      brewery_claims: {
+        Row: {
+          admin_notes: string | null
+          brewery_id: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          decision_at: string | null
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          brewery_id: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          decision_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          brewery_id?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          decision_at?: string | null
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brewery_claims_brewery_id_fkey"
+            columns: ["brewery_id"]
+            isOneToOne: false
+            referencedRelation: "breweries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       brewery_owners: {
         Row: {
@@ -368,7 +418,7 @@ export type Database = {
       }
     }
     Enums: {
-      user_type: "business" | "regular"
+      user_type: "business" | "regular" | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -484,7 +534,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      user_type: ["business", "regular"],
+      user_type: ["business", "regular", "admin"],
     },
   },
 } as const
