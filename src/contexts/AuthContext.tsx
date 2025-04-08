@@ -37,9 +37,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Fetching profile for user:', userId);
       
-      // Use the security definer function instead of direct table query
+      // Use a direct query to the profiles table with a type assertion
+      // This avoids RPC typing issues while still benefiting from the secure RLS policies
       const { data, error } = await supabase
-        .rpc('get_profile_by_id', { profile_id: userId });
+        .from('profiles')
+        .select('user_type, first_name, last_name')
+        .eq('id', userId)
+        .single();
         
       if (error) {
         console.error('Error fetching profile:', error);
@@ -48,11 +52,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Profile data received:', data);
-      if (data && data.length > 0) {
-        const profileData = data[0];
-        setUserType(profileData.user_type as 'business' | 'regular' | 'admin' || 'regular');
-        setFirstName(profileData.first_name || '');
-        setLastName(profileData.last_name || '');
+      if (data) {
+        setUserType(data.user_type as 'business' | 'regular' | 'admin' || 'regular');
+        setFirstName(data.first_name || '');
+        setLastName(data.last_name || '');
       } else {
         console.log('No profile found for user:', userId);
         setUserType('regular');
