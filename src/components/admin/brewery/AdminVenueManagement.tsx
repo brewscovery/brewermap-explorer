@@ -1,14 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed'; // Use fixed dialog
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { Button } from '@/components/ui/button';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useBreweryVenues, useCreateVenue, useDeleteVenue } from '@/hooks/useAdminBreweries';
-import { VenueForm } from '@/components/brewery/venue-form/VenueForm';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import type { Venue } from '@/types/venue';
 import { VenueList } from './AdminVenueList';
 import { toast } from 'sonner';
+import { AdminVenueAddDialog } from './AdminVenueAddDialog';
+import { AdminVenueDeleteDialog } from './AdminVenueDeleteDialog';
 
 interface AdminVenueManagementProps {
   open: boolean;
@@ -54,16 +54,20 @@ const AdminVenueManagement = ({
   // Reset dialog state when opened/closed
   useEffect(() => {
     if (!open) {
-      setIsAddingVenue(false);
-      setDeleteConfirmOpen(false);
-      setVenueToDelete(null);
-      resetForm();
-      
-      // Explicitly reset body styles when closing
-      document.body.style.pointerEvents = '';
-      document.body.style.overflow = '';
+      resetDialogState();
     }
-  }, [open, resetForm]);
+  }, [open]);
+  
+  const resetDialogState = () => {
+    setIsAddingVenue(false);
+    setDeleteConfirmOpen(false);
+    setVenueToDelete(null);
+    resetForm();
+    
+    // Explicitly reset body styles when closing
+    document.body.style.pointerEvents = '';
+    document.body.style.overflow = '';
+  };
   
   const handleAddVenue = () => {
     resetForm();
@@ -185,71 +189,30 @@ const AdminVenueManagement = ({
             onDeleteVenue={handleDeleteVenue}
           />
           
-          {/* Only render inner dialogs when they're open */}
+          {/* Extracted dialogs into separate components */}
           {isAddingVenue && (
-            <Dialog open={isAddingVenue} onOpenChange={handleAddVenueDialogOpenChange}>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Add New Venue</DialogTitle>
-                  <DialogDescription>
-                    Create a new venue for {breweryName}
-                  </DialogDescription>
-                </DialogHeader>
-                
-                <VenueForm
-                  formData={formData}
-                  addressInput={addressInput}
-                  isSubmitting={isFormLoading || createVenue.isPending}
-                  submitLabel="Create Venue"
-                  handleSubmit={handleVenueSubmit}
-                  handleChange={handleChange}
-                  handleAddressChange={handleAddressChange}
-                  setAddressInput={setAddressInput}
-                  onCancel={() => {
-                    setIsAddingVenue(false);
-                    
-                    // Ensure body is interactive when canceling
-                    document.body.style.pointerEvents = '';
-                    document.body.style.overflow = '';
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
+            <AdminVenueAddDialog
+              open={isAddingVenue}
+              onOpenChange={handleAddVenueDialogOpenChange}
+              breweryName={breweryName}
+              formData={formData}
+              addressInput={addressInput}
+              isFormLoading={isFormLoading}
+              setAddressInput={setAddressInput}
+              handleChange={handleChange}
+              handleAddressChange={handleAddressChange}
+              handleVenueSubmit={handleVenueSubmit}
+              isPending={createVenue.isPending}
+            />
           )}
           
-          {deleteConfirmOpen && venueToDelete && (
-            <AlertDialog 
-              open={deleteConfirmOpen} 
-              onOpenChange={(newOpenState) => {
-                setDeleteConfirmOpen(newOpenState);
-                
-                // Ensure body is interactive when closing alert dialog
-                if (!newOpenState) {
-                  document.body.style.pointerEvents = '';
-                  document.body.style.overflow = '';
-                }
-              }}
-            >
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Venue</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete {venueToDelete.name}? This action cannot be undone.
-                    All venue data including hours, specials, and check-ins will be deleted.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={confirmDeleteVenue}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    {deleteVenue.isPending ? 'Deleting...' : 'Delete Venue'}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <AdminVenueDeleteDialog
+            open={deleteConfirmOpen}
+            onOpenChange={setDeleteConfirmOpen}
+            venue={venueToDelete}
+            onConfirm={confirmDeleteVenue}
+            isDeleting={deleteVenue.isPending}
+          />
         </div>
       </DialogContent>
     </Dialog>
