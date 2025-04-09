@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -300,8 +300,8 @@ export const useBreweryVenues = (breweryId: string | null) => {
     }
   };
   
-  // Fetch venues immediately when breweryId changes
-  useState(() => {
+  // Fix: Change useState() to useEffect() and correct the dependency array
+  useEffect(() => {
     fetchVenues();
   }, [breweryId]);
   
