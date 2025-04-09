@@ -70,6 +70,11 @@ const validateJsonResponse = async (response: Response) => {
   return response.json();
 };
 
+// Helper function to get the full Supabase URL for edge functions
+const getSupabaseFunctionUrl = (functionName: string) => {
+  return `https://hvpylervaaklqwiafuag.supabase.co/functions/v1/${functionName}`;
+};
+
 // Hook for fetching breweries for admin
 export const useBreweries = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -93,7 +98,7 @@ export const useBreweries = () => {
         throw new Error('No authenticated session');
       }
       
-      const response = await fetch('/functions/v1/admin-get-breweries', {
+      const response = await fetch(getSupabaseFunctionUrl('admin-get-breweries'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -171,7 +176,7 @@ export const useAdminStats = () => {
       }
       
       console.log('Fetching admin stats...');
-      const response = await fetch('/functions/v1/admin-get-stats', {
+      const response = await fetch(getSupabaseFunctionUrl('admin-get-stats'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +222,7 @@ export const useUsers = () => {
         throw new Error('No authenticated session');
       }
       
-      const response = await fetch('/functions/v1/admin-get-users', {
+      const response = await fetch(getSupabaseFunctionUrl('admin-get-users'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -269,7 +274,7 @@ export const useUpdateUserType = () => {
           throw new Error('No authenticated session');
         }
         
-        const response = await fetch('/functions/v1/admin-update-user', {
+        const response = await fetch(getSupabaseFunctionUrl('admin-update-user'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -306,7 +311,7 @@ export const useBreweryClaims = () => {
         throw new Error('No authenticated session');
       }
       
-      const response = await fetch('/functions/v1/admin-get-claims', {
+      const response = await fetch(getSupabaseFunctionUrl('admin-get-claims'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -350,7 +355,7 @@ export const useBreweryClaimUpdate = () => {
           throw new Error('No authenticated session');
         }
         
-        const response = await fetch('/functions/v1/admin-update-claim', {
+        const response = await fetch(getSupabaseFunctionUrl('admin-update-claim'), {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
