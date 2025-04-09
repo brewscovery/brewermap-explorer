@@ -8,8 +8,73 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { logFocusState, logDialogElements, logPortalState } from "@/utils/debugUtils"
 
-const Dialog = DialogPrimitive.Root
+// Define a component-specific version of Dialog that adds debugging
+const Dialog = ({ 
+  children, 
+  open, 
+  onOpenChange,
+  ...props 
+}: DialogPrimitive.DialogProps) => {
+  // Add debug logging for open state changes
+  React.useEffect(() => {
+    console.log('DEBUG: Dialog-fixed Root component open state:', open);
+    
+    if (open) {
+      console.log('DEBUG: Dialog-fixed opened');
+      // Check state on open
+      setTimeout(() => {
+        logDialogElements();
+        logFocusState();
+      }, 100);
+    } else if (open === false) { // explicitly check for false to avoid undefined
+      console.log('DEBUG: Dialog-fixed closed');
+      // Check state on close and ensure document body is reset
+      setTimeout(() => {
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+        logDialogElements();
+        logFocusState();
+        logPortalState();
+      }, 100);
+    }
+
+    return () => {
+      // Clean up on unmount
+      if (open) {
+        console.log('DEBUG: Dialog-fixed unmounted while open - ensuring cleanup');
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }
+    }
+  }, [open]);
+
+  return (
+    <DialogPrimitive.Root
+      open={open}
+      onOpenChange={(newOpen) => {
+        console.log('DEBUG: Dialog-fixed onOpenChange called with value:', newOpen);
+        
+        // Explicitly ensure we're resetting any stale state
+        if (!newOpen) {
+          // Force document.body to be scrollable again when closing
+          setTimeout(() => {
+            document.body.style.pointerEvents = '';
+            document.body.style.overflow = '';
+          }, 50);
+        }
+        
+        if (onOpenChange) {
+          onOpenChange(newOpen);
+        }
+      }}
+      {...props}
+    >
+      {children}
+    </DialogPrimitive.Root>
+  )
+}
 
 const DialogTrigger = DialogPrimitive.Trigger
 
@@ -51,6 +116,20 @@ const DialogContent = React.forwardRef<
     console.log('DEBUG: Dialog Content mounted');
     return () => {
       console.log('DEBUG: Dialog Content unmounted');
+      
+      // Ensure focus trapping is cleaned up
+      // This runs on unmount to ensure we're not leaving stale state
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
+      
+      // Extra check for lingering inert or aria-hidden attributes
+      document.querySelectorAll('[inert], [aria-hidden="true"]').forEach(el => {
+        if (el instanceof HTMLElement && el.getAttribute('data-radix-focus-guard') === null) {
+          console.log('DEBUG: Removing potential stale attribute from:', el.tagName, el.id, el.className);
+          el.removeAttribute('inert');
+          el.removeAttribute('aria-hidden');
+        }
+      });
     };
   }, []);
 
@@ -67,15 +146,25 @@ const DialogContent = React.forwardRef<
           // Log closing events
           console.log('DEBUG: Dialog Content onCloseAutoFocus triggered');
           
-          // The following line ensures focus is properly restored
-          // and may help with cleanup issues
+          // Prevent the default focus behavior to avoid potential issues
           event.preventDefault();
+          
+          // Force document.body to be interactive again
+          document.body.style.pointerEvents = '';
+          document.body.style.overflow = '';
+          
+          // Log the focus state after closing
+          setTimeout(logFocusState, 50);
         }}
         onEscapeKeyDown={() => {
           console.log('DEBUG: Dialog escape key pressed');
         }}
         onInteractOutside={(event) => {
           console.log('DEBUG: Dialog interaction outside content');
+        }}
+        onOpenAutoFocus={(event) => {
+          console.log('DEBUG: Dialog Content onOpenAutoFocus triggered');
+          // Allow default focus behavior when opening
         }}
         {...props}
       >
