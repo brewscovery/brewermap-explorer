@@ -10,15 +10,47 @@ export interface BreweryData {
   name: string;
   brewery_type: string | null;
   website_url: string | null;
-  about: string | null; // Make sure this field is included
-  facebook_url: string | null; // Make sure this field is included
-  instagram_url: string | null; // Make sure this field is included
-  logo_url: string | null; // Make sure this field is included
+  about: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  logo_url: string | null;
   is_verified: boolean | null;
   created_at: string;
   updated_at: string;
   venue_count: number;
   owner_name: string;
+}
+
+// User data type for admin panel
+export interface UserData {
+  id: string;
+  user_type: 'admin' | 'business' | 'regular';
+  first_name: string | null;
+  last_name: string | null;
+  created_at: string;
+}
+
+// Brewery claim data type
+export interface BreweryClaim {
+  id: string;
+  brewery_id: string;
+  brewery_name: string;
+  user_id: string;
+  user_name: string;
+  status: 'pending' | 'approved' | 'rejected';
+  contact_email: string | null;
+  contact_phone: string | null;
+  created_at: string;
+  updated_at: string;
+  decision_at: string | null;
+  admin_notes: string | null;
+}
+
+// Admin stats type
+export interface AdminStats {
+  totalUsers: number;
+  totalBreweries: number;
+  pendingClaims: number;
 }
 
 // Hook for fetching breweries for admin
@@ -105,6 +137,216 @@ export const useUpdateBreweryVerification = () => {
     },
     onError: (error: any) => {
       toast.error(`Verification update failed: ${error.message}`);
+    }
+  });
+};
+
+// Hook for fetching admin dashboard stats
+export const useAdminStats = () => {
+  const fetchStats = async () => {
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    
+    if (!token) {
+      throw new Error('No authenticated session');
+    }
+    
+    const response = await fetch('/functions/v1/admin-get-stats', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch admin stats');
+    }
+    
+    const data = await response.json();
+    return data.stats as AdminStats;
+  };
+  
+  return useQuery({
+    queryKey: ['admin', 'stats'],
+    queryFn: fetchStats
+  });
+};
+
+// Hook for fetching users for admin panel
+export const useUsers = () => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
+  
+  // Debounce search input
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+    
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
+  
+  const fetchUsers = async () => {
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    
+    if (!token) {
+      throw new Error('No authenticated session');
+    }
+    
+    const response = await fetch('/functions/v1/admin-get-users', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ searchQuery: debouncedSearchQuery })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch users');
+    }
+    
+    const data = await response.json();
+    return data.users as UserData[];
+  };
+  
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['admin', 'users', debouncedSearchQuery],
+    queryFn: fetchUsers
+  });
+  
+  return {
+    data,
+    isLoading,
+    error,
+    searchQuery,
+    setSearchQuery,
+    refetch
+  };
+};
+
+// Hook for updating user type
+export const useUpdateUserType = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      userId, 
+      userType 
+    }: { 
+      userId: string; 
+      userType: 'admin' | 'business' | 'regular' 
+    }) => {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
+      }
+      
+      const response = await fetch('/functions/v1/admin-update-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ userId, userType })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update user type');
+      }
+      
+      const data = await response.json();
+      return data.user;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
+      toast.success('User type updated successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`User type update failed: ${error.message}`);
+    }
+  });
+};
+
+// Hook for fetching brewery claims
+export const useBreweryClaims = () => {
+  const fetchClaims = async () => {
+    const token = (await supabase.auth.getSession()).data.session?.access_token;
+    
+    if (!token) {
+      throw new Error('No authenticated session');
+    }
+    
+    const response = await fetch('/functions/v1/admin-get-claims', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to fetch brewery claims');
+    }
+    
+    const data = await response.json();
+    return data.claims as BreweryClaim[];
+  };
+  
+  return useQuery({
+    queryKey: ['admin', 'brewery-claims'],
+    queryFn: fetchClaims
+  });
+};
+
+// Hook for updating brewery claim status
+export const useBreweryClaimUpdate = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ 
+      claimId, 
+      status, 
+      adminNotes 
+    }: { 
+      claimId: string; 
+      status: 'pending' | 'approved' | 'rejected'; 
+      adminNotes: string | null 
+    }) => {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
+      }
+      
+      const response = await fetch('/functions/v1/admin-update-claim', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ claimId, status, adminNotes })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update claim status');
+      }
+      
+      const data = await response.json();
+      return data.claim;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'brewery-claims'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
+    },
+    onError: (error: any) => {
+      toast.error(`Claim update failed: ${error.message}`);
     }
   });
 };
