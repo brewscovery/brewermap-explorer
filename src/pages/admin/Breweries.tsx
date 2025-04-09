@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -18,7 +19,10 @@ import {
   ExternalLink, 
   Plus, 
   Edit, 
-  Trash2 
+  Trash2,
+  Filter,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { useBreweries, useUpdateBreweryVerification } from '@/hooks/useAdminData';
 import {
@@ -35,10 +39,20 @@ import AdminBreweryDialog from '@/components/admin/brewery/AdminBreweryDialog';
 import DeleteBreweryDialog from '@/components/admin/brewery/AdminDeleteBreweryDialog';
 import AdminVenueManagement from '@/components/admin/brewery/AdminVenueManagement';
 import type { BreweryData } from '@/hooks/useAdminData';
-import { logDialogElements } from '@/utils/debugUtils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
-// Force import the debugging utilities
+// Import the debugging utilities but don't automatically use them
 import '@/utils/debugUtils';
+
+// Type for sorting options
+type SortField = 'name' | 'brewery_type' | 'venue_count' | 'is_verified' | 'created_at';
+type SortDirection = 'asc' | 'desc';
 
 const BreweriesManagement = () => {
   const { 
@@ -58,34 +72,16 @@ const BreweriesManagement = () => {
   const [venueManagementOpen, setVenueManagementOpen] = useState(false);
   const [selectedBrewery, setSelectedBrewery] = useState<BreweryData | null>(null);
   
-  // DEBUG LOGGING for component lifecycle
-  useEffect(() => {
-    console.log('DEBUG: BreweriesManagement component mounted');
-    return () => {
-      console.log('DEBUG: BreweriesManagement component unmounted');
-    };
-  }, []);
+  // New state for sorting and filtering
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [verificationFilter, setVerificationFilter] = useState<string>('all');
   
-  // DEBUG LOGGING for dialog state changes
-  useEffect(() => {
-    console.log('DEBUG: Dialog states changed:', {
-      createDialogOpen,
-      editDialogOpen,
-      deleteDialogOpen,
-      venueManagementOpen,
-      hasSelectedBrewery: !!selectedBrewery,
-      selectedBreweryId: selectedBrewery?.id
-    });
-    
-    // Extra debugging: Log all dialog elements whenever a dialog state changes
-    setTimeout(logDialogElements, 500);
-  }, [createDialogOpen, editDialogOpen, deleteDialogOpen, venueManagementOpen, selectedBrewery]);
-  
-  // New cleanup useEffect specifically for fixing dialog issues
+  // Cleanup useEffect for component unmount
   useEffect(() => {
     return () => {
-      // This effect will run on component unmount
-      console.log('DEBUG: Final cleanup of all dialog state');
+      // Final cleanup
       setCreateDialogOpen(false);
       setEditDialogOpen(false);
       setDeleteDialogOpen(false);
@@ -95,13 +91,6 @@ const BreweriesManagement = () => {
       // Force document.body to be scrollable again in case a dialog left it locked
       document.body.style.overflow = '';
       document.body.style.paddingRight = '';
-      
-      // Extra check for any lingering .fixed-backdrop elements
-      const backdrops = document.querySelectorAll('[role="dialog"]');
-      console.log(`DEBUG: Found ${backdrops.length} dialog elements during final cleanup`);
-      
-      // If we were really desperate, we could force-remove them:
-      // backdrops.forEach(el => el.remove());
     };
   }, []);
   
@@ -115,69 +104,139 @@ const BreweriesManagement = () => {
   };
   
   const handleEditBrewery = (brewery: BreweryData) => {
-    console.log('DEBUG: handleEditBrewery called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setEditDialogOpen(true);
   };
   
   const handleDeleteBrewery = (brewery: BreweryData) => {
-    console.log('DEBUG: handleDeleteBrewery called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setDeleteDialogOpen(true);
   };
   
   const handleManageVenues = (brewery: BreweryData) => {
-    console.log('DEBUG: handleManageVenues called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setVenueManagementOpen(true);
   };
   
+  // Sort and filter handlers
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      // Toggle direction if same field
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      // New field, default to ascending
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+  
+  // Sorting indicator component
+  const SortIndicator = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return null;
+    
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="ml-1 h-4 w-4" /> 
+      : <ArrowDown className="ml-1 h-4 w-4" />;
+  };
+  
   // Modified handlers with improved cleanup
   const handleEditDialogOpenChange = (open: boolean) => {
-    console.log('DEBUG: handleEditDialogOpenChange called with open:', open);
     setEditDialogOpen(open);
     if (!open) {
       // Add a slight delay before clearing selected brewery to ensure proper unmounting
-      console.log('DEBUG: Scheduling selectedBrewery cleanup after Edit dialog close');
-      
-      // First log what's in the DOM
-      logDialogElements();
-      
       setTimeout(() => {
-        console.log('DEBUG: Clearing selectedBrewery after Edit dialog close');
         setSelectedBrewery(null);
-        
-        // Check DOM again after cleanup
-        setTimeout(logDialogElements, 100);
-      }, 300); // Increased delay to ensure animations complete
+      }, 300);
     }
   };
   
   const handleDeleteDialogOpenChange = (open: boolean) => {
-    console.log('DEBUG: handleDeleteDialogOpenChange called with open:', open);
     setDeleteDialogOpen(open);
     if (!open) {
-      // Add a slight delay before clearing selected brewery to ensure proper unmounting
-      console.log('DEBUG: Scheduling selectedBrewery cleanup after Delete dialog close');
       setTimeout(() => {
-        console.log('DEBUG: Clearing selectedBrewery after Delete dialog close');
         setSelectedBrewery(null);
       }, 100);
     }
   };
   
   const handleVenueManagementOpenChange = (open: boolean) => {
-    console.log('DEBUG: handleVenueManagementOpenChange called with open:', open);
     setVenueManagementOpen(open);
     if (!open) {
-      // Add a slight delay before clearing selected brewery to ensure proper unmounting
-      console.log('DEBUG: Scheduling selectedBrewery cleanup after Venue Management dialog close');
       setTimeout(() => {
-        console.log('DEBUG: Clearing selectedBrewery after Venue Management dialog close');
         setSelectedBrewery(null);
       }, 100);
     }
   };
+  
+  // Filter and sort the breweries
+  const filteredAndSortedBreweries = useMemo(() => {
+    if (!breweries) return [];
+    
+    // First apply filters
+    let filtered = [...breweries];
+    
+    if (typeFilter !== 'all') {
+      filtered = filtered.filter(brewery => brewery.brewery_type === typeFilter);
+    }
+    
+    if (verificationFilter !== 'all') {
+      const isVerified = verificationFilter === 'verified';
+      filtered = filtered.filter(brewery => brewery.is_verified === isVerified);
+    }
+    
+    // Then apply sorting
+    return filtered.sort((a, b) => {
+      // Handle different field types
+      if (sortField === 'name' || sortField === 'brewery_type') {
+        const aValue = (a[sortField] || '').toLowerCase();
+        const bValue = (b[sortField] || '').toLowerCase();
+        
+        if (sortDirection === 'asc') {
+          return aValue.localeCompare(bValue);
+        } else {
+          return bValue.localeCompare(aValue);
+        }
+      }
+      
+      if (sortField === 'venue_count') {
+        const aCount = a.venue_count || 0;
+        const bCount = b.venue_count || 0;
+        
+        return sortDirection === 'asc' ? aCount - bCount : bCount - aCount;
+      }
+      
+      if (sortField === 'is_verified') {
+        // Convert boolean to number for sorting
+        const aValue = a.is_verified ? 1 : 0;
+        const bValue = b.is_verified ? 1 : 0;
+        
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+      
+      if (sortField === 'created_at') {
+        const aDate = new Date(a.created_at).getTime();
+        const bDate = new Date(b.created_at).getTime();
+        
+        return sortDirection === 'asc' ? aDate - bDate : bDate - aDate;
+      }
+      
+      return 0;
+    });
+  }, [breweries, sortField, sortDirection, typeFilter, verificationFilter]);
+  
+  // Extract unique brewery types for filter dropdown
+  const breweryTypes = useMemo(() => {
+    if (!breweries) return [];
+    
+    const types = new Set<string>();
+    breweries.forEach(brewery => {
+      if (brewery.brewery_type) {
+        types.add(brewery.brewery_type);
+      }
+    });
+    
+    return Array.from(types);
+  }, [breweries]);
   
   const getBreweryTypeBadge = (type: string | null) => {
     if (!type) return null;
@@ -252,13 +311,55 @@ const BreweriesManagement = () => {
             </div>
             <Button type="submit" variant="outline" size="sm">Search</Button>
           </form>
-          <Button onClick={() => {
-            console.log('DEBUG: Create brewery button clicked');
-            setCreateDialogOpen(true);
-          }}>
+          <Button onClick={() => setCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Add Brewery
           </Button>
+        </div>
+      </div>
+      
+      {/* Filtering options */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Filters:</span>
+        </div>
+        
+        <div className="flex gap-2 items-center">
+          <span className="text-sm">Type:</span>
+          <Select
+            value={typeFilter}
+            onValueChange={setTypeFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {breweryTypes.map(type => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        
+        <div className="flex gap-2 items-center">
+          <span className="text-sm">Status:</span>
+          <Select 
+            value={verificationFilter}
+            onValueChange={setVerificationFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="verified">Verified</SelectItem>
+              <SelectItem value="unverified">Unverified</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
       
@@ -266,10 +367,42 @@ const BreweriesManagement = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Venues</TableHead>
-              <TableHead>Verified</TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center">
+                  Name
+                  <SortIndicator field="name" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort('brewery_type')}
+              >
+                <div className="flex items-center">
+                  Type
+                  <SortIndicator field="brewery_type" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort('venue_count')}
+              >
+                <div className="flex items-center">
+                  Venues
+                  <SortIndicator field="venue_count" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort('is_verified')}
+              >
+                <div className="flex items-center">
+                  Verified
+                  <SortIndicator field="is_verified" />
+                </div>
+              </TableHead>
               <TableHead>Owner</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -286,8 +419,8 @@ const BreweriesManagement = () => {
                   <TableCell><Skeleton className="h-9 w-10" /></TableCell>
                 </TableRow>
               ))
-            ) : breweries && breweries.length > 0 ? (
-              breweries.map((brewery) => (
+            ) : filteredAndSortedBreweries.length > 0 ? (
+              filteredAndSortedBreweries.map((brewery) => (
                 <TableRow key={brewery.id}>
                   <TableCell className="font-medium">{brewery.name}</TableCell>
                   <TableCell>{getBreweryTypeBadge(brewery.brewery_type)}</TableCell>
@@ -374,7 +507,9 @@ const BreweriesManagement = () => {
             ) : (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center">
-                  {searchQuery ? 'No breweries found matching your search.' : 'No breweries found.'}
+                  {searchQuery || typeFilter !== 'all' || verificationFilter !== 'all' 
+                    ? 'No breweries found matching your filters.' 
+                    : 'No breweries found.'}
                 </TableCell>
               </TableRow>
             )}
@@ -384,56 +519,40 @@ const BreweriesManagement = () => {
       
       {/* Only render dialogs when they're open - with extra defensive checks */}
       {createDialogOpen && (
-        <>
-          {console.log('DEBUG: Rendering create dialog')}
-          <AdminBreweryDialog 
-            open={createDialogOpen}
-            onOpenChange={(open) => {
-              console.log('DEBUG: Create dialog onOpenChange called with open:', open);
-              setCreateDialogOpen(open);
-              
-              // Extra check for DOM elements after state change
-              setTimeout(logDialogElements, 200);
-            }}
-            mode="create"
-          />
-        </>
+        <AdminBreweryDialog 
+          open={createDialogOpen}
+          onOpenChange={(open) => {
+            setCreateDialogOpen(open);
+          }}
+          mode="create"
+        />
       )}
       
       {editDialogOpen && selectedBrewery && (
-        <>
-          {console.log('DEBUG: Rendering edit dialog for brewery:', selectedBrewery.id)}
-          <AdminBreweryDialog 
-            open={editDialogOpen}
-            onOpenChange={handleEditDialogOpenChange}
-            brewery={selectedBrewery}
-            mode="edit"
-          />
-        </>
+        <AdminBreweryDialog 
+          open={editDialogOpen}
+          onOpenChange={handleEditDialogOpenChange}
+          brewery={selectedBrewery}
+          mode="edit"
+        />
       )}
       
       {deleteDialogOpen && selectedBrewery && (
-        <>
-          {console.log('DEBUG: Rendering delete dialog for brewery:', selectedBrewery.id)}
-          <DeleteBreweryDialog 
-            open={deleteDialogOpen}
-            onOpenChange={handleDeleteDialogOpenChange}
-            breweryId={selectedBrewery.id || ''}
-            breweryName={selectedBrewery.name || ''}
-          />
-        </>
+        <DeleteBreweryDialog 
+          open={deleteDialogOpen}
+          onOpenChange={handleDeleteDialogOpenChange}
+          breweryId={selectedBrewery.id || ''}
+          breweryName={selectedBrewery.name || ''}
+        />
       )}
       
       {venueManagementOpen && selectedBrewery && (
-        <>
-          {console.log('DEBUG: Rendering venue management dialog for brewery:', selectedBrewery.id)}
-          <AdminVenueManagement
-            open={venueManagementOpen}
-            onOpenChange={handleVenueManagementOpenChange}
-            breweryId={selectedBrewery.id || ''}
-            breweryName={selectedBrewery.name || ''}
-          />
-        </>
+        <AdminVenueManagement
+          open={venueManagementOpen}
+          onOpenChange={handleVenueManagementOpenChange}
+          breweryId={selectedBrewery.id || ''}
+          breweryName={selectedBrewery.name || ''}
+        />
       )}
     </div>
   );

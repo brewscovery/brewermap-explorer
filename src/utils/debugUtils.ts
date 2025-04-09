@@ -1,4 +1,3 @@
-
 /**
  * Utility functions for debugging purposes
  */
@@ -226,11 +225,4 @@ export const useFixedDialogForAdmin = () => {
   console.log('DEBUG: Dialog observer set up');
 };
 
-// Add the debug button on import
-if (process.env.NODE_ENV !== 'production') {
-  // Add it with a slight delay to ensure DOM is ready
-  setTimeout(() => {
-    addDebugButton();
-    useFixedDialogForAdmin();
-  }, 1000);
-}
+// Debug button is no longer auto-added

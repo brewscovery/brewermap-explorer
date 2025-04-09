@@ -4,11 +4,9 @@ import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
-import { logFocusState } from "@/utils/debugUtils"
 
 const AlertDialog = AlertDialogPrimitive.Root
 
-// Forward ref version - updated to fix TypeScript error
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
@@ -32,19 +30,12 @@ const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
 >(({ className, ...props }, ref) => {
-  // Add debug logging for content rendering
+  // Cleanup effect for body styles
   React.useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('DEBUG: AlertDialog Content mounted');
-    }
     return () => {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('DEBUG: AlertDialog Content unmounted');
-        
-        // Ensure document body is reset on unmount
-        document.body.style.pointerEvents = '';
-        document.body.style.overflow = '';
-      }
+      // Ensure document body is reset on unmount
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
     };
   }, []);
 
@@ -58,21 +49,12 @@ const AlertDialogContent = React.forwardRef<
           className
         )}
         onCloseAutoFocus={(event) => {
-          if (process.env.NODE_ENV !== 'production') {
-            console.log('DEBUG: AlertDialog Content onCloseAutoFocus triggered');
-          }
-          
           // Prevent the default focus behavior to avoid potential issues
           event.preventDefault();
           
           // Force document.body to be interactive again
           document.body.style.pointerEvents = '';
           document.body.style.overflow = '';
-          
-          // Log the focus state after closing
-          if (process.env.NODE_ENV !== 'production') {
-            setTimeout(logFocusState, 50);
-          }
         }}
         {...props}
       />
