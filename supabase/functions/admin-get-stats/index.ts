@@ -12,12 +12,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('Admin stats function called')
+    
     // Create a Supabase client with the service role key
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
     // Get the user token from the request headers
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('Missing authorization header')
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -29,6 +32,7 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser(token)
     
     if (userError || !user) {
+      console.error('Invalid token or user not found', userError)
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -43,6 +47,7 @@ Deno.serve(async (req) => {
       .single()
       
     if (profileError || !profile) {
+      console.error('Could not verify user type', profileError)
       return new Response(
         JSON.stringify({ error: 'Could not verify user type' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -50,6 +55,7 @@ Deno.serve(async (req) => {
     }
     
     if (profile.user_type !== 'admin') {
+      console.error('User is not an admin', profile.user_type)
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -101,6 +107,8 @@ Deno.serve(async (req) => {
       totalBreweries: breweriesCount || 0,
       pendingClaims: pendingClaimsCount || 0
     }
+    
+    console.log('Returning stats:', stats)
     
     return new Response(
       JSON.stringify({ stats }),
