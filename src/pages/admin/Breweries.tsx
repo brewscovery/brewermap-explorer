@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -10,7 +10,17 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Search, MapPin, MoreHorizontal, X, ExternalLink } from 'lucide-react';
+import { 
+  CheckCircle, 
+  Search, 
+  MapPin, 
+  MoreHorizontal, 
+  X, 
+  ExternalLink, 
+  Plus, 
+  Edit, 
+  Trash2 
+} from 'lucide-react';
 import { useBreweries, useUpdateBreweryVerification } from '@/hooks/useAdminData';
 import {
   DropdownMenu,
@@ -22,6 +32,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import AdminBreweryDialog from '@/components/admin/brewery/AdminBreweryDialog';
+import DeleteBreweryDialog from '@/components/admin/brewery/AdminDeleteBreweryDialog';
+import AdminVenueManagement from '@/components/admin/brewery/AdminVenueManagement';
+import type { BreweryData } from '@/hooks/useAdminData';
 
 const BreweriesManagement = () => {
   const { 
@@ -34,6 +48,13 @@ const BreweriesManagement = () => {
   
   const updateVerification = useUpdateBreweryVerification();
   
+  // State for brewery dialogs
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [venueManagementOpen, setVenueManagementOpen] = useState(false);
+  const [selectedBrewery, setSelectedBrewery] = useState<BreweryData | null>(null);
+  
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Search is already reactive via the hook
@@ -41,6 +62,21 @@ const BreweriesManagement = () => {
   
   const handleVerificationChange = (breweryId: string, isVerified: boolean) => {
     updateVerification.mutate({ breweryId, isVerified });
+  };
+  
+  const handleEditBrewery = (brewery: BreweryData) => {
+    setSelectedBrewery(brewery);
+    setEditDialogOpen(true);
+  };
+  
+  const handleDeleteBrewery = (brewery: BreweryData) => {
+    setSelectedBrewery(brewery);
+    setDeleteDialogOpen(true);
+  };
+  
+  const handleManageVenues = (brewery: BreweryData) => {
+    setSelectedBrewery(brewery);
+    setVenueManagementOpen(true);
   };
   
   const getBreweryTypeBadge = (type: string | null) => {
@@ -102,19 +138,25 @@ const BreweriesManagement = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Breweries Management</h1>
-        <form onSubmit={handleSearch} className="flex gap-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search breweries..."
-              className="pl-8 w-[250px]"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <Button type="submit" variant="outline" size="sm">Search</Button>
-        </form>
+        <div className="flex gap-2">
+          <form onSubmit={handleSearch} className="flex gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search breweries..."
+                className="pl-8 w-[250px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Button type="submit" variant="outline" size="sm">Search</Button>
+          </form>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Brewery
+          </Button>
+        </div>
       </div>
       
       <div className="rounded-md border">
@@ -177,6 +219,14 @@ const BreweriesManagement = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleEditBrewery(brewery)}>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Edit Brewery
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleManageVenues(brewery)}>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Manage Venues
+                        </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleVerificationChange(brewery.id, !brewery.is_verified)}
                         >
@@ -205,6 +255,14 @@ const BreweriesManagement = () => {
                             </a>
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => handleDeleteBrewery(brewery)}
+                        >
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Brewery
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -220,6 +278,39 @@ const BreweriesManagement = () => {
           </TableBody>
         </Table>
       </div>
+      
+      {/* Create brewery dialog */}
+      <AdminBreweryDialog 
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        mode="create"
+      />
+      
+      {/* Edit brewery dialog */}
+      {selectedBrewery && (
+        <>
+          <AdminBreweryDialog 
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            brewery={selectedBrewery as any}
+            mode="edit"
+          />
+          
+          <DeleteBreweryDialog 
+            open={deleteDialogOpen}
+            onOpenChange={setDeleteDialogOpen}
+            breweryId={selectedBrewery.id}
+            breweryName={selectedBrewery.name}
+          />
+          
+          <AdminVenueManagement
+            open={venueManagementOpen}
+            onOpenChange={setVenueManagementOpen}
+            breweryId={selectedBrewery.id}
+            breweryName={selectedBrewery.name}
+          />
+        </>
+      )}
     </div>
   );
 };
