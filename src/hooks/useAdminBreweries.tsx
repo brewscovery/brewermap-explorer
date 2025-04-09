@@ -117,7 +117,12 @@ export const useCreateVenue = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (venueData: Partial<Venue> & { name: string; brewery_id: string }) => {
+    mutationFn: async (venueData: Partial<Venue> & { 
+      name: string; 
+      brewery_id: string;
+      city: string;
+      state: string;
+    }) => {
       const { data, error } = await supabase
         .from('venues')
         .insert(venueData)

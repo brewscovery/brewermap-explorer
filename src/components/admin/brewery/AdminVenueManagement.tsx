@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed'; // Use fixed dialog
 import { Button } from '@/components/ui/button';
@@ -8,6 +7,7 @@ import { VenueForm } from '@/components/brewery/venue-form/VenueForm';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import type { Venue } from '@/types/venue';
 import { VenueList } from './AdminVenueList';
+import { toast } from 'sonner';
 
 interface AdminVenueManagementProps {
   open: boolean;
@@ -100,10 +100,20 @@ const AdminVenueManagement = ({
       // Get coordinates if missing
       const coordinates = await getCoordinates();
       
+      // Ensure required fields are present for venue creation
+      if (!formData.name || !formData.city || !formData.state) {
+        toast.error('Name, city, and state are required');
+        setIsFormLoading(false);
+        return;
+      }
+      
       // Combine all data
       const venueData = {
         ...formData,
         brewery_id: breweryId,
+        name: formData.name,
+        city: formData.city,
+        state: formData.state,
         longitude: coordinates.longitude,
         latitude: coordinates.latitude
       };
