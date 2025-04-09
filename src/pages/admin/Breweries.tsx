@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Table, 
@@ -104,6 +103,7 @@ const BreweriesManagement = () => {
   };
   
   const handleEditBrewery = (brewery: BreweryData) => {
+    console.log('Editing brewery with data:', brewery);
     setSelectedBrewery(brewery);
     setEditDialogOpen(true);
   };
