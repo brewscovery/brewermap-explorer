@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PencilIcon, Trash2Icon, Clock } from 'lucide-react';
+import { PencilIcon, Trash2Icon, Clock, Building } from 'lucide-react';
 import { EmptyPlaceholder } from '@/components/ui/empty-placeholder';
 import type { Venue } from '@/types/venue';
 import EditVenueDialog from '@/components/brewery/EditVenueDialog';
@@ -35,7 +35,7 @@ export const VenueList = ({
   if (!venues || venues.length === 0) {
     return (
       <EmptyPlaceholder>
-        <EmptyPlaceholder.Icon name="venue" />
+        <EmptyPlaceholder.Icon icon={Building} />
         <EmptyPlaceholder.Title>No venues</EmptyPlaceholder.Title>
         <EmptyPlaceholder.Description>
           This brewery has no venues yet. Add a new venue to get started.
