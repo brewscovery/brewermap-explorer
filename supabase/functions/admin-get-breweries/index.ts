@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
     }
     
     // Query breweries with search filter if provided
+    console.log("Querying breweries with search:", searchQuery || "none");
     let breweryQuery = supabase
       .from('breweries')
       .select('id, name, brewery_type, is_verified, website_url, created_at')
@@ -77,6 +78,8 @@ Deno.serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
+    
+    console.log(`Found ${breweries?.length || 0} breweries`);
     
     // If no breweries found, return empty array
     if (!breweries || breweries.length === 0) {
@@ -107,6 +110,7 @@ Deno.serve(async (req) => {
       })
     }
     
+    console.log("Fetching brewery owners");
     // Get brewery owners
     const { data: owners, error: ownersError } = await supabase
       .from('brewery_owners')
@@ -117,9 +121,11 @@ Deno.serve(async (req) => {
       console.error('Error fetching brewery owners:', ownersError)
     }
     
+    console.log(`Found ${owners?.length || 0} brewery owners`);
+    
     // Group owners by brewery
     const breweryOwners = {}
-    if (owners) {
+    if (owners && owners.length > 0) {
       owners.forEach(owner => {
         if (!breweryOwners[owner.brewery_id]) {
           breweryOwners[owner.brewery_id] = []
@@ -129,10 +135,11 @@ Deno.serve(async (req) => {
     }
     
     // Get owner profiles if there are any owners
-    const allOwnerIds = owners ? owners.map(owner => owner.user_id) : []
+    const allOwnerIds = owners && owners.length > 0 ? owners.map(owner => owner.user_id) : []
     
     let ownerProfiles = []
     if (allOwnerIds.length > 0) {
+      console.log(`Fetching profiles for ${allOwnerIds.length} owners`);
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select('id, first_name, last_name')
@@ -142,16 +149,19 @@ Deno.serve(async (req) => {
         console.error('Error fetching owner profiles:', profilesError)
       } else {
         ownerProfiles = profiles || []
+        console.log(`Found ${ownerProfiles.length} owner profiles`);
       }
     }
     
     // Create map of owner IDs to names
     const ownerNames = {}
-    ownerProfiles.forEach(profile => {
-      ownerNames[profile.id] = profile.first_name && profile.last_name 
-        ? `${profile.first_name} ${profile.last_name}`.trim()
-        : 'Unknown'
-    })
+    if (ownerProfiles.length > 0) {
+      ownerProfiles.forEach(profile => {
+        ownerNames[profile.id] = profile.first_name && profile.last_name 
+          ? `${profile.first_name} ${profile.last_name}`.trim()
+          : 'Unknown'
+      })
+    }
     
     // Enhance breweries with venue counts and owner names
     const enhancedBreweries = breweries.map(brewery => {
@@ -161,10 +171,11 @@ Deno.serve(async (req) => {
       return {
         ...brewery,
         venue_count: venueCounts[brewery.id] || 0,
-        owner_name: ownerNamesList.join(', ') || 'No owner'
+        owner_name: ownerNamesList.length > 0 ? ownerNamesList.join(', ') : 'No owner'
       }
     })
     
+    console.log("Returning enhanced breweries");
     return new Response(
       JSON.stringify({ breweries: enhancedBreweries }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
