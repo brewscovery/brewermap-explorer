@@ -4,11 +4,21 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import AdminBreweryForm from './AdminBreweryForm';
 import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
 import type { Brewery } from '@/types/brewery';
+import type { BreweryData } from '@/hooks/useAdminData';
+
+// Create a union type that accepts either Brewery or BreweryData
+type BreweryInput = Partial<Brewery> & {
+  id: string;
+  name: string;
+  is_verified?: boolean | null;
+  brewery_type?: string | null;
+  website_url?: string | null;
+};
 
 interface AdminBreweryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  brewery?: Brewery;
+  brewery?: BreweryInput;
   mode: 'create' | 'edit';
 }
 

@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -38,8 +37,9 @@ const brewerySchema = z.object({
 
 type BreweryFormValues = z.infer<typeof brewerySchema>;
 
+// Make the initialData more flexible to accept either Brewery or BreweryData
 interface AdminBreweryFormProps {
-  initialData?: Brewery;
+  initialData?: Partial<Brewery> & { id: string; name: string };
   onSubmit: (data: BreweryFormValues) => void;
   isLoading: boolean;
 }
