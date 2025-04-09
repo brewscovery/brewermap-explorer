@@ -43,6 +43,8 @@ export const useUpdateBrewery = () => {
       breweryId: string; 
       breweryData: Partial<Brewery>
     }) => {
+      console.log('Updating brewery with data:', breweryData);
+      
       const { data, error } = await supabase
         .from('breweries')
         .update(breweryData)

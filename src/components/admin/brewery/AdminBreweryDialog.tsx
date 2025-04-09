@@ -38,6 +38,13 @@ const AdminBreweryDialog = ({
   // Only proceed with edit operations if we have a valid brewery with an ID
   const isValidEditMode = mode === 'edit' && brewery && brewery.id;
   
+  // For debugging
+  useEffect(() => {
+    if (isValidEditMode) {
+      console.log('Editing brewery with data:', brewery);
+    }
+  }, [brewery, isValidEditMode]);
+  
   // Reset mutation state when dialog is closed
   useEffect(() => {
     if (!open) {
@@ -55,6 +62,7 @@ const AdminBreweryDialog = ({
         await createBrewery.mutateAsync(formData);
         onOpenChange(false);
       } else if (isValidEditMode) {
+        console.log('Submitting brewery update with data:', formData);
         await updateBrewery.mutateAsync({
           breweryId: brewery.id,
           breweryData: formData

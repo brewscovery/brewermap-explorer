@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -58,6 +59,13 @@ const breweryTypes = [
 ];
 
 const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryFormProps) => {
+  // Debugging
+  useEffect(() => {
+    if (initialData) {
+      console.log('Form initialData:', initialData);
+    }
+  }, [initialData]);
+
   // Initialize form with the initial data or default values
   const form = useForm<BreweryFormValues>({
     resolver: zodResolver(brewerySchema),
@@ -73,7 +81,24 @@ const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryForm
     },
   });
 
+  // Update form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      form.reset({
+        name: initialData.name || '',
+        brewery_type: initialData.brewery_type || null,
+        about: initialData.about || null,
+        website_url: initialData.website_url || null,
+        facebook_url: initialData.facebook_url || null,
+        instagram_url: initialData.instagram_url || null,
+        logo_url: initialData.logo_url || null,
+        is_verified: initialData.is_verified || false,
+      });
+    }
+  }, [initialData, form]);
+
   const handleSubmit = (values: BreweryFormValues) => {
+    console.log('Submitting form values:', values);
     onSubmit(values);
   };
 
@@ -103,6 +128,7 @@ const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryForm
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value || undefined}
+                value={field.value || undefined}
               >
                 <FormControl>
                   <SelectTrigger>
