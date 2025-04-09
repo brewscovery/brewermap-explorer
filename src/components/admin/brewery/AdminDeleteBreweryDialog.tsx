@@ -37,6 +37,9 @@ const DeleteBreweryDialog = ({
     }
   };
 
+  // Only enable the delete button if we have a valid breweryId
+  const hasValidBreweryId = !!breweryId && breweryId.length > 0;
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
@@ -59,7 +62,7 @@ const DeleteBreweryDialog = ({
           <AlertDialogAction
             onClick={handleDelete}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            disabled={deleteBrewery.isPending}
+            disabled={deleteBrewery.isPending || !hasValidBreweryId}
           >
             {deleteBrewery.isPending ? 'Deleting...' : 'Delete Brewery'}
           </AlertDialogAction>

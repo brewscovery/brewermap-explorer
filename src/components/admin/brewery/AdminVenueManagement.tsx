@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
@@ -23,7 +23,9 @@ const AdminVenueManagement = ({
   breweryId,
   breweryName 
 }: AdminVenueManagementProps) => {
-  const { venues, isLoading, refetch } = useBreweryVenues(open ? breweryId : null);
+  // Only fetch venues when dialog is open and breweryId is valid
+  const validBreweryId = open && breweryId ? breweryId : null;
+  const { venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
   const createVenue = useCreateVenue();
   const deleteVenue = useDeleteVenue();
   
@@ -48,6 +50,15 @@ const AdminVenueManagement = ({
     },
     resetOnSuccess: true
   });
+  
+  // Reset dialog state when opened/closed
+  useEffect(() => {
+    if (!open) {
+      setIsAddingVenue(false);
+      setDeleteConfirmOpen(false);
+      setVenueToDelete(null);
+    }
+  }, [open]);
   
   const handleAddVenue = () => {
     resetForm();

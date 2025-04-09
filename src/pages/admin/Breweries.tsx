@@ -79,6 +79,28 @@ const BreweriesManagement = () => {
     setVenueManagementOpen(true);
   };
   
+  // Handlers for dialog close that also reset selectedBrewery when needed
+  const handleEditDialogOpenChange = (open: boolean) => {
+    setEditDialogOpen(open);
+    if (!open) {
+      setSelectedBrewery(null);
+    }
+  };
+  
+  const handleDeleteDialogOpenChange = (open: boolean) => {
+    setDeleteDialogOpen(open);
+    if (!open) {
+      setSelectedBrewery(null);
+    }
+  };
+  
+  const handleVenueManagementOpenChange = (open: boolean) => {
+    setVenueManagementOpen(open);
+    if (!open) {
+      setSelectedBrewery(null);
+    }
+  };
+  
   const getBreweryTypeBadge = (type: string | null) => {
     if (!type) return null;
     
@@ -286,31 +308,27 @@ const BreweriesManagement = () => {
         mode="create"
       />
       
-      {/* Edit brewery dialog */}
-      {selectedBrewery && (
-        <>
-          <AdminBreweryDialog 
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
-            brewery={selectedBrewery as any}
-            mode="edit"
-          />
-          
-          <DeleteBreweryDialog 
-            open={deleteDialogOpen}
-            onOpenChange={setDeleteDialogOpen}
-            breweryId={selectedBrewery.id}
-            breweryName={selectedBrewery.name}
-          />
-          
-          <AdminVenueManagement
-            open={venueManagementOpen}
-            onOpenChange={setVenueManagementOpen}
-            breweryId={selectedBrewery.id}
-            breweryName={selectedBrewery.name}
-          />
-        </>
-      )}
+      {/* Edit, Delete, and Venue Management dialogs - now always rendered but conditionally shown */}
+      <AdminBreweryDialog 
+        open={editDialogOpen}
+        onOpenChange={handleEditDialogOpenChange}
+        brewery={selectedBrewery as any}
+        mode="edit"
+      />
+      
+      <DeleteBreweryDialog 
+        open={deleteDialogOpen}
+        onOpenChange={handleDeleteDialogOpenChange}
+        breweryId={selectedBrewery?.id || ''}
+        breweryName={selectedBrewery?.name || ''}
+      />
+      
+      <AdminVenueManagement
+        open={venueManagementOpen}
+        onOpenChange={handleVenueManagementOpenChange}
+        breweryId={selectedBrewery?.id || ''}
+        breweryName={selectedBrewery?.name || ''}
+      />
     </div>
   );
 };

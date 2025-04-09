@@ -21,12 +21,15 @@ const AdminBreweryDialog = ({
   const createBrewery = useCreateBrewery();
   const updateBrewery = useUpdateBrewery();
   
+  // Only proceed with edit operations if we have a valid brewery with an ID
+  const isValidEditMode = mode === 'edit' && brewery && brewery.id;
+  
   const handleSubmit = async (formData: any) => {
     try {
       if (mode === 'create') {
         await createBrewery.mutateAsync(formData);
         onOpenChange(false);
-      } else if (mode === 'edit' && brewery) {
+      } else if (isValidEditMode) {
         await updateBrewery.mutateAsync({
           breweryId: brewery.id,
           breweryData: formData
