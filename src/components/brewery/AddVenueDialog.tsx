@@ -1,6 +1,6 @@
 
 import { useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -40,6 +40,9 @@ const AddVenueDialog = ({
   useEffect(() => {
     if (!open) {
       resetForm();
+      // Ensure body is interactive when closed
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
     }
   }, [open, resetForm]);
 
@@ -89,6 +92,10 @@ const AddVenueDialog = ({
       
       toast.success('Venue added successfully');
       onVenueAdded();
+      
+      // Ensure body is interactive before closing
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error adding venue:', error);
@@ -99,8 +106,22 @@ const AddVenueDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={open} onOpenChange={(newOpen) => {
+      // Ensure body is interactive when closing
+      if (!newOpen) {
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }
+      onOpenChange(newOpen);
+    }}>
+      <DialogContent className="sm:max-w-md" onCloseAutoFocus={(event) => {
+        // Prevent default focus behavior to avoid issues
+        event.preventDefault();
+        
+        // Force document.body to be interactive again
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }}>
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
@@ -117,7 +138,12 @@ const AddVenueDialog = ({
           handleChange={handleChange}
           handleAddressChange={handleAddressChange}
           setAddressInput={setAddressInput}
-          onCancel={() => onOpenChange(false)}
+          onCancel={() => {
+            // Ensure body is interactive when canceling
+            document.body.style.pointerEvents = '';
+            document.body.style.overflow = '';
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>

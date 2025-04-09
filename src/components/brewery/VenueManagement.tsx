@@ -81,14 +81,28 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
         <>
           <AddVenueDialog
             open={showAddVenueDialog}
-            onOpenChange={setShowAddVenueDialog}
+            onOpenChange={(open) => {
+              setShowAddVenueDialog(open);
+              // Make sure body is interactive when closing
+              if (!open) {
+                document.body.style.pointerEvents = '';
+                document.body.style.overflow = '';
+              }
+            }}
             breweryId={breweryId}
             onVenueAdded={handleVenueAdded}
           />
           
           <EditVenueDialog
             open={!!editingVenue}
-            onOpenChange={(open) => !open && setEditingVenue(null)}
+            onOpenChange={(open) => {
+              if (!open) {
+                setEditingVenue(null);
+                // Make sure body is interactive when closing
+                document.body.style.pointerEvents = '';
+                document.body.style.overflow = '';
+              }
+            }}
             venue={editingVenue}
             onVenueUpdated={updateVenue}
             isUpdating={isUpdating}
@@ -96,7 +110,14 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
 
           <VenueHoursDialog
             open={!!hoursVenue}
-            onOpenChange={(open) => !open && setHoursVenue(null)}
+            onOpenChange={(open) => {
+              if (!open) {
+                setHoursVenue(null);
+                // Make sure body is interactive when closing
+                document.body.style.pointerEvents = '';
+                document.body.style.overflow = '';
+              }
+            }}
             venue={hoursVenue}
           />
         </>

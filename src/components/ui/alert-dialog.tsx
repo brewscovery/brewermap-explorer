@@ -1,10 +1,58 @@
+
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { logFocusState } from "@/utils/debugUtils"
 
-const AlertDialog = AlertDialogPrimitive.Root
+const AlertDialog = React.forwardRef<
+  React.ElementRef<typeof AlertDialogPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Root>
+>(({ children, open, onOpenChange, ...props }, ref) => {
+  // Add debug logging for open state changes
+  React.useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('DEBUG: AlertDialog Root component open state:', open);
+      
+      // Ensure body is interactive when closing
+      if (open === false) {
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }
+    }
+  }, [open]);
+
+  return (
+    <AlertDialogPrimitive.Root
+      ref={ref}
+      open={open}
+      onOpenChange={(newOpen) => {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log('DEBUG: AlertDialog onOpenChange called with value:', newOpen);
+          
+          // Explicitly ensure we're resetting any stale state
+          if (!newOpen) {
+            // Force document.body to be scrollable again when closing
+            setTimeout(() => {
+              document.body.style.pointerEvents = '';
+              document.body.style.overflow = '';
+            }, 50);
+          }
+        }
+        
+        if (onOpenChange) {
+          onOpenChange(newOpen);
+        }
+      }}
+      {...props}
+    >
+      {children}
+    </AlertDialogPrimitive.Root>
+  );
+});
+
+AlertDialog.displayName = AlertDialogPrimitive.Root.displayName;
 
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
@@ -15,12 +63,12 @@ const AlertDialogOverlay = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
+    ref={ref}
     className={cn(
       "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
-    ref={ref}
   />
 ))
 AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
@@ -28,19 +76,54 @@ AlertDialogOverlay.displayName = AlertDialogPrimitive.Overlay.displayName
 const AlertDialogContent = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <AlertDialogPortal>
-    <AlertDialogOverlay />
-    <AlertDialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
-        className
-      )}
-      {...props}
-    />
-  </AlertDialogPortal>
-))
+>(({ className, ...props }, ref) => {
+  // Add debug logging for content rendering
+  React.useEffect(() => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('DEBUG: AlertDialog Content mounted');
+    }
+    return () => {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('DEBUG: AlertDialog Content unmounted');
+        
+        // Ensure document body is reset on unmount
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }
+    };
+  }, []);
+
+  return (
+    <AlertDialogPortal>
+      <AlertDialogOverlay />
+      <AlertDialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg",
+          className
+        )}
+        onCloseAutoFocus={(event) => {
+          if (process.env.NODE_ENV !== 'production') {
+            console.log('DEBUG: AlertDialog Content onCloseAutoFocus triggered');
+          }
+          
+          // Prevent the default focus behavior to avoid potential issues
+          event.preventDefault();
+          
+          // Force document.body to be interactive again
+          document.body.style.pointerEvents = '';
+          document.body.style.overflow = '';
+          
+          // Log the focus state after closing
+          if (process.env.NODE_ENV !== 'production') {
+            setTimeout(logFocusState, 50);
+          }
+        }}
+        {...props}
+      />
+    </AlertDialogPortal>
+  )
+})
 AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName
 
 const AlertDialogHeader = ({

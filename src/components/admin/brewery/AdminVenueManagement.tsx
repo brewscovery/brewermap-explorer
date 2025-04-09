@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed'; // Use fixed dialog
 import { Button } from '@/components/ui/button';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useBreweryVenues, useCreateVenue, useDeleteVenue } from '@/hooks/useAdminBreweries';
@@ -8,6 +8,7 @@ import { VenueForm } from '@/components/brewery/venue-form/VenueForm';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import type { Venue } from '@/types/venue';
 import { VenueList } from './AdminVenueList';
+import { logFocusState, logDialogElements } from '@/utils/debugUtils';
 
 interface AdminVenueManagementProps {
   open: boolean;
@@ -27,12 +28,31 @@ const AdminVenueManagement = ({
     console.log('DEBUG: AdminVenueManagement mounted for brewery:', breweryId, breweryName);
     return () => {
       console.log('DEBUG: AdminVenueManagement unmounted - was for brewery:', breweryId, breweryName);
+      
+      // Extra cleanup on unmount
+      if (open) {
+        console.log('DEBUG: Venue Management Dialog was still open during unmount - forcing cleanup');
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+        
+        // Run additional checks
+        setTimeout(() => {
+          logFocusState();
+          logDialogElements();
+        }, 100);
+      }
     };
   }, []);
   
   // DEBUG LOGGING for dialog open state
   useEffect(() => {
     console.log('DEBUG: AdminVenueManagement open state changed to:', open, 'for brewery:', breweryId);
+    
+    // Add an extra check for DOM elements after state change
+    setTimeout(() => {
+      logDialogElements();
+      logFocusState();
+    }, 100);
   }, [open, breweryId]);
   
   // Only fetch venues when dialog is open and breweryId is valid
@@ -82,6 +102,10 @@ const AdminVenueManagement = ({
       setDeleteConfirmOpen(false);
       setVenueToDelete(null);
       resetForm();
+      
+      // Explicitly reset body styles when closing
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
     }
   }, [open, resetForm]);
   
@@ -158,6 +182,10 @@ const AdminVenueManagement = ({
     if (!open) {
       console.log('DEBUG: Add venue dialog closed, resetting form');
       resetForm();
+      
+      // Make sure body is interactive after inner dialog closes
+      document.body.style.pointerEvents = '';
+      document.body.style.overflow = '';
     }
   };
 
@@ -166,10 +194,35 @@ const AdminVenueManagement = ({
       open={open} 
       onOpenChange={(newOpenState) => {
         console.log('DEBUG: Venue Management Dialog onOpenChange called with new state:', newOpenState, 'for brewery:', breweryId);
+        
+        // Extra cleanup when closing
+        if (!newOpenState) {
+          console.log('DEBUG: Ensuring body is interactive on venue management dialog close');
+          document.body.style.pointerEvents = '';
+          document.body.style.overflow = '';
+          
+          // Double-check dialog elements are properly removed
+          setTimeout(logDialogElements, 100);
+        }
+        
         onOpenChange(newOpenState);
       }}
     >
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto" 
+                     onEscapeKeyDown={() => {
+                       console.log('DEBUG: Escape key pressed in venue management dialog content');
+                     }}
+                     onCloseAutoFocus={(event) => {
+                       console.log('DEBUG: Venue Management Dialog onCloseAutoFocus triggered');
+                       event.preventDefault();
+                       
+                       // Force document.body to be interactive again
+                       document.body.style.pointerEvents = '';
+                       document.body.style.overflow = '';
+                       
+                       // Log the focus state after closing
+                       setTimeout(logFocusState, 50);
+                     }}>
         <DialogHeader>
           <DialogTitle>Manage Venues for {breweryName}</DialogTitle>
           <DialogDescription>
@@ -214,6 +267,10 @@ const AdminVenueManagement = ({
                     onCancel={() => {
                       console.log('DEBUG: Add venue form cancel button clicked');
                       setIsAddingVenue(false);
+                      
+                      // Ensure body is interactive when canceling
+                      document.body.style.pointerEvents = '';
+                      document.body.style.overflow = '';
                     }}
                   />
                 </DialogContent>
@@ -229,6 +286,12 @@ const AdminVenueManagement = ({
                 onOpenChange={(newOpenState) => {
                   console.log('DEBUG: Delete venue confirm dialog onOpenChange called with new state:', newOpenState);
                   setDeleteConfirmOpen(newOpenState);
+                  
+                  // Ensure body is interactive when closing alert dialog
+                  if (!newOpenState) {
+                    document.body.style.pointerEvents = '';
+                    document.body.style.overflow = '';
+                  }
                 }}
               >
                 <AlertDialogContent>
