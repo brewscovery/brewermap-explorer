@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import AdminBreweryForm from './AdminBreweryForm';
 import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
 import type { Brewery } from '@/types/brewery';
-import type { BreweryData } from '@/hooks/useAdminData';
+import type { BreweryData } from '@/types/admin';
 
 // Create a union type that accepts either Brewery or BreweryData
 type BreweryInput = Partial<Brewery> & {
