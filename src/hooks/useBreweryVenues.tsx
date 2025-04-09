@@ -1,10 +1,11 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 import { toast } from 'sonner';
 
+// Hook for fetching brewery venues
 export const useBreweryVenues = (breweryId: string | null) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -182,4 +183,82 @@ export const useBreweryVenues = (breweryId: string | null) => {
     updateVenue,
     deleteVenue
   };
+};
+
+// Hook for creating a venue
+export const useCreateVenue = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (venueData: any) => {
+      try {
+        console.log('Creating venue with data:', venueData);
+        const { data, error } = await supabase
+          .from('venues')
+          .insert({ 
+            ...venueData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        console.error('Error creating venue:', error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['breweryVenues', data.brewery_id] });
+      toast.success('Venue created successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to create venue: ${error.message}`);
+    }
+  });
+};
+
+// Hook for deleting a venue
+export const useDeleteVenue = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (venueId: string) => {
+      try {
+        console.log('Deleting venue:', venueId);
+        // First get the venue to get the brewery_id for cache invalidation
+        const { data: venue } = await supabase
+          .from('venues')
+          .select('brewery_id')
+          .eq('id', venueId)
+          .single();
+        
+        const breweryId = venue?.brewery_id;
+        
+        const { error } = await supabase
+          .from('venues')
+          .delete()
+          .eq('id', venueId);
+        
+        if (error) throw error;
+        
+        return { venueId, breweryId };
+      } catch (error) {
+        console.error('Error deleting venue:', error);
+        throw error;
+      }
+    },
+    onSuccess: (data) => {
+      console.log('Venue deleted, invalidating queries for brewery:', data.breweryId);
+      if (data.breweryId) {
+        queryClient.invalidateQueries({ queryKey: ['breweryVenues', data.breweryId] });
+      }
+      toast.success('Venue deleted successfully');
+    },
+    onError: (error: any) => {
+      toast.error(`Failed to delete venue: ${error.message}`);
+    }
+  });
 };

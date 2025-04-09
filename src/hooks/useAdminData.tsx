@@ -8,7 +8,11 @@ export {
   useUpdateBreweryVerification,
   useCreateBrewery,
   useUpdateBrewery,
-  useDeleteBrewery
+  useDeleteBrewery,
+  // Re-export venue hooks
+  useBreweryVenues,
+  useCreateVenue,
+  useDeleteVenue
 } from './useAdminBreweries';
 
 // Re-export user admin hooks

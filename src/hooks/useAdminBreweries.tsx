@@ -6,6 +6,13 @@ import { toast } from 'sonner';
 import { callEdgeFunction } from '@/utils/adminApiUtils';
 import { BreweryData } from '@/types/admin';
 
+// Re-export venue-related hooks from useBreweryVenues.tsx
+export { 
+  useBreweryVenues,
+  useCreateVenue,
+  useDeleteVenue
+} from './useBreweryVenues';
+
 // Hook for fetching breweries for admin
 export const useBreweries = () => {
   const [searchQuery, setSearchQuery] = useState('');
