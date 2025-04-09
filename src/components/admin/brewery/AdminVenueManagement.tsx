@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed'; // Use fixed dialog
 import { Button } from '@/components/ui/button';
@@ -24,7 +25,7 @@ const AdminVenueManagement = ({
 }: AdminVenueManagementProps) => {
   // Only fetch venues when dialog is open and breweryId is valid
   const validBreweryId = open && breweryId ? breweryId : null;
-  const { data: venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
+  const { venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
   const createVenue = useCreateVenue();
   const deleteVenue = useDeleteVenue();
   
