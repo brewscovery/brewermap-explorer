@@ -57,8 +57,9 @@ const AdminVenueManagement = ({
       setIsAddingVenue(false);
       setDeleteConfirmOpen(false);
       setVenueToDelete(null);
+      resetForm();
     }
-  }, [open]);
+  }, [open, resetForm]);
   
   const handleAddVenue = () => {
     resetForm();
@@ -115,6 +116,14 @@ const AdminVenueManagement = ({
     }
   };
 
+  // Handle closing of the add venue dialog
+  const handleAddVenueDialogOpenChange = (open: boolean) => {
+    setIsAddingVenue(open);
+    if (!open) {
+      resetForm();
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
@@ -137,49 +146,54 @@ const AdminVenueManagement = ({
             onDeleteVenue={handleDeleteVenue}
           />
           
-          <Dialog open={isAddingVenue} onOpenChange={setIsAddingVenue}>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle>Add New Venue</DialogTitle>
-                <DialogDescription>
-                  Create a new venue for {breweryName}
-                </DialogDescription>
-              </DialogHeader>
-              
-              <VenueForm
-                formData={formData}
-                addressInput={addressInput}
-                isSubmitting={isFormLoading || createVenue.isPending}
-                submitLabel="Create Venue"
-                handleSubmit={handleVenueSubmit}
-                handleChange={handleChange}
-                handleAddressChange={handleAddressChange}
-                setAddressInput={setAddressInput}
-                onCancel={() => setIsAddingVenue(false)}
-              />
-            </DialogContent>
-          </Dialog>
+          {/* Only render inner dialogs when they're open */}
+          {isAddingVenue && (
+            <Dialog open={isAddingVenue} onOpenChange={handleAddVenueDialogOpenChange}>
+              <DialogContent className="sm:max-w-[600px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Venue</DialogTitle>
+                  <DialogDescription>
+                    Create a new venue for {breweryName}
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <VenueForm
+                  formData={formData}
+                  addressInput={addressInput}
+                  isSubmitting={isFormLoading || createVenue.isPending}
+                  submitLabel="Create Venue"
+                  handleSubmit={handleVenueSubmit}
+                  handleChange={handleChange}
+                  handleAddressChange={handleAddressChange}
+                  setAddressInput={setAddressInput}
+                  onCancel={() => setIsAddingVenue(false)}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
           
-          <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Venue</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete {venueToDelete?.name}? This action cannot be undone.
-                  All venue data including hours, specials, and check-ins will be deleted.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction 
-                  onClick={confirmDeleteVenue}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  {deleteVenue.isPending ? 'Deleting...' : 'Delete Venue'}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          {deleteConfirmOpen && venueToDelete && (
+            <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete Venue</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Are you sure you want to delete {venueToDelete.name}? This action cannot be undone.
+                    All venue data including hours, specials, and check-ins will be deleted.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={confirmDeleteVenue}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    {deleteVenue.isPending ? 'Deleting...' : 'Delete Venue'}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </div>
       </DialogContent>
     </Dialog>

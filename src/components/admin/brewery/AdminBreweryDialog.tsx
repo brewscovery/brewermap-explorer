@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import AdminBreweryForm from './AdminBreweryForm';
 import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
@@ -23,6 +23,13 @@ const AdminBreweryDialog = ({
   
   // Only proceed with edit operations if we have a valid brewery with an ID
   const isValidEditMode = mode === 'edit' && brewery && brewery.id;
+  
+  // Reset mutation state when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      // Reset any local state if needed
+    }
+  }, [open]);
   
   const handleSubmit = async (formData: any) => {
     try {

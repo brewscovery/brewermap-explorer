@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,6 +26,13 @@ const DeleteBreweryDialog = ({
   breweryName,
 }: DeleteBreweryDialogProps) => {
   const deleteBrewery = useDeleteBrewery();
+  
+  // Reset state when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      // Clean up any local state if needed
+    }
+  }, [open]);
 
   const handleDelete = async () => {
     if (!breweryId) return;

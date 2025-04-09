@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Table, 
@@ -83,21 +82,30 @@ const BreweriesManagement = () => {
   const handleEditDialogOpenChange = (open: boolean) => {
     setEditDialogOpen(open);
     if (!open) {
-      setSelectedBrewery(null);
+      // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      setTimeout(() => {
+        setSelectedBrewery(null);
+      }, 100);
     }
   };
   
   const handleDeleteDialogOpenChange = (open: boolean) => {
     setDeleteDialogOpen(open);
     if (!open) {
-      setSelectedBrewery(null);
+      // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      setTimeout(() => {
+        setSelectedBrewery(null);
+      }, 100);
     }
   };
   
   const handleVenueManagementOpenChange = (open: boolean) => {
     setVenueManagementOpen(open);
     if (!open) {
-      setSelectedBrewery(null);
+      // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      setTimeout(() => {
+        setSelectedBrewery(null);
+      }, 100);
     }
   };
   
@@ -301,34 +309,41 @@ const BreweriesManagement = () => {
         </Table>
       </div>
       
-      {/* Create brewery dialog */}
-      <AdminBreweryDialog 
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        mode="create"
-      />
+      {/* Only render dialogs when they're open */}
+      {createDialogOpen && (
+        <AdminBreweryDialog 
+          open={createDialogOpen}
+          onOpenChange={setCreateDialogOpen}
+          mode="create"
+        />
+      )}
       
-      {/* Edit, Delete, and Venue Management dialogs - now always rendered but conditionally shown */}
-      <AdminBreweryDialog 
-        open={editDialogOpen}
-        onOpenChange={handleEditDialogOpenChange}
-        brewery={selectedBrewery as any}
-        mode="edit"
-      />
+      {editDialogOpen && selectedBrewery && (
+        <AdminBreweryDialog 
+          open={editDialogOpen}
+          onOpenChange={handleEditDialogOpenChange}
+          brewery={selectedBrewery}
+          mode="edit"
+        />
+      )}
       
-      <DeleteBreweryDialog 
-        open={deleteDialogOpen}
-        onOpenChange={handleDeleteDialogOpenChange}
-        breweryId={selectedBrewery?.id || ''}
-        breweryName={selectedBrewery?.name || ''}
-      />
+      {deleteDialogOpen && selectedBrewery && (
+        <DeleteBreweryDialog 
+          open={deleteDialogOpen}
+          onOpenChange={handleDeleteDialogOpenChange}
+          breweryId={selectedBrewery.id || ''}
+          breweryName={selectedBrewery.name || ''}
+        />
+      )}
       
-      <AdminVenueManagement
-        open={venueManagementOpen}
-        onOpenChange={handleVenueManagementOpenChange}
-        breweryId={selectedBrewery?.id || ''}
-        breweryName={selectedBrewery?.name || ''}
-      />
+      {venueManagementOpen && selectedBrewery && (
+        <AdminVenueManagement
+          open={venueManagementOpen}
+          onOpenChange={handleVenueManagementOpenChange}
+          breweryId={selectedBrewery.id || ''}
+          breweryName={selectedBrewery.name || ''}
+        />
+      )}
     </div>
   );
 };
