@@ -1,9 +1,13 @@
 
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Trash } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import type { Venue } from "@/types/venue";
+import { useState } from 'react';
+import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { PencilIcon, Trash2Icon, Clock } from 'lucide-react';
+import { EmptyPlaceholder } from '@/components/ui/empty-placeholder';
+import type { Venue } from '@/types/venue';
+import EditVenueDialog from '@/components/brewery/EditVenueDialog';
+import VenueHoursDialog from '@/components/brewery/VenueHoursDialog';
 
 interface VenueListProps {
   venues: Venue[];
@@ -11,61 +15,117 @@ interface VenueListProps {
   onDeleteVenue: (venue: Venue) => void;
 }
 
-export const VenueList = ({ venues, isLoading, onDeleteVenue }: VenueListProps) => {
+export const VenueList = ({ 
+  venues, 
+  isLoading, 
+  onDeleteVenue 
+}: VenueListProps) => {
+  const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
+  const [venueForHours, setVenueForHours] = useState<Venue | null>(null);
+  
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {[...Array(3)].map((_, index) => (
-          <Skeleton key={index} className="h-12 w-full" />
-        ))}
+      <div className="space-y-3">
+        <div className="h-8 w-full bg-gray-100 animate-pulse rounded"></div>
+        <div className="h-20 w-full bg-gray-100 animate-pulse rounded"></div>
       </div>
     );
   }
-
-  if (venues.length === 0) {
+  
+  if (!venues || venues.length === 0) {
     return (
-      <div className="text-center py-8 border rounded-md">
-        <p className="text-muted-foreground">No venues found for this brewery.</p>
-      </div>
+      <EmptyPlaceholder>
+        <EmptyPlaceholder.Icon name="venue" />
+        <EmptyPlaceholder.Title>No venues</EmptyPlaceholder.Title>
+        <EmptyPlaceholder.Description>
+          This brewery has no venues yet. Add a new venue to get started.
+        </EmptyPlaceholder.Description>
+      </EmptyPlaceholder>
     );
   }
-
+  
   return (
-    <div className="border rounded-md">
+    <div className="rounded-md border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Location</TableHead>
-            <TableHead>Contact</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {venues.map((venue) => (
             <TableRow key={venue.id}>
-              <TableCell className="font-medium">{venue.name}</TableCell>
+              <TableCell>{venue.name}</TableCell>
               <TableCell>
                 {venue.city}, {venue.state}
-                {venue.country && venue.country !== 'United States' ? `, ${venue.country}` : ''}
-              </TableCell>
-              <TableCell>
-                {venue.phone || 'No phone'}
+                {venue.postal_code && ` ${venue.postal_code}`}
               </TableCell>
               <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onDeleteVenue(venue)}
-                  aria-label={`Delete ${venue.name}`}
-                >
-                  <Trash className="h-4 w-4 text-destructive" />
-                </Button>
+                <div className="flex justify-end gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setEditingVenue(venue)}
+                  >
+                    <PencilIcon className="h-4 w-4" />
+                    <span className="sr-only">Edit</span>
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setVenueForHours(venue)}
+                  >
+                    <Clock className="h-4 w-4" />
+                    <span className="sr-only">Hours</span>
+                  </Button>
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-destructive"
+                      >
+                        <Trash2Icon className="h-4 w-4" />
+                        <span className="sr-only">Delete</span>
+                      </Button>
+                    </AlertDialogTrigger>
+                    
+                    {/* The confirmation dialog is shown via onDeleteVenue in the parent component */}
+                  </AlertDialog>
+                </div>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
+      
+      {/* Edit Venue Dialog */}
+      <EditVenueDialog
+        open={editingVenue !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingVenue(null);
+        }}
+        venue={editingVenue}
+        onVenueUpdated={async () => {
+          // This is handled by the parent component through realtime updates
+          setEditingVenue(null);
+          return true;
+        }}
+        isUpdating={false}
+      />
+      
+      {/* Venue Hours Dialog */}
+      <VenueHoursDialog
+        open={venueForHours !== null}
+        onOpenChange={(open) => {
+          if (!open) setVenueForHours(null);
+        }}
+        venue={venueForHours}
+      />
     </div>
   );
 };

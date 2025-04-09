@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { Button } from '@/components/ui/button';
@@ -23,7 +22,6 @@ const AdminVenueManagement = ({
   breweryId,
   breweryName 
 }: AdminVenueManagementProps) => {
-  // Only fetch venues when dialog is open and breweryId is valid
   const validBreweryId = open && breweryId ? breweryId : null;
   const { venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
   const createVenue = useCreateVenue();
@@ -51,7 +49,6 @@ const AdminVenueManagement = ({
     resetOnSuccess: true
   });
   
-  // Reset dialog state when opened/closed
   useEffect(() => {
     if (!open) {
       resetDialogState();
@@ -64,7 +61,6 @@ const AdminVenueManagement = ({
     setVenueToDelete(null);
     resetForm();
     
-    // Explicitly reset body styles when closing
     document.body.style.pointerEvents = '';
     document.body.style.overflow = '';
   };
@@ -102,17 +98,14 @@ const AdminVenueManagement = ({
     try {
       setIsFormLoading(true);
       
-      // Get coordinates if missing
       const coordinates = await getCoordinates();
       
-      // Ensure required fields are present for venue creation
       if (!formData.name || !formData.city || !formData.state) {
         toast.error('Name, city, and state are required');
         setIsFormLoading(false);
         return;
       }
       
-      // Combine all data
       const venueData = {
         ...formData,
         brewery_id: breweryId,
@@ -125,7 +118,6 @@ const AdminVenueManagement = ({
       
       await createVenue.mutateAsync(venueData);
       
-      // Close the form and refetch venues
       setIsAddingVenue(false);
       refetch();
       resetForm();
@@ -136,13 +128,11 @@ const AdminVenueManagement = ({
     }
   };
 
-  // Handle closing of the add venue dialog
   const handleAddVenueDialogOpenChange = (open: boolean) => {
     setIsAddingVenue(open);
     if (!open) {
       resetForm();
       
-      // Make sure body is interactive after inner dialog closes
       document.body.style.pointerEvents = '';
       document.body.style.overflow = '';
     }
@@ -152,7 +142,6 @@ const AdminVenueManagement = ({
     <Dialog 
       open={open} 
       onOpenChange={(newOpenState) => {
-        // Extra cleanup when closing
         if (!newOpenState) {
           document.body.style.pointerEvents = '';
           document.body.style.overflow = '';
@@ -166,7 +155,6 @@ const AdminVenueManagement = ({
                      onCloseAutoFocus={(event) => {
                        event.preventDefault();
                        
-                       // Force document.body to be interactive again
                        document.body.style.pointerEvents = '';
                        document.body.style.overflow = '';
                      }}>
@@ -189,7 +177,6 @@ const AdminVenueManagement = ({
             onDeleteVenue={handleDeleteVenue}
           />
           
-          {/* Extracted dialogs into separate components */}
           {isAddingVenue && (
             <AdminVenueAddDialog
               open={isAddingVenue}
