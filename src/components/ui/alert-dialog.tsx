@@ -6,54 +6,9 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 import { logFocusState } from "@/utils/debugUtils"
 
-const AlertDialog = React.forwardRef<
-  React.ElementRef<typeof AlertDialogPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Root>
->(({ children, open, onOpenChange, ...props }, ref) => {
-  // Add debug logging for open state changes
-  React.useEffect(() => {
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('DEBUG: AlertDialog Root component open state:', open);
-      
-      // Ensure body is interactive when closing
-      if (open === false) {
-        document.body.style.pointerEvents = '';
-        document.body.style.overflow = '';
-      }
-    }
-  }, [open]);
+const AlertDialog = AlertDialogPrimitive.Root
 
-  return (
-    <AlertDialogPrimitive.Root
-      ref={ref}
-      open={open}
-      onOpenChange={(newOpen) => {
-        if (process.env.NODE_ENV !== 'production') {
-          console.log('DEBUG: AlertDialog onOpenChange called with value:', newOpen);
-          
-          // Explicitly ensure we're resetting any stale state
-          if (!newOpen) {
-            // Force document.body to be scrollable again when closing
-            setTimeout(() => {
-              document.body.style.pointerEvents = '';
-              document.body.style.overflow = '';
-            }, 50);
-          }
-        }
-        
-        if (onOpenChange) {
-          onOpenChange(newOpen);
-        }
-      }}
-      {...props}
-    >
-      {children}
-    </AlertDialogPrimitive.Root>
-  );
-});
-
-AlertDialog.displayName = AlertDialogPrimitive.Root.displayName;
-
+// Forward ref version - updated to fix TypeScript error
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
 
 const AlertDialogPortal = AlertDialogPrimitive.Portal
