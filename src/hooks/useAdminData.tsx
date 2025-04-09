@@ -68,29 +68,41 @@ export const useBreweries = () => {
   }, [searchQuery]);
   
   const fetchBreweries = async () => {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    
-    if (!token) {
-      throw new Error('No authenticated session');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
+      }
+      
+      const response = await fetch('/functions/v1/admin-get-breweries', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ searchQuery: debouncedSearchQuery })
+      });
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', await response.text());
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch breweries');
+      }
+      
+      const data = await response.json();
+      console.log('Fetched breweries:', data.breweries);
+      return data.breweries as BreweryData[];
+    } catch (error) {
+      console.error('Error fetching breweries:', error);
+      throw error;
     }
-    
-    const response = await fetch('/functions/v1/admin-get-breweries', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ searchQuery: debouncedSearchQuery })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch breweries');
-    }
-    
-    const data = await response.json();
-    console.log('Fetched breweries:', data.breweries);
-    return data.breweries as BreweryData[];
   };
   
   const { data, isLoading, error, refetch } = useQuery({
@@ -144,27 +156,39 @@ export const useUpdateBreweryVerification = () => {
 // Hook for fetching admin dashboard stats
 export const useAdminStats = () => {
   const fetchStats = async () => {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    
-    if (!token) {
-      throw new Error('No authenticated session');
-    }
-    
-    const response = await fetch('/functions/v1/admin-get-stats', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
       }
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch admin stats');
+      
+      const response = await fetch('/functions/v1/admin-get-stats', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', await response.text());
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch admin stats');
+      }
+      
+      const data = await response.json();
+      return data.stats as AdminStats;
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    return data.stats as AdminStats;
   };
   
   return useQuery({
@@ -188,28 +212,40 @@ export const useUsers = () => {
   }, [searchQuery]);
   
   const fetchUsers = async () => {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    
-    if (!token) {
-      throw new Error('No authenticated session');
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
+      }
+      
+      const response = await fetch('/functions/v1/admin-get-users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ searchQuery: debouncedSearchQuery })
+      });
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', await response.text());
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch users');
+      }
+      
+      const data = await response.json();
+      return data.users as UserData[];
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
     }
-    
-    const response = await fetch('/functions/v1/admin-get-users', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ searchQuery: debouncedSearchQuery })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch users');
-    }
-    
-    const data = await response.json();
-    return data.users as UserData[];
   };
   
   const { data, isLoading, error, refetch } = useQuery({
@@ -239,28 +275,40 @@ export const useUpdateUserType = () => {
       userId: string; 
       userType: 'admin' | 'business' | 'regular' 
     }) => {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      
-      if (!token) {
-        throw new Error('No authenticated session');
+      try {
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        
+        if (!token) {
+          throw new Error('No authenticated session');
+        }
+        
+        const response = await fetch('/functions/v1/admin-update-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ userId, userType })
+        });
+        
+        // Check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Non-JSON response received:', await response.text());
+          throw new Error('Invalid response format from server');
+        }
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update user type');
+        }
+        
+        const data = await response.json();
+        return data.user;
+      } catch (error) {
+        console.error('Error updating user type:', error);
+        throw error;
       }
-      
-      const response = await fetch('/functions/v1/admin-update-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ userId, userType })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update user type');
-      }
-      
-      const data = await response.json();
-      return data.user;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'users'] });
@@ -275,27 +323,39 @@ export const useUpdateUserType = () => {
 // Hook for fetching brewery claims
 export const useBreweryClaims = () => {
   const fetchClaims = async () => {
-    const token = (await supabase.auth.getSession()).data.session?.access_token;
-    
-    if (!token) {
-      throw new Error('No authenticated session');
-    }
-    
-    const response = await fetch('/functions/v1/admin-get-claims', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+    try {
+      const token = (await supabase.auth.getSession()).data.session?.access_token;
+      
+      if (!token) {
+        throw new Error('No authenticated session');
       }
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to fetch brewery claims');
+      
+      const response = await fetch('/functions/v1/admin-get-claims', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Non-JSON response received:', await response.text());
+        throw new Error('Invalid response format from server');
+      }
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch brewery claims');
+      }
+      
+      const data = await response.json();
+      return data.claims as BreweryClaim[];
+    } catch (error) {
+      console.error('Error fetching brewery claims:', error);
+      throw error;
     }
-    
-    const data = await response.json();
-    return data.claims as BreweryClaim[];
   };
   
   return useQuery({
@@ -318,32 +378,45 @@ export const useBreweryClaimUpdate = () => {
       status: 'pending' | 'approved' | 'rejected'; 
       adminNotes: string | null 
     }) => {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      
-      if (!token) {
-        throw new Error('No authenticated session');
+      try {
+        const token = (await supabase.auth.getSession()).data.session?.access_token;
+        
+        if (!token) {
+          throw new Error('No authenticated session');
+        }
+        
+        const response = await fetch('/functions/v1/admin-update-claim', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({ claimId, status, adminNotes })
+        });
+        
+        // Check if the response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Non-JSON response received:', await response.text());
+          throw new Error('Invalid response format from server');
+        }
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to update claim status');
+        }
+        
+        const data = await response.json();
+        return data.claim;
+      } catch (error) {
+        console.error('Error updating brewery claim:', error);
+        throw error;
       }
-      
-      const response = await fetch('/functions/v1/admin-update-claim', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ claimId, status, adminNotes })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to update claim status');
-      }
-      
-      const data = await response.json();
-      return data.claim;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin', 'brewery-claims'] });
       queryClient.invalidateQueries({ queryKey: ['admin', 'stats'] });
+      toast.success('Claim updated successfully');
     },
     onError: (error: any) => {
       toast.error(`Claim update failed: ${error.message}`);
