@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -35,6 +35,10 @@ import AdminBreweryDialog from '@/components/admin/brewery/AdminBreweryDialog';
 import DeleteBreweryDialog from '@/components/admin/brewery/AdminDeleteBreweryDialog';
 import AdminVenueManagement from '@/components/admin/brewery/AdminVenueManagement';
 import type { BreweryData } from '@/hooks/useAdminData';
+import { logDialogElements } from '@/utils/debugUtils';
+
+// Force import the debugging utilities
+import '@/utils/debugUtils';
 
 const BreweriesManagement = () => {
   const { 
@@ -54,6 +58,53 @@ const BreweriesManagement = () => {
   const [venueManagementOpen, setVenueManagementOpen] = useState(false);
   const [selectedBrewery, setSelectedBrewery] = useState<BreweryData | null>(null);
   
+  // DEBUG LOGGING for component lifecycle
+  useEffect(() => {
+    console.log('DEBUG: BreweriesManagement component mounted');
+    return () => {
+      console.log('DEBUG: BreweriesManagement component unmounted');
+    };
+  }, []);
+  
+  // DEBUG LOGGING for dialog state changes
+  useEffect(() => {
+    console.log('DEBUG: Dialog states changed:', {
+      createDialogOpen,
+      editDialogOpen,
+      deleteDialogOpen,
+      venueManagementOpen,
+      hasSelectedBrewery: !!selectedBrewery,
+      selectedBreweryId: selectedBrewery?.id
+    });
+    
+    // Extra debugging: Log all dialog elements whenever a dialog state changes
+    setTimeout(logDialogElements, 500);
+  }, [createDialogOpen, editDialogOpen, deleteDialogOpen, venueManagementOpen, selectedBrewery]);
+  
+  // New cleanup useEffect specifically for fixing dialog issues
+  useEffect(() => {
+    return () => {
+      // This effect will run on component unmount
+      console.log('DEBUG: Final cleanup of all dialog state');
+      setCreateDialogOpen(false);
+      setEditDialogOpen(false);
+      setDeleteDialogOpen(false);
+      setVenueManagementOpen(false);
+      setSelectedBrewery(null);
+      
+      // Force document.body to be scrollable again in case a dialog left it locked
+      document.body.style.overflow = '';
+      document.body.style.paddingRight = '';
+      
+      // Extra check for any lingering .fixed-backdrop elements
+      const backdrops = document.querySelectorAll('[role="dialog"]');
+      console.log(`DEBUG: Found ${backdrops.length} dialog elements during final cleanup`);
+      
+      // If we were really desperate, we could force-remove them:
+      // backdrops.forEach(el => el.remove());
+    };
+  }, []);
+  
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Search is already reactive via the hook
@@ -64,46 +115,65 @@ const BreweriesManagement = () => {
   };
   
   const handleEditBrewery = (brewery: BreweryData) => {
+    console.log('DEBUG: handleEditBrewery called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setEditDialogOpen(true);
   };
   
   const handleDeleteBrewery = (brewery: BreweryData) => {
+    console.log('DEBUG: handleDeleteBrewery called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setDeleteDialogOpen(true);
   };
   
   const handleManageVenues = (brewery: BreweryData) => {
+    console.log('DEBUG: handleManageVenues called with brewery:', brewery.id, brewery.name);
     setSelectedBrewery(brewery);
     setVenueManagementOpen(true);
   };
   
-  // Handlers for dialog close that also reset selectedBrewery when needed
+  // Modified handlers with improved cleanup
   const handleEditDialogOpenChange = (open: boolean) => {
+    console.log('DEBUG: handleEditDialogOpenChange called with open:', open);
     setEditDialogOpen(open);
     if (!open) {
       // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      console.log('DEBUG: Scheduling selectedBrewery cleanup after Edit dialog close');
+      
+      // First log what's in the DOM
+      logDialogElements();
+      
       setTimeout(() => {
+        console.log('DEBUG: Clearing selectedBrewery after Edit dialog close');
         setSelectedBrewery(null);
-      }, 100);
+        
+        // Check DOM again after cleanup
+        setTimeout(logDialogElements, 100);
+      }, 300); // Increased delay to ensure animations complete
     }
   };
   
   const handleDeleteDialogOpenChange = (open: boolean) => {
+    console.log('DEBUG: handleDeleteDialogOpenChange called with open:', open);
     setDeleteDialogOpen(open);
     if (!open) {
       // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      console.log('DEBUG: Scheduling selectedBrewery cleanup after Delete dialog close');
       setTimeout(() => {
+        console.log('DEBUG: Clearing selectedBrewery after Delete dialog close');
         setSelectedBrewery(null);
       }, 100);
     }
   };
   
   const handleVenueManagementOpenChange = (open: boolean) => {
+    console.log('DEBUG: handleVenueManagementOpenChange called with open:', open);
     setVenueManagementOpen(open);
     if (!open) {
       // Add a slight delay before clearing selected brewery to ensure proper unmounting
+      console.log('DEBUG: Scheduling selectedBrewery cleanup after Venue Management dialog close');
       setTimeout(() => {
+        console.log('DEBUG: Clearing selectedBrewery after Venue Management dialog close');
         setSelectedBrewery(null);
       }, 100);
     }
@@ -182,7 +252,10 @@ const BreweriesManagement = () => {
             </div>
             <Button type="submit" variant="outline" size="sm">Search</Button>
           </form>
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => {
+            console.log('DEBUG: Create brewery button clicked');
+            setCreateDialogOpen(true);
+          }}>
             <Plus className="h-4 w-4 mr-2" />
             Add Brewery
           </Button>
@@ -309,40 +382,58 @@ const BreweriesManagement = () => {
         </Table>
       </div>
       
-      {/* Only render dialogs when they're open */}
+      {/* Only render dialogs when they're open - with extra defensive checks */}
       {createDialogOpen && (
-        <AdminBreweryDialog 
-          open={createDialogOpen}
-          onOpenChange={setCreateDialogOpen}
-          mode="create"
-        />
+        <>
+          {console.log('DEBUG: Rendering create dialog')}
+          <AdminBreweryDialog 
+            open={createDialogOpen}
+            onOpenChange={(open) => {
+              console.log('DEBUG: Create dialog onOpenChange called with open:', open);
+              setCreateDialogOpen(open);
+              
+              // Extra check for DOM elements after state change
+              setTimeout(logDialogElements, 200);
+            }}
+            mode="create"
+          />
+        </>
       )}
       
       {editDialogOpen && selectedBrewery && (
-        <AdminBreweryDialog 
-          open={editDialogOpen}
-          onOpenChange={handleEditDialogOpenChange}
-          brewery={selectedBrewery}
-          mode="edit"
-        />
+        <>
+          {console.log('DEBUG: Rendering edit dialog for brewery:', selectedBrewery.id)}
+          <AdminBreweryDialog 
+            open={editDialogOpen}
+            onOpenChange={handleEditDialogOpenChange}
+            brewery={selectedBrewery}
+            mode="edit"
+          />
+        </>
       )}
       
       {deleteDialogOpen && selectedBrewery && (
-        <DeleteBreweryDialog 
-          open={deleteDialogOpen}
-          onOpenChange={handleDeleteDialogOpenChange}
-          breweryId={selectedBrewery.id || ''}
-          breweryName={selectedBrewery.name || ''}
-        />
+        <>
+          {console.log('DEBUG: Rendering delete dialog for brewery:', selectedBrewery.id)}
+          <DeleteBreweryDialog 
+            open={deleteDialogOpen}
+            onOpenChange={handleDeleteDialogOpenChange}
+            breweryId={selectedBrewery.id || ''}
+            breweryName={selectedBrewery.name || ''}
+          />
+        </>
       )}
       
       {venueManagementOpen && selectedBrewery && (
-        <AdminVenueManagement
-          open={venueManagementOpen}
-          onOpenChange={handleVenueManagementOpenChange}
-          breweryId={selectedBrewery.id || ''}
-          breweryName={selectedBrewery.name || ''}
-        />
+        <>
+          {console.log('DEBUG: Rendering venue management dialog for brewery:', selectedBrewery.id)}
+          <AdminVenueManagement
+            open={venueManagementOpen}
+            onOpenChange={handleVenueManagementOpenChange}
+            breweryId={selectedBrewery.id || ''}
+            breweryName={selectedBrewery.name || ''}
+          />
+        </>
       )}
     </div>
   );
