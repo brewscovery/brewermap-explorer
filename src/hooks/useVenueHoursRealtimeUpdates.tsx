@@ -25,12 +25,12 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
         (payload) => {
           console.log(`Venue hours changed for venue ${venueId}, payload:`, payload);
           
-          // Immediately trigger a refetch for the venue hours
+          // Invalidate the query to mark it as stale
           queryClient.invalidateQueries({ 
             queryKey: ['venueHours', venueId]
           });
           
-          // Force a refetch instead of just invalidating
+          // Trigger a background refetch
           queryClient.refetchQueries({ 
             queryKey: ['venueHours', venueId],
             exact: true
