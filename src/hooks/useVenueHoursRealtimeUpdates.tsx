@@ -30,12 +30,11 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
             queryKey: ['venueHours', venueId]
           });
           
-          // Then force an immediate refetch for the latest data
+          // Force an immediate refetch
           queryClient.refetchQueries({ 
             queryKey: ['venueHours', venueId],
             exact: true,
-            type: 'active', // Only refetch active queries
-            stale: true // Only refetch stale queries
+            type: 'all' // Change from 'active' to 'all' to ensure we catch all queries
           });
         }
       )
