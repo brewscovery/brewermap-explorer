@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import HoursSection from './HoursSection';
 
 interface VenueHoursSectionProps {
@@ -9,6 +9,11 @@ interface VenueHoursSectionProps {
 
 const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProps) => {
   console.log('VenueHoursSection rendering with hours:', venueHours.length);
+  
+  // Force a re-render when venue hours change by using a key
+  useEffect(() => {
+    console.log('VenueHoursSection received new hours data');
+  }, [venueHours]);
   
   // Check if venue has any kitchen hours set
   const hasKitchenHours = venueHours.some(
@@ -24,9 +29,9 @@ const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProp
         <p className="text-sm text-muted-foreground">No hours available</p>
       ) : (
         <div className="space-y-3">
-          <HoursSection title="Operating Hours" hours={venueHours} />
+          <HoursSection key={`operating-${venueHours.length}-${Date.now()}`} title="Operating Hours" hours={venueHours} />
           {hasKitchenHours && (
-            <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+            <HoursSection key={`kitchen-${venueHours.length}-${Date.now()}`} title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
           )}
         </div>
       )}

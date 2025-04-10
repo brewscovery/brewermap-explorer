@@ -48,6 +48,8 @@ export const useVenueHours = (venueId: string | null) => {
     },
     enabled: !!venueId,
     staleTime: 0, // Ensure we always revalidate when cache is invalidated
+    refetchOnWindowFocus: false, // Prevent automatic refetching on window focus
+    refetchOnMount: true, // Always refetch when the component mounts
   });
   
   /**
@@ -84,7 +86,10 @@ export const useVenueHours = (venueId: string | null) => {
       }
 
       toast.success('Venue hours updated successfully');
+      
+      // Force an immediate refetch
       await refetch();
+      
       return true;
     } catch (error: any) {
       console.error('Error updating venue hours:', error);
