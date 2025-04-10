@@ -1,5 +1,4 @@
 
-// Brewery data type with additional admin fields
 export interface BreweryData {
   id: string;
   name: string;
@@ -9,39 +8,35 @@ export interface BreweryData {
   facebook_url: string | null;
   instagram_url: string | null;
   logo_url: string | null;
-  is_verified: boolean | null;
   created_at: string;
   updated_at: string;
+  is_verified: boolean | null;
   venue_count: number;
   owner_name: string;
+  country: string | null;
 }
 
-// User data type for admin panel
 export interface UserData {
   id: string;
-  user_type: 'admin' | 'business' | 'regular';
+  user_type: string;
   first_name: string | null;
   last_name: string | null;
   created_at: string;
 }
 
-// Brewery claim data type
 export interface BreweryClaim {
   id: string;
   brewery_id: string;
-  brewery_name: string;
   user_id: string;
+  brewery_name: string;
   user_name: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
+  created_at: string;
   contact_email: string | null;
   contact_phone: string | null;
-  created_at: string;
-  updated_at: string;
-  decision_at: string | null;
   admin_notes: string | null;
 }
 
-// Admin stats type
 export interface AdminStats {
   totalUsers: number;
   totalBreweries: number;

@@ -11,6 +11,7 @@ export interface Brewery {
   created_at: string;
   updated_at: string;
   is_verified: boolean | null;
+  country: string | null;
 }
 
 export interface BreweryFormData {
@@ -22,4 +23,5 @@ export interface BreweryFormData {
   instagram_url: string | null;
   logo_url: string | null;
   is_verified: boolean;
+  country: string | null;
 }

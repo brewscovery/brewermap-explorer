@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Table, 
@@ -21,7 +22,8 @@ import {
   Trash2,
   Filter,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Globe
 } from 'lucide-react';
 import { useBreweries, useUpdateBreweryVerification } from '@/hooks/useAdminData';
 import {
@@ -50,7 +52,7 @@ import {
 import '@/utils/debugUtils';
 
 // Type for sorting options
-type SortField = 'name' | 'brewery_type' | 'venue_count' | 'is_verified' | 'created_at';
+type SortField = 'name' | 'brewery_type' | 'venue_count' | 'is_verified' | 'created_at' | 'country';
 type SortDirection = 'asc' | 'desc';
 
 const BreweriesManagement = () => {
@@ -71,11 +73,12 @@ const BreweriesManagement = () => {
   const [venueManagementOpen, setVenueManagementOpen] = useState(false);
   const [selectedBrewery, setSelectedBrewery] = useState<BreweryData | null>(null);
   
-  // New state for sorting and filtering
+  // State for sorting and filtering
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
+  const [countryFilter, setCountryFilter] = useState<string>('all');
   
   // Cleanup useEffect for component unmount
   useEffect(() => {
@@ -168,6 +171,19 @@ const BreweriesManagement = () => {
     }
   };
   
+  // Extract unique countries for the country filter
+  const countries = useMemo(() => {
+    if (!breweries) return [];
+    
+    const countrySet = new Set<string>();
+    breweries.forEach(brewery => {
+      const country = brewery.country || 'Unknown';
+      countrySet.add(country);
+    });
+    
+    return Array.from(countrySet).sort();
+  }, [breweries]);
+  
   // Filter and sort the breweries
   const filteredAndSortedBreweries = useMemo(() => {
     if (!breweries) return [];
@@ -184,12 +200,19 @@ const BreweriesManagement = () => {
       filtered = filtered.filter(brewery => brewery.is_verified === isVerified);
     }
     
+    if (countryFilter !== 'all') {
+      filtered = filtered.filter(brewery => {
+        const breweryCountry = brewery.country || 'Unknown';
+        return breweryCountry === countryFilter;
+      });
+    }
+    
     // Then apply sorting
     return filtered.sort((a, b) => {
       // Handle different field types
-      if (sortField === 'name' || sortField === 'brewery_type') {
-        const aValue = (a[sortField] || '').toLowerCase();
-        const bValue = (b[sortField] || '').toLowerCase();
+      if (sortField === 'name' || sortField === 'brewery_type' || sortField === 'country') {
+        const aValue = ((a[sortField] as string) || '').toLowerCase();
+        const bValue = ((b[sortField] as string) || '').toLowerCase();
         
         if (sortDirection === 'asc') {
           return aValue.localeCompare(bValue);
@@ -222,7 +245,7 @@ const BreweriesManagement = () => {
       
       return 0;
     });
-  }, [breweries, sortField, sortDirection, typeFilter, verificationFilter]);
+  }, [breweries, sortField, sortDirection, typeFilter, verificationFilter, countryFilter]);
   
   // Extract unique brewery types for filter dropdown
   const breweryTypes = useMemo(() => {
@@ -361,6 +384,26 @@ const BreweriesManagement = () => {
             </SelectContent>
           </Select>
         </div>
+        
+        <div className="flex gap-2 items-center">
+          <span className="text-sm">Country:</span>
+          <Select 
+            value={countryFilter}
+            onValueChange={setCountryFilter}
+          >
+            <SelectTrigger className="w-[140px] h-8">
+              <SelectValue placeholder="All Countries" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Countries</SelectItem>
+              {countries.map(country => (
+                <SelectItem key={country} value={country}>
+                  {country}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="rounded-md border">
@@ -383,6 +426,15 @@ const BreweriesManagement = () => {
                 <div className="flex items-center">
                   Type
                   <SortIndicator field="brewery_type" />
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer"
+                onClick={() => handleSort('country')}
+              >
+                <div className="flex items-center">
+                  Country
+                  <SortIndicator field="country" />
                 </div>
               </TableHead>
               <TableHead 
@@ -413,6 +465,7 @@ const BreweriesManagement = () => {
                 <TableRow key={index}>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                  <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-10" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-20" /></TableCell>
                   <TableCell><Skeleton className="h-5 w-full" /></TableCell>
@@ -424,6 +477,12 @@ const BreweriesManagement = () => {
                 <TableRow key={brewery.id}>
                   <TableCell className="font-medium">{brewery.name}</TableCell>
                   <TableCell>{getBreweryTypeBadge(brewery.brewery_type)}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1">
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                      <span>{brewery.country || 'Unknown'}</span>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -506,8 +565,8 @@ const BreweriesManagement = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={6} className="h-24 text-center">
-                  {searchQuery || typeFilter !== 'all' || verificationFilter !== 'all' 
+                <TableCell colSpan={7} className="h-24 text-center">
+                  {searchQuery || typeFilter !== 'all' || verificationFilter !== 'all' || countryFilter !== 'all' 
                     ? 'No breweries found matching your filters.' 
                     : 'No breweries found.'}
                 </TableCell>

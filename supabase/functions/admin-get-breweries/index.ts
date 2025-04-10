@@ -167,7 +167,8 @@ Deno.serve(async (req) => {
       return {
         ...brewery, // Include all brewery fields first
         venue_count: venueCounts[brewery.id] || 0,
-        owner_name: ownerNamesList.length > 0 ? ownerNamesList.join(', ') : 'No owner'
+        owner_name: ownerNamesList.length > 0 ? ownerNamesList.join(', ') : 'No owner',
+        country: brewery.country || 'Unknown' // Add default value for country
       }
     })
     
