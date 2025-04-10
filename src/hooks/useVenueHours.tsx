@@ -50,7 +50,7 @@ export const useVenueHours = (venueId: string | null) => {
   });
   
   /**
-   * Update venue hours data
+   * Update venue hours data using a batch operation
    */
   const updateVenueHours = async (venueHoursData: Partial<VenueHour>[]) => {
     if (!venueId) {
@@ -61,25 +61,31 @@ export const useVenueHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      // Ensure each record has the required day_of_week field
+      // Validate all records before submitting
       for (const hourData of venueHoursData) {
-        // Validate day_of_week is present
         if (typeof hourData.day_of_week !== 'number') {
           throw new Error('day_of_week is required and must be a number');
         }
-        
-        const { error } = await supabase
-          .from('venue_hours')
-          .upsert({
-            ...hourData,
-            venue_id: venueId,
-            day_of_week: hourData.day_of_week,
-            updated_at: new Date().toISOString()
-          });
-
-        if (error) throw error;
       }
+      
+      // Prepare data for batch upsert
+      const batchData = venueHoursData.map(hourData => ({
+        ...hourData,
+        venue_id: venueId,
+        updated_at: new Date().toISOString()
+      }));
+      
+      console.log('[DEBUG] Batch updating venue hours with data:', batchData);
+      
+      // Perform a single batch upsert operation
+      const { data, error } = await supabase
+        .from('venue_hours')
+        .upsert(batchData)
+        .select();
 
+      if (error) throw error;
+
+      console.log('[DEBUG] Batch update successful, updated hours:', data);
       toast.success('Venue hours updated successfully');
       await refetch();
       return true;
