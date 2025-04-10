@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
     console.log("Querying breweries with search:", searchQuery || "none")
     let breweryQuery = supabase
       .from('breweries')
-      .select('*') // Select all fields instead of specific ones
+      .select('*') // Select all fields
       
     if (searchQuery) {
       breweryQuery = breweryQuery.ilike('name', `%${searchQuery}%`)
@@ -164,11 +164,13 @@ Deno.serve(async (req) => {
       const ownersForBrewery = breweryOwners[brewery.id] || []
       const ownerNamesList = ownersForBrewery.map(owner => owner.name)
       
+      // Include the country directly from the brewery data
       return {
         ...brewery, // Include all brewery fields first
         venue_count: venueCounts[brewery.id] || 0,
         owner_name: ownerNamesList.length > 0 ? ownerNamesList.join(', ') : 'No owner',
-        country: brewery.country || 'Unknown' // Add default value for country
+        // Use the country value from the brewery data, and only fall back to 'Unknown' if it's null
+        country: brewery.country || 'Unknown'
       }
     })
     
