@@ -69,9 +69,11 @@ export const useVenueHours = (venueId: string | null) => {
       }
       
       // Prepare data for batch upsert
+      // Explicit typing to ensure day_of_week is treated as required
       const batchData = venueHoursData.map(hourData => ({
         ...hourData,
         venue_id: venueId,
+        day_of_week: hourData.day_of_week as number, // Force non-optional type
         updated_at: new Date().toISOString()
       }));
       
