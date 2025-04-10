@@ -13,9 +13,14 @@ export const useBreweryRealtimeUpdates = (
   const queryClient = useQueryClient();
   const breweryChannelRef = useRef(null);
   const ownersChannelRef = useRef(null);
+  const hasSetupRef = useRef(false);
 
   useEffect(() => {
+    // Skip if we've already set up the subscriptions and nothing significant has changed
+    if (hasSetupRef.current) return;
+    
     console.log('Setting up realtime subscription for breweries');
+    hasSetupRef.current = true;
     
     // Create a single channel for all brewery-related changes to make it more efficient
     const breweryChangesChannel = supabase
@@ -135,16 +140,20 @@ export const useBreweryRealtimeUpdates = (
     // Store channel reference for cleanup
     ownersChannelRef.current = ownersChannel;
 
+    // Only clean up when the component unmounts, not on every selected brewery change
     return () => {
-      console.log('Cleaning up realtime subscriptions for breweries');
-      if (breweryChannelRef.current) {
-        supabase.removeChannel(breweryChannelRef.current);
-        breweryChannelRef.current = null;
-      }
-      if (ownersChannelRef.current) {
-        supabase.removeChannel(ownersChannelRef.current);
-        ownersChannelRef.current = null;
+      if (hasSetupRef.current) {
+        console.log('Cleaning up realtime subscriptions for breweries');
+        if (breweryChannelRef.current) {
+          supabase.removeChannel(breweryChannelRef.current);
+          breweryChannelRef.current = null;
+        }
+        if (ownersChannelRef.current) {
+          supabase.removeChannel(ownersChannelRef.current);
+          ownersChannelRef.current = null;
+        }
+        hasSetupRef.current = false;
       }
     };
-  }, [queryClient, selectedBrewery, setSelectedBrewery, breweries, setBreweries]);
+  }, [queryClient]); // Remove selectedBrewery and others from dependencies
 };

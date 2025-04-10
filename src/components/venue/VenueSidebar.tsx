@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -40,14 +40,25 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const stableVenueId = useRef<string | null>(null);
   
-  console.log(`VenueSidebar rendering with venue ID: ${venue?.id || 'none'}`);
+  // Update the stable venue ID reference without causing re-renders
+  useEffect(() => {
+    if (venue?.id) {
+      stableVenueId.current = venue.id;
+      console.log(`VenueSidebar rendering with venue ID: ${venue.id}`);
+    }
+  }, [venue?.id]);
   
-  const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venue?.id || null);
-  const { happyHours = [], isLoading: isLoadingHappyHours } = useVenueHappyHours(venue?.id || null);
-  const { dailySpecials = [], isLoading: isLoadingDailySpecials } = useVenueDailySpecials(venue?.id || null);
+  const venueId = stableVenueId.current;
   
-  console.log(`[DEBUG] VenueSidebar received hours data:`, venueHours);
+  const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venueId);
+  const { happyHours = [], isLoading: isLoadingHappyHours } = useVenueHappyHours(venueId);
+  const { dailySpecials = [], isLoading: isLoadingDailySpecials } = useVenueDailySpecials(venueId);
+  
+  if (venueHours.length > 0) {
+    console.log(`[DEBUG] VenueSidebar received hours data:`, venueHours);
+  }
   
   const { data: breweryInfo } = useQuery({
     queryKey: ['brewery', venue?.brewery_id],
@@ -67,9 +78,9 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   });
   
   const { data: checkins = [] } = useQuery({
-    queryKey: ['venueCheckins', venue?.id],
+    queryKey: ['venueCheckins', venueId],
     queryFn: async () => {
-      if (!venue?.id) return [];
+      if (!venueId) return [];
       if (!user) return []; // Only fetch if user is logged in
       
       let query = supabase
@@ -78,7 +89,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
           id, rating, comment, visited_at, created_at, user_id,
           profiles!inner(first_name, last_name)
         `)
-        .eq('venue_id', venue.id)
+        .eq('venue_id', venueId)
         .order('created_at', { ascending: false });
       
       if (user) {
@@ -93,7 +104,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             id, rating, comment, visited_at, created_at, user_id,
             profiles!inner(first_name, last_name)
           `)
-          .eq('venue_id', venue.id)
+          .eq('venue_id', venueId)
           .neq('user_id', user.id)
           .order('created_at', { ascending: false });
           
@@ -115,11 +126,11 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         last_name: item.profiles?.last_name || null
       }));
     },
-    enabled: !!venue?.id && !!user
+    enabled: !!venueId && !!user
   });
   
   const handleCheckInSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['venueCheckins', venue?.id] });
+    queryClient.invalidateQueries({ queryKey: ['venueCheckins', venueId] });
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
   

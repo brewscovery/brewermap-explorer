@@ -5,10 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 
 export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
   const queryClient = useQueryClient();
-  const channelRef = useRef(null);
+  const channelRef = useRef<any>(null);
+  const hasRunRef = useRef(false);
 
   useEffect(() => {
-    if (!venueId) return; // Only set up subscription if we have a venueId
+    // Skip if we don't have a venueId or if we've already set up the subscription
+    if (!venueId || hasRunRef.current) return;
     
     console.log(`Setting up realtime subscription for venue hours (venueId: ${venueId})`);
     
@@ -39,17 +41,23 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
       )
       .subscribe((status) => {
         console.log(`Venue hours channel subscription status:`, status);
+        hasRunRef.current = true;
       });
 
     // Store channel reference for cleanup
     channelRef.current = hoursChannel;
 
+    // Cleanup function
     return () => {
-      console.log(`Cleaning up venue hours subscription for venue ${venueId}`);
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
+      // Only clean up if we're changing venues or unmounting completely
+      if (venueId) { 
+        console.log(`Cleaning up venue hours subscription for venue ${venueId}`);
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+          hasRunRef.current = false;
+        }
       }
     };
-  }, [queryClient, venueId]);
+  }, [queryClient, venueId]); // Keep these as the only dependencies
 };

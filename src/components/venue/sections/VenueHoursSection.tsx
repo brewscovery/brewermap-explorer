@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import HoursSection from './HoursSection';
 
 interface VenueHoursSectionProps {
@@ -7,11 +7,14 @@ interface VenueHoursSectionProps {
   isLoadingHours: boolean;
 }
 
-const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProps) => {
+// Using React.memo to prevent unnecessary re-renders
+const VenueHoursSection = memo(({ venueHours, isLoadingHours }: VenueHoursSectionProps) => {
   // Check if venue has any kitchen hours set
   const hasKitchenHours = venueHours.some(
     hour => hour.kitchen_open_time !== null || hour.kitchen_close_time !== null
   );
+  
+  console.log(`VenueHoursSection rendering with hours: ${venueHours.length}`);
   
   return (
     <div className="space-y-2">
@@ -30,6 +33,9 @@ const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProp
       )}
     </div>
   );
-};
+});
+
+// Display name for debugging
+VenueHoursSection.displayName = 'VenueHoursSection';
 
 export default VenueHoursSection;
