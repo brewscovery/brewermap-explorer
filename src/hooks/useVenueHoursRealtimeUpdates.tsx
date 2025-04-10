@@ -33,8 +33,7 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
           // Force an immediate refetch
           queryClient.refetchQueries({ 
             queryKey: ['venueHours', venueId],
-            exact: true,
-            type: 'all' // Use 'all' to ensure we catch all queries
+            exact: true
           });
           
           // Log current query cache state
@@ -78,11 +77,13 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
             },
             (payload) => {
               console.log(`Venue hours changed (reconnected) for venue ${venueId}, payload:`, payload);
-              queryClient.invalidateQueries({ queryKey: ['venueHours', venueId] });
+              queryClient.invalidateQueries({ 
+                queryKey: ['venueHours', venueId] 
+              });
+
               queryClient.refetchQueries({ 
                 queryKey: ['venueHours', venueId],
-                exact: true,
-                type: 'all'
+                exact: true
               });
             }
           )
