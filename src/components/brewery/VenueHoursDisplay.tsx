@@ -18,9 +18,7 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
   const { hours, isLoading } = useVenueHours(venueId);
   const [todayHours, setTodayHours] = useState<VenueHour | null>(null);
   
-  // Update today's hours whenever the hours data changes
   useEffect(() => {
-    console.log("VenueHoursDisplay received updated hours:", hours);
     if (hours && hours.length > 0) {
       const today = getTodayDayOfWeek();
       const todayData = hours.find(h => h.day_of_week === today);
@@ -67,7 +65,7 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
         <div className="pt-2 text-sm space-y-2">
           {sortedHours.map((hour) => (
             <HoursRow 
-              key={`hour-${hour.id}-${hour.updated_at}`} 
+              key={hour.id} 
               day={DAYS_OF_WEEK[hour.day_of_week]} 
               hourData={hour} 
             />

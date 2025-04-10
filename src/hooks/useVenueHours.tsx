@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
@@ -10,7 +11,7 @@ export const useVenueHours = (venueId: string | null) => {
   
   console.log(`useVenueHours called with venueId: ${venueId}`);
   
-  // Setup realtime subscriptions - this is crucial for real-time updates
+  // Setup realtime subscriptions
   useVenueHoursRealtimeUpdates(venueId);
 
   // Fetch venue hours
@@ -45,20 +46,9 @@ export const useVenueHours = (venueId: string | null) => {
       
       return data as VenueHour[];
     },
-    enabled: !!venueId,
-    staleTime: 0, // Ensure we always revalidate when cache is invalidated
-    gcTime: 0, // Don't cache data between renders, always fetch fresh (renamed from cacheTime)
-    refetchOnWindowFocus: false, // Prevent automatic refetching on window focus
-    refetchOnMount: true, // Always refetch when the component mounts
+    enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state
   });
   
-  // Log when hours change
-  useEffect(() => {
-    if (hours) {
-      console.log(`[DEBUG] Hours data changed in useVenueHours:`, hours);
-    }
-  }, [hours]);
-
   /**
    * Update venue hours data
    */
@@ -71,8 +61,6 @@ export const useVenueHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      console.log(`Updating venue hours for venue ${venueId}:`, venueHoursData);
-      
       // Ensure each record has the required day_of_week field
       for (const hourData of venueHoursData) {
         // Validate day_of_week is present
@@ -93,10 +81,7 @@ export const useVenueHours = (venueId: string | null) => {
       }
 
       toast.success('Venue hours updated successfully');
-      
-      // Force an immediate refetch
       await refetch();
-      
       return true;
     } catch (error: any) {
       console.error('Error updating venue hours:', error);
