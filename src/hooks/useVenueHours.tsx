@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -48,6 +47,7 @@ export const useVenueHours = (venueId: string | null) => {
     },
     enabled: !!venueId,
     staleTime: 0, // Ensure we always revalidate when cache is invalidated
+    cacheTime: 0, // Don't cache data between renders, always fetch fresh
     refetchOnWindowFocus: false, // Prevent automatic refetching on window focus
     refetchOnMount: true, // Always refetch when the component mounts
   });

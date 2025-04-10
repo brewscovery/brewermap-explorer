@@ -25,15 +25,17 @@ export const useVenueHoursRealtimeUpdates = (venueId: string | null = null) => {
         (payload) => {
           console.log(`Venue hours changed for venue ${venueId}, payload:`, payload);
           
-          // Invalidate the query to mark it as stale
+          // First, invalidate to mark the query as stale
           queryClient.invalidateQueries({ 
             queryKey: ['venueHours', venueId]
           });
           
-          // Trigger a background refetch
+          // Then force an immediate refetch for the latest data
           queryClient.refetchQueries({ 
             queryKey: ['venueHours', venueId],
-            exact: true
+            exact: true,
+            type: 'active', // Only refetch active queries
+            stale: true // Only refetch stale queries
           });
         }
       )
