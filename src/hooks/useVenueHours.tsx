@@ -11,7 +11,7 @@ export const useVenueHours = (venueId: string | null) => {
   
   console.log(`useVenueHours called with venueId: ${venueId}`);
   
-  // Setup realtime subscriptions
+  // Setup realtime subscriptions - this is crucial for real-time updates
   useVenueHoursRealtimeUpdates(venueId);
 
   // Fetch venue hours
@@ -46,7 +46,8 @@ export const useVenueHours = (venueId: string | null) => {
       
       return data as VenueHour[];
     },
-    enabled: !!venueId // Only enable the query if we have a venueId, regardless of auth state
+    enabled: !!venueId,
+    staleTime: 0, // Ensure we always revalidate when cache is invalidated
   });
   
   /**
@@ -61,6 +62,8 @@ export const useVenueHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
+      console.log(`Updating venue hours for venue ${venueId}:`, venueHoursData);
+      
       // Ensure each record has the required day_of_week field
       for (const hourData of venueHoursData) {
         // Validate day_of_week is present

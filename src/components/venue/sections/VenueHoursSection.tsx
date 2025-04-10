@@ -8,6 +8,8 @@ interface VenueHoursSectionProps {
 }
 
 const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProps) => {
+  console.log('VenueHoursSection rendering with hours:', venueHours.length);
+  
   // Check if venue has any kitchen hours set
   const hasKitchenHours = venueHours.some(
     hour => hour.kitchen_open_time !== null || hour.kitchen_close_time !== null
