@@ -1,5 +1,5 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import HoursSection from './HoursSection';
 
 interface VenueHoursSectionProps {
@@ -12,15 +12,7 @@ const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProp
   
   // Log when venue hours change for debugging
   useEffect(() => {
-    console.log('VenueHoursSection received new hours data');
-  }, [venueHours]);
-  
-  // Generate a key that changes when any hour data changes, not just the array length
-  const hoursKey = useMemo(() => {
-    // Create a string representing the current state of all hours data
-    return venueHours.map(hour => 
-      `${hour.id}-${hour.is_closed}-${hour.venue_open_time}-${hour.venue_close_time}-${hour.kitchen_open_time}-${hour.kitchen_close_time}`
-    ).join('|');
+    console.log('VenueHoursSection received new hours data:', venueHours);
   }, [venueHours]);
   
   // Check if venue has any kitchen hours set
@@ -37,9 +29,18 @@ const VenueHoursSection = ({ venueHours, isLoadingHours }: VenueHoursSectionProp
         <p className="text-sm text-muted-foreground">No hours available</p>
       ) : (
         <div className="space-y-3">
-          <HoursSection key={`operating-${hoursKey}`} title="Operating Hours" hours={venueHours} />
+          <HoursSection 
+            key={`operating-${JSON.stringify(venueHours)}`} 
+            title="Operating Hours" 
+            hours={venueHours} 
+          />
           {hasKitchenHours && (
-            <HoursSection key={`kitchen-${hoursKey}`} title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
+            <HoursSection 
+              key={`kitchen-${JSON.stringify(venueHours)}`} 
+              title="Kitchen Hours" 
+              hours={venueHours} 
+              showKitchenHours={true} 
+            />
           )}
         </div>
       )}

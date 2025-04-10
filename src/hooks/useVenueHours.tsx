@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
@@ -53,6 +52,13 @@ export const useVenueHours = (venueId: string | null) => {
     refetchOnMount: true, // Always refetch when the component mounts
   });
   
+  // Log when hours change
+  useEffect(() => {
+    if (hours) {
+      console.log(`[DEBUG] Hours data changed in useVenueHours:`, hours);
+    }
+  }, [hours]);
+
   /**
    * Update venue hours data
    */
