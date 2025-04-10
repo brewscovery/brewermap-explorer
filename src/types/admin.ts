@@ -30,11 +30,12 @@ export interface BreweryClaim {
   user_id: string;
   brewery_name: string;
   user_name: string;
-  status: string;
+  status: 'pending' | 'approved' | 'rejected';
   created_at: string;
   contact_email: string | null;
   contact_phone: string | null;
   admin_notes: string | null;
+  decision_at: string | null;
 }
 
 export interface AdminStats {
