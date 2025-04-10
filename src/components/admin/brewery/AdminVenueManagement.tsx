@@ -72,6 +72,7 @@ const AdminVenueManagement = ({
   };
   
   const handleDeleteVenue = (venue: Venue) => {
+    console.log('Delete venue triggered for:', venue.name);
     setVenueToDelete(venue);
     setDeleteConfirmOpen(true);
   };
@@ -84,8 +85,10 @@ const AdminVenueManagement = ({
       refetch();
       setDeleteConfirmOpen(false);
       setVenueToDelete(null);
+      toast.success(`Venue "${venueToDelete.name}" deleted successfully`);
     } catch (error) {
       console.error('Error deleting venue:', error);
+      toast.error('Failed to delete venue');
     }
   };
   

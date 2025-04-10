@@ -30,6 +30,7 @@ export const AdminVenueDeleteDialog = ({
     <AlertDialog 
       open={open} 
       onOpenChange={(newOpenState) => {
+        console.log('AlertDialog onOpenChange:', newOpenState);
         onOpenChange(newOpenState);
         
         // Ensure body is interactive when closing alert dialog
@@ -39,7 +40,14 @@ export const AdminVenueDeleteDialog = ({
         }
       }}
     >
-      <AlertDialogContent>
+      <AlertDialogContent onCloseAutoFocus={(event) => {
+        // Prevent the default focus behavior to avoid potential issues
+        event.preventDefault();
+        
+        // Force document.body to be interactive again
+        document.body.style.pointerEvents = '';
+        document.body.style.overflow = '';
+      }}>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Venue</AlertDialogTitle>
           <AlertDialogDescription>
@@ -50,8 +58,12 @@ export const AdminVenueDeleteDialog = ({
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction 
-            onClick={onConfirm}
+            onClick={(e) => {
+              e.preventDefault();
+              onConfirm();
+            }}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            disabled={isDeleting}
           >
             {isDeleting ? 'Deleting...' : 'Delete Venue'}
           </AlertDialogAction>

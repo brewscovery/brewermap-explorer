@@ -1,6 +1,5 @@
 
 import { useState } from 'react';
-import { AlertDialog, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PencilIcon, Trash2Icon, Clock, Building } from 'lucide-react';
@@ -82,20 +81,15 @@ export const VenueList = ({
                     <span className="sr-only">Hours</span>
                   </Button>
                   
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="text-destructive"
-                      >
-                        <Trash2Icon className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
-                      </Button>
-                    </AlertDialogTrigger>
-                    
-                    {/* The confirmation dialog is shown via onDeleteVenue in the parent component */}
-                  </AlertDialog>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-destructive"
+                    onClick={() => onDeleteVenue(venue)}
+                  >
+                    <Trash2Icon className="h-4 w-4" />
+                    <span className="sr-only">Delete</span>
+                  </Button>
                 </div>
               </TableCell>
             </TableRow>
