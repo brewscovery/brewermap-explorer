@@ -1,6 +1,5 @@
 
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { MapPin, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -96,7 +95,11 @@ const AddressInput = ({
   const handleSelectAddress = (suggestion: AddressSuggestion) => {
     setSelectedAddress(suggestion);
     setInputValue(suggestion.fullAddress);
+    
+    // Ensure we call onChange with the full suggestion object
+    console.log('Selected address:', suggestion);
     onChange(suggestion);
+    
     setIsOpen(false);
     setSuggestions([]);
     setSelectedIndex(-1);

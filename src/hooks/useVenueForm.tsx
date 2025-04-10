@@ -16,6 +16,7 @@ interface VenueFormData {
   website_url: string;
   longitude: string | null;
   latitude: string | null;
+  [key: string]: any; // Allow for brewery_id and other dynamic properties
 }
 
 interface UseVenueFormProps {
@@ -37,24 +38,27 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     phone: '',
     website_url: '',
     longitude: null,
-    latitude: null
+    latitude: null,
+    ...initialData // Spread any initial data (including brewery_id)
   });
 
   // Initialize form with provided data
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        name: initialData.name || '',
-        street: initialData.street || '',
-        city: initialData.city || '',
-        state: initialData.state || '',
-        postal_code: initialData.postal_code || '',
+      setFormData(prevData => ({
+        ...prevData,
+        name: initialData.name || prevData.name,
+        street: initialData.street || prevData.street,
+        city: initialData.city || prevData.city,
+        state: initialData.state || prevData.state,
+        postal_code: initialData.postal_code || prevData.postal_code,
         country: initialData.country || 'Australia',
-        phone: initialData.phone || '',
-        website_url: initialData.website_url || '',
-        longitude: initialData.longitude,
-        latitude: initialData.latitude
-      });
+        phone: initialData.phone || prevData.phone,
+        website_url: initialData.website_url || prevData.website_url,
+        longitude: initialData.longitude !== undefined ? initialData.longitude : prevData.longitude,
+        latitude: initialData.latitude !== undefined ? initialData.latitude : prevData.latitude,
+        ...(initialData.brewery_id ? { brewery_id: initialData.brewery_id } : {})
+      }));
 
       // Set address input to show the full address if available
       if (initialData.street && initialData.city && initialData.state) {
@@ -81,7 +85,8 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
       phone: '',
       website_url: '',
       longitude: null,
-      latitude: null
+      latitude: null,
+      ...(initialData?.brewery_id ? { brewery_id: initialData.brewery_id } : {})
     });
     setAddressInput('');
   };
@@ -95,13 +100,14 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
   // Handle address selection from autocomplete
   const handleAddressChange = (suggestion: AddressSuggestion | null) => {
     if (suggestion) {
+      console.log('Address suggestion selected:', suggestion);
       setFormData(prev => ({
         ...prev,
         street: suggestion.street,
         city: suggestion.city,
         state: suggestion.state,
         postal_code: suggestion.postalCode,
-        country: suggestion.country,
+        country: suggestion.country || 'Australia',
         longitude: suggestion.longitude,
         latitude: suggestion.latitude
       }));

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { Button } from '@/components/ui/button';
@@ -109,9 +110,6 @@ const AdminVenueManagement = ({
       const venueData = {
         ...formData,
         brewery_id: breweryId,
-        name: formData.name,
-        city: formData.city,
-        state: formData.state,
         longitude: coordinates.longitude,
         latitude: coordinates.latitude
       };

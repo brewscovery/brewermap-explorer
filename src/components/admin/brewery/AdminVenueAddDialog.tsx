@@ -1,6 +1,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { VenueForm } from '@/components/brewery/venue-form/VenueForm';
+import type { AddressSuggestion } from '@/types/address';
 
 interface AdminVenueAddDialogProps {
   open: boolean;
@@ -11,7 +12,7 @@ interface AdminVenueAddDialogProps {
   isFormLoading: boolean;
   setAddressInput: (value: string) => void;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  handleAddressChange: (suggestion: any) => void;
+  handleAddressChange: (suggestion: AddressSuggestion | null) => void;
   handleVenueSubmit: (e: React.FormEvent) => Promise<void>;
   isPending: boolean;
 }
