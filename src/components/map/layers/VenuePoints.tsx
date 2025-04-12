@@ -17,8 +17,8 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
   // Helper function to update point colors
   const updatePointColors = useCallback(() => {
     try {
-      if (!map.isStyleLoaded() || !map.getLayer('unclustered-point')) {
-        console.log('Cannot update point colors - layer not found or style not loaded');
+      if (!map.getLayer('unclustered-point')) {
+        console.log('Cannot update point colors - layer not found');
         return;
       }
 
@@ -40,27 +40,12 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
   // Check when the source is ready
   useEffect(() => {
-    if (!map.isStyleLoaded()) {
-      console.log('Style not loaded, waiting for style data');
-      const onStyleLoad = () => {
-        console.log('Style loaded, checking source');
-        if (map.getSource(source)) {
-          setSourceReady(true);
-        }
-      };
-      
-      map.once('style.load', onStyleLoad);
-      return () => {
-        map.off('style.load', onStyleLoad);
-      };
-    }
-    
     if (!sourceReady && map.getSource(source)) {
       setSourceReady(true);
     }
 
-    const checkSource = (e: any) => {
-      if (e.sourceId === source && e.isSourceLoaded) {
+    const checkSource = () => {
+      if (map.getSource(source)) {
         setSourceReady(true);
       }
     };
@@ -74,7 +59,7 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
   // Add layers when source is ready
   useEffect(() => {
-    if (!sourceReady || !map.isStyleLoaded()) return;
+    if (!sourceReady) return;
     
     const addLayers = () => {
       try {
@@ -144,19 +129,16 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
     return () => {
       // Cleanup on unmount (but not between renders)
-      if (!map || !map.loaded()) return;
+      if (!map.getStyle()) return;
       
       try {
-        // Only attempt to remove layers if the style is loaded
-        if (map.isStyleLoaded()) {
-          layerIds.forEach(layerId => {
-            if (map.getLayer(layerId)) {
-              map.removeLayer(layerId);
-            }
-          });
-          layersAdded.current = false;
-          console.log('Point layers removed on cleanup');
-        }
+        layerIds.forEach(layerId => {
+          if (map.getLayer(layerId)) {
+            map.removeLayer(layerId);
+          }
+        });
+        layersAdded.current = false;
+        console.log('Point layers removed on cleanup');
       } catch (error) {
         console.warn('Error cleaning up point layers:', error);
       }
@@ -169,11 +151,10 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
     // 1. Layers are already added
     // 2. visitedVenueIds has actually changed (deep comparison)
     // 3. The map has the layer
-    // 4. Style is loaded
     
     const idsChanged = JSON.stringify(visitedIdsRef.current) !== JSON.stringify(visitedVenueIds);
     
-    if (map && map.isStyleLoaded() && layersAdded.current && idsChanged && map.getLayer('unclustered-point')) {
+    if (layersAdded.current && idsChanged && map.getLayer('unclustered-point')) {
       console.log('Detected change in visited venues, updating colors');
       updatePointColors();
     }

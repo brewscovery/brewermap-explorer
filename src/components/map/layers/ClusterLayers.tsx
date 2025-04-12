@@ -134,19 +134,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     }
 
     return () => {
-      // Important: Only attempt cleanup if the map instance still exists and is valid
-      if (!map || !map.loaded() || !layersAdded.current) return;
+      if (!map.getStyle()) return;
       
       try {
-        // Check if map has style and it's loaded before attempting to remove layers
-        if (map.isStyleLoaded()) {
-          ['cluster-count', 'clusters', 'unclustered-point', 'unclustered-point-label'].forEach(layer => {
-            if (map.getLayer(layer)) {
-              map.removeLayer(layer);
-            }
-          });
-          layersAdded.current = false;
-        }
+        ['cluster-count', 'clusters', 'unclustered-point', 'unclustered-point-label'].forEach(layer => {
+          if (map.getLayer(layer)) {
+            map.removeLayer(layer);
+          }
+        });
+        layersAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }

@@ -24,7 +24,6 @@ const LoginPopover = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [open, setOpen] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,9 +37,6 @@ const LoginPopover = () => {
       });
       
       if (error) throw error;
-      
-      toast.success('Logged in successfully');
-      setOpen(false);  // Close the popover after successful login
       
       // After successful authentication, fetch the user's profile to check user type
       const { data: { session } } = await supabase.auth.getSession();
@@ -58,23 +54,21 @@ const LoginPopover = () => {
           
           // Properly cast the JSON response to our interface
           const userProfile = profileData as unknown as UserProfileData;
-          console.log('User profile after login:', userProfile);
           
           // Redirect based on user type
           if (userProfile.user_type === 'admin') {
-            console.log('Redirecting admin to /admin');
-            navigate('/admin', { replace: true });
+            navigate('/admin');
           } else if (userProfile.user_type === 'business') {
-            console.log('Redirecting business to /dashboard');
-            navigate('/dashboard', { replace: true });
+            navigate('/dashboard');
           } else {
-            // For regular users, stay on the current page
-            console.log('Regular user - staying on current page');
+            toast.success('Logged in successfully');
           }
         } catch (error: any) {
           console.error('Error processing login:', error);
           toast.error('Error processing login. Please try again.');
         }
+      } else {
+        toast.success('Logged in successfully');
       }
     } catch (error: any) {
       toast.error(error.message);
@@ -84,12 +78,11 @@ const LoginPopover = () => {
   };
 
   const handleForgotPassword = () => {
-    setOpen(false);  // Close the popover
     navigate('/auth?forgot=true');
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline">Login</Button>
       </PopoverTrigger>

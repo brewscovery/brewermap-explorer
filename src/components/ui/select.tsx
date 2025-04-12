@@ -34,82 +34,30 @@ SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => {
-  // Using direct DOM access for the scrolling mechanism
-  const contentRef = React.useRef<HTMLDivElement>(null);
-  
-  React.useEffect(() => {
-    const content = contentRef.current;
-    if (!content) return;
-    
-    const handleWheel = (e: WheelEvent) => {
-      // Get the SelectViewport element
-      const viewport = content.querySelector('[data-radix-select-viewport]');
-      if (!viewport) return;
-      
-      // Stop event propagation
-      e.stopPropagation();
-      
-      // Calculate new scroll position
-      const scrollTop = viewport.scrollTop;
-      const scrollHeight = viewport.scrollHeight;
-      const clientHeight = viewport.clientHeight;
-      const delta = e.deltaY;
-      
-      // Check boundaries
-      if ((scrollTop <= 0 && delta < 0) || 
-          (scrollTop + clientHeight >= scrollHeight && delta > 0)) {
-        // At the edge, let parent elements scroll
-        return;
-      }
-      
-      // Prevent default browser scroll behavior
-      e.preventDefault();
-      
-      // Apply scroll (with smoother amount)
-      viewport.scrollTop += delta;
-    };
-    
-    // Add wheel event listener to the content wrapper
-    content.addEventListener('wheel', handleWheel, { passive: false });
-    
-    return () => {
-      content.removeEventListener('wheel', handleWheel);
-    };
-  }, []);
-
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        ref={(node) => {
-          // Set both refs - our local one and the one from forwardRef
-          if (node) {
-            contentRef.current = node;
-            if (typeof ref === 'function') ref(node);
-            else if (ref) ref.current = node;
-          }
-        }}
+>(({ className, children, position = "popper", ...props }, ref) => (
+  <SelectPrimitive.Portal>
+    <SelectPrimitive.Content
+      ref={ref}
+      className={cn(
+        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80",
+        position === "popper" && "translate-y-1",
+        className
+      )}
+      position={position}
+      {...props}
+    >
+      <SelectPrimitive.Viewport
         className={cn(
-          "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80",
-          position === "popper" && "translate-y-1",
-          className
+          "p-1",
+          position === "popper" &&
+            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
         )}
-        position={position}
-        {...props}
       >
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1",
-            position === "popper" &&
-              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
-          )}
-        >
-          {children}
-        </SelectPrimitive.Viewport>
-      </SelectPrimitive.Content>
-    </SelectPrimitive.Portal>
-  );
-})
+        {children}
+      </SelectPrimitive.Viewport>
+    </SelectPrimitive.Content>
+  </SelectPrimitive.Portal>
+))
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectLabel = React.forwardRef<
