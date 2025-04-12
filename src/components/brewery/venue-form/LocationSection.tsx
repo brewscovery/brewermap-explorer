@@ -80,7 +80,7 @@ export const LocationSection = ({
               <SelectTrigger id="country">
                 <SelectValue placeholder="Select country" />
               </SelectTrigger>
-              <SelectContent className="max-h-[200px] overflow-y-auto">
+              <SelectContent className="max-h-[200px]">
                 {allCountries.map((c) => (
                   <SelectItem key={c.value} value={c.value}>
                     {c.label}
