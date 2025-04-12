@@ -8,8 +8,19 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { BreweryFormData } from '../../../types/brewery';
+import { getAllCountries, DEFAULT_COUNTRY } from '@/utils/countryUtils';
+
+// Get all countries for dropdown
+const allCountries = getAllCountries();
 
 interface GeneralInfoSectionProps {
   form: UseFormReturn<BreweryFormData>;
@@ -53,11 +64,22 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
           <FormItem>
             <FormLabel>Country</FormLabel>
             <FormControl>
-              <Input 
-                placeholder="Australia" 
-                {...field} 
-                value={field.value || ''}
-              />
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || DEFAULT_COUNTRY}
+                value={field.value || DEFAULT_COUNTRY}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select country" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[200px] overflow-y-auto">
+                  {allCountries.map((country) => (
+                    <SelectItem key={country.value} value={country.value}>
+                      {country.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </FormControl>
           </FormItem>
         )}

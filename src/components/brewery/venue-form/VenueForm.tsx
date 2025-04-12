@@ -15,6 +15,7 @@ interface VenueFormData {
   country: string;
   phone: string;
   website_url: string;
+  [key: string]: any; // Allow for brewery_id and other dynamic properties
 }
 
 interface VenueFormProps {
@@ -27,6 +28,7 @@ interface VenueFormProps {
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleAddressChange: (suggestion: AddressSuggestion | null) => void;
   setAddressInput: (value: string) => void;
+  handleCountryChange?: (value: string) => void;
   onCancel?: () => void;
 }
 
@@ -40,6 +42,7 @@ export const VenueForm = ({
   handleChange,
   handleAddressChange,
   setAddressInput,
+  handleCountryChange,
   onCancel
 }: VenueFormProps) => {
   return (
@@ -59,6 +62,7 @@ export const VenueForm = ({
           postalCode={formData.postal_code}
           country={formData.country}
           handleChange={handleChange}
+          handleCountryChange={handleCountryChange}
         />
         
         <ContactSection

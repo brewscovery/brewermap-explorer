@@ -83,7 +83,7 @@ const BreweriesFilters = ({
           <SelectTrigger className="w-[140px] h-8">
             <SelectValue placeholder="All Countries" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-[200px] overflow-y-auto">
             <SelectItem value="all">All Countries</SelectItem>
             {countries.map(country => (
               <SelectItem key={country} value={country}>

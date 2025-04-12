@@ -1,6 +1,17 @@
 
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { getAllCountries, DEFAULT_COUNTRY } from '@/utils/countryUtils';
+
+// Get all countries for dropdown
+const allCountries = getAllCountries();
 
 interface LocationSectionProps {
   city: string;
@@ -8,6 +19,7 @@ interface LocationSectionProps {
   postalCode: string;
   country: string;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleCountryChange?: (value: string) => void;
 }
 
 export const LocationSection = ({
@@ -15,7 +27,8 @@ export const LocationSection = ({
   state,
   postalCode,
   country,
-  handleChange
+  handleChange,
+  handleCountryChange
 }: LocationSectionProps) => {
   return (
     <>
@@ -59,13 +72,31 @@ export const LocationSection = ({
         
         <div className="space-y-2">
           <Label htmlFor="country">Country</Label>
-          <Input
-            id="country"
-            name="country"
-            value={country}
-            onChange={handleChange}
-            placeholder="Australia"
-          />
+          {handleCountryChange ? (
+            <Select 
+              value={country || DEFAULT_COUNTRY}
+              onValueChange={handleCountryChange}
+            >
+              <SelectTrigger id="country">
+                <SelectValue placeholder="Select country" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[200px] overflow-y-auto">
+                {allCountries.map((c) => (
+                  <SelectItem key={c.value} value={c.value}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <Input
+              id="country"
+              name="country"
+              value={country}
+              onChange={handleChange}
+              placeholder="Australia"
+            />
+          )}
         </div>
       </div>
     </>

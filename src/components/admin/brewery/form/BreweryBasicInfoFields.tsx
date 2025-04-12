@@ -11,6 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { UseFormReturn } from "react-hook-form";
 import { BreweryFormValues } from "./types";
+import { getAllCountries, DEFAULT_COUNTRY } from "@/utils/countryUtils";
 
 // Common brewery types
 export const breweryTypes = [
@@ -26,16 +27,8 @@ export const breweryTypes = [
   { value: 'closed', label: 'Closed' },
 ];
 
-// Common countries for breweries
-export const commonCountries = [
-  { value: 'Australia', label: 'Australia' },
-  { value: 'United States', label: 'United States' },
-  { value: 'United Kingdom', label: 'United Kingdom' },
-  { value: 'Canada', label: 'Canada' },
-  { value: 'Germany', label: 'Germany' },
-  { value: 'Belgium', label: 'Belgium' },
-  { value: 'New Zealand', label: 'New Zealand' },
-];
+// Get all countries for dropdown
+const allCountries = getAllCountries();
 
 interface BreweryBasicInfoFieldsProps {
   form: UseFormReturn<BreweryFormValues>;
@@ -95,21 +88,20 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
             <FormLabel>Country</FormLabel>
             <Select
               onValueChange={field.onChange}
-              defaultValue={field.value || undefined}
-              value={field.value || undefined}
+              defaultValue={field.value || DEFAULT_COUNTRY}
+              value={field.value || DEFAULT_COUNTRY}
             >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
-                {commonCountries.map((country) => (
+              <SelectContent className="max-h-[200px] overflow-y-auto">
+                {allCountries.map((country) => (
                   <SelectItem key={country.value} value={country.value}>
                     {country.label}
                   </SelectItem>
                 ))}
-                <SelectItem value="Other">Other</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />

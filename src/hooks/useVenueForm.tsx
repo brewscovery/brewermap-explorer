@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 import type { AddressSuggestion } from '@/types/address';
+import { DEFAULT_COUNTRY } from '@/utils/countryUtils';
 
 interface VenueFormData {
   name: string;
@@ -34,7 +35,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     city: '',
     state: '',
     postal_code: '',
-    country: 'Australia', // Default to Australia
+    country: DEFAULT_COUNTRY,
     phone: '',
     website_url: '',
     longitude: null,
@@ -52,7 +53,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
         city: initialData.city || prevData.city,
         state: initialData.state || prevData.state,
         postal_code: initialData.postal_code || prevData.postal_code,
-        country: initialData.country || 'Australia',
+        country: initialData.country || DEFAULT_COUNTRY,
         phone: initialData.phone || prevData.phone,
         website_url: initialData.website_url || prevData.website_url,
         longitude: initialData.longitude !== undefined ? initialData.longitude : prevData.longitude,
@@ -81,7 +82,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
       city: '',
       state: '',
       postal_code: '',
-      country: 'Australia', // Default to Australia
+      country: DEFAULT_COUNTRY,
       phone: '',
       website_url: '',
       longitude: null,
@@ -97,6 +98,11 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Handle country selection from dropdown
+  const handleCountryChange = (value: string) => {
+    setFormData(prev => ({ ...prev, country: value }));
+  };
+
   // Handle address selection from autocomplete
   const handleAddressChange = (suggestion: AddressSuggestion | null) => {
     if (suggestion) {
@@ -107,7 +113,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
         city: suggestion.city,
         state: suggestion.state,
         postal_code: suggestion.postalCode,
-        country: suggestion.country || 'Australia',
+        country: suggestion.country || DEFAULT_COUNTRY,
         longitude: suggestion.longitude,
         latitude: suggestion.latitude
       }));
@@ -164,6 +170,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     isLoading,
     setIsLoading,
     handleChange,
+    handleCountryChange,
     handleAddressChange,
     validateForm,
     getCoordinates,
