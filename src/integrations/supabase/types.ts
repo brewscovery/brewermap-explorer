@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           about: string | null
           brewery_type: string | null
+          country: string | null
           created_at: string
           facebook_url: string | null
           id: string
@@ -26,6 +27,7 @@ export type Database = {
         Insert: {
           about?: string | null
           brewery_type?: string | null
+          country?: string | null
           created_at?: string
           facebook_url?: string | null
           id?: string
@@ -39,6 +41,7 @@ export type Database = {
         Update: {
           about?: string | null
           brewery_type?: string | null
+          country?: string | null
           created_at?: string
           facebook_url?: string | null
           id?: string

@@ -34,6 +34,7 @@ const brewerySchema = z.object({
   instagram_url: z.string().url('Must be a valid URL').optional().nullable(),
   logo_url: z.string().url('Must be a valid URL').optional().nullable(),
   is_verified: z.boolean().default(false),
+  country: z.string().optional().nullable(),
 });
 
 type BreweryFormValues = z.infer<typeof brewerySchema>;
@@ -58,6 +59,17 @@ const breweryTypes = [
   { value: 'closed', label: 'Closed' },
 ];
 
+// Common countries for breweries
+const commonCountries = [
+  { value: 'Australia', label: 'Australia' },
+  { value: 'United States', label: 'United States' },
+  { value: 'United Kingdom', label: 'United Kingdom' },
+  { value: 'Canada', label: 'Canada' },
+  { value: 'Germany', label: 'Germany' },
+  { value: 'Belgium', label: 'Belgium' },
+  { value: 'New Zealand', label: 'New Zealand' },
+];
+
 const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryFormProps) => {
   // Debugging
   useEffect(() => {
@@ -78,6 +90,7 @@ const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryForm
       instagram_url: initialData?.instagram_url || null,
       logo_url: initialData?.logo_url || null,
       is_verified: initialData?.is_verified || false,
+      country: initialData?.country || 'Australia',
     },
   });
 
@@ -93,6 +106,7 @@ const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryForm
         instagram_url: initialData.instagram_url || null,
         logo_url: initialData.logo_url || null,
         is_verified: initialData.is_verified || false,
+        country: initialData.country || 'Australia',
       });
     }
   }, [initialData, form]);
@@ -141,6 +155,36 @@ const AdminBreweryForm = ({ initialData, onSubmit, isLoading }: AdminBreweryForm
                       {type.label}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value || undefined}
+                value={field.value || undefined}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {commonCountries.map((country) => (
+                    <SelectItem key={country.value} value={country.value}>
+                      {country.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="Other">Other</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

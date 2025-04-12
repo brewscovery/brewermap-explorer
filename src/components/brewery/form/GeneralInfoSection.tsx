@@ -48,6 +48,23 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
       
       <FormField
         control={form.control}
+        name="country"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Country</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="Australia" 
+                {...field} 
+                value={field.value || ''}
+              />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
         name="about"
         render={({ field }) => (
           <FormItem>

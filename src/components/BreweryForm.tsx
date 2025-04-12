@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -27,6 +28,8 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       facebook_url: initialData.facebook_url || '',
       instagram_url: initialData.instagram_url || '',
       logo_url: initialData.logo_url || '',
+      is_verified: initialData.is_verified || false,
+      country: initialData.country || 'Australia',
     } : {
       name: '',
       brewery_type: '',
@@ -35,6 +38,8 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
       facebook_url: '',
       instagram_url: '',
       logo_url: '',
+      is_verified: false,
+      country: 'Australia',
     }
   });
   
@@ -53,6 +58,8 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         facebook_url: initialData.facebook_url || '',
         instagram_url: initialData.instagram_url || '',
         logo_url: initialData.logo_url || '',
+        is_verified: initialData.is_verified || false,
+        country: initialData.country || 'Australia',
       });
       setBreweryId(initialData.id);
     }
@@ -77,6 +84,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         facebook_url: data.facebook_url || null,
         instagram_url: data.instagram_url || null,
         logo_url: data.logo_url || null,
+        country: data.country || 'Australia',
         updated_at: new Date().toISOString()
       };
       console.log('Prepared brewery data for submission:', breweryData);
@@ -124,7 +132,7 @@ const BreweryForm = ({ onSubmitSuccess, initialData, isEditing }: BreweryFormPro
         console.log('Creating new brewery');
         const { data: newBrewery, error: breweryError } = await supabase
           .from('breweries')
-          .insert({
+          .insert({ 
             ...breweryData,
             created_at: new Date().toISOString()
           })
