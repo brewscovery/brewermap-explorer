@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,7 +14,7 @@ interface BreweryInfoProps {
 
 const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
   const { user } = useAuth();
-  const [breweryData, setBreweryData] = useState<{id: string} | null>(null);
+  const [breweryData, setBreweryData] = useState<{id: string, name?: string} | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
@@ -29,7 +30,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
         
         const { data, error } = await supabase
           .from('breweries')
-          .select('id')
+          .select('id, name')
           .eq('id', propBreweryId)
           .single();
         
@@ -68,7 +69,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
         // If user owns a brewery, fetch its details
         const { data, error } = await supabase
           .from('breweries')
-          .select('id')
+          .select('id, name')
           .eq('id', ownerData.brewery_id)
           .single();
         
@@ -124,6 +125,7 @@ const BreweryInfo = ({ breweryId: propBreweryId }: BreweryInfoProps) => {
 
   return (
     <div className="space-y-8">
+      <h3 className="text-xl font-medium">{breweryData.name || 'Brewery Details'}</h3>
       <VenueManagement breweryId={breweryData.id} />
     </div>
   );

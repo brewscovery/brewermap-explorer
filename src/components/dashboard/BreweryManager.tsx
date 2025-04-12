@@ -31,7 +31,7 @@ const BreweryManager = ({
           <div>
             <h3 className="text-lg font-semibold">Your Breweries</h3>
             <p className="text-sm text-muted-foreground mt-1">
-              Select a brewery to manage its venues
+              Create and manage your breweries
             </p>
           </div>
           <Button onClick={() => setIsCreateDialogOpen(true)}>

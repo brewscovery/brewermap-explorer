@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import BreweryManager from '@/components/dashboard/BreweryManager';
+import DashboardTabs from '@/components/dashboard/DashboardTabs';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 
 const Dashboard = () => {
@@ -43,7 +43,7 @@ const Dashboard = () => {
           <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
           
           {userType === 'business' ? (
-            <BreweryManager 
+            <DashboardTabs
               breweries={breweries}
               selectedBrewery={selectedBrewery}
               isLoading={isLoading}
