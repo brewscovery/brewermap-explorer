@@ -9,6 +9,9 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import VenuesPage from "./pages/dashboard/VenuesPage";
+import SettingsPage from "./pages/dashboard/SettingsPage";
 import AdminRoute from "./components/protected/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Index";
@@ -50,7 +53,14 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              
+              {/* Dashboard Routes with Sidebar Layout */}
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="breweries" element={<Dashboard />} />
+                <Route path="venues" element={<VenuesPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+              </Route>
               
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminRoute />}>
