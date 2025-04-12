@@ -34,30 +34,77 @@ SelectTrigger.displayName = SelectPrimitive.Trigger.displayName
 const SelectContent = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Content>
->(({ className, children, position = "popper", ...props }, ref) => (
-  <SelectPrimitive.Portal>
-    <SelectPrimitive.Content
-      ref={ref}
-      className={cn(
-        "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80",
-        position === "popper" && "translate-y-1",
-        className
-      )}
-      position={position}
-      {...props}
-    >
-      <SelectPrimitive.Viewport
+>(({ className, children, position = "popper", ...props }, ref) => {
+  // Create a ref for the viewport to handle wheel events
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+  
+  // Handle wheel events to prevent them from propagating and enable smooth scrolling
+  const handleWheel = React.useCallback((event: WheelEvent) => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    
+    // Prevent the event from propagating
+    event.stopPropagation();
+    
+    // Calculate new scroll position
+    const newScrollTop = viewport.scrollTop + event.deltaY;
+    
+    // Check if we're at the top or bottom boundary
+    if (
+      (newScrollTop <= 0 && event.deltaY < 0) ||
+      (newScrollTop + viewport.clientHeight >= viewport.scrollHeight && event.deltaY > 0)
+    ) {
+      // Only prevent default if we're at a boundary to allow parent scrolling when reached limit
+      return;
+    }
+    
+    // Prevent default browser behavior (like page scrolling)
+    event.preventDefault();
+    
+    // Apply the scroll
+    viewport.scrollTop = newScrollTop;
+  }, []);
+  
+  // Attach and clean up wheel event listener
+  React.useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    
+    // Add wheel event listener
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    
+    // Cleanup
+    return () => {
+      viewport.removeEventListener('wheel', handleWheel);
+    };
+  }, [handleWheel]);
+
+  return (
+    <SelectPrimitive.Portal>
+      <SelectPrimitive.Content
+        ref={ref}
         className={cn(
-          "p-1",
-          position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+          "relative z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-80",
+          position === "popper" && "translate-y-1",
+          className
         )}
+        position={position}
+        {...props}
       >
-        {children}
-      </SelectPrimitive.Viewport>
-    </SelectPrimitive.Content>
-  </SelectPrimitive.Portal>
-))
+        <SelectPrimitive.Viewport
+          ref={viewportRef}
+          className={cn(
+            "p-1",
+            position === "popper" &&
+              "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"
+          )}
+        >
+          {children}
+        </SelectPrimitive.Viewport>
+      </SelectPrimitive.Content>
+    </SelectPrimitive.Portal>
+  );
+})
 SelectContent.displayName = SelectPrimitive.Content.displayName
 
 const SelectLabel = React.forwardRef<
