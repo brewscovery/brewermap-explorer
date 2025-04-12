@@ -1,5 +1,6 @@
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   Edit, 
   Trash2, 
@@ -10,8 +11,8 @@ import {
   Flag,
   Star
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import type { Venue } from '@/types/venue';
+import { Badge } from "@/components/ui/badge";
+import type { Venue } from "@/types/venue";
 import VenueHoursDisplay from '../VenueHoursDisplay';
 import { useState } from 'react';
 import VenueCheckInsDialog from './VenueCheckInsDialog';
@@ -28,16 +29,34 @@ interface VenueCardProps {
   onEdit: (venue: Venue) => void;
   onEditHours: (venue: Venue) => void;
   onDelete: (venue: Venue) => void;
+  onClick?: (venue: Venue) => void; // Add onClick handler
 }
 
-const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCardProps) => {
+const VenueCard = ({ 
+  venue, 
+  ratingData, 
+  onEdit, 
+  onEditHours, 
+  onDelete, 
+  onClick 
+}: VenueCardProps) => {
   console.log(`VenueCard for ${venue.name} (ID: ${venue.id}) with rating data:`, ratingData);
   
   const { average_rating = 0, total_checkins = 0 } = ratingData || {};
   const [showCheckInsDialog, setShowCheckInsDialog] = useState(false);
   
+  const handleCardClick = () => {
+    if (onClick) {
+      onClick(venue);
+    }
+  };
+  
   return (
-    <Card key={venue.id} className="overflow-hidden transition-all hover:shadow-md">
+    <Card 
+      key={venue.id} 
+      className="overflow-hidden transition-all hover:shadow-md cursor-pointer" 
+      onClick={handleCardClick}
+    >
       <CardHeader className="pb-2 border-b bg-muted/20">
         <div className="flex justify-between items-start">
           <div>
@@ -45,7 +64,10 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
             {total_checkins > 0 && (
               <div 
                 className="flex items-center mt-1 text-sm text-muted-foreground cursor-pointer hover:text-foreground"
-                onClick={() => setShowCheckInsDialog(true)}
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent card click
+                  setShowCheckInsDialog(true);
+                }}
                 role="button"
                 aria-label="View check-ins"
               >
@@ -100,6 +122,7 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-sm text-blue-500 hover:text-blue-700 hover:underline truncate max-w-[200px]"
+                onClick={(e) => e.stopPropagation()} // Prevent card click when clicking the link
               >
                 {venue.website_url.replace(/^https?:\/\//, '')}
               </a>
@@ -112,7 +135,10 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onEdit(venue)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click
+                onEdit(venue);
+              }}
               className="flex-1"
             >
               <Edit className="mr-1" size={14} />
@@ -121,7 +147,10 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => onEditHours(venue)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click
+                onEditHours(venue);
+              }}
               className="flex-1"
             >
               <Clock className="mr-1" size={14} />
@@ -131,7 +160,10 @@ const VenueCard = ({ venue, ratingData, onEdit, onEditHours, onDelete }: VenueCa
               variant="outline" 
               size="sm" 
               className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
-              onClick={() => onDelete(venue)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent card click
+                onDelete(venue);
+              }}
             >
               <Trash2 className="mr-1" size={14} />
               Delete

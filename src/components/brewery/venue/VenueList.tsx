@@ -12,6 +12,7 @@ interface VenueListProps {
   onEditHours: (venue: Venue) => void;
   onDeleteVenue: (venue: Venue) => void;
   onAddVenue: () => void;
+  onSelectVenue?: (venue: Venue) => void; // Add new prop for venue selection
 }
 
 const VenueList = ({ 
@@ -20,7 +21,8 @@ const VenueList = ({
   onEditVenue, 
   onEditHours, 
   onDeleteVenue, 
-  onAddVenue 
+  onAddVenue,
+  onSelectVenue 
 }: VenueListProps) => {
   console.log('Venues in VenueList:', venues);
   
@@ -54,6 +56,7 @@ const VenueList = ({
           onEdit={onEditVenue}
           onEditHours={onEditHours}
           onDelete={onDeleteVenue}
+          onClick={onSelectVenue} // Pass the click handler
         />
       ))}
     </div>
