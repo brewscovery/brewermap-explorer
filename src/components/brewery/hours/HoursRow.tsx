@@ -14,7 +14,7 @@ const HoursRow = ({ day, hourData }: HoursRowProps) => {
   
   if (hourData.is_closed) {
     return (
-      <div className="grid grid-cols-[80px_1fr] gap-1">
+      <div className="grid grid-cols-[80px_1fr] gap-1 px-4 py-3">
         <div className="font-medium">{day}</div>
         <div className="text-muted-foreground">Closed</div>
       </div>
@@ -22,7 +22,7 @@ const HoursRow = ({ day, hourData }: HoursRowProps) => {
   }
 
   return (
-    <div className="grid grid-cols-[80px_1fr] gap-1">
+    <div className="grid grid-cols-[80px_1fr] gap-1 px-4 py-3">
       <div className="font-medium">{day}</div>
       <div className="space-y-1">
         <div className="flex items-center gap-1">

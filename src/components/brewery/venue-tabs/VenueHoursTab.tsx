@@ -21,12 +21,13 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
   const { 
     hours, 
     isLoading, 
-    updateHours, 
+    updateVenueHours, 
     isUpdating,
     error
   } = useVenueHours(venue.id);
   
   const [formData, setFormData] = useState<VenueHour[]>([]);
+  const [hasKitchen, setHasKitchen] = useState(true);
   
   // Initialize formData when hours are loaded
   React.useEffect(() => {
@@ -52,6 +53,12 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
       });
       
       setFormData(defaultHours);
+      
+      // Check if any hours have kitchen hours set
+      const kitchenHoursExist = hours.some(h => 
+        h.kitchen_open_time !== null || h.kitchen_close_time !== null
+      );
+      setHasKitchen(kitchenHoursExist);
     }
   }, [hours, venue.id]);
   
@@ -77,7 +84,7 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
         kitchen_close_time: formatTimeForForm(hour.kitchen_close_time)
       }));
       
-      const success = await updateHours(hoursToUpdate);
+      const success = await updateVenueHours(hoursToUpdate);
       if (success) {
         toast.success('Venue hours updated successfully');
       }
@@ -136,7 +143,7 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
       </CardHeader>
       <CardContent>
         <div className="border rounded-md">
-          <VenueHoursColumnHeaders />
+          <VenueHoursColumnHeaders hasKitchen={hasKitchen} />
           <Separator />
           
           <div className="divide-y">
@@ -148,9 +155,7 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
                 <HoursRow
                   key={index}
                   day={day}
-                  dayIndex={index}
                   hourData={hourForDay}
-                  onChange={handleHourChange}
                 />
               );
             })}
