@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -23,6 +23,7 @@ import {
   PlusCircle,
   ChevronDown,
   ChevronRight,
+  Store,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -31,6 +32,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Brewery } from '@/types/brewery';
+import { useBreweryVenues } from '@/hooks/useBreweryVenues';
+import { Venue } from '@/types/venue';
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
@@ -48,6 +51,9 @@ const DashboardSidebar = () => {
   // Track which brewery sections are expanded
   const [expandedBreweries, setExpandedBreweries] = useState<Record<string, boolean>>({});
   
+  // Track venues per brewery to avoid excessive fetching
+  const [breweryVenues, setBreweryVenues] = useState<Record<string, Venue[]>>({});
+  
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -63,17 +69,64 @@ const DashboardSidebar = () => {
     return location.pathname === path;
   };
   
+  const isVenueActive = (path: string, venueId: string) => {
+    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
+  };
+  
   const toggleBreweryExpanded = (breweryId: string) => {
     setExpandedBreweries(prev => ({
       ...prev,
       [breweryId]: !prev[breweryId]
     }));
+    
+    // If expanding, ensure we have venues for this brewery
+    if (!expandedBreweries[breweryId]) {
+      fetchVenuesForBrewery(breweryId);
+    }
+  };
+  
+  const fetchVenuesForBrewery = async (breweryId: string) => {
+    if (breweryVenues[breweryId] || !breweryId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('venues')
+        .select('*')
+        .eq('brewery_id', breweryId)
+        .order('name');
+        
+      if (error) throw error;
+      
+      setBreweryVenues(prev => ({
+        ...prev,
+        [breweryId]: data as Venue[]
+      }));
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+    }
   };
   
   const handleAddVenue = (brewery: Brewery) => {
     setSelectedBrewery(brewery);
-    navigate('/dashboard/venues');
+    navigate('/dashboard/venues?action=add');
   };
+  
+  const handleVenueClick = (venue: Venue) => {
+    navigate(`/dashboard/venues?venueId=${venue.id}`);
+  };
+
+  // Prefetch venues for the selected brewery
+  useEffect(() => {
+    if (selectedBrewery?.id) {
+      fetchVenuesForBrewery(selectedBrewery.id);
+      
+      // Auto-expand the selected brewery
+      setExpandedBreweries(prev => ({
+        ...prev,
+        [selectedBrewery.id]: true
+      }));
+    }
+  }, [selectedBrewery?.id]);
 
   return (
     <Sidebar>
@@ -131,22 +184,35 @@ const DashboardSidebar = () => {
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                     
-                    {/* View Venues option */}
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton
-                        onClick={() => {
-                          setSelectedBrewery(brewery);
-                          navigate('/dashboard/venues');
-                        }}
-                        isActive={
-                          isActive('/dashboard/venues') && 
-                          selectedBrewery?.id === brewery.id
-                        }
-                      >
-                        <MapPin size={14} />
-                        <span>Manage Venues</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
+                    {/* List of venues */}
+                    {breweryVenues[brewery.id]?.map((venue) => (
+                      <SidebarMenuSubItem key={venue.id}>
+                        <SidebarMenuSubButton
+                          onClick={() => handleVenueClick(venue)}
+                          isActive={isVenueActive('/dashboard/venues', venue.id)}
+                        >
+                          <Store size={14} />
+                          <span className="truncate">{venue.name}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                    
+                    {/* Loading or empty state */}
+                    {!breweryVenues[brewery.id] && (
+                      <SidebarMenuSubItem>
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          Loading venues...
+                        </div>
+                      </SidebarMenuSubItem>
+                    )}
+                    
+                    {breweryVenues[brewery.id]?.length === 0 && (
+                      <SidebarMenuSubItem>
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          No venues yet
+                        </div>
+                      </SidebarMenuSubItem>
+                    )}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </Collapsible>
