@@ -2,12 +2,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import DashboardHeader from '@/components/dashboard/DashboardHeader';
-import DashboardTabs from '@/components/dashboard/DashboardTabs';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
+import BreweryManager from '@/components/dashboard/BreweryManager';
 
 const Dashboard = () => {
-  const { user, userType, firstName, lastName, loading } = useAuth();
+  const { user, userType, loading } = useAuth();
   const navigate = useNavigate();
   
   // Redirect if not a business user
@@ -16,10 +15,6 @@ const Dashboard = () => {
       navigate('/');
     }
   }, [user, userType, loading, navigate]);
-  
-  const displayName = userType === 'business' 
-    ? firstName || 'Business'
-    : `${firstName || ''} ${lastName || 'User'}`.trim();
 
   const { 
     breweries, 
@@ -31,32 +26,26 @@ const Dashboard = () => {
 
   // If still loading or no user, show loading state
   if (loading || !user) {
-    return <div className="pt-[73px] p-6 text-center">Loading dashboard...</div>;
+    return <div className="p-6 text-center">Loading dashboard...</div>;
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <DashboardHeader displayName={displayName} />
+    <div className="max-w-5xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6">Overview</h2>
       
-      <div className="flex-1 pt-[73px] p-6">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold mb-6">Dashboard</h2>
-          
-          {userType === 'business' ? (
-            <DashboardTabs
-              breweries={breweries}
-              selectedBrewery={selectedBrewery}
-              isLoading={isLoading}
-              onBrewerySelect={setSelectedBrewery}
-              onNewBreweryAdded={fetchBreweries}
-            />
-          ) : (
-            <p className="text-muted-foreground">
-              Welcome to your dashboard{firstName ? `, ${firstName}` : ''}. User features will be added here soon.
-            </p>
-          )}
-        </div>
-      </div>
+      {userType === 'business' ? (
+        <BreweryManager
+          breweries={breweries}
+          selectedBrewery={selectedBrewery}
+          isLoading={isLoading}
+          onBrewerySelect={setSelectedBrewery}
+          onNewBreweryAdded={fetchBreweries}
+        />
+      ) : (
+        <p className="text-muted-foreground">
+          Welcome to your dashboard. User features will be added here soon.
+        </p>
+      )}
     </div>
   );
 };
