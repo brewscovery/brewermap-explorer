@@ -19,6 +19,23 @@ interface VenueProperties {
 const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
   const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Point, VenueProperties> | null>(null);
+  const [isStyleLoaded, setIsStyleLoaded] = useState(map.isStyleLoaded());
+
+  // Handle style loading
+  useEffect(() => {
+    if (!isStyleLoaded) {
+      const onStyleLoad = () => {
+        console.log('Style loaded in MapSource');
+        setIsStyleLoaded(true);
+      };
+      
+      map.once('style.load', onStyleLoad);
+      
+      return () => {
+        map.off('style.load', onStyleLoad);
+      };
+    }
+  }, [map, isStyleLoaded]);
 
   // Create GeoJSON data from venues
   const createGeoJsonData = useCallback(() => {
@@ -64,93 +81,85 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
 
   // Add source and layers to map
   const addSourceAndLayers = useCallback(() => {
-    if (!geoJsonData) return;
+    if (!geoJsonData || !isStyleLoaded) return;
     
     console.log('Adding source and layers');
     
-    // Clean up existing source and layers
-    ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-      if (map.getLayer(layer)) {
-        map.removeLayer(layer);
+    try {
+      // Clean up existing source and layers if they exist
+      ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+        if (map.getLayer(layer)) {
+          map.removeLayer(layer);
+        }
+      });
+      
+      if (map.getSource('venues')) {
+        map.removeSource('venues');
       }
-    });
-    
-    if (map.getSource('venues')) {
-      map.removeSource('venues');
+      
+      // Add new source with clustering enabled
+      map.addSource('venues', {
+        type: 'geojson',
+        data: geoJsonData,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+        generateId: true // Ensures unique IDs for features
+      });
+      
+      sourceAdded.current = true;
+      console.log('Source added successfully');
+    } catch (error) {
+      console.error('Error adding source:', error);
     }
-    
-    // Add new source with clustering enabled
-    map.addSource('venues', {
-      type: 'geojson',
-      data: geoJsonData,
-      cluster: true,
-      clusterMaxZoom: 14,
-      clusterRadius: 50,
-      generateId: true // Ensures unique IDs for features
-    });
-    
-    sourceAdded.current = true;
-    console.log('Source added successfully');
-  }, [map, geoJsonData]);
+  }, [map, geoJsonData, isStyleLoaded]);
 
   // Initialize the source when the map is loaded
   useEffect(() => {
-    if (!geoJsonData) return;
+    if (!geoJsonData || !isStyleLoaded) return;
 
-    const initializeSource = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Style not loaded, waiting for style.load event');
-        const onStyleLoad = () => {
-          console.log('Style loaded, initializing source');
-          addSourceAndLayers();
-          map.off('style.load', onStyleLoad);
-        };
-        map.on('style.load', onStyleLoad);
-      } else {
-        console.log('Style already loaded, initializing source');
-        addSourceAndLayers();
-      }
-    };
-
-    // Initialize source when component mounts or venues change
-    if (venues.length > 0) {
-      console.log(`Initializing source with ${venues.length} venues`);
-      initializeSource();
-    }
+    addSourceAndLayers();
 
     // Cleanup function
     return () => {
-      if (!map.getStyle()) return;
+      if (!map || !map.loaded()) return;
       
-      console.log('Cleaning up source and layers');
       try {
-        ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
+        // Only attempt cleanup if style is loaded
+        if (map.isStyleLoaded()) {
+          console.log('Cleaning up source and layers');
+          ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
+            if (map.getLayer(layer)) {
+              map.removeLayer(layer);
+            }
+          });
+          if (map.getSource('venues')) {
+            map.removeSource('venues');
           }
-        });
-        if (map.getSource('venues')) {
-          map.removeSource('venues');
+          sourceAdded.current = false;
         }
-        sourceAdded.current = false;
       } catch (error) {
         console.warn('Error cleaning up:', error);
       }
     };
-  }, [map, venues, geoJsonData, addSourceAndLayers]);
+  }, [map, venues, geoJsonData, addSourceAndLayers, isStyleLoaded]);
 
   // Update source data when venues change and source exists
   useEffect(() => {
-    if (!geoJsonData) return;
+    if (!geoJsonData || !isStyleLoaded) return;
     
     if (sourceAdded.current) {
-      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
-      if (source) {
-        console.log('Updating existing source data');
-        source.setData(geoJsonData);
+      try {
+        const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
+        if (source) {
+          console.log('Updating existing source data');
+          source.setData(geoJsonData);
+        }
+      } catch (error) {
+        console.error('Error updating source data:', error);
       }
     }
-  }, [map, geoJsonData]);
+  }, [map, geoJsonData, isStyleLoaded]);
 
   return <>{children}</>;
 };

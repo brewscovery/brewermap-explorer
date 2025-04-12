@@ -31,26 +31,19 @@ export const useMapInitialization = () => {
       // Create and store the style load listener
       const onStyleLoad = () => {
         console.log('Map style loaded');
-        if (newMap.isStyleLoaded()) {
-          setIsStyleLoaded(true);
-        } else {
-          // If style isn't loaded yet, wait for it
-          const checkStyle = setInterval(() => {
-            if (newMap.isStyleLoaded()) {
-              clearInterval(checkStyle);
-              setIsStyleLoaded(true);
-            }
-          }, 100);
-
-          // Clean up interval after 5 seconds if style hasn't loaded
-          setTimeout(() => clearInterval(checkStyle), 5000);
-        }
+        setIsStyleLoaded(true);
       };
       
       onStyleLoadRef.current = onStyleLoad;
 
-      // Add the event listener
+      // Add the event listener - better error handling
       newMap.on('style.load', onStyleLoad);
+      
+      // Handle error events
+      newMap.on('error', (e) => {
+        console.error('Map error:', e.error);
+        toast.error('Map error occurred');
+      });
 
       // Check if style is already loaded
       if (newMap.isStyleLoaded()) {
@@ -59,20 +52,32 @@ export const useMapInitialization = () => {
 
       map.current = newMap;
       initializedRef.current = true;
+      
+      // Safety check: If style hasn't loaded after 5 seconds, check again
+      setTimeout(() => {
+        if (!isStyleLoaded && newMap.isStyleLoaded()) {
+          console.log('Style loaded but event not fired, manually setting isStyleLoaded');
+          setIsStyleLoaded(true);
+        }
+      }, 5000);
+      
     } catch (error) {
       console.error('Error initializing map:', error);
       toast.error('Failed to initialize map');
     }
-  }, []);
+  }, [isStyleLoaded]);
 
   // Initial map setup
   useEffect(() => {
     initializeMap();
 
     return () => {
-      if (map.current && onStyleLoadRef.current) {
+      if (map.current) {
         try {
-          map.current.off('style.load', onStyleLoadRef.current);
+          // Clean up event listeners
+          if (onStyleLoadRef.current) {
+            map.current.off('style.load', onStyleLoadRef.current);
+          }
           map.current.remove();
         } catch (error) {
           console.error('Error cleaning up map:', error);
