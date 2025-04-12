@@ -5,6 +5,7 @@ import AdminBreweryForm from './AdminBreweryForm';
 import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
 import type { Brewery } from '@/types/brewery';
 import type { BreweryData } from '@/types/admin';
+import type { BreweryFormValues } from './form/types';
 
 // Create a union type that accepts either Brewery or BreweryData
 type BreweryInput = Partial<Brewery> & {
@@ -56,7 +57,7 @@ const AdminBreweryDialog = ({
     }
   }, [open]);
   
-  const handleSubmit = async (formData: any) => {
+  const handleSubmit = async (formData: BreweryFormValues) => {
     try {
       if (mode === 'create') {
         await createBrewery.mutateAsync(formData);
