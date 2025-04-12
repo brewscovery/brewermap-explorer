@@ -31,31 +31,38 @@ export const useMapInitialization = () => {
       // Create and store the style load listener
       const onStyleLoad = () => {
         console.log('Map style loaded');
-        if (newMap.isStyleLoaded()) {
+        
+        // Only set isStyleLoaded to true when the style is actually fully loaded
+        // and the Map is in a usable state
+        if (newMap.loaded() && newMap.isStyleLoaded() && newMap.getStyle()) {
+          console.log('Map style confirmed to be loaded and ready');
           setIsStyleLoaded(true);
         } else {
-          // If style isn't loaded yet, wait for it
-          const checkStyle = setInterval(() => {
-            if (newMap.isStyleLoaded()) {
-              clearInterval(checkStyle);
+          console.log('Style load event fired but style not fully ready yet, waiting for map to be ready');
+          
+          // Wait for the next render cycle to check again
+          newMap.once('render', () => {
+            if (newMap.loaded() && newMap.isStyleLoaded() && newMap.getStyle()) {
+              console.log('Map style now confirmed ready after render');
               setIsStyleLoaded(true);
             }
-          }, 100);
-
-          // Clean up interval after 5 seconds if style hasn't loaded
-          setTimeout(() => clearInterval(checkStyle), 5000);
+          });
         }
       };
       
       onStyleLoadRef.current = onStyleLoad;
 
-      // Add the event listener
+      // Add the event listener for style.load
       newMap.on('style.load', onStyleLoad);
 
-      // Check if style is already loaded
-      if (newMap.isStyleLoaded()) {
-        onStyleLoad();
-      }
+      // Also listen for the load event which fires when the map has been fully loaded
+      newMap.on('load', () => {
+        console.log('Map fully loaded');
+        if (newMap.isStyleLoaded() && newMap.getStyle()) {
+          console.log('Style confirmed loaded on map load event');
+          setIsStyleLoaded(true);
+        }
+      });
 
       map.current = newMap;
       initializedRef.current = true;
