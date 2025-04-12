@@ -2,16 +2,12 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  SidebarProvider, 
   Sidebar, 
-  SidebarHeader,
   SidebarContent, 
   SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger,
-  useSidebar
 } from '@/components/ui/sidebar';
 import { 
   Beer, 
@@ -21,23 +17,13 @@ import {
   User, 
   LogOut, 
   LayoutDashboard,
-  PanelLeftClose,
-  PanelLeft
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { firstName, lastName } = useAuth();
-  const { state, toggleSidebar } = useSidebar();
-  
-  const displayName = firstName || lastName 
-    ? `${firstName || ''} ${lastName || ''}`.trim()
-    : 'Business Owner';
   
   const handleLogout = async () => {
     try {
@@ -54,33 +40,8 @@ const DashboardSidebar = () => {
     return location.pathname === path;
   };
 
-  const SidebarCollapseButton = () => (
-    <Button 
-      variant="ghost" 
-      size="icon"
-      onClick={toggleSidebar}
-      className="hidden md:flex"
-    >
-      {state === 'expanded' ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-      <span className="sr-only">
-        {state === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
-      </span>
-    </Button>
-  );
-
   return (
     <Sidebar>
-      <SidebarHeader className="flex flex-col items-center justify-center p-4">
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2">
-            <SidebarTrigger className="md:hidden" />
-            <h2 className="font-bold text-xl">Brewery Dashboard</h2>
-          </div>
-          <SidebarCollapseButton />
-        </div>
-        <p className="text-sm text-muted-foreground mt-1">{displayName}</p>
-      </SidebarHeader>
-      
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
