@@ -73,7 +73,7 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
         onEditHours={handleEditHours}
         onDeleteVenue={handleDeleteVenue}
         onAddVenue={handleAddVenue}
-        onSelectVenue={handleSelectVenue} // Add the select handler
+        onSelectVenue={handleSelectVenue}
       />
       
       {selectedVenue && (

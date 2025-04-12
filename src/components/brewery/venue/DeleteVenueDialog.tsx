@@ -6,15 +6,16 @@ import type { Venue } from '@/types/venue';
 interface DeleteVenueDialogProps {
   venue: Venue | null;
   isDeleting: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
   onConfirm: () => void;
+  open: boolean;  // Adding the open prop to make it compatible with VenueManagement
 }
 
-const DeleteVenueDialog = ({ venue, isDeleting, onClose, onConfirm }: DeleteVenueDialogProps) => {
+const DeleteVenueDialog = ({ venue, isDeleting, onOpenChange, onConfirm, open }: DeleteVenueDialogProps) => {
   if (!venue) return null;
   
   return (
-    <Dialog open={!!venue} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Confirm Deletion</DialogTitle>
@@ -25,7 +26,7 @@ const DeleteVenueDialog = ({ venue, isDeleting, onClose, onConfirm }: DeleteVenu
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
             variant="outline"
-            onClick={onClose}
+            onClick={() => onOpenChange(false)}
           >
             Cancel
           </Button>
