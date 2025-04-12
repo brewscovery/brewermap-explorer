@@ -6,6 +6,7 @@ import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
 import type { Brewery } from '@/types/brewery';
 import type { BreweryData } from '@/types/admin';
 import type { BreweryFormValues } from './form/types';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Create a union type that accepts either Brewery or BreweryData
 type BreweryInput = Partial<Brewery> & {
@@ -102,13 +103,15 @@ const AdminBreweryDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        <div className="py-4">
-          <AdminBreweryForm
-            initialData={brewery}
-            onSubmit={handleSubmit}
-            isLoading={isLoading}
-          />
-        </div>
+        <ScrollArea className="h-[calc(100vh-250px)] pr-4">
+          <div className="py-4">
+            <AdminBreweryForm
+              initialData={brewery}
+              onSubmit={handleSubmit}
+              isLoading={isLoading}
+            />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
