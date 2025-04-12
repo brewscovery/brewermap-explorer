@@ -38,6 +38,8 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
       
       if (error) throw error;
       
+      toast.success('Logged in successfully');
+      
       // After successful authentication, fetch the user's profile to check user type
       const { data: { session } } = await supabase.auth.getSession();
       
@@ -55,14 +57,18 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
           
           // Properly cast the JSON response to our interface
           const userProfile = profileData as unknown as UserProfileData;
+          console.log('User profile after login:', userProfile);
           
           // Redirect based on user type
           if (userProfile.user_type === 'admin') {
-            navigate('/admin');
+            console.log('Redirecting admin to /admin');
+            navigate('/admin', { replace: true });
           } else if (userProfile.user_type === 'business') {
-            navigate('/dashboard');
+            console.log('Redirecting business to /dashboard');
+            navigate('/dashboard', { replace: true });
           } else {
-            navigate('/');
+            console.log('Redirecting regular user to /');
+            navigate('/', { replace: true });
           }
         } catch (profileErr) {
           console.error('Error in profile fetch:', profileErr);
