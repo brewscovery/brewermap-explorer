@@ -125,7 +125,6 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
         open={showHoursDialog}
         onOpenChange={setShowHoursDialog}
         venue={venue}
-        onClose={() => setShowHoursDialog(false)}
       />
     </>
   );
