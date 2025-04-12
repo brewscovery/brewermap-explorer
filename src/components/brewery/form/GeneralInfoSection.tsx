@@ -16,14 +16,14 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { BreweryFormData } from '../../../types/brewery';
 import { getAllCountries, DEFAULT_COUNTRY } from '@/utils/countryUtils';
+import { UnifiedBreweryFormValues } from '../UnifiedBreweryForm';
 
 // Get all countries for dropdown
 const allCountries = getAllCountries();
 
 interface GeneralInfoSectionProps {
-  form: UseFormReturn<BreweryFormData>;
+  form: UseFormReturn<UnifiedBreweryFormValues>;
 }
 
 const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
@@ -38,7 +38,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
           <FormItem>
             <FormLabel>Name</FormLabel>
             <FormControl>
-              <Input placeholder="Brewery name" {...field} required />
+              <Input placeholder="Brewery name" {...field} required value={field.value || ''} />
             </FormControl>
           </FormItem>
         )}
@@ -51,7 +51,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
           <FormItem>
             <FormLabel>Type</FormLabel>
             <FormControl>
-              <Input placeholder="micro, brewpub, etc." {...field} />
+              <Input placeholder="micro, brewpub, etc." {...field} value={field.value || ''} />
             </FormControl>
           </FormItem>
         )}
@@ -97,6 +97,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
                 className="min-h-[120px]"
                 maxLength={1000}
                 {...field} 
+                value={field.value || ''}
               />
             </FormControl>
           </FormItem>

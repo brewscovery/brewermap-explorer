@@ -8,10 +8,10 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { BreweryFormData } from '../../../types/brewery';
+import { UnifiedBreweryFormValues } from '../UnifiedBreweryForm';
 
 interface WebsiteSectionProps {
-  form: UseFormReturn<BreweryFormData>;
+  form: UseFormReturn<UnifiedBreweryFormValues>;
 }
 
 const WebsiteSection = ({ form }: WebsiteSectionProps) => {
@@ -26,7 +26,7 @@ const WebsiteSection = ({ form }: WebsiteSectionProps) => {
           <FormItem>
             <FormLabel>Website URL</FormLabel>
             <FormControl>
-              <Input placeholder="https://example.com" {...field} />
+              <Input placeholder="https://example.com" {...field} value={field.value || ''} />
             </FormControl>
           </FormItem>
         )}
@@ -40,7 +40,7 @@ const WebsiteSection = ({ form }: WebsiteSectionProps) => {
             <FormItem>
               <FormLabel>Facebook URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://facebook.com/yourbrewery" {...field} />
+                <Input placeholder="https://facebook.com/yourbrewery" {...field} value={field.value || ''} />
               </FormControl>
             </FormItem>
           )}
@@ -53,7 +53,7 @@ const WebsiteSection = ({ form }: WebsiteSectionProps) => {
             <FormItem>
               <FormLabel>Instagram URL</FormLabel>
               <FormControl>
-                <Input placeholder="https://instagram.com/yourbrewery" {...field} />
+                <Input placeholder="https://instagram.com/yourbrewery" {...field} value={field.value || ''} />
               </FormControl>
             </FormItem>
           )}

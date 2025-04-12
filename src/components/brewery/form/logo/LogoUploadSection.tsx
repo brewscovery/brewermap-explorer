@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { BreweryFormData } from '@/types/brewery';
 import {
   FormControl,
   FormField,
@@ -11,9 +10,10 @@ import {
 import { useLogoUpload } from './useLogoUpload';
 import { LogoPreview } from './LogoPreview';
 import { LogoUploadButton } from './LogoUploadButton';
+import { UnifiedBreweryFormValues } from '../../UnifiedBreweryForm';
 
 interface LogoUploadSectionProps {
-  form: UseFormReturn<BreweryFormData>;
+  form: UseFormReturn<UnifiedBreweryFormValues>;
   breweryId?: string;
 }
 
@@ -47,7 +47,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
               <div className="flex flex-col items-center gap-4">
                 <LogoPreview 
                   previewUrl={previewUrl} 
-                  breweryName={form.getValues('name')}
+                  breweryName={form.getValues('name') || 'Brewery'}
                   onRemove={handleRemoveLogo}
                 />
                 
