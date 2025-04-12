@@ -6,7 +6,7 @@ import DeleteBreweryDialog from '@/components/admin/brewery/AdminDeleteBreweryDi
 import AdminVenueManagement from '@/components/admin/brewery/AdminVenueManagement';
 import BreweriesSearchForm from './breweries/BreweriesSearchForm';
 import BreweriesFilters from './breweries/BreweriesFilters';
-import BreweriesTable from './breweries/BreweriesTable';
+import { BreweriesTable } from './breweries/table';
 import type { BreweryData } from '@/hooks/useAdminData';
 
 // Type for sorting options
