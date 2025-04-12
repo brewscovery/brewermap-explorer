@@ -10,17 +10,30 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarTrigger
+  SidebarTrigger,
+  useSidebar
 } from '@/components/ui/sidebar';
-import { Beer, MapPin, Settings, Map, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { 
+  Beer, 
+  MapPin, 
+  Settings, 
+  Map, 
+  User, 
+  LogOut, 
+  LayoutDashboard,
+  PanelLeftClose,
+  PanelLeft
+} from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 
 const DashboardSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { firstName, lastName } = useAuth();
+  const { state, toggleSidebar } = useSidebar();
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -41,12 +54,29 @@ const DashboardSidebar = () => {
     return location.pathname === path;
   };
 
+  const SidebarCollapseButton = () => (
+    <Button 
+      variant="ghost" 
+      size="icon"
+      onClick={toggleSidebar}
+      className="hidden md:flex"
+    >
+      {state === 'expanded' ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
+      <span className="sr-only">
+        {state === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
+      </span>
+    </Button>
+  );
+
   return (
     <Sidebar>
       <SidebarHeader className="flex flex-col items-center justify-center p-4">
-        <div className="flex items-center gap-2">
-          <SidebarTrigger className="md:hidden" />
-          <h2 className="font-bold text-xl">Brewery Dashboard</h2>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-2">
+            <SidebarTrigger className="md:hidden" />
+            <h2 className="font-bold text-xl">Brewery Dashboard</h2>
+          </div>
+          <SidebarCollapseButton />
         </div>
         <p className="text-sm text-muted-foreground mt-1">{displayName}</p>
       </SidebarHeader>
