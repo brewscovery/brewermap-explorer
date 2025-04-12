@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import BreweryForm from '@/components/BreweryForm';
+import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 
 interface CreateBreweryDialogProps {
   open: boolean;
@@ -30,7 +30,12 @@ const CreateBreweryDialog = ({
         <DialogHeader>
           <DialogTitle>Create Your Brewery</DialogTitle>
         </DialogHeader>
-        <BreweryForm onSubmitSuccess={handleSuccess} />
+        
+        <UnifiedBreweryForm 
+          onSubmit={() => {}} // Not needed in regular user mode
+          onSubmitSuccess={handleSuccess} 
+          isAdminMode={false}
+        />
       </DialogContent>
     </Dialog>
   );

@@ -1,11 +1,11 @@
 
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed'; // Use fixed dialog
-import AdminBreweryForm from './AdminBreweryForm';
 import { useCreateBrewery, useUpdateBrewery } from '@/hooks/useAdminBreweries';
 import type { Brewery } from '@/types/brewery';
 import type { BreweryData } from '@/types/admin';
-import type { BreweryFormValues } from './form/types';
+import type { UnifiedBreweryFormValues } from '@/components/brewery/UnifiedBreweryForm';
+import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Create a union type that accepts either Brewery or BreweryData
@@ -58,7 +58,7 @@ const AdminBreweryDialog = ({
     }
   }, [open]);
   
-  const handleSubmit = async (formData: BreweryFormValues) => {
+  const handleSubmit = async (formData: UnifiedBreweryFormValues) => {
     try {
       if (mode === 'create') {
         await createBrewery.mutateAsync(formData);
@@ -103,15 +103,14 @@ const AdminBreweryDialog = ({
           </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="h-[calc(100vh-250px)] pr-4">
-          <div className="py-4">
-            <AdminBreweryForm
-              initialData={brewery}
-              onSubmit={handleSubmit}
-              isLoading={isLoading}
-            />
-          </div>
-        </ScrollArea>
+        <div className="py-4 h-[calc(100vh-250px)]">
+          <UnifiedBreweryForm
+            initialData={brewery}
+            onSubmit={handleSubmit}
+            isLoading={isLoading}
+            isAdminMode={true}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
