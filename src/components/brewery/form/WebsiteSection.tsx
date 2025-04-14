@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   FormControl,
@@ -7,7 +8,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedBreweryFormValues } from '../BreweryFormContent';
+import { UnifiedBreweryFormValues } from './BreweryFormContent';
 
 interface WebsiteSectionProps {
   form: UseFormReturn<UnifiedBreweryFormValues>;

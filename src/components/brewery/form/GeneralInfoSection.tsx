@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   FormControl,
@@ -16,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { getAllCountries, DEFAULT_COUNTRY } from '@/utils/countryUtils';
-import { UnifiedBreweryFormValues } from '../BreweryFormContent';
+import { UnifiedBreweryFormValues } from './BreweryFormContent';
 
 // Get all countries for dropdown
 const allCountries = getAllCountries();
