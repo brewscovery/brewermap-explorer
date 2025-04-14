@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import {
@@ -10,7 +9,7 @@ import {
 import { useLogoUpload } from './useLogoUpload';
 import { LogoPreview } from './LogoPreview';
 import { LogoUploadButton } from './LogoUploadButton';
-import { UnifiedBreweryFormValues } from '../../UnifiedBreweryForm';
+import { UnifiedBreweryFormValues } from '../../form/BreweryFormContent';
 
 interface LogoUploadSectionProps {
   form: UseFormReturn<UnifiedBreweryFormValues>;

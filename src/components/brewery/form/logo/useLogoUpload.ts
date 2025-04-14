@@ -1,9 +1,8 @@
-
 import { useState, useCallback, useEffect } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { UnifiedBreweryFormValues } from '../../UnifiedBreweryForm';
+import { UnifiedBreweryFormValues } from '../../form/BreweryFormContent';
 
 // Hook to handle logo upload functionality
 export const useLogoUpload = (
