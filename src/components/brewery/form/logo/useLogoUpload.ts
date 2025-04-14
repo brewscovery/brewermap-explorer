@@ -40,7 +40,7 @@ export const useLogoUpload = (
       const filePath = `brewery-logos/${breweryId}/${Math.random()}.${fileExt}`;
 
       const { error: uploadError, data } = await supabase.storage
-        .from('brewery-assets')
+        .from('Brewery Logos')  // Updated bucket name
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
@@ -49,7 +49,7 @@ export const useLogoUpload = (
 
       // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from('brewery-assets')
+        .from('Brewery Logos')  // Updated bucket name
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
