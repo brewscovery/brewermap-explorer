@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -38,7 +39,8 @@ export const useSidebarData = (
       venueId,
       currentVenueId,
       locationPathname: location.pathname,
-      locationSearch: location.search
+      locationSearch: location.search,
+      isActive: location.pathname === path && currentVenueId === venueId
     });
     
     return location.pathname === path && currentVenueId === venueId;
@@ -86,6 +88,26 @@ export const useSidebarData = (
       };
     });
   }, [fetchVenuesForBrewery]);
+
+  // Auto-expand brewery sections based on the selected venue
+  useEffect(() => {
+    // Check if there's a venueId in the URL
+    const searchParams = new URLSearchParams(location.search);
+    const venueId = searchParams.get('venueId');
+    
+    if (venueId) {
+      // Find which brewery this venue belongs to and expand it
+      Object.entries(breweryVenues).forEach(([breweryId, venues]) => {
+        const venueExists = venues.some(venue => venue.id === venueId);
+        if (venueExists) {
+          setExpandedBreweries(prev => ({
+            ...prev,
+            [breweryId]: true
+          }));
+        }
+      });
+    }
+  }, [location.search, breweryVenues]);
 
   // Prefetch venues for the selected brewery
   useEffect(() => {
