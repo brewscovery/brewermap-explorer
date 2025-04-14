@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { X, Upload } from 'lucide-react';
@@ -11,14 +11,26 @@ interface LogoPreviewProps {
 }
 
 export const LogoPreview = ({ previewUrl, breweryName, onRemove }: LogoPreviewProps) => {
-  if (!previewUrl) {
+  const [imageError, setImageError] = useState(false);
+
+  // Reset image error state when preview URL changes
+  React.useEffect(() => {
+    setImageError(false);
+  }, [previewUrl]);
+
+  const handleImageError = () => {
+    console.error('Failed to load logo image:', previewUrl);
+    setImageError(true);
+  };
+
+  if (!previewUrl || imageError) {
     return (
       <div className="border rounded-md p-4 w-full flex flex-col items-center gap-2">
         <div className="bg-muted rounded-full p-3">
           <Upload className="h-5 w-5" />
         </div>
         <p className="text-sm text-muted-foreground text-center">
-          Upload a logo for your brewery
+          {imageError ? 'Error loading logo' : 'Upload a logo for your brewery'}
         </p>
       </div>
     );
@@ -27,7 +39,11 @@ export const LogoPreview = ({ previewUrl, breweryName, onRemove }: LogoPreviewPr
   return (
     <div className="relative">
       <Avatar className="w-24 h-24 border">
-        <AvatarImage src={previewUrl} alt="Brewery logo" />
+        <AvatarImage 
+          src={previewUrl} 
+          alt="Brewery logo" 
+          onError={handleImageError}
+        />
         <AvatarFallback>{breweryName.substring(0, 2).toUpperCase()}</AvatarFallback>
       </Avatar>
       <Button

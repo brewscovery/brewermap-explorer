@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Edit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,11 @@ interface BreweryCardProps {
 
 const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps) => {
   const [imageError, setImageError] = useState(false);
+  
+  // Reset error state when brewery logo URL changes
+  useEffect(() => {
+    setImageError(false);
+  }, [brewery.logo_url]);
   
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();

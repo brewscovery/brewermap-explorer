@@ -29,7 +29,7 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
     // Set preview from form value
     const logoUrl = form.getValues('logo_url');
     if (logoUrl) {
-      console.log('Setting logo preview from form value:', logoUrl);
+      console.log('Logo URL from form:', logoUrl);
     }
   }, [form]);
   
