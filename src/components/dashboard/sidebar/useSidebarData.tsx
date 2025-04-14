@@ -26,22 +26,6 @@ export const useSidebarData = (
     return location.pathname === path && location.search.includes(`venueId=${venueId}`);
   }, [location.pathname, location.search]);
   
-  const toggleBreweryExpanded = useCallback((breweryId: string) => {
-    setExpandedBreweries(prev => ({
-      ...prev,
-      [breweryId]: !prev[breweryId]
-    }));
-    
-    // If expanding, ensure we have venues for this brewery
-    setExpandedBreweries(prev => {
-      const isExpanding = !prev[breweryId];
-      if (isExpanding) {
-        fetchVenuesForBrewery(breweryId);
-      }
-      return prev;
-    });
-  }, []);
-  
   const fetchVenuesForBrewery = useCallback(async (breweryId: string) => {
     if (breweryVenues[breweryId] || !breweryId) return;
     
@@ -62,6 +46,28 @@ export const useSidebarData = (
       console.error('Error fetching venues:', error);
     }
   }, [breweryVenues]);
+
+  // Fixed toggle function to avoid the double state update issue
+  const toggleBreweryExpanded = useCallback((breweryId: string) => {
+    // Single state update with both toggle and venue fetching
+    setExpandedBreweries(prev => {
+      const newExpanded = !prev[breweryId];
+      
+      // If we're expanding, ensure we fetch venues for this brewery
+      if (newExpanded) {
+        // Use setTimeout to avoid React's batched updates preventing the fetch
+        setTimeout(() => {
+          fetchVenuesForBrewery(breweryId);
+        }, 0);
+      }
+      
+      // Return the new state
+      return {
+        ...prev,
+        [breweryId]: newExpanded
+      };
+    });
+  }, [fetchVenuesForBrewery]);
 
   // Prefetch venues for the selected brewery
   useEffect(() => {
