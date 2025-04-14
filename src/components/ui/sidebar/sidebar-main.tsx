@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { cn } from "./sidebar-context";
+import { cn } from "@/lib/utils"; // Import from utils instead
 import { useSidebar } from "./sidebar-context";
 
 const SIDEBAR_WIDTH = "16rem";

@@ -4,7 +4,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { VariantProps, cva } from "class-variance-authority";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "./sidebar-context";
+import { cn } from "@/lib/utils"; // Import from utils instead
 import { useSidebar } from "./sidebar-context";
 
 // Menu Components
