@@ -18,12 +18,23 @@ export const useSidebarData = (
   // Track venues per brewery to avoid excessive fetching
   const [breweryVenues, setBreweryVenues] = useState<Record<string, Venue[]>>({});
   
+  // Enhanced isActive function that checks path more precisely
   const isActive = useCallback((path: string) => {
+    // Root dashboard case
+    if (path === '/dashboard' && location.pathname === '/dashboard') {
+      return true;
+    }
+    
+    // Exact match for other routes
     return location.pathname === path;
   }, [location.pathname]);
   
+  // Enhanced isVenueActive function that checks both path and venue ID
   const isVenueActive = useCallback((path: string, venueId: string) => {
-    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
+    const searchParams = new URLSearchParams(location.search);
+    const currentVenueId = searchParams.get('venueId');
+    
+    return location.pathname === path && currentVenueId === venueId;
   }, [location.pathname, location.search]);
   
   const fetchVenuesForBrewery = useCallback(async (breweryId: string) => {

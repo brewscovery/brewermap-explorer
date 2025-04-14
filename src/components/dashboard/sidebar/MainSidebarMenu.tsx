@@ -52,6 +52,7 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
       {/* Add Brewery Button - Always visible */}
       <SidebarMenuItem>
         <SidebarMenuButton 
+          isActive={isActive('/dashboard/breweries')}
           onClick={() => navigate('/dashboard/breweries')}
         >
           <PlusCircle size={18} />
