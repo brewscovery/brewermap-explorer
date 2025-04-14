@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
@@ -11,7 +12,8 @@ import {
   Clock, 
   Beer, 
   Utensils, 
-  Trash2 
+  Trash2,
+  PlusCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
@@ -37,6 +39,7 @@ import {
   AlertDialogTitle 
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import EditVenueDialog from '@/components/brewery/EditVenueDialog';
 
 const VenuesPage = () => {
   const location = useLocation();
@@ -60,7 +63,9 @@ const VenuesPage = () => {
     isLoading: isLoadingVenues, 
     refetch: refetchVenues,
     deleteVenue,
-    isDeleting
+    isDeleting,
+    updateVenue,
+    isUpdating
   } = useBreweryVenues(selectedBrewery?.id);
   
   useEffect(() => {
