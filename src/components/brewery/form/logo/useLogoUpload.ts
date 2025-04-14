@@ -31,6 +31,27 @@ export const useLogoUpload = (
     return data.publicUrl;
   };
 
+  // Update the brewery logo_url in the database
+  const updateBreweryLogoInDatabase = async (publicUrl: string) => {
+    if (!breweryId) return;
+    
+    console.log('Updating brewery logo in database:', publicUrl);
+    
+    const { error } = await supabase
+      .from('breweries')
+      .update({ logo_url: publicUrl, updated_at: new Date().toISOString() })
+      .eq('id', breweryId);
+    
+    if (error) {
+      console.error('Error updating brewery logo in database:', error);
+      toast.error('Logo uploaded but failed to update brewery record');
+      return false;
+    }
+    
+    console.log('Brewery logo updated in database successfully');
+    return true;
+  };
+
   // Handle logo upload
   const handleUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     if (!breweryId) {
@@ -72,7 +93,14 @@ export const useLogoUpload = (
       form.setValue('logo_url', publicUrl);
       setPreviewUrl(publicUrl);
 
-      toast.success('Logo uploaded successfully!');
+      // Immediately update the brewery record in the database
+      const updated = await updateBreweryLogoInDatabase(publicUrl);
+      
+      if (updated) {
+        toast.success('Logo uploaded and brewery updated successfully!');
+      } else {
+        toast.success('Logo uploaded successfully! Save the form to update the brewery.');
+      }
     } catch (error: any) {
       toast.error(`Error uploading logo: ${error.message}`);
       console.error('Error uploading logo:', error);
@@ -86,12 +114,28 @@ export const useLogoUpload = (
   }, [breweryId, form]);
 
   // Handle logo removal
-  const handleRemoveLogo = useCallback(() => {
+  const handleRemoveLogo = useCallback(async () => {
     // Update form value
     form.setValue('logo_url', null);
     setPreviewUrl(null);
-    toast.success('Logo removed');
-  }, [form]);
+    
+    // Update the brewery in the database if we have a breweryId
+    if (breweryId) {
+      const { error } = await supabase
+        .from('breweries')
+        .update({ logo_url: null, updated_at: new Date().toISOString() })
+        .eq('id', breweryId);
+      
+      if (error) {
+        console.error('Error removing logo from database:', error);
+        toast.error('Failed to remove logo from brewery record');
+      } else {
+        toast.success('Logo removed successfully');
+      }
+    } else {
+      toast.success('Logo removed');
+    }
+  }, [form, breweryId]);
 
   return {
     previewUrl,

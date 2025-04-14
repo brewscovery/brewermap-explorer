@@ -67,6 +67,16 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
           </FormItem>
         )}
       />
+      
+      {breweryId ? (
+        <p className="text-sm text-muted-foreground text-center">
+          Logos are automatically saved to the brewery when uploaded or removed.
+        </p>
+      ) : (
+        <p className="text-sm text-muted-foreground text-center">
+          Save the brewery first to enable logo uploads.
+        </p>
+      )}
     </div>
   );
 };
