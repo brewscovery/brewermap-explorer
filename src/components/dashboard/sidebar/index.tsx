@@ -51,10 +51,12 @@ const DashboardSidebar = () => {
 
   return (
     <Sidebar>
-      {/* Add the BrewerySidebarHeader component */}
+      {/* Pass breweries and onBrewerySelect to BrewerySidebarHeader */}
       <BrewerySidebarHeader 
         selectedBrewery={selectedBrewery} 
+        breweries={breweries}
         isLoading={isLoading} 
+        onBrewerySelect={setSelectedBrewery}
       />
       
       <SidebarContent>

@@ -4,10 +4,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   SidebarMenu, 
   SidebarMenuItem, 
-  SidebarMenuButton 
+  SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Settings, PlusCircle } from 'lucide-react';
-import { BreweryList } from './BreweryList';
+import { LayoutDashboard, Settings, PlusCircle, Store } from 'lucide-react';
 import { BreweryStateDisplay } from './BreweryStateDisplay';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
@@ -36,6 +38,13 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
   isVenueActive
 }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  
+  // Get the currently selected brewery from the path
+  const selectedBrewery = breweries.length > 0 ? breweries[0] : null;
+  
+  // Get venues for the selected brewery
+  const venuesForSelectedBrewery = selectedBrewery ? breweryVenues[selectedBrewery.id] || [] : [];
   
   return (
     <SidebarMenu>
@@ -60,22 +69,64 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuButton>
       </SidebarMenuItem>
       
-      {/* Dynamic Brewery List */}
-      <BreweryList 
-        breweries={breweries}
-        expandedBreweries={expandedBreweries}
-        breweryVenues={breweryVenues}
-        toggleBreweryExpanded={toggleBreweryExpanded}
-        handleAddVenue={handleAddVenue}
-        handleVenueClick={handleVenueClick}
-        isVenueActive={isVenueActive}
-      />
+      {/* Venue section for selected brewery */}
+      {selectedBrewery && (
+        <SidebarMenuItem>
+          <SidebarMenuButton 
+            onClick={() => handleAddVenue(selectedBrewery)}
+          >
+            <PlusCircle size={18} />
+            <span>Add Venue</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
       
-      {/* Loading or Empty State */}
-      <BreweryStateDisplay 
-        isLoading={isLoading} 
-        breweries={breweries} 
-      />
+      {/* Display venues for the selected brewery */}
+      {selectedBrewery && venuesForSelectedBrewery.length > 0 && (
+        <SidebarMenuSub>
+          {venuesForSelectedBrewery.map((venue) => (
+            <SidebarMenuSubItem key={venue.id}>
+              <SidebarMenuSubButton
+                onClick={() => handleVenueClick(venue, selectedBrewery)}
+                isActive={isVenueActive('/dashboard/venues', venue.id)}
+                className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
+              >
+                <Store size={14} />
+                <span className="truncate">{venue.name}</span>
+              </SidebarMenuSubButton>
+            </SidebarMenuSubItem>
+          ))}
+        </SidebarMenuSub>
+      )}
+      
+      {/* Show loading or empty state for venues */}
+      {selectedBrewery && !breweryVenues[selectedBrewery.id] && (
+        <SidebarMenuSub>
+          <SidebarMenuSubItem>
+            <div className="px-2 py-1 text-xs text-muted-foreground">
+              Loading venues...
+            </div>
+          </SidebarMenuSubItem>
+        </SidebarMenuSub>
+      )}
+      
+      {selectedBrewery && breweryVenues[selectedBrewery.id]?.length === 0 && (
+        <SidebarMenuSub>
+          <SidebarMenuSubItem>
+            <div className="px-2 py-1 text-xs text-muted-foreground">
+              No venues yet
+            </div>
+          </SidebarMenuSubItem>
+        </SidebarMenuSub>
+      )}
+      
+      {/* Loading or Empty State for breweries */}
+      {!selectedBrewery && (
+        <BreweryStateDisplay 
+          isLoading={isLoading} 
+          breweries={breweries} 
+        />
+      )}
       
       <SidebarMenuItem>
         <SidebarMenuButton 
