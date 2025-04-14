@@ -43,18 +43,13 @@ const DashboardSidebar = () => {
     navigate('/dashboard/venues?action=add');
   };
   
-  const handleVenueClick = (venue: Venue, brewery: Brewery) => {
-    // First, set the selected brewery to the one that owns this venue
-    console.log(`Setting selected brewery to ${brewery.name} for venue ${venue.name}`);
-    setSelectedBrewery(brewery);
-    
-    // Then navigate to the venue details page
+  const handleVenueClick = (venue: Venue) => {
+    // Only navigate to the venue details page without changing the selected brewery
     navigate(`/dashboard/venues?venueId=${venue.id}`);
   };
 
   return (
     <Sidebar>
-      {/* Pass breweries and onBrewerySelect to BrewerySidebarHeader */}
       <BrewerySidebarHeader 
         selectedBrewery={selectedBrewery} 
         breweries={breweries}
@@ -73,7 +68,7 @@ const DashboardSidebar = () => {
           handleVenueClick={handleVenueClick}
           isActive={isActive}
           isVenueActive={isVenueActive}
-          selectedBrewery={selectedBrewery} // Pass the selectedBrewery prop
+          selectedBrewery={selectedBrewery}
         />
       </SidebarContent>
       
