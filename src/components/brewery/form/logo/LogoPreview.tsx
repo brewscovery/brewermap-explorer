@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { X, Upload } from 'lucide-react';
@@ -14,8 +14,11 @@ export const LogoPreview = ({ previewUrl, breweryName, onRemove }: LogoPreviewPr
   const [imageError, setImageError] = useState(false);
 
   // Reset image error state when preview URL changes
-  React.useEffect(() => {
+  useEffect(() => {
     setImageError(false);
+    if (previewUrl) {
+      console.log('LogoPreview received URL:', previewUrl);
+    }
   }, [previewUrl]);
 
   const handleImageError = () => {

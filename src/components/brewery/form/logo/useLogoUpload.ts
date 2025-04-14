@@ -47,7 +47,7 @@ export const useLogoUpload = (
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      // Use consistent format for file naming
+      // Use EXACTLY the same filename pattern consistently
       const fileName = `logo_${Date.now()}.${fileExt}`;
       const filePath = `${breweryId}/${fileName}`;
 

@@ -26,10 +26,10 @@ const LogoUploadSection = ({ form, breweryId }: LogoUploadSectionProps) => {
   } = useLogoUpload(form, breweryId);
   
   useEffect(() => {
-    // Set preview from form value
+    // Set preview from form value and log for debugging
     const logoUrl = form.getValues('logo_url');
     if (logoUrl) {
-      console.log('Logo URL from form:', logoUrl);
+      console.log('LogoUploadSection received logo URL from form:', logoUrl);
     }
   }, [form]);
   

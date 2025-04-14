@@ -16,15 +16,29 @@ interface BreweryCardProps {
 
 const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps) => {
   const [imageError, setImageError] = useState(false);
-  const [logoUrl, setLogoUrl] = useState<string | null>(brewery.logo_url);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   
-  // Reset error state when brewery logo URL changes
+  // Reset error state and update logo URL when brewery changes
   useEffect(() => {
     setImageError(false);
-    setLogoUrl(brewery.logo_url);
     
     if (brewery.logo_url) {
       console.log('BreweryCard loading logo from:', brewery.logo_url);
+      
+      // Extract the bucket and brewery ID from the URL to ensure we get the right file
+      const urlParts = brewery.logo_url.split('/');
+      const bucketPart = urlParts.findIndex(part => part === 'brewery_logos');
+      
+      if (bucketPart !== -1 && bucketPart < urlParts.length - 1) {
+        // This should set logoUrl to the original URL, but we're explicitly doing it
+        // to ensure we're using the most up-to-date URL
+        setLogoUrl(brewery.logo_url);
+      } else {
+        console.warn('Invalid logo URL format:', brewery.logo_url);
+        setLogoUrl(null);
+      }
+    } else {
+      setLogoUrl(null);
     }
   }, [brewery.logo_url]);
   
@@ -34,7 +48,7 @@ const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps)
   };
 
   const handleImageError = () => {
-    console.log('Logo image failed to load:', logoUrl);
+    console.error('Logo image failed to load:', logoUrl);
     setImageError(true);
   };
 
