@@ -14,6 +14,17 @@ export const useBreweryVenues = (breweryId: string | null) => {
   const queryClient = useQueryClient();
   const channelRef = useRef(null);
 
+  // Track previous brewery ID to detect changes
+  const prevBreweryIdRef = useRef<string | null>(null);
+  
+  // Log when brewery ID changes
+  useEffect(() => {
+    if (prevBreweryIdRef.current !== breweryId) {
+      console.log(`useBreweryVenues: brewery ID changed from ${prevBreweryIdRef.current} to ${breweryId}`);
+      prevBreweryIdRef.current = breweryId;
+    }
+  }, [breweryId]);
+
   const { 
     data: venues, 
     isLoading, 
@@ -22,26 +33,36 @@ export const useBreweryVenues = (breweryId: string | null) => {
   } = useQuery({
     queryKey: ['breweryVenues', breweryId],
     queryFn: async () => {
-      if (!breweryId) return [];
+      if (!breweryId) {
+        console.log('No brewery ID provided, returning empty venues array');
+        return [];
+      }
       
       console.log(`Fetching venues for brewery ${breweryId}`);
       
-      const { data, error } = await supabase
-        .from('venues')
-        .select('*')
-        .eq('brewery_id', breweryId)
-        .order('name');
+      try {
+        const { data, error } = await supabase
+          .from('venues')
+          .select('*')
+          .eq('brewery_id', breweryId)
+          .order('name');
 
-      if (error) {
-        console.error('Error fetching brewery venues:', error);
-        toast.error('Failed to load venues');
-        throw error;
+        if (error) {
+          console.error('Error fetching brewery venues:', error);
+          toast.error('Failed to load venues');
+          throw error;
+        }
+        
+        console.log(`Found ${data?.length || 0} venues for brewery ${breweryId}:`, data);
+        return data as Venue[];
+      } catch (error) {
+        console.error('Exception in venue fetch:', error);
+        return [];
       }
-      
-      console.log(`Found ${data?.length || 0} venues for brewery ${breweryId}`);
-      return data as Venue[];
     },
-    enabled: !!breweryId
+    enabled: !!breweryId,
+    staleTime: 1000 * 60, // 1 minute
+    retry: 2
   });
   
   // Setup real-time listener for brewery-specific venue changes

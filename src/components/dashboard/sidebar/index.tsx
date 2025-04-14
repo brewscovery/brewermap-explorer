@@ -26,6 +26,9 @@ const DashboardSidebar = () => {
     setSelectedBrewery
   } = useBreweryFetching(user?.id);
   
+  console.log("DashboardSidebar - selectedBrewery:", selectedBrewery?.name);
+  console.log("DashboardSidebar - breweries count:", breweries.length);
+  
   // Custom hook for sidebar data and behavior
   const { 
     expandedBreweries,
@@ -70,6 +73,7 @@ const DashboardSidebar = () => {
           handleVenueClick={handleVenueClick}
           isActive={isActive}
           isVenueActive={isVenueActive}
+          selectedBrewery={selectedBrewery} // Pass the selectedBrewery prop
         />
       </SidebarContent>
       

@@ -25,6 +25,7 @@ interface MainSidebarMenuProps {
   handleVenueClick: (venue: Venue, brewery: Brewery) => void;
   isActive: (path: string) => boolean;
   isVenueActive: (path: string, venueId: string) => boolean;
+  selectedBrewery: Brewery | null; // Ensure this prop is used
 }
 
 export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
@@ -36,18 +37,19 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
   handleAddVenue,
   handleVenueClick,
   isActive,
-  isVenueActive
+  isVenueActive,
+  selectedBrewery // Use this prop instead of deriving from breweries
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  
-  // Get the currently selected brewery from the path
-  const selectedBrewery = breweries.length > 0 ? breweries[0] : null;
   
   // Use the dedicated hook to fetch venues for the selected brewery
   const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
     selectedBrewery?.id || null
   );
+  
+  console.log('MainSidebarMenu - selectedBrewery:', selectedBrewery?.name);
+  console.log('MainSidebarMenu - venuesForSelectedBrewery:', venuesForSelectedBrewery?.length);
   
   return (
     <SidebarMenu>
