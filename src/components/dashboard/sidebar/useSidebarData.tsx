@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -33,6 +32,14 @@ export const useSidebarData = (
   const isVenueActive = useCallback((path: string, venueId: string) => {
     const searchParams = new URLSearchParams(location.search);
     const currentVenueId = searchParams.get('venueId');
+    
+    console.log('Venue Active Check:', {
+      path,
+      venueId,
+      currentVenueId,
+      locationPathname: location.pathname,
+      locationSearch: location.search
+    });
     
     return location.pathname === path && currentVenueId === venueId;
   }, [location.pathname, location.search]);
