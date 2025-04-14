@@ -37,22 +37,30 @@ export const useLogoUpload = (
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `brewery-logos/${breweryId}/${Math.random()}.${fileExt}`;
+      // Use a more consistent and unique path format
+      const fileName = `${breweryId}_${Date.now()}.${fileExt}`;
+      const filePath = `${breweryId}/${fileName}`;
+
+      console.log('Attempting to upload to brewery_logos bucket with path:', filePath);
 
       const { error: uploadError, data } = await supabase.storage
-        .from('brewery_logos')  // Updated bucket ID
+        .from('brewery_logos')
         .upload(filePath, file, { upsert: true });
 
       if (uploadError) {
+        console.error('Upload error details:', uploadError);
         throw uploadError;
       }
 
+      console.log('Upload successful, data:', data);
+
       // Get public URL
       const { data: publicUrlData } = supabase.storage
-        .from('brewery_logos')  // Updated bucket ID
+        .from('brewery_logos')
         .getPublicUrl(filePath);
 
       const publicUrl = publicUrlData.publicUrl;
+      console.log('Generated public URL:', publicUrl);
 
       // Update logo_url in form
       form.setValue('logo_url', publicUrl);
