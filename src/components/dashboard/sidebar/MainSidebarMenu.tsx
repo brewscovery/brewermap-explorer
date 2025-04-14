@@ -9,7 +9,7 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Settings, PlusCircle, Store } from 'lucide-react';
+import { LayoutDashboard, Settings, Store } from 'lucide-react';
 import { BreweryStateDisplay } from './BreweryStateDisplay';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
@@ -25,7 +25,7 @@ interface MainSidebarMenuProps {
   handleVenueClick: (venue: Venue, brewery: Brewery) => void;
   isActive: (path: string) => boolean;
   isVenueActive: (path: string, venueId: string) => boolean;
-  selectedBrewery: Brewery | null; // Ensure this prop is used
+  selectedBrewery: Brewery | null;
 }
 
 export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
@@ -38,12 +38,11 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
   handleVenueClick,
   isActive,
   isVenueActive,
-  selectedBrewery // Use this prop instead of deriving from breweries
+  selectedBrewery
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Use the dedicated hook to fetch venues for the selected brewery
   const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
     selectedBrewery?.id || null
   );
@@ -63,24 +62,13 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuButton>
       </SidebarMenuItem>
       
-      {/* Add Brewery Button - Always visible */}
-      <SidebarMenuItem>
-        <SidebarMenuButton 
-          isActive={isActive('/dashboard/breweries')}
-          onClick={() => navigate('/dashboard/breweries')}
-        >
-          <PlusCircle size={18} />
-          <span>Add Brewery</span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
-      
       {/* Venue section for selected brewery */}
       {selectedBrewery && (
         <SidebarMenuItem>
           <SidebarMenuButton 
             onClick={() => handleAddVenue(selectedBrewery)}
           >
-            <PlusCircle size={18} />
+            <Store size={18} />
             <span>Add Venue</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
