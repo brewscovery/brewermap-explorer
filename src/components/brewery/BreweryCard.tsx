@@ -16,10 +16,16 @@ interface BreweryCardProps {
 
 const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps) => {
   const [imageError, setImageError] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(brewery.logo_url);
   
   // Reset error state when brewery logo URL changes
   useEffect(() => {
     setImageError(false);
+    setLogoUrl(brewery.logo_url);
+    
+    if (brewery.logo_url) {
+      console.log('BreweryCard loading logo from:', brewery.logo_url);
+    }
   }, [brewery.logo_url]);
   
   const handleEditClick = (e: React.MouseEvent) => {
@@ -28,7 +34,7 @@ const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps)
   };
 
   const handleImageError = () => {
-    console.log('Logo image failed to load:', brewery.logo_url);
+    console.log('Logo image failed to load:', logoUrl);
     setImageError(true);
   };
 
@@ -45,9 +51,9 @@ const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps)
       <CardHeader className="pb-2">
         <div className="flex items-center gap-3">
           <Avatar className="h-10 w-10 border">
-            {brewery.logo_url && !imageError ? (
+            {logoUrl && !imageError ? (
               <AvatarImage 
-                src={brewery.logo_url} 
+                src={logoUrl} 
                 alt={brewery.name} 
                 onError={handleImageError}
               />

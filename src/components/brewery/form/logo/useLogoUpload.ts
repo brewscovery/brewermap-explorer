@@ -17,9 +17,19 @@ export const useLogoUpload = (
   useEffect(() => {
     const logoUrl = form.getValues('logo_url');
     if (logoUrl) {
+      console.log('Loading logo from URL:', logoUrl);
       setPreviewUrl(logoUrl);
     }
   }, [form]);
+
+  // Generate a consistent public URL for a file
+  const getPublicUrl = (filePath: string) => {
+    const { data } = supabase.storage
+      .from('brewery_logos')
+      .getPublicUrl(filePath);
+    
+    return data.publicUrl;
+  };
 
   // Handle logo upload
   const handleUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,11 +47,11 @@ export const useLogoUpload = (
 
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      // Use a more consistent and unique path format
-      const fileName = `${breweryId}_${Date.now()}.${fileExt}`;
+      // Use consistent format for file naming
+      const fileName = `logo_${Date.now()}.${fileExt}`;
       const filePath = `${breweryId}/${fileName}`;
 
-      console.log('Attempting to upload to brewery_logos bucket with path:', filePath);
+      console.log('Uploading to path:', filePath);
 
       const { error: uploadError, data } = await supabase.storage
         .from('brewery_logos')
@@ -54,12 +64,8 @@ export const useLogoUpload = (
 
       console.log('Upload successful, data:', data);
 
-      // Get public URL
-      const { data: publicUrlData } = supabase.storage
-        .from('brewery_logos')
-        .getPublicUrl(filePath);
-
-      const publicUrl = publicUrlData.publicUrl;
+      // Get public URL using our helper function
+      const publicUrl = getPublicUrl(filePath);
       console.log('Generated public URL:', publicUrl);
 
       // Update logo_url in form
