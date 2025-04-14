@@ -113,6 +113,7 @@ const DashboardSidebar = () => {
   
   const handleVenueClick = (venue: Venue, brewery: Brewery) => {
     // First, set the selected brewery to the one that owns this venue
+    console.log(`Setting selected brewery to ${brewery.name} for venue ${venue.name}`);
     setSelectedBrewery(brewery);
     
     // Then navigate to the venue details page
@@ -280,4 +281,3 @@ const DashboardSidebar = () => {
 };
 
 export default DashboardSidebar;
-
