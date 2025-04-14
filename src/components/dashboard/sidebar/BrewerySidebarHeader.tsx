@@ -1,6 +1,5 @@
 
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { 
   SidebarHeader
 } from '@/components/ui/sidebar';
@@ -17,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import CreateBreweryDialog from '@/components/brewery/CreateBreweryDialog';
 
 interface BrewerySidebarHeaderProps {
   selectedBrewery: Brewery | null;
@@ -31,7 +31,7 @@ export const BrewerySidebarHeader = ({
   isLoading,
   onBrewerySelect
 }: BrewerySidebarHeaderProps) => {
-  const navigate = useNavigate();
+  const [isCreateBreweryDialogOpen, setIsCreateBreweryDialogOpen] = useState(false);
   
   // Create initials from brewery name for fallback
   const getInitials = (name: string) => {
@@ -45,7 +45,13 @@ export const BrewerySidebarHeader = ({
 
   // Handle adding a new brewery
   const handleAddBrewery = () => {
-    navigate('/dashboard/breweries');
+    setIsCreateBreweryDialogOpen(true);
+  };
+  
+  // Handle successful brewery creation
+  const handleBreweryCreated = () => {
+    // Will auto-refresh via the subscription in useBreweryFetching
+    console.log('Brewery created successfully');
   };
   
   // Loading state
@@ -72,6 +78,12 @@ export const BrewerySidebarHeader = ({
           <PlusCircle size={16} className="mr-2" />
           Add Brewery
         </Button>
+        
+        <CreateBreweryDialog 
+          open={isCreateBreweryDialogOpen} 
+          onOpenChange={setIsCreateBreweryDialogOpen}
+          onSuccess={handleBreweryCreated}
+        />
       </SidebarHeader>
     );
   }
@@ -112,6 +124,12 @@ export const BrewerySidebarHeader = ({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        
+        <CreateBreweryDialog 
+          open={isCreateBreweryDialogOpen} 
+          onOpenChange={setIsCreateBreweryDialogOpen}
+          onSuccess={handleBreweryCreated}
+        />
       </SidebarHeader>
     );
   }
@@ -170,6 +188,12 @@ export const BrewerySidebarHeader = ({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      
+      <CreateBreweryDialog 
+        open={isCreateBreweryDialogOpen} 
+        onOpenChange={setIsCreateBreweryDialogOpen}
+        onSuccess={handleBreweryCreated}
+      />
     </SidebarHeader>
   );
 };
