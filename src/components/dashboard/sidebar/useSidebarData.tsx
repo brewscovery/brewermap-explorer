@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Brewery } from '@/types/brewery';
@@ -18,27 +18,31 @@ export const useSidebarData = (
   // Track venues per brewery to avoid excessive fetching
   const [breweryVenues, setBreweryVenues] = useState<Record<string, Venue[]>>({});
   
-  const isActive = (path: string) => {
+  const isActive = useCallback((path: string) => {
     return location.pathname === path;
-  };
+  }, [location.pathname]);
   
-  const isVenueActive = (path: string, venueId: string) => {
+  const isVenueActive = useCallback((path: string, venueId: string) => {
     return location.pathname === path && location.search.includes(`venueId=${venueId}`);
-  };
+  }, [location.pathname, location.search]);
   
-  const toggleBreweryExpanded = (breweryId: string) => {
+  const toggleBreweryExpanded = useCallback((breweryId: string) => {
     setExpandedBreweries(prev => ({
       ...prev,
       [breweryId]: !prev[breweryId]
     }));
     
     // If expanding, ensure we have venues for this brewery
-    if (!expandedBreweries[breweryId]) {
-      fetchVenuesForBrewery(breweryId);
-    }
-  };
+    setExpandedBreweries(prev => {
+      const isExpanding = !prev[breweryId];
+      if (isExpanding) {
+        fetchVenuesForBrewery(breweryId);
+      }
+      return prev;
+    });
+  }, []);
   
-  const fetchVenuesForBrewery = async (breweryId: string) => {
+  const fetchVenuesForBrewery = useCallback(async (breweryId: string) => {
     if (breweryVenues[breweryId] || !breweryId) return;
     
     try {
@@ -57,7 +61,7 @@ export const useSidebarData = (
     } catch (error) {
       console.error('Error fetching venues:', error);
     }
-  };
+  }, [breweryVenues]);
 
   // Prefetch venues for the selected brewery
   useEffect(() => {
@@ -70,7 +74,7 @@ export const useSidebarData = (
         [selectedBrewery.id]: true
       }));
     }
-  }, [selectedBrewery?.id]);
+  }, [selectedBrewery?.id, fetchVenuesForBrewery]);
   
   return {
     expandedBreweries,
