@@ -56,9 +56,19 @@ const VenuesPage = () => {
   // Find the selected venue
   useEffect(() => {
     if (venueId && venues.length > 0) {
+      console.log('Looking for venue with ID:', venueId, 'in venues:', venues);
       const venue = venues.find(v => v.id === venueId);
-      setSelectedVenue(venue || null);
-    } else {
+      
+      if (venue) {
+        console.log('Found venue:', venue);
+        setSelectedVenue(venue);
+      } else {
+        console.log('Venue not found in current brewery venues');
+        // If venue not found and we have a venueId in the URL, 
+        // it's possible the brewery context is incorrect
+        setSelectedVenue(null);
+      }
+    } else if (!venueId) {
       setSelectedVenue(null);
     }
   }, [venueId, venues]);
@@ -195,6 +205,30 @@ const VenuesPage = () => {
     );
   }
   
+  // While loading venues for the current brewery and a venueId is specified
+  if (isLoadingVenues && venueId) {
+    return (
+      <div className="max-w-5xl mx-auto">
+        <h2 className="text-2xl font-bold mb-6">Loading Venue Details...</h2>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-pulse flex space-x-4">
+            <div className="rounded-full bg-muted h-10 w-10"></div>
+            <div className="flex-1 space-y-6 py-1">
+              <div className="h-2 bg-muted rounded"></div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="h-2 bg-muted rounded col-span-2"></div>
+                  <div className="h-2 bg-muted rounded col-span-1"></div>
+                </div>
+                <div className="h-2 bg-muted rounded"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
   // If no venue is selected, show the venue management view
   return (
     <div className="max-w-5xl mx-auto">
@@ -226,3 +260,4 @@ const VenuesPage = () => {
 };
 
 export default VenuesPage;
+

@@ -111,7 +111,11 @@ const DashboardSidebar = () => {
     navigate('/dashboard/venues?action=add');
   };
   
-  const handleVenueClick = (venue: Venue) => {
+  const handleVenueClick = (venue: Venue, brewery: Brewery) => {
+    // First, set the selected brewery to the one that owns this venue
+    setSelectedBrewery(brewery);
+    
+    // Then navigate to the venue details page
     navigate(`/dashboard/venues?venueId=${venue.id}`);
   };
 
@@ -188,7 +192,7 @@ const DashboardSidebar = () => {
                     {breweryVenues[brewery.id]?.map((venue) => (
                       <SidebarMenuSubItem key={venue.id}>
                         <SidebarMenuSubButton
-                          onClick={() => handleVenueClick(venue)}
+                          onClick={() => handleVenueClick(venue, brewery)}
                           isActive={isVenueActive('/dashboard/venues', venue.id)}
                         >
                           <Store size={14} />
@@ -276,3 +280,4 @@ const DashboardSidebar = () => {
 };
 
 export default DashboardSidebar;
+
