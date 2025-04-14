@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/sidebar';
 import { MainSidebarMenu } from './MainSidebarMenu';
 import { SidebarFooterMenu } from './SidebarFooterMenu';
+import { BrewerySidebarHeader } from './BrewerySidebarHeader';
 import { useSidebarData } from './useSidebarData';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 import { useAuth } from '@/contexts/AuthContext';
@@ -50,6 +51,12 @@ const DashboardSidebar = () => {
 
   return (
     <Sidebar>
+      {/* Add the BrewerySidebarHeader component */}
+      <BrewerySidebarHeader 
+        selectedBrewery={selectedBrewery} 
+        isLoading={isLoading} 
+      />
+      
       <SidebarContent>
         <MainSidebarMenu 
           breweries={breweries}
