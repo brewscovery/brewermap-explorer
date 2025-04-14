@@ -24,6 +24,8 @@ export const useBreweryVenues = (breweryId: string | null) => {
     queryFn: async () => {
       if (!breweryId) return [];
       
+      console.log(`Fetching venues for brewery ${breweryId}`);
+      
       const { data, error } = await supabase
         .from('venues')
         .select('*')
@@ -36,6 +38,7 @@ export const useBreweryVenues = (breweryId: string | null) => {
         throw error;
       }
       
+      console.log(`Found ${data?.length || 0} venues for brewery ${breweryId}`);
       return data as Venue[];
     },
     enabled: !!breweryId

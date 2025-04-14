@@ -13,6 +13,7 @@ import { LayoutDashboard, Settings, PlusCircle, Store } from 'lucide-react';
 import { BreweryStateDisplay } from './BreweryStateDisplay';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
+import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 
 interface MainSidebarMenuProps {
   breweries: Brewery[];
@@ -43,8 +44,10 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
   // Get the currently selected brewery from the path
   const selectedBrewery = breweries.length > 0 ? breweries[0] : null;
   
-  // Get venues for the selected brewery
-  const venuesForSelectedBrewery = selectedBrewery ? breweryVenues[selectedBrewery.id] || [] : [];
+  // Use the dedicated hook to fetch venues for the selected brewery
+  const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
+    selectedBrewery?.id || null
+  );
   
   return (
     <SidebarMenu>
@@ -100,7 +103,7 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
       )}
       
       {/* Show loading or empty state for venues */}
-      {selectedBrewery && !breweryVenues[selectedBrewery.id] && (
+      {selectedBrewery && venuesLoading && (
         <SidebarMenuSub>
           <SidebarMenuSubItem>
             <div className="px-2 py-1 text-xs text-muted-foreground">
@@ -110,7 +113,7 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuSub>
       )}
       
-      {selectedBrewery && breweryVenues[selectedBrewery.id]?.length === 0 && (
+      {selectedBrewery && !venuesLoading && venuesForSelectedBrewery.length === 0 && (
         <SidebarMenuSub>
           <SidebarMenuSubItem>
             <div className="px-2 py-1 text-xs text-muted-foreground">
