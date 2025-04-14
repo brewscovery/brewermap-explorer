@@ -11,7 +11,7 @@ import {
   Clock, 
   Beer, 
   Utensils, 
-  PlusCircle 
+  Trash2 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
@@ -21,12 +21,22 @@ import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { Venue } from '@/types/venue';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import AddVenueDialog from '@/components/brewery/AddVenueDialog';
-import EditVenueDialog from '@/components/brewery/EditVenueDialog';
 import VenueHoursDialog from '@/components/brewery/VenueHoursDialog';
 import { VenueDetailsTab } from '@/components/brewery/venue-tabs/VenueDetailsTab';
 import { VenueHoursTab } from '@/components/brewery/venue-tabs/VenueHoursTab';
 import { HappyHoursTab } from '@/components/brewery/venue-tabs/HappyHoursTab';
 import { DailySpecialsTab } from '@/components/brewery/venue-tabs/DailySpecialsTab';
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle 
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 const VenuesPage = () => {
   const location = useLocation();
@@ -39,6 +49,7 @@ const VenuesPage = () => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showHoursDialog, setShowHoursDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   const params = new URLSearchParams(location.search);
   const venueId = params.get('venueId');
@@ -48,11 +59,10 @@ const VenuesPage = () => {
     venues, 
     isLoading: isLoadingVenues, 
     refetch: refetchVenues,
-    updateVenue,
-    isUpdating 
+    deleteVenue,
+    isDeleting
   } = useBreweryVenues(selectedBrewery?.id);
   
-  // Find the selected venue
   useEffect(() => {
     if (venueId && venues.length > 0) {
       console.log('Looking for venue with ID:', venueId, 'in venues:', venues);
@@ -63,8 +73,6 @@ const VenuesPage = () => {
         setSelectedVenue(venue);
       } else {
         console.log('Venue not found in current brewery venues');
-        // If venue not found and we have a venueId in the URL, 
-        // it's possible the brewery context is incorrect
         setSelectedVenue(null);
       }
     } else if (!venueId) {
@@ -72,14 +80,12 @@ const VenuesPage = () => {
     }
   }, [venueId, venues]);
   
-  // Handle the add venue action
   useEffect(() => {
     if (action === 'add') {
       setShowAddVenueDialog(true);
     }
   }, [action]);
   
-  // Clear query params when dialogs close
   const handleAddVenueDialogClose = () => {
     setShowAddVenueDialog(false);
     if (action === 'add') {
@@ -87,7 +93,6 @@ const VenuesPage = () => {
     }
   };
   
-  // Handle tab changes
   const handleTabChange = (value: string) => {
     setSelectedTab(value);
   };
@@ -97,7 +102,21 @@ const VenuesPage = () => {
     handleAddVenueDialogClose();
   };
   
-  // If no brewery is selected yet
+  const handleDeleteVenue = async () => {
+    if (!selectedVenue) return;
+    
+    try {
+      await deleteVenue(selectedVenue.id);
+      toast.success(`Venue "${selectedVenue.name}" deleted successfully`);
+      navigate('/dashboard/venues');
+    } catch (error) {
+      console.error('Error deleting venue:', error);
+      toast.error('Failed to delete venue');
+    } finally {
+      setShowDeleteDialog(false);
+    }
+  };
+  
   if (!selectedBrewery) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -113,7 +132,6 @@ const VenuesPage = () => {
     );
   }
   
-  // If a specific venue is selected, show the tabbed interface
   if (selectedVenue) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -126,11 +144,12 @@ const VenuesPage = () => {
           </div>
           <div className="flex gap-2">
             <Button 
-              variant="outline" 
+              variant="destructive" 
               size="sm"
-              onClick={() => setShowEditDialog(true)}
+              onClick={() => setShowDeleteDialog(true)}
             >
-              Edit Venue
+              <Trash2 className="mr-2" size={16} />
+              Delete Venue
             </Button>
             <Button
               onClick={() => navigate('/dashboard/venues')}
@@ -200,11 +219,35 @@ const VenuesPage = () => {
           onVenueUpdated={updateVenue}
           isUpdating={isUpdating}
         />
+        
+        <AlertDialog 
+          open={showDeleteDialog} 
+          onOpenChange={setShowDeleteDialog}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Venue</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete the venue "{selectedVenue.name}"? 
+                This action cannot be undone and will remove all venue data.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={handleDeleteVenue}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Venue'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     );
   }
   
-  // While loading venues for the current brewery and a venueId is specified
   if (isLoadingVenues && venueId) {
     return (
       <div className="max-w-5xl mx-auto">
@@ -228,7 +271,6 @@ const VenuesPage = () => {
     );
   }
   
-  // If no venue is selected, show the venue management view
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
