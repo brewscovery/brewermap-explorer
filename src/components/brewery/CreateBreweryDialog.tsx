@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog-fixed'; // Changed from dialog to dialog-fixed
 import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 
 interface CreateBreweryDialogProps {
