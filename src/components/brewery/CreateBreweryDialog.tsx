@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Dialog,
@@ -31,18 +32,19 @@ const CreateBreweryDialog = ({
 }: CreateBreweryDialogProps) => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const { searchTerm, setSearchTerm, results, isLoading } = useBrewerySearch();
-  const [isClaimMode, setIsClaimMode] = useState(false);
 
   const handleSuccess = () => {
     onOpenChange(false);
     onSuccess();
   };
 
+  // Filter out verified and owned breweries from search results
+  const availableBreweries = results.filter(
+    brewery => !brewery.is_verified && !brewery.has_owner
+  );
+
   const handleBrewerySelect = (brewery: Brewery) => {
     setSelectedBrewery(brewery);
-    if (brewery.is_verified || brewery.has_owner) {
-      setIsClaimMode(true);
-    }
   };
 
   return (
@@ -50,7 +52,7 @@ const CreateBreweryDialog = ({
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>
-            {isClaimMode ? "Claim Existing Brewery" : "Create Your Brewery"}
+            {selectedBrewery ? "Claim Existing Brewery" : "Create Your Brewery"}
           </DialogTitle>
         </DialogHeader>
         
@@ -69,9 +71,9 @@ const CreateBreweryDialog = ({
             )}
           </div>
           
-          {results.length > 0 && (
+          {availableBreweries.length > 0 && (
             <div className="border rounded max-h-40 overflow-y-auto divide-y">
-              {results.map((brewery) => (
+              {availableBreweries.map((brewery) => (
                 <div 
                   key={brewery.id} 
                   className={`p-2 hover:bg-muted cursor-pointer transition-colors ${
@@ -88,32 +90,20 @@ const CreateBreweryDialog = ({
                 >
                   <div className="flex justify-between items-center gap-2">
                     <span className="truncate">{brewery.name}</span>
-                    <div className="flex gap-2 shrink-0">
-                      {brewery.is_verified && (
-                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                          Verified
-                        </span>
-                      )}
-                      {brewery.has_owner && (
-                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Owned
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {searchTerm && !isLoading && results.length === 0 && (
+          {searchTerm && !isLoading && availableBreweries.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-2">
-              No breweries found matching your search
+              No unclaimed breweries found matching your search
             </p>
           )}
         </div>
         
-        {isClaimMode && selectedBrewery ? (
+        {selectedBrewery ? (
           <BreweryClaimForm
             breweryId={selectedBrewery.id}
             breweryName={selectedBrewery.name}
@@ -121,10 +111,7 @@ const CreateBreweryDialog = ({
           />
         ) : (
           <UnifiedBreweryForm 
-            initialData={selectedBrewery ? { 
-              id: selectedBrewery.id, 
-              name: selectedBrewery.name 
-            } : undefined}
+            initialData={undefined}
             onSubmit={() => {}} // Not needed in regular user mode
             onSubmitSuccess={handleSuccess} 
             isAdminMode={false}
