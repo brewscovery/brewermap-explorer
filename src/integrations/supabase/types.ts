@@ -440,6 +440,15 @@ export type Database = {
         Args: { user_id: string; venue_id: string }
         Returns: boolean
       }
+      search_breweries: {
+        Args: { search_term: string }
+        Returns: {
+          id: string
+          name: string
+          is_verified: boolean
+          has_owner: boolean
+        }[]
+      }
       update_brewery_about: {
         Args: { brewery_id: string; new_about: string }
         Returns: undefined
