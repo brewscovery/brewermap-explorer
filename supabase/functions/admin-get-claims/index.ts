@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
       console.error('Error fetching breweries:', breweriesError)
     }
     
-    // Fetch user names
+    // Fetch user profiles with first and last names
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, first_name, last_name')
@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
         userMap.set(profile.id, 
           profile.first_name && profile.last_name 
             ? `${profile.first_name} ${profile.last_name}` 
-            : 'Unknown User')
+            : profile.first_name || profile.last_name || 'Unknown User')
       })
     }
     
