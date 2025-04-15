@@ -8,8 +8,8 @@ import {
 } from '@/components/ui/dialog-fixed';
 import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
+import { useBrewerySearch } from '@/hooks/useBrewerySearch';
 
 interface Brewery {
   id: string;
@@ -29,29 +29,8 @@ const CreateBreweryDialog = ({
   onOpenChange,
   onSuccess 
 }: CreateBreweryDialogProps) => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<Brewery[]>([]);
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
-
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) return;
-
-    try {
-      const { data, error } = await supabase.rpc('search_breweries', { 
-        search_term: searchTerm 
-      });
-
-      if (error) throw error;
-      setSearchResults(data || []);
-    } catch (error) {
-      console.error('Error searching breweries:', error);
-      // Consider adding a toast notification here
-    }
-  };
-
-  const handleSelectBrewery = (brewery: Brewery) => {
-    setSelectedBrewery(brewery);
-  };
+  const { searchTerm, setSearchTerm, results, isLoading } = useBrewerySearch();
 
   const handleSuccess = () => {
     onOpenChange(false);
@@ -65,49 +44,62 @@ const CreateBreweryDialog = ({
           <DialogTitle>Create Your Brewery</DialogTitle>
         </DialogHeader>
         
-        <div className="mb-4 relative">
-          <div className="flex items-center">
+        <div className="mb-4 space-y-2">
+          <div className="relative">
             <Input
               placeholder="Search for an existing brewery"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
               className="pr-10"
             />
-            <button 
-              onClick={handleSearch} 
-              className="absolute right-2 top-1/2 -translate-y-1/2"
-            >
-              <Search className="h-5 w-5 text-muted-foreground" />
-            </button>
+            {isLoading && (
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+              </div>
+            )}
           </div>
           
-          {searchResults.length > 0 && (
-            <div className="mt-2 border rounded max-h-40 overflow-y-auto">
-              {searchResults.map((brewery) => (
+          {results.length > 0 && (
+            <div className="border rounded max-h-40 overflow-y-auto divide-y">
+              {results.map((brewery) => (
                 <div 
                   key={brewery.id} 
-                  className={`p-2 hover:bg-muted cursor-pointer ${
+                  className={`p-2 hover:bg-muted cursor-pointer transition-colors ${
                     selectedBrewery?.id === brewery.id ? 'bg-muted' : ''
                   }`}
-                  onClick={() => handleSelectBrewery(brewery)}
+                  onClick={() => setSelectedBrewery(brewery)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setSelectedBrewery(brewery);
+                    }
+                  }}
                 >
-                  <div className="flex justify-between items-center">
-                    <span>{brewery.name}</span>
-                    {brewery.is_verified && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Verified
-                      </span>
-                    )}
-                    {brewery.has_owner && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Owned
-                      </span>
-                    )}
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="truncate">{brewery.name}</span>
+                    <div className="flex gap-2 shrink-0">
+                      {brewery.is_verified && (
+                        <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                          Verified
+                        </span>
+                      )}
+                      {brewery.has_owner && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                          Owned
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
+          )}
+
+          {searchTerm && !isLoading && results.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-2">
+              No breweries found matching your search
+            </p>
           )}
         </div>
         
