@@ -6,6 +6,10 @@ import { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
 import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
 
+// Create a persistent reference that survives across component remounts
+// This will store the last selected brewery ID across page navigations
+const lastSelectedBreweryIdRef = { current: null };
+
 export const useBreweryFetching = (userId: string | undefined) => {
   const [breweries, setBreweries] = useState<Brewery[]>([]);
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
@@ -15,8 +19,8 @@ export const useBreweryFetching = (userId: string | undefined) => {
   // Setup realtime updates for breweries
   useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery, breweries, setBreweries);
   
-  // Track the current brewery ID for persistence
-  const currentBreweryIdRef = useRef<string | null>(selectedBrewery?.id || null);
+  // Local ref to track the current brewery ID within this component instance
+  const currentBreweryIdRef = useRef<string | null>(selectedBrewery?.id || lastSelectedBreweryIdRef.current);
   
   const fetchBreweries = async () => {
     if (!userId || isUpdatingRef.current) return;
@@ -51,13 +55,21 @@ export const useBreweryFetching = (userId: string | undefined) => {
           const typedBreweries = breweriesData as Brewery[];
           setBreweries(typedBreweries);
           
-          // If we have a previously selected brewery, try to maintain that selection
-          if (currentBreweryIdRef.current) {
-            const previouslySelected = typedBreweries.find(b => b.id === currentBreweryIdRef.current);
+          // Check for previously selected brewery (either from this session or persisted)
+          const persistedBreweryId = lastSelectedBreweryIdRef.current || currentBreweryIdRef.current;
+          
+          if (persistedBreweryId) {
+            console.log('Looking for previously selected brewery ID:', persistedBreweryId);
+            const previouslySelected = typedBreweries.find(b => b.id === persistedBreweryId);
+            
             if (previouslySelected) {
-              console.log('Maintaining previously selected brewery:', previouslySelected.name);
+              console.log('Restoring previously selected brewery:', previouslySelected.name);
               setSelectedBrewery(previouslySelected);
+              currentBreweryIdRef.current = previouslySelected.id;
+              lastSelectedBreweryIdRef.current = previouslySelected.id;
               return;
+            } else {
+              console.log('Previously selected brewery not found in current brewery list');
             }
           }
           
@@ -66,18 +78,21 @@ export const useBreweryFetching = (userId: string | undefined) => {
             console.log('No prior selection, defaulting to first brewery:', typedBreweries[0].name);
             setSelectedBrewery(typedBreweries[0]);
             currentBreweryIdRef.current = typedBreweries[0].id;
+            lastSelectedBreweryIdRef.current = typedBreweries[0].id;
           }
         } else {
           console.log('No breweries found for this user');
           setBreweries([]);
           setSelectedBrewery(null);
           currentBreweryIdRef.current = null;
+          lastSelectedBreweryIdRef.current = null;
         }
       } else {
         console.log('No brewery ownership records found for this user');
         setBreweries([]);
         setSelectedBrewery(null);
         currentBreweryIdRef.current = null;
+        lastSelectedBreweryIdRef.current = null;
       }
     } catch (error) {
       console.error('Error fetching breweries:', error);
@@ -127,11 +142,14 @@ export const useBreweryFetching = (userId: string | undefined) => {
     }
   }, [userId]);
 
-  // Custom setter for selectedBrewery that also updates the ref
+  // Custom setter for selectedBrewery that also updates both refs
   const setSelectedBreweryWithRef = (brewery: Brewery | null) => {
     console.log('Setting selected brewery to:', brewery?.name);
     setSelectedBrewery(brewery);
+    
+    // Update both the component-level ref and the module-level persistent ref
     currentBreweryIdRef.current = brewery?.id || null;
+    lastSelectedBreweryIdRef.current = brewery?.id || null;
   };
 
   return {

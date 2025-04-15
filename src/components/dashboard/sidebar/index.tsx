@@ -49,8 +49,9 @@ const DashboardSidebar = () => {
   };
 
   const handleBrewerySelect = (brewery: Brewery) => {
+    // First set the selected brewery
     setSelectedBrewery(brewery);
-    // After selecting a brewery, navigate to the dashboard to show it
+    // Then navigate to the dashboard to show it
     navigate('/dashboard');
   };
 
