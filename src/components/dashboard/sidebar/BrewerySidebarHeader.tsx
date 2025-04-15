@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   SidebarHeader
@@ -54,6 +53,12 @@ export const BrewerySidebarHeader = ({
     console.log('Brewery created successfully');
   };
   
+  // Handle brewery selection with logging
+  const handleBrewerySelect = (brewery: Brewery) => {
+    console.log('Selected brewery from dropdown:', brewery.name);
+    onBrewerySelect(brewery);
+  };
+  
   // Loading state
   if (isLoading) {
     return (
@@ -103,7 +108,7 @@ export const BrewerySidebarHeader = ({
             {breweries.map((brewery) => (
               <DropdownMenuItem 
                 key={brewery.id}
-                onClick={() => onBrewerySelect(brewery)}
+                onClick={() => handleBrewerySelect(brewery)}
               >
                 <div className="flex items-center w-full">
                   <Avatar className="h-6 w-6 mr-2">
@@ -166,7 +171,7 @@ export const BrewerySidebarHeader = ({
           {breweries.map((brewery) => (
             <DropdownMenuItem 
               key={brewery.id}
-              onClick={() => onBrewerySelect(brewery)}
+              onClick={() => handleBrewerySelect(brewery)}
               className={selectedBrewery?.id === brewery.id ? "bg-accent text-accent-foreground" : ""}
             >
               <div className="flex items-center w-full">

@@ -48,13 +48,19 @@ const DashboardSidebar = () => {
     navigate(`/dashboard/venues?venueId=${venue.id}`);
   };
 
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    // After selecting a brewery, navigate to the dashboard to show it
+    navigate('/dashboard');
+  };
+
   return (
     <Sidebar>
       <BrewerySidebarHeader 
         selectedBrewery={selectedBrewery} 
         breweries={breweries}
         isLoading={isLoading} 
-        onBrewerySelect={setSelectedBrewery}
+        onBrewerySelect={handleBrewerySelect}
       />
       
       <SidebarContent>

@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
+import { toast } from 'sonner';
 
 const Dashboard = () => {
   const { user, userType, loading } = useAuth();
@@ -22,6 +23,11 @@ const Dashboard = () => {
     isLoading,
     fetchBreweries 
   } = useBreweryFetching(user?.id);
+
+  // Log when the selected brewery changes
+  useEffect(() => {
+    console.log("Dashboard - selectedBrewery updated:", selectedBrewery?.name);
+  }, [selectedBrewery]);
 
   // If still loading or no user, show loading state
   if (loading || !user) {
@@ -43,6 +49,11 @@ const Dashboard = () => {
     );
   }
 
+  const handleSubmitSuccess = async () => {
+    await fetchBreweries();
+    toast.success("Brewery updated successfully");
+  };
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card>
@@ -56,7 +67,7 @@ const Dashboard = () => {
           <UnifiedBreweryForm
             initialData={selectedBrewery}
             onSubmit={() => {}}
-            onSubmitSuccess={fetchBreweries}
+            onSubmitSuccess={handleSubmitSuccess}
             isAdminMode={false}
             breweryId={selectedBrewery.id}
             isEditMode={true}

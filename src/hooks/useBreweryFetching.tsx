@@ -129,9 +129,9 @@ export const useBreweryFetching = (userId: string | undefined) => {
 
   // Custom setter for selectedBrewery that also updates the ref
   const setSelectedBreweryWithRef = (brewery: Brewery | null) => {
+    console.log('Setting selected brewery to:', brewery?.name);
     setSelectedBrewery(brewery);
     currentBreweryIdRef.current = brewery?.id || null;
-    console.log('Selected brewery changed to:', brewery?.name);
   };
 
   return {
