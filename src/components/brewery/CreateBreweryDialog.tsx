@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Dialog,
@@ -10,6 +9,7 @@ import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { useBrewerySearch } from '@/hooks/useBrewerySearch';
+import BreweryClaimForm from './BreweryClaimForm';
 
 interface Brewery {
   id: string;
@@ -31,17 +31,27 @@ const CreateBreweryDialog = ({
 }: CreateBreweryDialogProps) => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const { searchTerm, setSearchTerm, results, isLoading } = useBrewerySearch();
+  const [isClaimMode, setIsClaimMode] = useState(false);
 
   const handleSuccess = () => {
     onOpenChange(false);
     onSuccess();
   };
 
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    if (brewery.is_verified || brewery.has_owner) {
+      setIsClaimMode(true);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Create Your Brewery</DialogTitle>
+          <DialogTitle>
+            {isClaimMode ? "Claim Existing Brewery" : "Create Your Brewery"}
+          </DialogTitle>
         </DialogHeader>
         
         <div className="mb-4 space-y-2">
@@ -67,12 +77,12 @@ const CreateBreweryDialog = ({
                   className={`p-2 hover:bg-muted cursor-pointer transition-colors ${
                     selectedBrewery?.id === brewery.id ? 'bg-muted' : ''
                   }`}
-                  onClick={() => setSelectedBrewery(brewery)}
+                  onClick={() => handleBrewerySelect(brewery)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      setSelectedBrewery(brewery);
+                      handleBrewerySelect(brewery);
                     }
                   }}
                 >
@@ -103,15 +113,23 @@ const CreateBreweryDialog = ({
           )}
         </div>
         
-        <UnifiedBreweryForm 
-          initialData={selectedBrewery ? { 
-            id: selectedBrewery.id, 
-            name: selectedBrewery.name 
-          } : undefined}
-          onSubmit={() => {}} // Not needed in regular user mode
-          onSubmitSuccess={handleSuccess} 
-          isAdminMode={false}
-        />
+        {isClaimMode && selectedBrewery ? (
+          <BreweryClaimForm
+            breweryId={selectedBrewery.id}
+            breweryName={selectedBrewery.name}
+            onSuccess={handleSuccess}
+          />
+        ) : (
+          <UnifiedBreweryForm 
+            initialData={selectedBrewery ? { 
+              id: selectedBrewery.id, 
+              name: selectedBrewery.name 
+            } : undefined}
+            onSubmit={() => {}} // Not needed in regular user mode
+            onSubmitSuccess={handleSuccess} 
+            isAdminMode={false}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
