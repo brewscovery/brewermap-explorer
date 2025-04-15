@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,6 +5,7 @@ import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 import { toast } from 'sonner';
+import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 
 const Dashboard = () => {
   const { user, userType, loading } = useAuth();
@@ -28,6 +28,9 @@ const Dashboard = () => {
   useEffect(() => {
     console.log("Dashboard - selectedBrewery updated:", selectedBrewery?.name);
   }, [selectedBrewery]);
+
+  // Add the notifications hook
+  useBreweryClaimNotifications();
 
   // If still loading or no user, show loading state
   if (loading || !user) {
