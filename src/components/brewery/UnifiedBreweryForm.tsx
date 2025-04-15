@@ -16,6 +16,7 @@ interface UnifiedBreweryFormProps {
   isAdminMode?: boolean;
   onSubmitSuccess?: () => void;
   breweryId?: string;
+  isEditMode?: boolean;
 }
 
 const UnifiedBreweryForm = ({ 
@@ -24,12 +25,12 @@ const UnifiedBreweryForm = ({
   isLoading = false,
   isAdminMode = false,
   onSubmitSuccess,
-  breweryId: initialBreweryId
+  breweryId: initialBreweryId,
+  isEditMode = false
 }: UnifiedBreweryFormProps) => {
   const { user } = useAuth();
   const [breweryId, setBreweryId] = useState<string | undefined>(initialBreweryId || initialData?.id);
-  const isEditMode = !!initialData?.id;
-
+  
   // Set up form submission logic with our custom hook
   const { isSubmitting, handleSubmit } = useBreweryFormSubmit({
     isAdminMode,
