@@ -11,6 +11,7 @@ import { Loader2, ArrowLeft } from 'lucide-react';
 import { useBrewerySearch } from '@/hooks/useBrewerySearch';
 import BreweryClaimForm from './BreweryClaimForm';
 import { Button } from '@/components/ui/button';
+import { useBrewerySummary } from '@/hooks/useBrewerySummary';
 
 interface Brewery {
   id: string;
@@ -32,6 +33,9 @@ const CreateBreweryDialog = ({
 }: CreateBreweryDialogProps) => {
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const { searchTerm, setSearchTerm, results, isLoading } = useBrewerySearch();
+  const { data: brewerySummary, isLoading: isLoadingSummary } = useBrewerySummary(
+    selectedBrewery?.id || null
+  );
 
   const handleSuccess = () => {
     onOpenChange(false);
@@ -136,6 +140,8 @@ const CreateBreweryDialog = ({
           <BreweryClaimForm
             breweryId={selectedBrewery.id}
             breweryName={selectedBrewery.name}
+            breweryCountry={brewerySummary?.country || null}
+            venues={brewerySummary?.venues || []}
             onSuccess={handleSuccess}
             onCancel={handleBackToSelection}
           />

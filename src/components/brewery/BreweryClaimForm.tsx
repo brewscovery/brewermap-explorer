@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import type { Venue } from '@/types/venue';
 
 const claimFormSchema = z.object({
   contact_email: z.string().email("Please enter a valid email address"),
@@ -21,11 +22,30 @@ type ClaimFormValues = z.infer<typeof claimFormSchema>;
 interface BreweryClaimFormProps {
   breweryId: string;
   breweryName: string;
+  breweryCountry: string | null;
+  venues: Venue[];
   onSuccess: () => void;
   onCancel?: () => void;
 }
 
-const BreweryClaimForm = ({ breweryId, breweryName, onSuccess, onCancel }: BreweryClaimFormProps) => {
+const formatVenueAddress = (venue: Venue) => {
+  const parts = [
+    venue.street,
+    venue.city,
+    venue.state,
+    venue.postal_code
+  ].filter(Boolean);
+  return parts.join(', ');
+};
+
+const BreweryClaimForm = ({ 
+  breweryId, 
+  breweryName,
+  breweryCountry,
+  venues,
+  onSuccess, 
+  onCancel 
+}: BreweryClaimFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<ClaimFormValues>({
@@ -62,11 +82,15 @@ const BreweryClaimForm = ({ breweryId, breweryName, onSuccess, onCancel }: Brewe
     }
   };
 
+  const venueText = venues.length === 1 ? 'venue' : 'venues';
+  const venuesList = venues.map(formatVenueAddress).join('; ');
+  const locationInfo = `${breweryCountry || 'Unknown country'}. This brewery has a total of ${venues.length} ${venueText} associated with the brewery with following detail: ${venuesList}`;
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="text-sm text-muted-foreground mb-4">
-          You are claiming ownership of <span className="font-medium text-foreground">{breweryName}</span>. 
+          You are claiming ownership of <span className="font-medium text-foreground">{breweryName}</span>, {locationInfo}. 
           Please provide your contact information for verification.
         </div>
 
