@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +10,7 @@ import type { Venue } from '@/types/venue';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { useVenueDailySpecials } from '@/hooks/useVenueDailySpecials';
+import BreweryLogo from '@/components/brewery/BreweryLogo';
 import AboutSection from './sections/AboutSection';
 import AddressSection from './sections/AddressSection';
 import ContactSection from './sections/ContactSection';
@@ -43,7 +42,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const queryClient = useQueryClient();
   const stableVenueId = useRef<string | null>(null);
   
-  // Update the stable venue ID reference without causing re-renders
   useEffect(() => {
     if (venue?.id) {
       stableVenueId.current = venue.id;
@@ -139,21 +137,14 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
-      <div className="flex flex-col p-4 border-b">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-4">
-            <Avatar className="h-14 w-14 border">
-              {breweryInfo?.logo_url ? (
-                <AvatarImage 
-                  src={breweryInfo.logo_url} 
-                  alt={breweryInfo.name || 'Brewery logo'} 
-                />
-              ) : (
-                <AvatarFallback className="bg-muted">
-                  {breweryInfo?.name?.[0] || 'B'}
-                </AvatarFallback>
-              )}
-            </Avatar>
+      <div className="flex flex-col p-6 border-b">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <BreweryLogo 
+              logoUrl={breweryInfo?.logo_url}
+              name={breweryInfo?.name}
+              size="medium"
+            />
             <div className="min-w-0">
               <h2 className="text-xl font-bold truncate">{venue.name}</h2>
               {breweryInfo?.name && (
