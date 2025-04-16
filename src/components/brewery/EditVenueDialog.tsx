@@ -41,7 +41,6 @@ const EditVenueDialog = ({
         postal_code: venue.postal_code || '',
         country: venue.country || 'Australia', // Default to Australia if missing
         phone: venue.phone || '',
-        website_url: venue.website_url || '',
         longitude: venue.longitude,
         latitude: venue.latitude
       });

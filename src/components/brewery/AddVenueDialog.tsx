@@ -76,7 +76,6 @@ const AddVenueDialog = ({
           postal_code: formData.postal_code || null,
           country: formData.country || null,
           phone: formData.phone || null,
-          website_url: formData.website_url || null,
           longitude,
           latitude
         })

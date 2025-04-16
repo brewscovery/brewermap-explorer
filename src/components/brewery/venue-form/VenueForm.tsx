@@ -14,7 +14,6 @@ interface VenueFormData {
   postal_code: string;
   country: string;
   phone: string;
-  website_url: string;
   [key: string]: any; // Allow for brewery_id and other dynamic properties
 }
 
@@ -67,7 +66,6 @@ export const VenueForm = ({
         
         <ContactSection
           phone={formData.phone}
-          websiteUrl={formData.website_url}
           handleChange={handleChange}
         />
         
