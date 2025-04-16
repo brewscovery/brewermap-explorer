@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -67,7 +68,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       
       const { data, error } = await supabase
         .from('breweries')
-        .select('id, name, about, website_url, facebook_url, instagram_url')
+        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url')
         .eq('id', venue.brewery_id)
         .single();
       
@@ -138,11 +139,34 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
-      <div className="flex items-center justify-between p-4 border-b">
-        <h2 className="text-xl font-bold truncate pr-2">{venue.name}</h2>
-        <Button variant="ghost" size="icon" onClick={onClose}>
-          <X size={20} />
-        </Button>
+      <div className="flex flex-col p-4 border-b">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-14 w-14 border">
+              {breweryInfo?.logo_url ? (
+                <AvatarImage 
+                  src={breweryInfo.logo_url} 
+                  alt={breweryInfo.name || 'Brewery logo'} 
+                />
+              ) : (
+                <AvatarFallback className="bg-muted">
+                  {breweryInfo?.name?.[0] || 'B'}
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div className="min-w-0">
+              <h2 className="text-xl font-bold truncate">{venue.name}</h2>
+              {breweryInfo?.name && (
+                <p className="text-sm text-muted-foreground truncate">
+                  {breweryInfo.name}
+                </p>
+              )}
+            </div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X size={20} />
+          </Button>
+        </div>
       </div>
       
       <div className="flex-1 overflow-y-auto p-4">
