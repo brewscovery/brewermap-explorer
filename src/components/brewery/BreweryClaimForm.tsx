@@ -83,14 +83,15 @@ const BreweryClaimForm = ({
   };
 
   const venueText = venues.length === 1 ? 'venue' : 'venues';
+  const addressText = venues.length > 1 ? 'addresses' : 'address';
   const venuesList = venues.map(formatVenueAddress).join('; ');
-  const locationInfo = `${breweryCountry || 'Unknown country'}. This brewery has a total of ${venues.length} ${venueText} associated with the brewery with following detail: ${venuesList}`;
+  const locationInfo = `${breweryCountry || 'Unknown country'}. This brewery has a total of ${venues.length} ${venueText} associated with the brewery with the following ${addressText}:`;
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div className="text-sm text-muted-foreground mb-4">
-          You are claiming ownership of <span className="font-medium text-foreground">{breweryName}</span>, {locationInfo}. 
+          You are claiming ownership of <span className="font-medium text-foreground">{breweryName}</span>, {locationInfo} <span className="font-medium text-foreground">{venuesList}</span>. 
           Please provide your contact information for verification.
         </div>
 
