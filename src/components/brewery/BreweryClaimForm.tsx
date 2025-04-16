@@ -22,9 +22,10 @@ interface BreweryClaimFormProps {
   breweryId: string;
   breweryName: string;
   onSuccess: () => void;
+  onCancel?: () => void;
 }
 
-const BreweryClaimForm = ({ breweryId, breweryName, onSuccess }: BreweryClaimFormProps) => {
+const BreweryClaimForm = ({ breweryId, breweryName, onSuccess, onCancel }: BreweryClaimFormProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<ClaimFormValues>({
@@ -111,16 +112,23 @@ const BreweryClaimForm = ({ breweryId, breweryName, onSuccess }: BreweryClaimFor
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Submitting...
-            </>
-          ) : (
-            'Submit Claim Request'
+        <div className="flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
           )}
-        </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Submitting...
+              </>
+            ) : (
+              'Submit Claim Request'
+            )}
+          </Button>
+        </div>
       </form>
     </Form>
   );
