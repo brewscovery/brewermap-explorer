@@ -69,7 +69,7 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
             onClick={() => handleAddVenue(selectedBrewery)}
           >
             <Store size={18} />
-            <span>Add Venue</span>
+            <span>Venues</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       )}
