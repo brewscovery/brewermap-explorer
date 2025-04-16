@@ -83,6 +83,22 @@ const AdminSidebar = () => {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
+
+      <SidebarFooter className="p-4">
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => navigate('/')}>
+            <Map size={18} />
+            <span>View Map</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        
+        <SidebarMenuItem>
+          <SidebarMenuButton onClick={() => navigate('/profile')}>
+            <User size={18} />
+            <span>Profile</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       
       <SidebarFooter className="p-4">
         <SidebarMenu>
