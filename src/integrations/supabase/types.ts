@@ -362,7 +362,6 @@ export type Database = {
           state: string
           street: string | null
           updated_at: string
-          website_url: string | null
         }
         Insert: {
           brewery_id: string
@@ -378,7 +377,6 @@ export type Database = {
           state: string
           street?: string | null
           updated_at?: string
-          website_url?: string | null
         }
         Update: {
           brewery_id?: string
@@ -394,7 +392,6 @@ export type Database = {
           state?: string
           street?: string | null
           updated_at?: string
-          website_url?: string | null
         }
         Relationships: [
           {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,7 +13,6 @@ interface VenueFormData {
   postal_code: string;
   country: string;
   phone: string;
-  website_url: string;
   longitude: string | null;
   latitude: string | null;
   [key: string]: any; // Allow for brewery_id and other dynamic properties
@@ -37,7 +35,6 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     postal_code: '',
     country: DEFAULT_COUNTRY,
     phone: '',
-    website_url: '',
     longitude: null,
     latitude: null,
     ...initialData // Spread any initial data (including brewery_id)
@@ -55,7 +52,6 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
         postal_code: initialData.postal_code || prevData.postal_code,
         country: initialData.country || DEFAULT_COUNTRY,
         phone: initialData.phone || prevData.phone,
-        website_url: initialData.website_url || prevData.website_url,
         longitude: initialData.longitude !== undefined ? initialData.longitude : prevData.longitude,
         latitude: initialData.latitude !== undefined ? initialData.latitude : prevData.latitude,
         ...(initialData.brewery_id ? { brewery_id: initialData.brewery_id } : {})
@@ -84,7 +80,6 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
       postal_code: '',
       country: DEFAULT_COUNTRY,
       phone: '',
-      website_url: '',
       longitude: null,
       latitude: null,
       ...(initialData?.brewery_id ? { brewery_id: initialData.brewery_id } : {})
