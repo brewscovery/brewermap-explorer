@@ -11,7 +11,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton
 } from '@/components/ui/sidebar';
-import { ClipboardCheck, Users, Beer, LayoutDashboard, LogOut } from 'lucide-react';
+import { ClipboardCheck, Users, Beer, LayoutDashboard, LogOut, Map, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
