@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Dialog,
@@ -39,22 +38,18 @@ const CreateBreweryDialog = ({
     onSuccess();
   };
 
-  // Reset selected brewery when dialog closes
   const handleOpenChange = (isOpen: boolean) => {
     if (!isOpen) {
-      // Reset the selection state when closing the dialog
       setSelectedBrewery(null);
       setSearchTerm('');
     }
     onOpenChange(isOpen);
   };
 
-  // Function to go back to brewery selection
   const handleBackToSelection = () => {
     setSelectedBrewery(null);
   };
 
-  // Filter out verified and owned breweries from search results
   const availableBreweries = results.filter(
     brewery => !brewery.is_verified && !brewery.has_owner
   );
@@ -70,19 +65,21 @@ const CreateBreweryDialog = ({
           <DialogTitle>
             {selectedBrewery ? "Claim Existing Brewery" : "Create Your Brewery"}
           </DialogTitle>
+          
+          {selectedBrewery && (
+            <div className="mt-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center gap-1 text-muted-foreground"
+                onClick={handleBackToSelection}
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back to brewery selection
+              </Button>
+            </div>
+          )}
         </DialogHeader>
-        
-        {selectedBrewery && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="absolute left-6 top-6 flex items-center gap-1 text-muted-foreground"
-            onClick={handleBackToSelection}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to brewery selection
-          </Button>
-        )}
         
         <div className="mb-4 space-y-2">
           {!selectedBrewery && (
