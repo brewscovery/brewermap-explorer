@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -40,16 +41,11 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-  const stableVenueId = useRef<string | null>(null);
   
-  useEffect(() => {
-    if (venue?.id) {
-      stableVenueId.current = venue.id;
-      console.log(`VenueSidebar rendering with venue ID: ${venue.id}`);
-    }
-  }, [venue?.id]);
+  // Directly use venue?.id instead of a ref
+  const venueId = venue?.id || null;
   
-  const venueId = stableVenueId.current;
+  console.log(`VenueSidebar rendering with venue ID: ${venueId}`);
   
   const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venueId);
   const { happyHours = [], isLoading: isLoadingHappyHours } = useVenueHappyHours(venueId);
