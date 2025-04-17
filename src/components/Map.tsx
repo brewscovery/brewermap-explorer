@@ -11,26 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import VenueSidebar from './venue/VenueSidebar';
 
-// Add this optional import to safely use useSidebar
-const useSidebarSafe = () => {
-  try {
-    // Dynamic import to avoid the error when not in a SidebarProvider
-    const { useSidebar } = require('./ui/sidebar');
-    return useSidebar();
-  } catch (error) {
-    // Return a default value that mimics the sidebar context
-    return {
-      state: 'expanded',
-      open: true,
-      setOpen: () => {},
-      openMobile: false,
-      setOpenMobile: () => {},
-      isMobile: false,
-      toggleSidebar: () => {},
-    };
-  }
-};
-
 interface MapProps {
   venues: Venue[];
   onVenueSelect: (venue: Venue) => void;
@@ -38,25 +18,10 @@ interface MapProps {
 
 const Map = ({ venues, onVenueSelect }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded, resizeMap } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
-  
-  // Use the safe version of useSidebar
-  const sidebarContext = useSidebarSafe();
-
-  // Listen for sidebar state changes and resize map accordingly
-  useEffect(() => {
-    if (map.current && isStyleLoaded) {
-      // Add a small delay to ensure DOM has updated
-      const timeoutId = setTimeout(() => {
-        resizeMap();
-      }, 100);
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [map, isStyleLoaded, resizeMap, sidebarContext.state]);
 
   // Fetch user's check-ins
   const { data: checkins, isLoading } = useQuery({
@@ -137,26 +102,6 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const handleSidebarClose = () => {
     setSelectedVenue(null);
   };
-
-  // Add a resize observer to handle other cases where the container might resize
-  useEffect(() => {
-    if (!mapContainer.current || !map.current) return;
-    
-    const observer = new ResizeObserver(() => {
-      if (map.current && isStyleLoaded) {
-        resizeMap();
-      }
-    });
-    
-    observer.observe(mapContainer.current);
-    
-    return () => {
-      if (mapContainer.current) {
-        observer.unobserve(mapContainer.current);
-      }
-      observer.disconnect();
-    };
-  }, [mapContainer, map, isStyleLoaded, resizeMap]);
 
   return (
     <div className="relative flex-1 w-full h-full">

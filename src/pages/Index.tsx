@@ -5,7 +5,6 @@ import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -37,7 +36,7 @@ const Index = () => {
   }, [error]);
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full">
+    <div className="flex-1 flex flex-col h-full">
       <Map
         venues={venues}
         onVenueSelect={setSelectedVenue}
