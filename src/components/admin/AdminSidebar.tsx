@@ -33,7 +33,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <div className={`fixed left-0 top-0 z-30 h-full max-w-[16rem] ${state === "expanded" ? "animate-slide-in-left" : "animate-slide-out-left"} shadow-lg bg-white`}>
+    <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] ${state === "expanded" ? "animate-slide-in-left" : "animate-slide-out-left"} shadow-lg bg-white`}>
       <div className="flex flex-col h-full overflow-auto">
         <div className="flex flex-col items-center justify-center p-4 border-b">
           <h2 className="font-bold text-xl">Admin Dashboard</h2>
