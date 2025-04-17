@@ -25,6 +25,16 @@
     --input: 0 0% 89.8%;
     --ring: 37 100% 50%;
     --radius: 0.75rem;
+    
+    /* Sidebar colors */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 3.9%;
+    --sidebar-primary: 37 100% 50%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96.1%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 0 0% 89.8%;
+    --sidebar-ring: 37 100% 50%;
   }
 
   .dark {
@@ -64,12 +74,25 @@
     animation: slideInLeft 0.3s ease-out forwards;
   }
   
+  .animate-slide-out-left {
+    animation: slideOutLeft 0.3s ease-out forwards;
+  }
+  
   @keyframes slideInLeft {
     from {
       transform: translateX(-100%);
     }
     to {
       transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideOutLeft {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
     }
   }
 }

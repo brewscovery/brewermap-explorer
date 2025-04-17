@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import RegularUserSidebar from '@/components/dashboard/RegularUserSidebar';
 import Header from '@/components/layout/Header';
@@ -23,21 +23,19 @@ const AppLayout = () => {
         ? 'Admin' 
         : 'User';
   
-  // Use consistent structure regardless of authentication state
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
-        {/* Conditionally render sidebar based on authentication */}
+        {/* Sidebars now use the fly-in animation style */}
         {user && userType === 'business' && !isAdminRoute && (
           <DashboardSidebar />
         )}
         {user && userType === 'regular' && !isAdminRoute && (
           <RegularUserSidebar user={user} displayName={displayName} />
         )}
-        {/* No sidebar for admin routes as it has its own layout */}
         
         {/* Main content area - always the same structure */}
-        <SidebarInset className="h-screen overflow-auto">
+        <div className="h-screen overflow-auto flex-1">
           {isDashboardRoute && user ? (
             // Dashboard routes
             <div className="flex-1 flex flex-col">
@@ -55,7 +53,7 @@ const AppLayout = () => {
               </main>
             </div>
           )}
-        </SidebarInset>
+        </div>
       </div>
     </SidebarProvider>
   );
