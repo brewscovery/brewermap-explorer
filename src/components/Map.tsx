@@ -104,7 +104,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   };
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative flex-1 w-full h-full">
       <div ref={mapContainer} className="absolute inset-0" />
       {map.current && isStyleLoaded && (
         <>

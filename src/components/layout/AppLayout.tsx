@@ -25,9 +25,9 @@ const AppLayout = () => {
   // If user is not authenticated, render without sidebar
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col h-screen">
         <Header />
-        <main className="flex-1 pt-[73px]">
+        <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
           <Outlet />
         </main>
       </div>
@@ -37,7 +37,7 @@ const AppLayout = () => {
   // For authenticated users, render with the appropriate sidebar
   return (
     <SidebarProvider defaultOpen={false}>  {/* Default to collapsed sidebar */}
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full h-screen">
         {userType === 'business' ? (
           <DashboardSidebar />
         ) : userType === 'admin' ? (
@@ -53,9 +53,9 @@ const AppLayout = () => {
             </div>
           ) : (
             // Use regular Header for non-dashboard routes
-            <div className="flex-1 flex flex-col">
+            <div className="flex-1 flex flex-col h-full">
               <Header />
-              <main className="flex-1 pt-[73px]">
+              <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
                 <Outlet />
               </main>
             </div>
