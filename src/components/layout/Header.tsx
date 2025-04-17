@@ -28,7 +28,18 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
-  const { state, toggleSidebar } = useSidebar();
+  
+  // Try/catch to handle case when Header is used outside a SidebarProvider
+  let sidebarState = null;
+  let toggleSidebarFn = null;
+  
+  try {
+    const sidebarContext = useSidebar();
+    sidebarState = sidebarContext.state;
+    toggleSidebarFn = sidebarContext.toggleSidebar;
+  } catch (error) {
+    // Sidebar context not available, will not render sidebar controls
+  }
   
   const isOnDashboard = location.pathname.includes('/dashboard');
   const isOnAdmin = location.pathname.includes('/admin');
@@ -59,17 +70,19 @@ const Header = () => {
         {user && (
           <>
             <SidebarTrigger className="md:hidden" />
-            <Button 
-              variant="ghost" 
-              size="icon"
-              onClick={toggleSidebar}
-              className="hidden md:flex"
-            >
-              {state === 'expanded' ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-              <span className="sr-only">
-                {state === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
-              </span>
-            </Button>
+            {sidebarState !== null && toggleSidebarFn && (
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={toggleSidebarFn}
+                className="hidden md:flex"
+              >
+                {sidebarState === 'expanded' ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
+                <span className="sr-only">
+                  {sidebarState === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
+                </span>
+              </Button>
+            )}
           </>
         )}
         <h1 className="text-xl font-bold">Brewery Explorer</h1>
