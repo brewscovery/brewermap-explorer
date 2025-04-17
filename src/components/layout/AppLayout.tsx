@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import RegularUserSidebar from '@/components/dashboard/RegularUserSidebar';
 import Header from '@/components/layout/Header';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 
 const AppLayout = () => {
@@ -49,7 +50,10 @@ const AppLayout = () => {
           {isDashboardRoute ? (
             // Use DashboardHeader for dashboard routes
             <div className="flex-1 flex flex-col">
-              <Outlet />
+              <DashboardHeader displayName={displayName} />
+              <main className="p-6 pt-4 flex-1">
+                <Outlet />
+              </main>
             </div>
           ) : (
             // Use regular Header for non-dashboard routes

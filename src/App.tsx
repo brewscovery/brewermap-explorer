@@ -10,7 +10,6 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import RegularDashboard from "./pages/dashboard/RegularDashboard";
-import DashboardLayout from "./components/dashboard/DashboardLayout";
 import VenuesPage from "./pages/dashboard/VenuesPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import FavoritesPage from "./pages/dashboard/FavoritesPage";
@@ -87,8 +86,8 @@ const App = () => {
                 {/* Main index/map route */}
                 <Route path="/" element={<Index />} />
                 
-                {/* Dashboard Routes with nested sidebar */}
-                <Route path="/dashboard" element={<DashboardLayout />}>
+                {/* Dashboard Routes */}
+                <Route path="/dashboard">
                   <Route index element={
                     <UserTypeRoute 
                       element={<Navigate to="/" />}
