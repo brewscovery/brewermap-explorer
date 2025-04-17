@@ -35,9 +35,9 @@ const AppLayout = () => {
     );
   }
 
-  // For authenticated users, render with the appropriate sidebar
+  // For authenticated users, render with the appropriate sidebar using floating variant
   return (
-    <SidebarProvider defaultOpen={false}>  {/* Default to collapsed sidebar */}
+    <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full h-screen">
         {userType === 'business' ? (
           <DashboardSidebar />
@@ -46,7 +46,7 @@ const AppLayout = () => {
         ) : (
           <RegularUserSidebar user={user} displayName={displayName} />
         )}
-        <div className="flex-1 h-screen overflow-auto flex flex-col">
+        <div className="flex-1 h-screen overflow-auto flex flex-col w-full">
           {isDashboardRoute ? (
             // Use DashboardHeader for dashboard routes
             <div className="flex-1 flex flex-col">

@@ -56,7 +56,7 @@ const DashboardSidebar = () => {
   };
 
   return (
-    <Sidebar>
+    <Sidebar variant="floating" collapsible="offcanvas">
       <BrewerySidebarHeader 
         selectedBrewery={selectedBrewery} 
         breweries={breweries}

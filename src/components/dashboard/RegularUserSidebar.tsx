@@ -27,7 +27,7 @@ const RegularUserSidebar = ({ user, displayName }: RegularUserSidebarProps) => {
   };
   
   return (
-    <Sidebar>
+    <Sidebar variant="floating" collapsible="offcanvas">
       <div className="flex flex-col p-4 border-b">
         <h2 className="text-lg font-semibold">Hello, {displayName || 'User'}</h2>
         <p className="text-sm text-muted-foreground">{user?.email}</p>

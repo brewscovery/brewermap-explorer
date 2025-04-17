@@ -35,7 +35,7 @@ const AdminSidebar = () => {
   };
 
   return (
-    <Sidebar>
+    <Sidebar variant="floating" collapsible="offcanvas">
       <SidebarHeader className="flex flex-col items-center justify-center p-4">
         <h2 className="font-bold text-xl">Admin Dashboard</h2>
       </SidebarHeader>
