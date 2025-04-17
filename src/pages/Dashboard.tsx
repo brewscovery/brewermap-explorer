@@ -1,15 +1,20 @@
-import { useEffect } from 'react';
+
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
 import { toast } from 'sonner';
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import DeleteBreweryDialog from '@/components/brewery/DeleteBreweryDialog';
 
 const Dashboard = () => {
   const { user, userType, loading } = useAuth();
   const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
   // Redirect if not a business user
   useEffect(() => {
@@ -37,6 +42,16 @@ const Dashboard = () => {
     return <div className="p-6 text-center">Loading dashboard...</div>;
   }
 
+  const handleSubmitSuccess = async () => {
+    await fetchBreweries();
+    toast.success("Brewery updated successfully");
+  };
+
+  const handleDeleteSuccess = () => {
+    navigate('/');
+    toast.success("You've been redirected to the home page");
+  };
+
   if (!selectedBrewery) {
     return (
       <div className="p-6">
@@ -51,11 +66,6 @@ const Dashboard = () => {
       </div>
     );
   }
-
-  const handleSubmitSuccess = async () => {
-    await fetchBreweries();
-    toast.success("Brewery updated successfully");
-  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -76,7 +86,26 @@ const Dashboard = () => {
             isEditMode={true}
           />
         </CardContent>
+        <CardFooter className="flex justify-between border-t pt-6">
+          <div></div>
+          <Button 
+            variant="destructive" 
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete Brewery
+          </Button>
+        </CardFooter>
       </Card>
+
+      <DeleteBreweryDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        breweryId={selectedBrewery?.id || null}
+        breweryName={selectedBrewery?.name || ""}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };
