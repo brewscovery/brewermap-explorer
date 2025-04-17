@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import AdminSidebar from './AdminSidebar';
 
 const AdminLayout = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="flex w-full min-h-screen">
         <AdminSidebar />
-        <div className="flex-1 h-screen overflow-auto">
+        <SidebarInset className="h-screen overflow-auto">
           <header className="p-4 border-b flex items-center">
             <SidebarTrigger className="mr-2" />
             <h1 className="text-xl font-bold">Admin Control Panel</h1>
@@ -17,7 +17,7 @@ const AdminLayout = () => {
           <main className="p-6">
             <Outlet />
           </main>
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );

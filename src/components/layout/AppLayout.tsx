@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import RegularUserSidebar from '@/components/dashboard/RegularUserSidebar';
 import Header from '@/components/layout/Header';
@@ -35,10 +35,10 @@ const AppLayout = () => {
     );
   }
 
-  // For authenticated users, render with the appropriate sidebar using floating variant
+  // For authenticated users, render with appropriate sidebar that will float over content
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="min-h-screen flex w-full h-screen">
+      <div className="flex w-full min-h-screen">
         {userType === 'business' ? (
           <DashboardSidebar />
         ) : userType === 'admin' ? (
@@ -46,7 +46,9 @@ const AppLayout = () => {
         ) : (
           <RegularUserSidebar user={user} displayName={displayName} />
         )}
-        <div className="flex-1 h-screen overflow-auto flex flex-col w-full">
+        
+        {/* Use SidebarInset to properly handle content area with floating sidebar */}
+        <SidebarInset className="h-screen overflow-auto">
           {isDashboardRoute ? (
             // Use DashboardHeader for dashboard routes
             <div className="flex-1 flex flex-col">
@@ -64,7 +66,7 @@ const AppLayout = () => {
               </main>
             </div>
           )}
-        </div>
+        </SidebarInset>
       </div>
     </SidebarProvider>
   );
