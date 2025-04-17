@@ -5,6 +5,7 @@ import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Index = () => {
   const navigate = useNavigate();

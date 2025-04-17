@@ -10,7 +10,26 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import VenueSidebar from './venue/VenueSidebar';
-import { useSidebar } from './ui/sidebar';
+
+// Add this optional import to safely use useSidebar
+const useSidebarSafe = () => {
+  try {
+    // Dynamic import to avoid the error when not in a SidebarProvider
+    const { useSidebar } = require('./ui/sidebar');
+    return useSidebar();
+  } catch (error) {
+    // Return a default value that mimics the sidebar context
+    return {
+      state: 'expanded',
+      open: true,
+      setOpen: () => {},
+      openMobile: false,
+      setOpenMobile: () => {},
+      isMobile: false,
+      toggleSidebar: () => {},
+    };
+  }
+};
 
 interface MapProps {
   venues: Venue[];
@@ -23,7 +42,9 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
-  const sidebarContext = useSidebar();
+  
+  // Use the safe version of useSidebar
+  const sidebarContext = useSidebarSafe();
 
   // Listen for sidebar state changes and resize map accordingly
   useEffect(() => {
