@@ -76,6 +76,13 @@ const Header = () => {
                 </DropdownMenuItem>
               )}
               
+              {!isOnDashboard && userType === 'regular' && (
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <LayoutDashboard className="mr-2" size={18} />
+                  Dashboard
+                </DropdownMenuItem>
+              )}
+              
               {(isOnDashboard || isOnAdmin) && (
                 <DropdownMenuItem onClick={() => navigate('/')}>
                   <Map className="mr-2" size={18} />
