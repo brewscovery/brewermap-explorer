@@ -20,6 +20,7 @@ const Index = () => {
     updateSearch
   } = useVenueData();
 
+  // Handle auth redirects for recovery/signup flows
   useEffect(() => {
     const type = searchParams.get('type');
     const token = searchParams.get('token');
@@ -29,12 +30,14 @@ const Index = () => {
     }
   }, [navigate, searchParams, user]);
 
+  // Handle venue data errors
   useEffect(() => {
     if (error) {
       toast.error('Failed to load venues');
     }
   }, [error]);
 
+  // The Map component itself should not be conditionally rendered based on auth state
   return (
     <div className="flex-1 flex flex-col h-full">
       <Map

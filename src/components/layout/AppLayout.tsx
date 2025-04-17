@@ -23,34 +23,23 @@ const AppLayout = () => {
         ? 'Admin' 
         : 'User';
   
-  // If user is not authenticated, render without sidebar
-  if (!user) {
-    return (
-      <div className="min-h-screen flex flex-col h-screen">
-        <Header />
-        <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
-          <Outlet />
-        </main>
-      </div>
-    );
-  }
-
-  // For authenticated users, render with appropriate sidebar that will float over content
+  // Use consistent structure regardless of authentication state
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
-        {userType === 'business' ? (
+        {/* Conditionally render sidebar based on authentication */}
+        {user && userType === 'business' && !isAdminRoute && (
           <DashboardSidebar />
-        ) : userType === 'admin' ? (
-          null  // Admin has its own layout with sidebar
-        ) : (
+        )}
+        {user && userType === 'regular' && !isAdminRoute && (
           <RegularUserSidebar user={user} displayName={displayName} />
         )}
+        {/* No sidebar for admin routes as it has its own layout */}
         
-        {/* Use SidebarInset to properly handle content area with floating sidebar */}
+        {/* Main content area - always the same structure */}
         <SidebarInset className="h-screen overflow-auto">
-          {isDashboardRoute ? (
-            // Use DashboardHeader for dashboard routes
+          {isDashboardRoute && user ? (
+            // Dashboard routes
             <div className="flex-1 flex flex-col">
               <DashboardHeader displayName={displayName} />
               <main className="p-6 pt-4 flex-1">
@@ -58,7 +47,7 @@ const AppLayout = () => {
               </main>
             </div>
           ) : (
-            // Use regular Header for non-dashboard routes
+            // Regular routes
             <div className="flex-1 flex flex-col h-full">
               <Header />
               <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">

@@ -12,6 +12,7 @@ export const useMapInitialization = () => {
   const onStyleLoadRef = useRef<(() => void) | null>(null);
 
   const initializeMap = useCallback(async () => {
+    // Don't reinitialize if we already have a map instance and container hasn't changed
     if (!mapContainer.current || initializedRef.current) return;
     
     try {
@@ -22,7 +23,8 @@ export const useMapInitialization = () => {
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/light-v11',
         center: [133.7751, -25.2744], // Center of Australia
-        zoom: 4
+        zoom: 4,
+        preserveDrawingBuffer: true // Make the map more resilient to container changes
       });
 
       // Add navigation controls
@@ -77,10 +79,12 @@ export const useMapInitialization = () => {
     initializeMap();
 
     return () => {
+      // Only clean up if we're actually unmounting, not just auth state changing
       if (map.current && onStyleLoadRef.current) {
         try {
           map.current.off('style.load', onStyleLoadRef.current);
           map.current.remove();
+          console.log('Map fully removed on unmount');
         } catch (error) {
           console.error('Error cleaning up map:', error);
         }
