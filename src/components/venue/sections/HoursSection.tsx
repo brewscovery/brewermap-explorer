@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Clock, Utensils, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { formatTime, sortHoursStartingWithToday, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
+import { formatTime, sortHoursStartingWithToday, getTodayDayOfWeek, getVenueOpenStatus, getKitchenOpenStatus } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 
 interface HoursSectionProps { 
@@ -13,9 +13,24 @@ interface HoursSectionProps {
 
 const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionProps) => {
   const [expanded, setExpanded] = useState(false);
+  const [, setUpdateTime] = useState(new Date());
   const todayIndex = getTodayDayOfWeek();
   
+  // Timer to update status every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setUpdateTime(new Date()); // Force re-render
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
+  
   const todayHours = hours.find(h => h.day_of_week === todayIndex);
+  
+  // Get real-time status
+  const status = showKitchenHours ? 
+    getKitchenOpenStatus(hours) : 
+    getVenueOpenStatus(hours);
   
   if (!hours.length) {
     return (
@@ -40,10 +55,6 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
     }
   };
   
-  const todayHoursText = todayHours 
-    ? getHoursText(todayHours)
-    : 'Hours not available';
-  
   // Sort hours to start with today
   const sortedHours = sortHoursStartingWithToday(hours);
   
@@ -52,9 +63,9 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
       <div className="flex justify-between items-center">
         <h3 className="font-medium text-sm flex items-center">
           {showKitchenHours ? (
-            <Utensils size={14} className="mr-1 text-muted-foreground" />
+            <Utensils size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
           ) : (
-            <Clock size={14} className="mr-1 text-muted-foreground" />
+            <Clock size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
           )}
           {title}
         </h3>
@@ -69,14 +80,18 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
       </div>
       
       <div className="text-sm">
-        <div className="flex justify-between">
-          <span className="font-medium">Today:</span>
-          <span className="flex items-center gap-1">
-            {showKitchenHours && todayHours && !todayHours.is_closed && (!todayHours.kitchen_open_time || !todayHours.kitchen_close_time) && (
-              <XCircle size={12} className="text-muted-foreground" />
-            )}
-            {todayHoursText}
-          </span>
+        {/* Show status instead of hours when collapsed */}
+        <div className="flex flex-col">
+          <div className={status.isOpen ? "text-green-600 font-medium" : "text-muted-foreground"}>
+            {status.statusText}
+          </div>
+          
+          {/* Show next opening info if closed */}
+          {!status.isOpen && status.nextOpenInfo && (
+            <div className="text-muted-foreground text-xs mt-0.5">
+              Opens {status.nextOpenInfo.isToday ? "today" : status.nextOpenInfo.day} at {status.nextOpenInfo.time}
+            </div>
+          )}
         </div>
         
         {expanded && (

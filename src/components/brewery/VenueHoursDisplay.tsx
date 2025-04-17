@@ -18,6 +18,16 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
   const { hours, isLoading } = useVenueHours(venueId);
   const [todayHours, setTodayHours] = useState<VenueHour | null>(null);
   
+  // Timer to update status every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      // This will trigger a re-render to update the open/closed status
+      setTodayHours(prev => ({ ...prev } as VenueHour));
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(timer);
+  }, []);
+  
   useEffect(() => {
     if (hours && hours.length > 0) {
       const today = getTodayDayOfWeek();
@@ -47,9 +57,9 @@ const VenueHoursDisplay = ({ venueId }: VenueHoursDisplayProps) => {
 
   return (
     <div className="mt-2 space-y-2">
-      {/* Today's hours summary */}
+      {/* Today's hours summary with realtime open/closed status */}
       <div className="flex justify-between items-start">
-        <TodayHours todayHours={todayHours} />
+        <TodayHours todayHours={todayHours} venueHours={hours} />
         <Button 
           variant="ghost" 
           size="sm" 
