@@ -36,7 +36,7 @@ const Index = () => {
   }, [error]);
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full w-full">
       <Map
         venues={venues}
         onVenueSelect={setSelectedVenue}

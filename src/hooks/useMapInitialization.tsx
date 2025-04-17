@@ -1,95 +1,69 @@
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { getMapboxToken } from '@/utils/mapUtils';
-import { toast } from 'sonner';
 
-export const useMapInitialization = () => {
+interface MapInitializationResult {
+  mapContainer: React.RefObject<HTMLDivElement>;
+  map: React.RefObject<mapboxgl.Map>;
+  isStyleLoaded: boolean;
+  resizeMap: () => void;
+}
+
+export const useMapInitialization = (): MapInitializationResult => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [isStyleLoaded, setIsStyleLoaded] = useState(false);
-  const initializedRef = useRef(false);
-  const onStyleLoadRef = useRef<(() => void) | null>(null);
 
-  const initializeMap = useCallback(async () => {
-    if (!mapContainer.current || initializedRef.current) return;
-    
-    try {
-      const token = await getMapboxToken();
-      mapboxgl.accessToken = token;
-      
-      const newMap = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
-        center: [133.7751, -25.2744], // Center of Australia
-        zoom: 4
-      });
-
-      // Add navigation controls
-      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
-
-      // Create and store the style load listener
-      const onStyleLoad = () => {
-        console.log('Map style loaded');
+  // Initialize the map on component mount
+  useEffect(() => {
+    const initializeMap = async () => {
+      try {
+        if (!mapContainer.current) return;
         
-        // Only set isStyleLoaded to true when the style is actually fully loaded
-        // and the Map is in a usable state
-        if (newMap.loaded() && newMap.isStyleLoaded() && newMap.getStyle()) {
-          console.log('Map style confirmed to be loaded and ready');
+        // Get the Mapbox token from Supabase
+        const token = await getMapboxToken();
+        mapboxgl.accessToken = token;
+        
+        // Initialize the map
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/light-v11',
+          center: [-96, 38], // Center on US
+          zoom: 3
+        });
+        
+        // Set up event handlers
+        map.current.on('style.load', () => {
+          console.log('Map style loaded');
           setIsStyleLoaded(true);
-        } else {
-          console.log('Style load event fired but style not fully ready yet, waiting for map to be ready');
-          
-          // Wait for the next render cycle to check again
-          newMap.once('render', () => {
-            if (newMap.loaded() && newMap.isStyleLoaded() && newMap.getStyle()) {
-              console.log('Map style now confirmed ready after render');
-              setIsStyleLoaded(true);
-            }
-          });
-        }
-      };
-      
-      onStyleLoadRef.current = onStyleLoad;
-
-      // Add the event listener for style.load
-      newMap.on('style.load', onStyleLoad);
-
-      // Also listen for the load event which fires when the map has been fully loaded
-      newMap.on('load', () => {
-        console.log('Map fully loaded');
-        if (newMap.isStyleLoaded() && newMap.getStyle()) {
-          console.log('Style confirmed loaded on map load event');
-          setIsStyleLoaded(true);
-        }
-      });
-
-      map.current = newMap;
-      initializedRef.current = true;
-    } catch (error) {
-      console.error('Error initializing map:', error);
-      toast.error('Failed to initialize map');
-    }
+        });
+        
+        // Add navigation controls
+        map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        
+      } catch (error) {
+        console.error('Error initializing map:', error);
+      }
+    };
+    
+    initializeMap();
+    
+    // Cleanup on unmount
+    return () => {
+      if (map.current) {
+        map.current.remove();
+      }
+    };
   }, []);
 
-  // Initial map setup
-  useEffect(() => {
-    initializeMap();
+  // Function to resize the map when its container changes
+  const resizeMap = () => {
+    if (map.current) {
+      map.current.resize();
+      console.log('Map resized');
+    }
+  };
 
-    return () => {
-      if (map.current && onStyleLoadRef.current) {
-        try {
-          map.current.off('style.load', onStyleLoadRef.current);
-          map.current.remove();
-        } catch (error) {
-          console.error('Error cleaning up map:', error);
-        }
-      }
-      map.current = null;
-      initializedRef.current = false;
-      onStyleLoadRef.current = null;
-    };
-  }, [initializeMap]);
-
-  return { mapContainer, map, isStyleLoaded };
+  return { mapContainer, map, isStyleLoaded, resizeMap };
 };

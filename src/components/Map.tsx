@@ -10,6 +10,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import VenueSidebar from './venue/VenueSidebar';
+import { useSidebar } from './ui/sidebar';
 
 interface MapProps {
   venues: Venue[];
@@ -18,10 +19,23 @@ interface MapProps {
 
 const Map = ({ venues, onVenueSelect }: MapProps) => {
   const { user } = useAuth();
-  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
+  const { mapContainer, map, isStyleLoaded, resizeMap } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
+  const sidebarContext = useSidebar();
+
+  // Listen for sidebar state changes and resize map accordingly
+  useEffect(() => {
+    if (map.current && isStyleLoaded) {
+      // Add a small delay to ensure DOM has updated
+      const timeoutId = setTimeout(() => {
+        resizeMap();
+      }, 100);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [map, isStyleLoaded, resizeMap, sidebarContext.state]);
 
   // Fetch user's check-ins
   const { data: checkins, isLoading } = useQuery({
@@ -102,6 +116,26 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const handleSidebarClose = () => {
     setSelectedVenue(null);
   };
+
+  // Add a resize observer to handle other cases where the container might resize
+  useEffect(() => {
+    if (!mapContainer.current || !map.current) return;
+    
+    const observer = new ResizeObserver(() => {
+      if (map.current && isStyleLoaded) {
+        resizeMap();
+      }
+    });
+    
+    observer.observe(mapContainer.current);
+    
+    return () => {
+      if (mapContainer.current) {
+        observer.unobserve(mapContainer.current);
+      }
+      observer.disconnect();
+    };
+  }, [mapContainer, map, isStyleLoaded, resizeMap]);
 
   return (
     <div className="relative flex-1 w-full h-full">
