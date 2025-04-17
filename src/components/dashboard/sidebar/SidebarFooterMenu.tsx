@@ -16,12 +16,30 @@ export const SidebarFooterMenu: React.FC = () => {
   
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // First, attempt to get the current session to check if it's valid
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      // Only attempt to sign out if there's an active session
+      if (sessionData.session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      } else {
+        // If no session exists, just redirect and show success
+        console.log('No active session found, redirecting without API call');
+      }
+      
+      // Always clear local storage items related to auth
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('supabase.auth.refreshToken');
+      
+      // Always navigate and show success regardless of session state
       navigate('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
-      toast.error('Failed to logout. Please try again.');
+      console.error('Logout error:', error);
+      // Even if there's an error, force navigation to the login page
+      navigate('/');
+      toast.error('Error during logout, but you have been redirected home.');
     }
   };
   
