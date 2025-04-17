@@ -1,21 +1,26 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import DashboardSidebar from './DashboardSidebar';
+import RegularUserSidebar from './RegularUserSidebar';
 import DashboardHeader from './DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 
 const DashboardLayout = () => {
-  const { firstName, lastName } = useAuth();
+  const { user, userType, firstName, lastName } = useAuth();
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
-    : 'Business Owner';
+    : userType === 'business' ? 'Business Owner' : 'User';
 
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
-        <DashboardSidebar />
+        {userType === 'business' ? (
+          <DashboardSidebar />
+        ) : (
+          <RegularUserSidebar user={user} displayName={displayName} />
+        )}
         <div className="flex-1 h-screen overflow-auto flex flex-col">
           <DashboardHeader displayName={displayName} />
           <main className="p-6 pt-4 flex-1">

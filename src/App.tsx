@@ -9,9 +9,14 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import RegularDashboard from "./pages/dashboard/RegularDashboard";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import VenuesPage from "./pages/dashboard/VenuesPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
+import FavoritesPage from "./pages/dashboard/FavoritesPage";
+import CheckInHistoryPage from "./pages/dashboard/CheckInHistoryPage";
+import DiscoveriesPage from "./pages/dashboard/DiscoveriesPage";
+import SubscriptionPage from "./pages/dashboard/SubscriptionPage";
 import AdminRoute from "./components/protected/AdminRoute";
 import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Index";
@@ -20,6 +25,28 @@ import BreweriesManagement from "./pages/admin/Breweries";
 import UsersManagement from "./pages/admin/Users";
 import { useWindowFocus } from "./hooks/useWindowFocus";
 import { refreshSupabaseConnection } from "./integrations/supabase/connection";
+import { useAuth } from "./contexts/AuthContext";
+
+// Route component to conditionally render based on user type
+const UserTypeRoute = ({ 
+  element, 
+  businessElement, 
+  regularElement 
+}) => {
+  const { userType, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (userType === 'business') {
+    return businessElement;
+  } else if (userType === 'regular') {
+    return regularElement;
+  }
+  
+  return element;
+};
 
 const App = () => {
   const [queryClient] = useState(() => new QueryClient({
@@ -56,9 +83,25 @@ const App = () => {
               
               {/* Dashboard Routes with Sidebar Layout */}
               <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={<Dashboard />} />
+                <Route index element={
+                  <UserTypeRoute 
+                    element={<Navigate to="/" />}
+                    businessElement={<Dashboard />}
+                    regularElement={<RegularDashboard />}
+                  />
+                } />
+                
+                {/* Business user routes */}
                 <Route path="breweries" element={<Dashboard />} />
                 <Route path="venues" element={<VenuesPage />} />
+                
+                {/* Regular user routes */}
+                <Route path="favorites" element={<FavoritesPage />} />
+                <Route path="history" element={<CheckInHistoryPage />} />
+                <Route path="discoveries" element={<DiscoveriesPage />} />
+                <Route path="subscription" element={<SubscriptionPage />} />
+                
+                {/* Common routes */}
                 <Route path="settings" element={<SettingsPage />} />
               </Route>
               
