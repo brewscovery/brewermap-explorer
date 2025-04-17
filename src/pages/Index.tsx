@@ -4,7 +4,6 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/layout/Header';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -37,14 +36,11 @@ const Index = () => {
   }, [error]);
 
   return (
-    <div className="flex flex-col h-screen">
-      <Header />
-      <div className="flex-1 min-h-0 pt-[73px]">
-        <Map
-          venues={venues}
-          onVenueSelect={setSelectedVenue}
-        />
-      </div>
+    <div className="flex-1 min-h-0">
+      <Map
+        venues={venues}
+        onVenueSelect={setSelectedVenue}
+      />
     </div>
   );
 };

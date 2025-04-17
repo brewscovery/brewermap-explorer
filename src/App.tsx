@@ -26,6 +26,7 @@ import UsersManagement from "./pages/admin/Users";
 import { useWindowFocus } from "./hooks/useWindowFocus";
 import { refreshSupabaseConnection } from "./integrations/supabase/connection";
 import { useAuth } from "./contexts/AuthContext";
+import AppLayout from "./components/layout/AppLayout";
 
 // Route component to conditionally render based on user type
 const UserTypeRoute = ({ 
@@ -81,28 +82,34 @@ const App = () => {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               
-              {/* Dashboard Routes with Sidebar Layout */}
-              <Route path="/dashboard" element={<DashboardLayout />}>
-                <Route index element={
-                  <UserTypeRoute 
-                    element={<Navigate to="/" />}
-                    businessElement={<Dashboard />}
-                    regularElement={<RegularDashboard />}
-                  />
-                } />
+              {/* Main application layout with conditional sidebar */}
+              <Route element={<AppLayout />}>
+                {/* Main index/map route */}
+                <Route path="/" element={<Index />} />
                 
-                {/* Business user routes */}
-                <Route path="breweries" element={<Dashboard />} />
-                <Route path="venues" element={<VenuesPage />} />
-                
-                {/* Regular user routes */}
-                <Route path="favorites" element={<FavoritesPage />} />
-                <Route path="history" element={<CheckInHistoryPage />} />
-                <Route path="discoveries" element={<DiscoveriesPage />} />
-                <Route path="subscription" element={<SubscriptionPage />} />
-                
-                {/* Common routes */}
-                <Route path="settings" element={<SettingsPage />} />
+                {/* Dashboard Routes with nested sidebar */}
+                <Route path="/dashboard" element={<DashboardLayout />}>
+                  <Route index element={
+                    <UserTypeRoute 
+                      element={<Navigate to="/" />}
+                      businessElement={<Dashboard />}
+                      regularElement={<RegularDashboard />}
+                    />
+                  } />
+                  
+                  {/* Business user routes */}
+                  <Route path="breweries" element={<Dashboard />} />
+                  <Route path="venues" element={<VenuesPage />} />
+                  
+                  {/* Regular user routes */}
+                  <Route path="favorites" element={<FavoritesPage />} />
+                  <Route path="history" element={<CheckInHistoryPage />} />
+                  <Route path="discoveries" element={<DiscoveriesPage />} />
+                  <Route path="subscription" element={<SubscriptionPage />} />
+                  
+                  {/* Common routes */}
+                  <Route path="settings" element={<SettingsPage />} />
+                </Route>
               </Route>
               
               {/* Admin Routes */}
@@ -114,8 +121,6 @@ const App = () => {
                   <Route path="users" element={<UsersManagement />} />
                 </Route>
               </Route>
-              
-              <Route path="/" element={<Index />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
