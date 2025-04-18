@@ -6,6 +6,7 @@ import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
+import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -42,6 +43,7 @@ const AppLayout = () => {
               </main>
             </div>
           )}
+          <FloatingSidebarToggle />
         </div>
       </div>
     </SidebarProvider>
