@@ -1,24 +1,50 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
-  Sidebar,
+  Sidebar, 
   SidebarContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   useSidebar
 } from '@/components/ui/sidebar';
-import { Map, LogIn, User, Beer, ClipboardCheck, Users, LayoutDashboard, LogOut, Settings, Star, History } from 'lucide-react';
+import { 
+  LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
+  Beer, ClipboardCheck, Users, LogOut, Star, History, 
+  CreditCard
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useBreweryFetching } from '@/hooks/useBreweryFetching';
+import { useBreweryVenues } from '@/hooks/useBreweryVenues';
+import { BrewerySidebarHeader } from '@/components/dashboard/sidebar/BrewerySidebarHeader';
+import { SidebarFooterMenu } from '@/components/dashboard/sidebar/SidebarFooterMenu';
+import { Brewery } from '@/types/brewery';
+import { Venue } from '@/types/venue';
 
 const UnifiedSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType } = useAuth();
   const { state } = useSidebar();
+  
+  // Business user specific data
+  const { 
+    breweries, 
+    selectedBrewery, 
+    isLoading: breweriesLoading,
+    setSelectedBrewery
+  } = useBreweryFetching(userType === 'business' ? user?.id : null);
+  
+  // Get venues for the selected brewery
+  const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
+    userType === 'business' && selectedBrewery ? selectedBrewery.id : null
+  );
 
   const handleLogout = async () => {
     try {
@@ -42,10 +68,45 @@ const UnifiedSidebar = () => {
   };
 
   const isActive = (path: string) => location.pathname === path;
+  const isVenueActive = (path: string, venueId: string) => {
+    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
+  };
+
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    navigate('/dashboard');
+  };
+
+  const handleAddVenue = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    navigate('/dashboard/venues?action=add');
+  };
+  
+  const handleVenueClick = (venue: Venue) => {
+    navigate(`/dashboard/venues?venueId=${venue.id}`);
+  };
 
   return (
     <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
       <div className="flex flex-col h-full overflow-auto">
+        {/* Brewery header for business users */}
+        {userType === 'business' && (
+          <BrewerySidebarHeader 
+            selectedBrewery={selectedBrewery} 
+            breweries={breweries}
+            isLoading={breweriesLoading} 
+            onBrewerySelect={handleBrewerySelect}
+          />
+        )}
+        
+        {/* Regular user header */}
+        {userType === 'regular' && user && (
+          <div className="flex flex-col p-4 border-b">
+            <h2 className="text-lg font-semibold">Hello, {user.email?.split('@')[0] || 'User'}</h2>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
+          </div>
+        )}
+        
         <SidebarContent>
           <SidebarMenu>
             {/* Map - Always visible */}
@@ -113,20 +174,86 @@ const UnifiedSidebar = () => {
 
                 {/* Business user-specific items */}
                 {userType === 'business' && (
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      isActive={isActive('/dashboard')}
-                      onClick={() => navigate('/dashboard')}
-                    >
-                      <LayoutDashboard size={18} />
-                      <span>Dashboard</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard')}
+                        onClick={() => navigate('/dashboard')}
+                      >
+                        <LayoutDashboard size={18} />
+                        <span>Overview</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    
+                    {/* Venue section for selected brewery */}
+                    {selectedBrewery && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          onClick={() => navigate('/dashboard/venues')}
+                          isActive={isActive('/dashboard/venues')}
+                        >
+                          <Store size={18} />
+                          <span>Venues</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                    
+                    {/* Add Venue button */}
+                    {selectedBrewery && (
+                      <SidebarMenuItem>
+                        <SidebarMenuButton 
+                          onClick={() => handleAddVenue(selectedBrewery)}
+                          className="text-sm text-muted-foreground"
+                        >
+                          <Plus size={16} />
+                          <span>Add Venue</span>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    )}
+                    
+                    {/* Display venues for the selected brewery */}
+                    {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
+                      <SidebarMenuSub>
+                        {venuesForSelectedBrewery.map((venue) => (
+                          <SidebarMenuSubItem key={venue.id}>
+                            <SidebarMenuSubButton
+                              onClick={() => handleVenueClick(venue)}
+                              isActive={isVenueActive('/dashboard/venues', venue.id)}
+                              className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
+                            >
+                              <Store size={14} />
+                              <span className="truncate">{venue.name}</span>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    )}
+                    
+                    {/* Settings */}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard/settings')}
+                        onClick={() => navigate('/dashboard/settings')}
+                      >
+                        <Settings size={18} />
+                        <span>Settings</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
                 )}
 
                 {/* Regular user-specific items */}
                 {userType === 'regular' && (
                   <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard')}
+                        onClick={() => navigate('/dashboard')}
+                      >
+                        <LayoutDashboard size={18} />
+                        <span>Dashboard</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                     <SidebarMenuItem>
                       <SidebarMenuButton 
                         isActive={isActive('/dashboard/favorites')}
@@ -145,6 +272,33 @@ const UnifiedSidebar = () => {
                         <span>Check-in History</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard/discoveries')}
+                        onClick={() => navigate('/dashboard/discoveries')}
+                      >
+                        <Map size={18} />
+                        <span>Brewery Discoveries</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard/settings')}
+                        onClick={() => navigate('/dashboard/settings')}
+                      >
+                        <Settings size={18} />
+                        <span>Account Settings</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        isActive={isActive('/dashboard/subscription')}
+                        onClick={() => navigate('/dashboard/subscription')}
+                      >
+                        <CreditCard size={18} />
+                        <span>Subscription</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
                   </>
                 )}
 
@@ -159,15 +313,6 @@ const UnifiedSidebar = () => {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton 
-                    isActive={isActive('/settings')}
-                    onClick={() => navigate('/settings')}
-                  >
-                    <Settings size={18} />
-                    <span>Settings</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-                <SidebarMenuItem>
                   <SidebarMenuButton onClick={handleLogout}>
                     <LogOut size={18} />
                     <span>Logout</span>
@@ -177,6 +322,9 @@ const UnifiedSidebar = () => {
             )}
           </SidebarMenu>
         </SidebarContent>
+        
+        {/* Footer menu */}
+        {user && <SidebarFooterMenu />}
       </div>
     </div>
   );

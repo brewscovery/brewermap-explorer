@@ -1,3 +1,3 @@
 
-import DashboardSidebar from './sidebar';
-export default DashboardSidebar;
+import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
+export default UnifiedSidebar;
