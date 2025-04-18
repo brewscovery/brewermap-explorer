@@ -3,10 +3,12 @@ import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
+import RegularUserSidebar from '@/components/dashboard/RegularUserSidebar';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -21,10 +23,25 @@ const AppLayout = () => {
         ? 'Admin' 
         : 'User';
   
+  // Determine which sidebar to render based on user type and route
+  const renderSidebar = () => {
+    if (!user) return <UnifiedSidebar />;
+    
+    if (isDashboardRoute) {
+      if (userType === 'business') {
+        return <DashboardSidebar />;
+      } else if (userType === 'regular') {
+        return <RegularUserSidebar user={user} displayName={displayName} />;
+      }
+    }
+    
+    return <UnifiedSidebar />;
+  };
+  
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
-        <UnifiedSidebar />
+        {renderSidebar()}
         
         {/* Main content area */}
         <div className="h-screen overflow-auto flex-1">

@@ -9,7 +9,7 @@ import {
   SidebarMenuSubItem,
   SidebarMenuSubButton
 } from '@/components/ui/sidebar';
-import { LayoutDashboard, Settings, Store } from 'lucide-react';
+import { LayoutDashboard, Settings, Store, Plus } from 'lucide-react';
 import { BreweryStateDisplay } from './BreweryStateDisplay';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
@@ -22,7 +22,7 @@ interface MainSidebarMenuProps {
   breweryVenues: Record<string, Venue[]>;
   toggleBreweryExpanded: (breweryId: string) => void;
   handleAddVenue: (brewery: Brewery) => void;
-  handleVenueClick: (venue: Venue, brewery: Brewery) => void;
+  handleVenueClick: (venue: Venue) => void;
   isActive: (path: string) => boolean;
   isVenueActive: (path: string, venueId: string) => boolean;
   selectedBrewery: Brewery | null;
@@ -66,7 +66,8 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
       {selectedBrewery && (
         <SidebarMenuItem>
           <SidebarMenuButton 
-            onClick={() => handleAddVenue(selectedBrewery)}
+            onClick={() => navigate('/dashboard/venues')}
+            isActive={isActive('/dashboard/venues')}
           >
             <Store size={18} />
             <span>Venues</span>
@@ -74,13 +75,26 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuItem>
       )}
       
+      {/* Add Venue button */}
+      {selectedBrewery && (
+        <SidebarMenuItem>
+          <SidebarMenuButton 
+            onClick={() => handleAddVenue(selectedBrewery)}
+            className="text-sm text-muted-foreground"
+          >
+            <Plus size={16} />
+            <span>Add Venue</span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      )}
+      
       {/* Display venues for the selected brewery */}
-      {selectedBrewery && venuesForSelectedBrewery.length > 0 && (
+      {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
         <SidebarMenuSub>
           {venuesForSelectedBrewery.map((venue) => (
             <SidebarMenuSubItem key={venue.id}>
               <SidebarMenuSubButton
-                onClick={() => handleVenueClick(venue, selectedBrewery)}
+                onClick={() => handleVenueClick(venue)}
                 isActive={isVenueActive('/dashboard/venues', venue.id)}
                 className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
               >
@@ -103,7 +117,7 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuSub>
       )}
       
-      {selectedBrewery && !venuesLoading && venuesForSelectedBrewery.length === 0 && (
+      {selectedBrewery && !venuesLoading && (!venuesForSelectedBrewery || venuesForSelectedBrewery.length === 0) && (
         <SidebarMenuSub>
           <SidebarMenuSubItem>
             <div className="px-2 py-1 text-xs text-muted-foreground">
