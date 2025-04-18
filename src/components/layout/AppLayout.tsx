@@ -4,6 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 import RegularUserSidebar from '@/components/dashboard/RegularUserSidebar';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,6 +34,9 @@ const AppLayout = () => {
         {user && userType === 'regular' && !isAdminRoute && (
           <RegularUserSidebar user={user} displayName={displayName} />
         )}
+        {user && userType === 'admin' && !isAdminRoute && (
+          <AdminSidebar />
+        )}
         
         {/* Main content area - always the same structure */}
         <div className="h-screen overflow-auto flex-1">
@@ -60,3 +64,4 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
+
