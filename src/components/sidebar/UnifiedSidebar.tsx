@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   Sidebar, 
-  SidebarContent,
+  SidebarContent as UISidebarContent,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -27,12 +27,11 @@ import { SidebarFooterMenu } from '@/components/dashboard/sidebar/SidebarFooterM
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
 
-const SidebarContent = () => {
+const SidebarContentComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType } = useAuth();
   
-  // Business user specific data
   const { 
     breweries, 
     selectedBrewery, 
@@ -40,7 +39,6 @@ const SidebarContent = () => {
     setSelectedBrewery
   } = useBreweryFetching(userType === 'business' ? user?.id : null);
   
-  // Get venues for the selected brewery
   const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
     userType === 'business' && selectedBrewery ? selectedBrewery.id : null
   );
@@ -103,7 +101,7 @@ const SidebarContent = () => {
         </div>
       )}
       
-      <SidebarContent>
+      <UISidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
@@ -307,7 +305,7 @@ const SidebarContent = () => {
             </>
           )}
         </SidebarMenu>
-      </SidebarContent>
+      </UISidebarContent>
       
       {user && <SidebarFooterMenu />}
     </div>
@@ -321,7 +319,7 @@ const UnifiedSidebar = () => {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
         <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem]">
-          <SidebarContent />
+          <SidebarContentComponent />
         </SheetContent>
       </Sheet>
     );
@@ -329,7 +327,7 @@ const UnifiedSidebar = () => {
 
   return (
     <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
-      <SidebarContent />
+      <SidebarContentComponent />
     </div>
   );
 };
