@@ -1,3 +1,4 @@
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,6 +20,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { useSidebar } from '@/components/ui/sidebar';
 
 const Header = () => {
   const navigate = useNavigate();
