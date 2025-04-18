@@ -11,7 +11,6 @@ const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
-  const isAdminRoute = location.pathname.includes('/admin');
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -24,8 +23,7 @@ const AppLayout = () => {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
-        {/* Unified Sidebar - shown on non-admin routes */}
-        {!isAdminRoute && <UnifiedSidebar />}
+        <UnifiedSidebar />
         
         {/* Main content area */}
         <div className="h-screen overflow-auto flex-1">

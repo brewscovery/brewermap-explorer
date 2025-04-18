@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
@@ -7,9 +6,7 @@ import {
   Map, 
   User,
   ChevronDown,
-  Shield,
-  PanelLeft,
-  PanelLeftClose
+  Shield
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +19,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -85,24 +81,6 @@ const Header = () => {
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
       <div className="flex items-center gap-2">
-        {user && (
-          <>
-            <SidebarTrigger className="md:hidden" />
-            {sidebarState !== null && toggleSidebarFn && (
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={toggleSidebarFn}
-                className="hidden md:flex"
-              >
-                {sidebarState === 'expanded' ? <PanelLeftClose size={18} /> : <PanelLeft size={18} />}
-                <span className="sr-only">
-                  {sidebarState === 'expanded' ? 'Collapse Sidebar' : 'Expand Sidebar'}
-                </span>
-              </Button>
-            )}
-          </>
-        )}
         <h1 className="text-xl font-bold">Brewery Explorer</h1>
       </div>
       <div className="flex items-center gap-4">

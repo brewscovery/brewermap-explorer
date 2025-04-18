@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -7,7 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter
+  useSidebar
 } from '@/components/ui/sidebar';
 import { Map, LogIn, User, Beer, ClipboardCheck, Users, LayoutDashboard, LogOut, Settings, Star, History } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -18,6 +17,7 @@ const UnifiedSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType } = useAuth();
+  const { state } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -43,7 +43,7 @@ const UnifiedSidebar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] animate-slide-in-left shadow-lg bg-white">
+    <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
       <div className="flex flex-col h-full overflow-auto">
         <SidebarContent>
           <SidebarMenu>
