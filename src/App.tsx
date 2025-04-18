@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -26,6 +25,7 @@ import { useWindowFocus } from "./hooks/useWindowFocus";
 import { refreshSupabaseConnection } from "./integrations/supabase/connection";
 import { useAuth } from "./contexts/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
+import AdminContentLayout from "./components/admin/AdminContentLayout";
 
 // Route component to conditionally render based on user type
 const UserTypeRoute = ({ 
@@ -81,7 +81,7 @@ const App = () => {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               
-              {/* Main application layout with conditional sidebar */}
+              {/* Main application layout with unified sidebar */}
               <Route element={<AppLayout />}>
                 {/* Main index/map route */}
                 <Route path="/" element={<Index />} />
@@ -109,15 +109,15 @@ const App = () => {
                   {/* Common routes */}
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>
-              </Route>
-              
-              {/* Admin Routes */}
-              <Route path="/admin" element={<AdminRoute />}>
-                <Route element={<AdminLayout />}>
-                  <Route index element={<AdminDashboard />} />
-                  <Route path="claims" element={<ClaimsManagement />} />
-                  <Route path="breweries" element={<BreweriesManagement />} />
-                  <Route path="users" element={<UsersManagement />} />
+
+                {/* Admin Routes - now nested under AppLayout */}
+                <Route path="/admin" element={<AdminRoute />}>
+                  <Route element={<AdminContentLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="claims" element={<ClaimsManagement />} />
+                    <Route path="breweries" element={<BreweriesManagement />} />
+                    <Route path="users" element={<UsersManagement />} />
+                  </Route>
                 </Route>
               </Route>
             </Routes>
