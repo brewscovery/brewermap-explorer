@@ -24,11 +24,11 @@ export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSide
       variant="outline"
       size="icon"
       className={cn(
-        "fixed z-50 rounded-full shadow-md hover:shadow-lg transition-all duration-200",
+        "fixed z-[100] rounded-full shadow-md hover:shadow-lg transition-all duration-200",
         "bg-background/80 backdrop-blur-sm",
         position === "top-left" 
-          ? "left-4 top-20" // Positioned below header (assuming header height ~73px)
-          : "left-4 bottom-4" // Current position
+          ? "left-6 top-[85px]" // Adjusted position to be below header and more visible
+          : "left-4 bottom-4"
       )}
       onClick={handleClick}
     >
@@ -40,4 +40,3 @@ export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSide
     </Button>
   );
 }
-

@@ -12,7 +12,6 @@ const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
-  const isIndexRoute = location.pathname === '/';
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -25,10 +24,8 @@ const AppLayout = () => {
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
-        {/* Always render the same sidebar component */}
         <UnifiedSidebar />
         
-        {/* Main content area */}
         <div className="h-screen overflow-auto flex-1">
           {isDashboardRoute && user ? (
             <div className="flex-1 flex flex-col">
@@ -46,8 +43,7 @@ const AppLayout = () => {
             </div>
           )}
           
-          {/* Don't render the floating button on the dashboard with the visual comparison */}
-          {!isIndexRoute && <FloatingSidebarToggle position="top-left" />}
+          <FloatingSidebarToggle position="top-left" />
         </div>
       </div>
     </SidebarProvider>
@@ -55,4 +51,3 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
-
