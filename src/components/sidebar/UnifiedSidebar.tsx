@@ -298,21 +298,6 @@ const SidebarContentComponent = () => {
                 </>
               )}
 
-              <SidebarMenuItem>
-                <SidebarMenuButton 
-                  isActive={isActive('/profile')}
-                  onClick={() => handleNavigationWithSidebarClose('/profile')}
-                >
-                  <User size={18} />
-                  <span>Profile</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleLogout}>
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
             </>
           )}
         </SidebarMenu>
