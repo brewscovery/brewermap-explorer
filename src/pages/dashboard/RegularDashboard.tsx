@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -6,7 +7,7 @@ import { CountryBreakdownChart } from '@/components/dashboard/analytics/CountryB
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
-import { PanelLeft } from '@/components/ui/PanelLeft';
+import { PanelLeft } from 'lucide-react';
 
 const RegularDashboard = () => {
   const { user, firstName, lastName } = useAuth();
