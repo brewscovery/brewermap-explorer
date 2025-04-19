@@ -198,18 +198,6 @@ const SidebarContentComponent = () => {
                     </SidebarMenuItem>
                   )}
                   
-                  {selectedBrewery && (
-                    <SidebarMenuItem>
-                      <SidebarMenuButton 
-                        onClick={() => handleAddVenue(selectedBrewery)}
-                        className="text-sm text-muted-foreground"
-                      >
-                        <Plus size={16} />
-                        <span>Add Venue</span>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  )}
-                  
                   {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
                     <SidebarMenuSub>
                       {venuesForSelectedBrewery.map((venue) => (
