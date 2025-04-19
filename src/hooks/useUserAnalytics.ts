@@ -22,11 +22,19 @@ export const useUserAnalytics = (userId: string | undefined) => {
         
       if (error) throw error;
       
-      // Ensure data has the correct shape by explicitly casting/constructing the object
+      // Type assertion and safety checks
+      const analyticsData = data as any; // First cast to any
+      
       return {
-        uniqueVenuesVisited: data?.uniqueVenuesVisited || 0,
-        totalVenues: data?.totalVenues || 0,
-        venuesByCountry: data?.venuesByCountry || []
+        uniqueVenuesVisited: typeof analyticsData?.uniqueVenuesVisited === 'number' 
+          ? analyticsData.uniqueVenuesVisited 
+          : 0,
+        totalVenues: typeof analyticsData?.totalVenues === 'number' 
+          ? analyticsData.totalVenues 
+          : 0,
+        venuesByCountry: Array.isArray(analyticsData?.venuesByCountry) 
+          ? analyticsData.venuesByCountry 
+          : []
       };
     },
     enabled: !!userId
