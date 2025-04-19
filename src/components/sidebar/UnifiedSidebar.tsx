@@ -31,6 +31,7 @@ const SidebarContentComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType } = useAuth();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   
   const { 
     breweries, 
@@ -42,6 +43,35 @@ const SidebarContentComponent = () => {
   const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
     userType === 'business' && selectedBrewery ? selectedBrewery.id : null
   );
+
+  const handleNavigationWithSidebarClose = (path: string) => {
+    navigate(path);
+    
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      toggleSidebar();
+    }
+  };
+
+  const isActive = (path: string) => location.pathname === path;
+  const isVenueActive = (path: string, venueId: string) => {
+    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
+  };
+
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    handleNavigationWithSidebarClose('/dashboard');
+  };
+
+  const handleAddVenue = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    handleNavigationWithSidebarClose('/dashboard/venues?action=add');
+  };
+  
+  const handleVenueClick = (venue: Venue) => {
+    handleNavigationWithSidebarClose(`/dashboard/venues?venueId=${venue.id}`);
+  };
 
   const handleLogout = async () => {
     try {
@@ -55,32 +85,13 @@ const SidebarContentComponent = () => {
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('supabase.auth.refreshToken');
       
-      navigate('/');
+      handleNavigationWithSidebarClose('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
       console.error('Logout error:', error);
-      navigate('/');
+      handleNavigationWithSidebarClose('/');
       toast.error('Error during logout, but you have been redirected home.');
     }
-  };
-
-  const isActive = (path: string) => location.pathname === path;
-  const isVenueActive = (path: string, venueId: string) => {
-    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
-  };
-
-  const handleBrewerySelect = (brewery: Brewery) => {
-    setSelectedBrewery(brewery);
-    navigate('/dashboard');
-  };
-
-  const handleAddVenue = (brewery: Brewery) => {
-    setSelectedBrewery(brewery);
-    navigate('/dashboard/venues?action=add');
-  };
-  
-  const handleVenueClick = (venue: Venue) => {
-    navigate(`/dashboard/venues?venueId=${venue.id}`);
   };
 
   return (
@@ -105,7 +116,7 @@ const SidebarContentComponent = () => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton 
-              onClick={() => navigate('/')}
+              onClick={() => handleNavigationWithSidebarClose('/')}
               isActive={isActive('/')}
             >
               <Map size={18} />
@@ -115,7 +126,7 @@ const SidebarContentComponent = () => {
 
           {!user ? (
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => navigate('/auth')}>
+              <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/auth')}>
                 <LogIn size={18} />
                 <span>Login / Sign Up</span>
               </SidebarMenuButton>
@@ -127,7 +138,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/admin')}
-                      onClick={() => navigate('/admin')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin')}
                     >
                       <LayoutDashboard size={18} />
                       <span>Admin Dashboard</span>
@@ -136,7 +147,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/admin/claims')}
-                      onClick={() => navigate('/admin/claims')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/claims')}
                     >
                       <ClipboardCheck size={18} />
                       <span>Brewery Claims</span>
@@ -145,7 +156,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/admin/breweries')}
-                      onClick={() => navigate('/admin/breweries')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/breweries')}
                     >
                       <Beer size={18} />
                       <span>Breweries</span>
@@ -154,7 +165,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/admin/users')}
-                      onClick={() => navigate('/admin/users')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/users')}
                     >
                       <Users size={18} />
                       <span>Users</span>
@@ -168,7 +179,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard')}
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard')}
                     >
                       <LayoutDashboard size={18} />
                       <span>Overview</span>
@@ -178,7 +189,7 @@ const SidebarContentComponent = () => {
                   {selectedBrewery && (
                     <SidebarMenuItem>
                       <SidebarMenuButton 
-                        onClick={() => navigate('/dashboard/venues')}
+                        onClick={() => handleNavigationWithSidebarClose('/dashboard/venues')}
                         isActive={isActive('/dashboard/venues')}
                       >
                         <Store size={18} />
@@ -219,7 +230,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/settings')}
-                      onClick={() => navigate('/dashboard/settings')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
                     >
                       <Settings size={18} />
                       <span>Settings</span>
@@ -233,7 +244,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard')}
-                      onClick={() => navigate('/dashboard')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard')}
                     >
                       <LayoutDashboard size={18} />
                       <span>Dashboard</span>
@@ -242,7 +253,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/favorites')}
-                      onClick={() => navigate('/dashboard/favorites')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/favorites')}
                     >
                       <Star size={18} />
                       <span>My Favorites</span>
@@ -251,7 +262,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/history')}
-                      onClick={() => navigate('/dashboard/history')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/history')}
                     >
                       <History size={18} />
                       <span>Check-in History</span>
@@ -260,7 +271,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/discoveries')}
-                      onClick={() => navigate('/dashboard/discoveries')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/discoveries')}
                     >
                       <Map size={18} />
                       <span>Brewery Discoveries</span>
@@ -269,7 +280,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/settings')}
-                      onClick={() => navigate('/dashboard/settings')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
                     >
                       <Settings size={18} />
                       <span>Account Settings</span>
@@ -278,7 +289,7 @@ const SidebarContentComponent = () => {
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/subscription')}
-                      onClick={() => navigate('/dashboard/subscription')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/subscription')}
                     >
                       <CreditCard size={18} />
                       <span>Subscription</span>
@@ -290,7 +301,7 @@ const SidebarContentComponent = () => {
               <SidebarMenuItem>
                 <SidebarMenuButton 
                   isActive={isActive('/profile')}
-                  onClick={() => navigate('/profile')}
+                  onClick={() => handleNavigationWithSidebarClose('/profile')}
                 >
                   <User size={18} />
                   <span>Profile</span>
