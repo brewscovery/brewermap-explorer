@@ -21,7 +21,13 @@ export const useUserAnalytics = (userId: string | undefined) => {
         .rpc('get_user_checkin_analytics', { user_id: userId });
         
       if (error) throw error;
-      return data;
+      
+      // Ensure data has the correct shape by explicitly casting/constructing the object
+      return {
+        uniqueVenuesVisited: data?.uniqueVenuesVisited || 0,
+        totalVenues: data?.totalVenues || 0,
+        venuesByCountry: data?.venuesByCountry || []
+      };
     },
     enabled: !!userId
   });
