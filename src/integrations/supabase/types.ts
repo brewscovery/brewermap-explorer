@@ -421,6 +421,10 @@ export type Database = {
           last_name: string
         }[]
       }
+      get_user_checkin_analytics: {
+        Args: { user_id: string }
+        Returns: Json
+      }
       get_user_profile: {
         Args: { profile_id: string }
         Returns: Json
