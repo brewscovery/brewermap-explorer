@@ -1,18 +1,11 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  LogOut, 
-  Map, 
-  User,
-  ChevronDown,
-  Shield
-} from 'lucide-react';
+import { PanelLeft, LogOut, Map, User, ChevronDown, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import LoginPopover from '@/components/auth/LoginPopover';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +13,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { useSidebar } from '@/components/ui/sidebar';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -80,11 +72,24 @@ const Header = () => {
     }
   };
   
+  const { toggleSidebar } = useSidebar();
+  
   return (
-    <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center fixed w-full z-50">
-      <div className="flex items-center gap-2">
+    <div className="p-4 bg-background/80 backdrop-blur-sm border-b fixed w-full z-50 flex items-center">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleSidebar}
+        className="mr-4"
+      >
+        <PanelLeft className="h-4 w-4" />
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+
+      <div className="flex-1 flex justify-center">
         <h1 className="text-xl font-bold">Brewery Explorer</h1>
       </div>
+
       <div className="flex items-center gap-4">
         {user ? (
           <DropdownMenu>

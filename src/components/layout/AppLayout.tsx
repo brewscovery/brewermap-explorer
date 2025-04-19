@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -6,7 +5,6 @@ import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
-import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -42,8 +40,6 @@ const AppLayout = () => {
               </main>
             </div>
           )}
-          
-          <FloatingSidebarToggle position="top-left" />
         </div>
       </div>
     </SidebarProvider>

@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Map, User, ChevronDown, LogOut } from 'lucide-react';
+import { PanelLeft, Map, User, ChevronDown, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +19,7 @@ interface DashboardHeaderProps {
 
 const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
+  const { toggleSidebar } = useSidebar();
 
   const handleLogout = async () => {
     try {
@@ -32,11 +33,21 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   };
   
   return (
-    <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex justify-between items-center sticky top-0 z-10">
-      <div className="flex items-center gap-2">
+    <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between sticky top-0 z-10">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={toggleSidebar}
+        className="mr-4"
+      >
+        <PanelLeft className="h-4 w-4" />
+        <span className="sr-only">Toggle Sidebar</span>
+      </Button>
+
+      <div className="flex-1 flex justify-center">
         <h1 className="text-xl font-bold">Brewery Dashboard</h1>
       </div>
-      
+
       <div className="flex items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
