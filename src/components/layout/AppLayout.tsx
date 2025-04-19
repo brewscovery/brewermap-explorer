@@ -12,6 +12,7 @@ const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
+  const isIndexRoute = location.pathname === '/';
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -44,7 +45,9 @@ const AppLayout = () => {
               </main>
             </div>
           )}
-          <FloatingSidebarToggle />
+          
+          {/* Don't render the floating button on the dashboard with the visual comparison */}
+          {!isIndexRoute && <FloatingSidebarToggle position="top-left" />}
         </div>
       </div>
     </SidebarProvider>
@@ -52,3 +55,4 @@ const AppLayout = () => {
 };
 
 export default AppLayout;
+

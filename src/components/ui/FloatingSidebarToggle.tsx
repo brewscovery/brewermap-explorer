@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 
-export function FloatingSidebarToggle() {
+interface FloatingSidebarToggleProps {
+  position?: "top-left" | "bottom-left";
+}
+
+export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSidebarToggleProps) {
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   
   const handleClick = () => {
@@ -20,8 +24,11 @@ export function FloatingSidebarToggle() {
       variant="outline"
       size="icon"
       className={cn(
-        "fixed left-4 bottom-4 z-50 rounded-full shadow-md hover:shadow-lg transition-all duration-200",
-        "bg-background/80 backdrop-blur-sm"
+        "fixed z-50 rounded-full shadow-md hover:shadow-lg transition-all duration-200",
+        "bg-background/80 backdrop-blur-sm",
+        position === "top-left" 
+          ? "left-4 top-20" // Positioned below header (assuming header height ~73px)
+          : "left-4 bottom-4" // Current position
       )}
       onClick={handleClick}
     >
@@ -33,3 +40,4 @@ export function FloatingSidebarToggle() {
     </Button>
   );
 }
+
