@@ -17,7 +17,7 @@ export const useBreweryFormSubmit = ({
   isAdminMode,
   onSubmit,
   onSubmitSuccess,
-  breweryId,
+  breweryId: initialBreweryId,
   isEditMode,
 }: UseBreweryFormSubmitProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -41,6 +41,10 @@ export const useBreweryFormSubmit = ({
     console.log('Regular user form submission started with data:', values);
 
     try {
+      // Get user's email for the claim
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError) throw userError;
+
       const breweryData = {
         name: values.name,
         brewery_type: values.brewery_type || null,
@@ -118,7 +122,7 @@ export const useBreweryFormSubmit = ({
           throw ownershipError;
         }
 
-        // Automatically create a brewery claim - contact fields are optional
+        // Create brewery claim with user's email and provided phone number
         const { data: claimData, error: claimError } = await supabase
           .from('brewery_claims')
           .insert({
@@ -126,7 +130,7 @@ export const useBreweryFormSubmit = ({
             user_id: userId,
             status: 'pending',
             claim_type: 'auto',
-            contact_email: values.contact_email || null,
+            contact_email: user?.email || null,
             contact_phone: values.contact_phone || null,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
