@@ -17,7 +17,7 @@ export const useBreweryFormSubmit = ({
   isAdminMode,
   onSubmit,
   onSubmitSuccess,
-  breweryId: initialBreweryId,
+  breweryId,
   isEditMode,
 }: UseBreweryFormSubmitProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
