@@ -12,6 +12,7 @@ export const brewerySchema = z.object({
   logo_url: z.string().url('Must be a valid URL').optional().nullable(),
   is_verified: z.boolean().default(false),
   country: z.string().optional().nullable(),
+  contact_phone: z.string().optional(),
 });
 
 export type BreweryFormValues = z.infer<typeof brewerySchema>;

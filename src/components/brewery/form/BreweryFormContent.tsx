@@ -6,9 +6,9 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { z } from 'zod';
 
-// Import form sections
 import GeneralInfoSection from './GeneralInfoSection';
 import WebsiteSection from './WebsiteSection';
+import ContactInfoSection from './ContactInfoSection';
 import LogoUploadSection from './logo';
 import BreweryVerificationField from '@/components/admin/brewery/form/BreweryVerificationField';
 import { brewerySchema } from '@/components/admin/brewery/form/types';
@@ -48,6 +48,7 @@ const BreweryFormContent = ({
       logo_url: initialData?.logo_url || null,
       is_verified: initialData?.is_verified || false,
       country: initialData?.country || 'Australia',
+      contact_phone: '',
     },
   });
 
@@ -64,6 +65,7 @@ const BreweryFormContent = ({
         logo_url: initialData.logo_url || null,
         is_verified: initialData.is_verified || false,
         country: initialData.country || 'Australia',
+        contact_phone: '',
       });
     }
   }, [initialData, form]);
@@ -73,6 +75,12 @@ const BreweryFormContent = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <GeneralInfoSection form={form} />
         <WebsiteSection form={form} />
+        
+        {/* Show contact info only for new brewery creation */}
+        <ContactInfoSection 
+          form={form} 
+          showContactInfo={!isEditMode && !isAdminMode} 
+        />
         
         {/* Show verification toggle only for admin users */}
         {isAdminMode && (
