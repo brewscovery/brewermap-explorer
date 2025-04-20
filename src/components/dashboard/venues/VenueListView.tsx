@@ -34,15 +34,17 @@ export const VenueListView = ({ brewery, onVenueAdded }: VenueListViewProps) => 
             Manage the locations where customers can find your products
           </p>
         </div>
-        <Button onClick={() => setShowAddVenueDialog(true)}>
-          <PlusCircle className="mr-2" size={18} />
-          Add Venue
-        </Button>
+        {brewery.is_verified && (
+          <Button onClick={() => setShowAddVenueDialog(true)}>
+            <PlusCircle className="mr-2" size={18} />
+            Add Venue
+          </Button>
+        )}
       </div>
       
       <VenueManagement breweryId={brewery.id} />
       
-      {brewery.id && (
+      {brewery.id && brewery.is_verified && (
         <AddVenueDialog
           open={showAddVenueDialog}
           onOpenChange={handleAddVenueDialogClose}

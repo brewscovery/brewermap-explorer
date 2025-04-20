@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -75,8 +74,8 @@ export const MainSidebarMenu: React.FC<MainSidebarMenuProps> = ({
         </SidebarMenuItem>
       )}
       
-      {/* Add Venue button */}
-      {selectedBrewery && (
+      {/* Add Venue button for verified breweries */}
+      {selectedBrewery && selectedBrewery.is_verified && (
         <SidebarMenuItem>
           <SidebarMenuButton 
             onClick={() => handleAddVenue(selectedBrewery)}
