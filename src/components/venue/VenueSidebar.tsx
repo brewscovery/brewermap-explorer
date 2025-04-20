@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -136,11 +137,23 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       <div className="flex flex-col p-6 border-b">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
-            <BreweryLogo 
-              logoUrl={breweryInfo?.logo_url}
-              name={breweryInfo?.name}
-              size="medium"
-            />
+            <div className="flex flex-col items-center gap-2">
+              <BreweryLogo 
+                logoUrl={breweryInfo?.logo_url}
+                name={breweryInfo?.name}
+                size="medium"
+              />
+              {breweryInfo?.is_verified ? (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <ShieldCheck size={14} />
+                  <span>Verified Brewery</span>
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-muted-foreground">
+                  Unverified
+                </Badge>
+              )}
+            </div>
             <div className="min-w-0">
               <h2 className="text-xl font-bold truncate">{venue.name}</h2>
               {breweryInfo?.name && (
