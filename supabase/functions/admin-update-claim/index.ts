@@ -6,7 +6,7 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || ''
 
 Deno.serve(async (req) => {
-  // Handle CORS preflight request
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -66,7 +66,75 @@ Deno.serve(async (req) => {
       )
     }
     
-    // Prepare update data
+    // Get the claim details first to check if it's an auto-generated claim
+    const { data: claim, error: claimError } = await supabase
+      .from('brewery_claims')
+      .select('brewery_id, claim_type')
+      .eq('id', claimId)
+      .single()
+      
+    if (claimError) {
+      console.error('Error fetching claim:', claimError)
+      return new Response(
+        JSON.stringify({ error: 'Error fetching claim details' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // If claim is being rejected and it's an auto-generated claim, delete the brewery
+    if (status === 'rejected' && claim.claim_type === 'auto') {
+      console.log('Deleting brewery for rejected auto-claim:', claim.brewery_id)
+      
+      // Delete brewery owners first
+      const { error: ownersError } = await supabase
+        .from('brewery_owners')
+        .delete()
+        .eq('brewery_id', claim.brewery_id)
+      
+      if (ownersError) {
+        console.error('Error deleting brewery owners:', ownersError)
+        return new Response(
+          JSON.stringify({ error: 'Error deleting brewery owners' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Delete all claims for this brewery
+      const { error: claimsError } = await supabase
+        .from('brewery_claims')
+        .delete()
+        .eq('brewery_id', claim.brewery_id)
+      
+      if (claimsError) {
+        console.error('Error deleting brewery claims:', claimsError)
+        return new Response(
+          JSON.stringify({ error: 'Error deleting brewery claims' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      // Finally delete the brewery
+      const { error: breweryError } = await supabase
+        .from('breweries')
+        .delete()
+        .eq('id', claim.brewery_id)
+      
+      if (breweryError) {
+        console.error('Error deleting brewery:', breweryError)
+        return new Response(
+          JSON.stringify({ error: 'Error deleting brewery' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
+
+      console.log('Successfully deleted brewery and related data')
+      return new Response(
+        JSON.stringify({ message: 'Brewery and claim deleted successfully' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    
+    // For non-auto claims or non-rejection cases, proceed with normal claim update
     const updates = {
       status,
       admin_notes: adminNotes,
@@ -89,15 +157,15 @@ Deno.serve(async (req) => {
       )
     }
     
-    const claim = data && data.length > 0 ? data[0] : null
+    const updatedClaim = data && data.length > 0 ? data[0] : null
     
     // If the claim was approved, handle brewery ownership
-    if (status === 'approved' && claim) {
+    if (status === 'approved' && updatedClaim) {
       // Update brewery verification status
       const { error: breweryError } = await supabase
         .from('breweries')
         .update({ is_verified: true })
-        .eq('id', claim.brewery_id)
+        .eq('id', updatedClaim.brewery_id)
         
       if (breweryError) {
         console.error('Error updating brewery verification:', breweryError)
@@ -106,39 +174,10 @@ Deno.serve(async (req) => {
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
       }
-      
-      // Check if brewery owner relationship already exists
-      const { data: existingOwner, error: existingOwnerError } = await supabase
-        .from('brewery_owners')
-        .select('id')
-        .eq('brewery_id', claim.brewery_id)
-        .eq('user_id', claim.user_id)
-        
-      if (existingOwnerError) {
-        console.error('Error checking existing owner:', existingOwnerError)
-      }
-      
-      // Create brewery owner relationship if it doesn't exist
-      if (!existingOwner || existingOwner.length === 0) {
-        const { error: ownerError } = await supabase
-          .from('brewery_owners')
-          .insert({
-            brewery_id: claim.brewery_id,
-            user_id: claim.user_id
-          })
-          
-        if (ownerError) {
-          console.error('Error creating brewery owner:', ownerError)
-          return new Response(
-            JSON.stringify({ error: 'Error creating brewery owner' }),
-            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          )
-        }
-      }
     }
     
     return new Response(
-      JSON.stringify({ claim }),
+      JSON.stringify({ claim: updatedClaim }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
     
@@ -150,3 +189,4 @@ Deno.serve(async (req) => {
     )
   }
 })
+
