@@ -81,11 +81,9 @@ const AdminVenueManagement = ({
     if (!venueToDelete) return;
     
     try {
-      if (deleteVenue.mutateAsync) {
-        await deleteVenue.mutateAsync(venueToDelete.id);
-      } else {
-        await deleteVenue.deleteVenue(venueToDelete.id);
-      }
+      // Use mutate from React Query UseMutationResult
+      await deleteVenue.mutate(venueToDelete.id);
+      
       refetch();
       setDeleteConfirmOpen(false);
       setVenueToDelete(null);
