@@ -50,6 +50,7 @@ export const useBreweryFormSubmit = ({
         instagram_url: values.instagram_url || null,
         logo_url: values.logo_url || null,
         country: values.country || 'Australia',
+        is_verified: false, // Always set to unverified for business users
         updated_at: new Date().toISOString()
       };
       
@@ -103,14 +104,12 @@ export const useBreweryFormSubmit = ({
 
         console.log('New brewery created:', newBrewery);
         
-        // Return the new brewery ID for the parent component
-        const newBreweryId = newBrewery.id;
-
+        // Create brewery ownership record
         const { data: ownershipData, error: ownershipError } = await supabase
           .from('brewery_owners')
           .insert({
             user_id: userId,
-            brewery_id: newBreweryId
+            brewery_id: newBrewery.id
           })
           .select();
 
@@ -119,10 +118,31 @@ export const useBreweryFormSubmit = ({
           throw ownershipError;
         }
 
+        // Automatically create a brewery claim
+        const { data: claimData, error: claimError } = await supabase
+          .from('brewery_claims')
+          .insert({
+            brewery_id: newBrewery.id,
+            user_id: userId,
+            status: 'pending',
+            claim_type: 'auto',
+            contact_email: values.contact_email || null,
+            contact_phone: values.contact_phone || null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .select();
+
+        if (claimError) {
+          console.error('Error creating brewery claim:', claimError);
+          throw claimError;
+        }
+
         console.log('Brewery ownership record created:', ownershipData);
-        toast.success('Brewery added successfully!');
+        console.log('Brewery claim created:', claimData);
+        toast.success('Brewery added successfully and sent for verification!');
         
-        return newBreweryId;
+        return newBrewery.id;
       }
       
       if (onSubmitSuccess) {

@@ -58,6 +58,7 @@ export type Database = {
         Row: {
           admin_notes: string | null
           brewery_id: string
+          claim_type: string
           contact_email: string | null
           contact_phone: string | null
           created_at: string
@@ -70,6 +71,7 @@ export type Database = {
         Insert: {
           admin_notes?: string | null
           brewery_id: string
+          claim_type?: string
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
@@ -82,6 +84,7 @@ export type Database = {
         Update: {
           admin_notes?: string | null
           brewery_id?: string
+          claim_type?: string
           contact_email?: string | null
           contact_phone?: string | null
           created_at?: string
