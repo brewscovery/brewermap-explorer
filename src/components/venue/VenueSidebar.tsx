@@ -63,7 +63,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       
       const { data, error } = await supabase
         .from('breweries')
-        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url')
+        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url, is_verified')
         .eq('id', venue.brewery_id)
         .single();
       
