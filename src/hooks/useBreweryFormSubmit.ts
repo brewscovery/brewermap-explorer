@@ -22,7 +22,7 @@ export const useBreweryFormSubmit = ({
 }: UseBreweryFormSubmitProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (values: UnifiedBreweryFormValues, userId?: string) => {
+  const handleSubmit = async (values: UnifiedBreweryFormValues & { contact_email?: string, contact_phone?: string }, userId?: string) => {
     console.log('Submitting form values:', values);
     
     if (isAdminMode) {
@@ -118,7 +118,7 @@ export const useBreweryFormSubmit = ({
           throw ownershipError;
         }
 
-        // Automatically create a brewery claim
+        // Automatically create a brewery claim - contact fields are optional
         const { data: claimData, error: claimError } = await supabase
           .from('brewery_claims')
           .insert({

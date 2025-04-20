@@ -6,8 +6,19 @@ import type { Venue } from '@/types/venue';
 
 export const useCreateVenue = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
   const createVenue = async (venueData: Partial<Venue>) => {
+    if (!venueData.brewery_id) {
+      toast.error('Brewery ID is required');
+      return null;
+    }
+
+    if (!venueData.name || !venueData.city || !venueData.state) {
+      toast.error('Venue name, city, and state are required');
+      return null;
+    }
+
     // First, check if the brewery is verified
     const { data: breweryData, error: breweryError } = await supabase
       .from('breweries')
@@ -28,15 +39,26 @@ export const useCreateVenue = () => {
     }
 
     setIsLoading(true);
+    setIsPending(true);
 
     try {
+      // Prepare the venue data with required fields
+      const venueInsertData = {
+        brewery_id: venueData.brewery_id,
+        name: venueData.name,
+        city: venueData.city,
+        state: venueData.state,
+        street: venueData.street || null,
+        postal_code: venueData.postal_code || null,
+        country: venueData.country || null,
+        phone: venueData.phone || null,
+        longitude: venueData.longitude || null,
+        latitude: venueData.latitude || null
+      };
+
       const { data, error } = await supabase
         .from('venues')
-        .insert({
-          ...venueData,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
+        .insert(venueInsertData)
         .select()
         .single();
 
@@ -50,11 +72,14 @@ export const useCreateVenue = () => {
       return null;
     } finally {
       setIsLoading(false);
+      setIsPending(false);
     }
   };
 
   return {
     createVenue,
-    isLoading
+    isLoading,
+    isPending,
+    mutateAsync: createVenue // Add this for compatibility with mutateAsync pattern
   };
 };

@@ -25,7 +25,7 @@ const AdminVenueManagement = ({
 }: AdminVenueManagementProps) => {
   const validBreweryId = open && breweryId ? breweryId : null;
   const { venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
-  const createVenue = useCreateVenue();
+  const { createVenue, isLoading: isCreateLoading, isPending } = useCreateVenue();
   const deleteVenue = useDeleteVenue();
   
   const [isAddingVenue, setIsAddingVenue] = useState(false);
@@ -81,7 +81,11 @@ const AdminVenueManagement = ({
     if (!venueToDelete) return;
     
     try {
-      await deleteVenue.mutateAsync(venueToDelete.id);
+      if (deleteVenue.mutateAsync) {
+        await deleteVenue.mutateAsync(venueToDelete.id);
+      } else {
+        await deleteVenue.deleteVenue(venueToDelete.id);
+      }
       refetch();
       setDeleteConfirmOpen(false);
       setVenueToDelete(null);
@@ -117,7 +121,7 @@ const AdminVenueManagement = ({
         latitude: coordinates.latitude
       };
       
-      await createVenue.mutateAsync(venueData);
+      await createVenue(venueData);
       
       setIsAddingVenue(false);
       refetch();
@@ -190,7 +194,7 @@ const AdminVenueManagement = ({
               handleChange={handleChange}
               handleAddressChange={handleAddressChange}
               handleVenueSubmit={handleVenueSubmit}
-              isPending={createVenue.isPending}
+              isPending={isPending}
             />
           )}
           
@@ -199,7 +203,7 @@ const AdminVenueManagement = ({
             onOpenChange={setDeleteConfirmOpen}
             venue={venueToDelete}
             onConfirm={confirmDeleteVenue}
-            isDeleting={deleteVenue.isPending}
+            isDeleting={deleteVenue.isPending || false}
           />
         </div>
       </DialogContent>
