@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { Plus } from "lucide-react"; // Add the missing import
 import { useAuth } from "@/contexts/AuthContext";
 import { useBreweryFetching } from "@/hooks/useBreweryFetching";
 import { useBreweryVenues } from "@/hooks/useBreweryVenues";
