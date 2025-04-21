@@ -15,6 +15,7 @@ const EventsPage = () => {
 
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
+  // Make sure we have fallback venue IDs if venues is null or empty
   const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
 
   return (
@@ -26,13 +27,15 @@ const EventsPage = () => {
           Create Event
         </Button>
       </div>
-      <EventsTable venueIds={venueIds} venues={venues} />
-      <CreateEventDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        venues={venues}
-        defaultVenueId={venues[0]?.id || ""}
-      />
+      <EventsTable venueIds={venueIds} venues={venues || []} />
+      {venues && venues.length > 0 && (
+        <CreateEventDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          venues={venues}
+          defaultVenueId={venues[0]?.id || ""}
+        />
+      )}
     </div>
   );
 };

@@ -82,16 +82,31 @@ export const useMapInitialization = () => {
       // Only clean up if we're actually unmounting, not just auth state changing
       if (map.current && onStyleLoadRef.current) {
         try {
-          map.current.off('style.load', onStyleLoadRef.current);
-          map.current.remove();
+          // First remove event listeners
+          if (onStyleLoadRef.current) {
+            map.current.off('style.load', onStyleLoadRef.current);
+          }
+          
+          // Then remove the map instance
+          if (map.current) {
+            try {
+              map.current.remove();
+            } catch (error) {
+              console.error('Error removing map:', error);
+            }
+          }
+          
           console.log('Map fully removed on unmount');
         } catch (error) {
           console.error('Error cleaning up map:', error);
         }
       }
+      
+      // Clear all refs
       map.current = null;
       initializedRef.current = false;
       onStyleLoadRef.current = null;
+      setIsStyleLoaded(false);
     };
   }, [initializeMap]);
 

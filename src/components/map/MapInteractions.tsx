@@ -16,7 +16,7 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    if (!map) return;
+    if (!map || !map.getStyle) return;
 
     // Handle clicks on clusters
     const handleClusterClick = (e: mapboxgl.MapMouseEvent) => {
@@ -84,14 +84,18 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
 
     // Cleanup
     return () => {
-      if (!map.getStyle()) return;
+      if (!map || !map.getStyle || !map.loaded()) return;
       
-      map.off('click', 'clusters', handleClusterClick);
-      map.off('click', 'unclustered-point', handlePointClick);
-      map.off('mouseenter', 'clusters', handleMouseEnter);
-      map.off('mouseleave', 'clusters', handleMouseLeave);
-      map.off('mouseenter', 'unclustered-point', handleMouseEnter);
-      map.off('mouseleave', 'unclustered-point', handleMouseLeave);
+      try {
+        map.off('click', 'clusters', handleClusterClick);
+        map.off('click', 'unclustered-point', handlePointClick);
+        map.off('mouseenter', 'clusters', handleMouseEnter);
+        map.off('mouseleave', 'clusters', handleMouseLeave);
+        map.off('mouseenter', 'unclustered-point', handleMouseEnter);
+        map.off('mouseleave', 'unclustered-point', handleMouseLeave);
+      } catch (error) {
+        console.error('Error cleaning up map event listeners:', error);
+      }
     };
   }, [map, venues, onVenueSelect]);
 

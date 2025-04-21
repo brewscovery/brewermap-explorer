@@ -39,6 +39,7 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
     if (data) allEvents.push(...data);
   });
 
+  // Create a map of venue IDs to venue names for quick lookup
   const venueMap = Object.fromEntries(venues.map(v => [v.id, v.name]));
 
   // Edit dialog state
