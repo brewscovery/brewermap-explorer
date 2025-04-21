@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -148,14 +147,8 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
             }}
             className="rounded border"
             components={{
-              Day: ({ date, ...dayProps }) => (
-                <div
-                  {...dayProps}
-                  className={cn(
-                    "h-14 w-full p-1 relative",
-                    dayProps.className
-                  )}
-                >
+              Day: ({ date }) => (
+                <div className="h-14 w-full p-1 relative">
                   {dayRenderer(date)}
                 </div>
               ),
