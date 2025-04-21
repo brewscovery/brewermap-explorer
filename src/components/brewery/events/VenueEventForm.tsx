@@ -52,7 +52,7 @@ const TIME_OPTIONS = getNextHalfHourOptions();
 
 export const VenueEventForm: React.FC<VenueEventFormProps> = ({
   mode,
-  venues,
+  venues = [], // Default to empty array
   defaultVenueId,
   initialValues,
   onSubmit,
@@ -141,7 +141,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
             <SelectValue placeholder="Select venue" />
           </SelectTrigger>
           <SelectContent>
-            {venues.map((venue) => (
+            {Array.isArray(venues) && venues.map((venue) => (
               <SelectItem key={venue.id} value={venue.id}>
                 {venue.name}
               </SelectItem>

@@ -183,6 +183,7 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
           if (!open) setEditEvent(null);
         }}
         event={editEvent}
+        venues={venues}
       />
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>

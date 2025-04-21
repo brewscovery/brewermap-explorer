@@ -21,8 +21,7 @@ function mergeDateAndTimeToISO(date: string, time: string) {
   return new Date(`${date}T${timeWithSeconds}`).toISOString();
 }
 
-// Accepts only for types
-interface EditEventDialogProps {
+export interface EditEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   event: VenueEvent | null;
@@ -94,7 +93,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>
-        {event && (
+        {event && venues && (
           <VenueEventForm
             mode="edit"
             venues={venues}

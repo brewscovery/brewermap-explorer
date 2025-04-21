@@ -98,6 +98,7 @@ const EventsViewToggle: React.FC<EventsViewToggleProps> = ({ events, venues, ven
             open={!!editEvent}
             onOpenChange={(open) => !open && setEditEvent(null)}
             event={editEvent}
+            venues={venues}
           />
           
           <AlertDialog open={!!deleteEvent} onOpenChange={(open) => !open && setDeleteEvent(null)}>
