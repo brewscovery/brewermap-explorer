@@ -9,6 +9,7 @@ import { useCreateVenueEvent } from "@/hooks/useVenueEvents";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Venue {
   id: string;
@@ -182,11 +183,13 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 <SelectValue placeholder="Select time" />
               </SelectTrigger>
               <SelectContent>
-                {TIME_OPTIONS.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
+                <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
               </SelectContent>
             </Select>
           </div>
@@ -205,11 +208,13 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
                 <SelectValue placeholder="Select time" />
               </SelectTrigger>
               <SelectContent>
-                {TIME_OPTIONS.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
+                <ScrollArea className="h-[200px]" onWheel={(e) => e.stopPropagation()}>
+                  {TIME_OPTIONS.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </ScrollArea>
               </SelectContent>
             </Select>
           </div>
