@@ -1,13 +1,12 @@
 
 import React, { useState } from "react";
-import { Plus } from "lucide-react"; // Add the missing import
+import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBreweryFetching } from "@/hooks/useBreweryFetching";
 import { useBreweryVenues } from "@/hooks/useBreweryVenues";
 import EventsTable from "@/components/brewery/events/EventsTable";
 import CreateEventDialog from "@/components/brewery/events/CreateEventDialog";
 import { Button } from "@/components/ui/button";
-import { useVenueEvents } from "@/hooks/useVenueEvents";
 
 const EventsPage = () => {
   const { user, userType } = useAuth();
@@ -17,8 +16,6 @@ const EventsPage = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
-  // Do not filter by venueId for business user—all accessible
-  // Loading and error state handled in EventsTable
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -29,7 +26,7 @@ const EventsPage = () => {
           Create Event
         </Button>
       </div>
-      <EventsTable venueIds={venueIds} />
+      <EventsTable venueIds={venueIds} venues={venues} />
       <CreateEventDialog
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
