@@ -208,6 +208,23 @@ const SidebarContentComponent = () => {
                     </SidebarMenuItem>
                   )}
                   
+                  {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
+                    <SidebarMenuSub>
+                      {venuesForSelectedBrewery.map((venue) => (
+                        <SidebarMenuSubItem key={venue.id}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleVenueClick(venue)}
+                            isActive={isVenueActive('/dashboard/venues', venue.id)}
+                            className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
+                          >
+                            <Store size={14} />
+                            <span className="truncate">{venue.name}</span>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
+                  
                   <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/settings')}
