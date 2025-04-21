@@ -1,10 +1,25 @@
+
 import React, { useState, useMemo } from "react";
-import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CalendarDays, List, ChevronLeft, ChevronRight } from "lucide-react";
 import { VenueEvent } from "@/hooks/useVenueEvents";
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isSameDay, addWeeks, subWeeks } from "date-fns";
+import { 
+  format, 
+  startOfWeek, 
+  endOfWeek, 
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval, 
+  isSameDay, 
+  addWeeks, 
+  subWeeks,
+  addMonths,
+  subMonths,
+  isToday,
+  isSameMonth,
+  parseISO
+} from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +56,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
   onCreateEvent,
 }) => {
   const [viewType, setViewType] = useState<"month" | "week">("month");
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 0 }));
   
   // Get venue name map for quick lookup
@@ -64,34 +79,42 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     return map;
   }, [events]);
 
-  // Handle day render in the month view
-  const dayRenderer = (day: Date) => {
-    const dateKey = format(day, 'yyyy-MM-dd');
-    const dayEvents = eventsByDate.get(dateKey) || [];
-    
-    return (
-      <div className="h-full w-full">
-        <time dateTime={dateKey}>{format(day, 'd')}</time>
-        {dayEvents.length > 0 && (
-          <div className="mt-1 max-h-[80px] overflow-auto text-xs space-y-1">
-            {dayEvents.map((event) => (
-              <div 
-                key={event.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEditEvent(event);
-                }}
-                className="px-1 py-0.5 rounded cursor-pointer truncate"
-                style={{ backgroundColor: getVenueColor(event.venue_id, 0.7) }}
-              >
-                {event.title}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  // Navigation functions
+  const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
+  const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
+  const prevWeek = () => setWeekStart(subWeeks(weekStart, 1));
+  const nextWeek = () => setWeekStart(addWeeks(weekStart, 1));
+  const goToToday = () => {
+    setCurrentDate(new Date());
+    setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
   };
+
+  // Generate month grid
+  const monthDays = useMemo(() => {
+    const monthStart = startOfMonth(currentDate);
+    const monthEnd = endOfMonth(currentDate);
+    const calendarStart = startOfWeek(monthStart, { weekStartsOn: 0 });
+    const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 0 });
+    
+    return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
+  }, [currentDate]);
+
+  // Generate weeks for month grid
+  const monthWeeks = useMemo(() => {
+    const weeks = [];
+    let week = [];
+    
+    for (let i = 0; i < monthDays.length; i++) {
+      week.push(monthDays[i]);
+      
+      if (week.length === 7) {
+        weeks.push(week);
+        week = [];
+      }
+    }
+    
+    return weeks;
+  }, [monthDays]);
 
   // Generate days for week view
   const weekDays = useMemo(() => {
@@ -101,10 +124,257 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     });
   }, [weekStart]);
 
-  // Navigate between weeks
-  const prevWeek = () => setWeekStart(subWeeks(weekStart, 1));
-  const nextWeek = () => setWeekStart(addWeeks(weekStart, 1));
-  const currentWeek = () => setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
+  // Render an event item in month view
+  const renderMonthEvent = (event: VenueEvent, isFirst: boolean, isLast: boolean, dayEvents: VenueEvent[]) => {
+    const startTime = parseISO(event.start_time);
+    const venueName = venueMap[event.venue_id] || 'Unknown venue';
+    const bgColor = getVenueColor(event.venue_id, 0.8);
+    const displayTime = format(startTime, 'h:mm a');
+    
+    return (
+      <div 
+        key={event.id}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEditEvent(event);
+        }}
+        className={cn(
+          "px-1 py-0.5 text-xs font-medium truncate cursor-pointer border-l-2 hover:opacity-90",
+          isFirst ? "rounded-t" : "",
+          isLast ? "rounded-b" : ""
+        )}
+        style={{ 
+          backgroundColor: bgColor,
+          borderLeftColor: getVenueColor(event.venue_id),
+          color: "#000",
+        }}
+      >
+        {isFirst && <span className="font-semibold">{displayTime}</span>} {event.title}
+      </div>
+    );
+  };
+
+  // Render the month view
+  const renderMonthView = () => {
+    return (
+      <div className="border rounded">
+        {/* Month header */}
+        <div className="flex justify-between items-center p-2 border-b bg-background">
+          <Button variant="outline" size="sm" onClick={prevMonth}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="font-medium text-lg">
+            {format(currentDate, 'MMMM yyyy')}
+          </div>
+          <div className="space-x-1">
+            <Button variant="outline" size="sm" onClick={goToToday}>
+              Today
+            </Button>
+            <Button variant="outline" size="sm" onClick={nextMonth}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Day headers */}
+        <div className="grid grid-cols-7 border-b bg-muted/20">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+            <div key={day} className="p-2 text-center font-medium">
+              {day}
+            </div>
+          ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7">
+          {monthWeeks.map((week, weekIndex) => (
+            <React.Fragment key={weekIndex}>
+              {week.map((day, dayIndex) => {
+                const dateKey = format(day, 'yyyy-MM-dd');
+                const dayEvents = eventsByDate.get(dateKey) || [];
+                const isCurrentMonth = isSameMonth(day, currentDate);
+                const isCurrentDay = isToday(day);
+                
+                // Sort events by start time
+                const sortedEvents = [...dayEvents].sort((a, b) => {
+                  return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
+                });
+
+                // Determine how many events to show (max 3, then "+X more")
+                const maxVisibleEvents = 3;
+                const visibleEvents = sortedEvents.slice(0, maxVisibleEvents);
+                const hiddenCount = sortedEvents.length - maxVisibleEvents;
+
+                return (
+                  <div 
+                    key={dateKey} 
+                    className={cn(
+                      "min-h-[130px] border-r border-b p-1 overflow-hidden",
+                      !isCurrentMonth && "bg-muted/10 text-muted-foreground",
+                      isCurrentDay && "bg-muted/30"
+                    )}
+                    onClick={() => onCreateEvent(day)}
+                  >
+                    <div className={cn(
+                      "flex justify-between items-start mb-1",
+                      isCurrentDay && "font-bold text-primary"
+                    )}>
+                      <span className={cn(
+                        "text-sm",
+                        isCurrentDay && "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center"
+                      )}>
+                        {format(day, 'd')}
+                      </span>
+                      {dayEvents.length > 0 && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-5 w-5" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onCreateEvent(day);
+                          }}
+                        >
+                          <span className="sr-only">Add event</span>
+                          <span className="text-xs">+</span>
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {/* Event list */}
+                    <div className="space-y-1">
+                      {visibleEvents.map((event, index) => (
+                        renderMonthEvent(
+                          event, 
+                          index === 0, 
+                          index === visibleEvents.length - 1 && hiddenCount === 0,
+                          sortedEvents
+                        )
+                      ))}
+                      
+                      {/* Show "+X more" if there are hidden events */}
+                      {hiddenCount > 0 && (
+                        <div 
+                          className="text-xs text-center py-0.5 bg-muted/30 cursor-pointer rounded"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Could show a modal with all events in the future
+                          }}
+                        >
+                          +{hiddenCount} more
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // Render the week view
+  const renderWeekView = () => {
+    return (
+      <div className="border rounded">
+        <div className="flex justify-between items-center p-2 border-b">
+          <Button variant="outline" size="sm" onClick={prevWeek}>
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <div className="font-medium">
+            {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart, { weekStartsOn: 0 }), 'MMM d, yyyy')}
+          </div>
+          <div className="space-x-1">
+            <Button variant="outline" size="sm" onClick={goToToday}>
+              Today
+            </Button>
+            <Button variant="outline" size="sm" onClick={nextWeek}>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-7 border-b">
+          {weekDays.map((day) => (
+            <div key={day.toString()} className={cn(
+              "p-2 text-center border-r last:border-r-0",
+              isToday(day) && "bg-muted/30 font-bold"
+            )}>
+              <div className="font-medium">{format(day, 'EEE')}</div>
+              <div className={cn(
+                "text-sm",
+                isToday(day) && "bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center mx-auto"
+              )}>
+                {format(day, 'd')}
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        <div className="grid grid-cols-7 h-96 overflow-y-auto">
+          {weekDays.map((day) => {
+            const dateKey = format(day, 'yyyy-MM-dd');
+            const dayEvents = eventsByDate.get(dateKey) || [];
+            
+            return (
+              <div 
+                key={day.toString()} 
+                className={cn(
+                  "p-2 border-r last:border-r-0 min-h-full",
+                  isToday(day) && "bg-muted/20"
+                )}
+                onClick={() => onCreateEvent(day)}
+              >
+                <div className="space-y-1">
+                  {dayEvents.map((event) => (
+                    <div 
+                      key={event.id}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditEvent(event);
+                      }}
+                      className="p-2 rounded cursor-pointer text-sm relative group"
+                      style={{ 
+                        backgroundColor: getVenueColor(event.venue_id, 0.7),
+                        borderLeft: `3px solid ${getVenueColor(event.venue_id)}` 
+                      }}
+                    >
+                      <div className="font-medium truncate">{event.title}</div>
+                      <div className="text-xs">
+                        {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
+                      </div>
+                      <div className="text-xs truncate">
+                        {venueMap[event.venue_id] || 'Unknown venue'}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteEvent(event);
+                        }}
+                      >
+                        <span className="sr-only">Delete</span>
+                        <span className="text-xs">×</span>
+                      </Button>
+                    </div>
+                  ))}
+                  {dayEvents.length === 0 && (
+                    <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
+                      <div>Click to add event</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="bg-white shadow rounded p-4">
@@ -121,7 +391,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
         </ToggleGroup>
         
         {/* Legend for venue colors */}
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2 max-w-[60%]">
           {venues.map(venue => (
             <Badge 
               key={venue.id} 
@@ -134,101 +404,11 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
         </div>
       </div>
 
-      {viewType === "month" ? (
-        <div onClick={(e) => e.stopPropagation()}>
-          <Calendar
-            mode="single"
-            selected={selectedDate}
-            onSelect={(date) => {
-              if (date) {
-                setSelectedDate(date);
-                onCreateEvent(date);
-              }
-            }}
-            className="rounded border"
-            components={{
-              Day: ({ date }) => (
-                <div className="h-14 w-full p-1 relative">
-                  {dayRenderer(date)}
-                </div>
-              ),
-            }}
-          />
-          <div className="mt-2 text-center text-sm text-muted-foreground">
-            Click on any day to create a new event
-          </div>
-        </div>
-      ) : (
-        <div className="border rounded">
-          <div className="flex justify-between items-center p-2 border-b">
-            <Button variant="outline" size="sm" onClick={prevWeek}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="font-medium">
-              {format(weekStart, 'MMM d')} - {format(endOfWeek(weekStart, { weekStartsOn: 0 }), 'MMM d, yyyy')}
-            </div>
-            <div className="space-x-1">
-              <Button variant="outline" size="sm" onClick={currentWeek}>
-                Today
-              </Button>
-              <Button variant="outline" size="sm" onClick={nextWeek}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-7 border-b">
-            {weekDays.map((day) => (
-              <div key={day.toString()} className="p-2 text-center border-r last:border-r-0">
-                <div className="font-medium">{format(day, 'EEE')}</div>
-                <div className="text-sm">{format(day, 'd')}</div>
-              </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-7 h-96 overflow-y-auto">
-            {weekDays.map((day) => {
-              const dateKey = format(day, 'yyyy-MM-dd');
-              const dayEvents = eventsByDate.get(dateKey) || [];
-              
-              return (
-                <div 
-                  key={day.toString()} 
-                  className="p-2 border-r last:border-r-0 min-h-full"
-                  onClick={() => onCreateEvent(day)}
-                >
-                  <div className="space-y-1">
-                    {dayEvents.map((event) => (
-                      <div 
-                        key={event.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditEvent(event);
-                        }}
-                        className="p-2 rounded cursor-pointer text-sm"
-                        style={{ backgroundColor: getVenueColor(event.venue_id, 0.7) }}
-                      >
-                        <div className="font-medium truncate">{event.title}</div>
-                        <div className="text-xs">
-                          {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
-                        </div>
-                        <div className="text-xs truncate">
-                          {venueMap[event.venue_id] || 'Unknown venue'}
-                        </div>
-                      </div>
-                    ))}
-                    {dayEvents.length === 0 && (
-                      <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
-                        <div>Click to add event</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {viewType === "month" ? renderMonthView() : renderWeekView()}
+      
+      <div className="mt-2 text-center text-sm text-muted-foreground">
+        Click on any day to create a new event
+      </div>
     </div>
   );
 };
