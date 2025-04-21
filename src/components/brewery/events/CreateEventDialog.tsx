@@ -115,6 +115,13 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
     }
   }, [open]);
 
+    // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
+    React.useEffect(() => {
+      if (startDate && endDate !== startDate) {
+        setEndDate(startDate);
+      }
+    }, [startDate]);
+
   React.useEffect(() => {
     setForm((f) => ({
       ...f,
