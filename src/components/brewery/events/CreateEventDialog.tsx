@@ -11,7 +11,7 @@ const getNextHalfHourOptions = () => {
   const options = [];
   for (let hour = 6; hour < 24; hour++) {
     options.push(
-      `${hour.toString().padStart(2, "0")}:00`,
+      `${hour.toString().padStart(2, "0")}:00",
       `${hour.toString().padStart(2, "0")}:30`
     );
   }
@@ -20,7 +20,10 @@ const getNextHalfHourOptions = () => {
 
 function mergeDateAndTimeToISO(date: string, time: string) {
   if (!date || !time) return "";
-  return new Date(`${date}T${time}:00`).toISOString();
+  const timeWithSeconds = time.match(/^\d{1,2}:\d{2}(:\d{2})?$/)
+    ? (time.match(/^\d{1,2}:\d{2}$/) ? `${time}:00` : time)
+    : time;
+  return new Date(`${date}T${timeWithSeconds}`).toISOString();
 }
 
 function splitISOToLocalDateTime(isoString: string | undefined) {
