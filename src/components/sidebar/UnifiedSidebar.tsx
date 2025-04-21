@@ -15,7 +15,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard
+  CreditCard, Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -186,6 +186,16 @@ const SidebarContentComponent = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={isActive('/dashboard/events')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/events')}
+                    >
+                      <Calendar size={18} />
+                      <span>Events</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  
                   {selectedBrewery && (
                     <SidebarMenuItem>
                       <SidebarMenuButton 
@@ -196,23 +206,6 @@ const SidebarContentComponent = () => {
                         <span>Venues</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-                  )}
-                  
-                  {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
-                    <SidebarMenuSub>
-                      {venuesForSelectedBrewery.map((venue) => (
-                        <SidebarMenuSubItem key={venue.id}>
-                          <SidebarMenuSubButton
-                            onClick={() => handleVenueClick(venue)}
-                            isActive={isVenueActive('/dashboard/venues', venue.id)}
-                            className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
-                          >
-                            <Store size={14} />
-                            <span className="truncate">{venue.name}</span>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
                   )}
                   
                   <SidebarMenuItem>

@@ -26,8 +26,8 @@ import { refreshSupabaseConnection } from "./integrations/supabase/connection";
 import { useAuth } from "./contexts/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 import AdminContentLayout from "./components/admin/AdminContentLayout";
+import EventsPage from "./pages/dashboard/EventsPage";
 
-// Route component to conditionally render based on user type
 const UserTypeRoute = ({ 
   element, 
   businessElement, 
@@ -60,13 +60,9 @@ const App = () => {
   
   const isWindowFocused = useWindowFocus();
   
-  // Handle window focus changes
   useEffect(() => {
     if (isWindowFocused) {
-      // When window regains focus, refresh Supabase connection
       refreshSupabaseConnection();
-      
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries();
     }
   }, [isWindowFocused, queryClient]);
@@ -81,12 +77,9 @@ const App = () => {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               
-              {/* Main application layout with unified sidebar */}
               <Route element={<AppLayout />}>
-                {/* Main index/map route */}
                 <Route path="/" element={<Index />} />
                 
-                {/* Dashboard Routes */}
                 <Route path="/dashboard">
                   <Route index element={
                     <UserTypeRoute 
@@ -96,21 +89,18 @@ const App = () => {
                     />
                   } />
                   
-                  {/* Business user routes */}
                   <Route path="breweries" element={<Dashboard />} />
                   <Route path="venues" element={<VenuesPage />} />
+                  <Route path="events" element={<EventsPage />} />
                   
-                  {/* Regular user routes */}
                   <Route path="favorites" element={<FavoritesPage />} />
                   <Route path="history" element={<CheckInHistoryPage />} />
                   <Route path="discoveries" element={<DiscoveriesPage />} />
                   <Route path="subscription" element={<SubscriptionPage />} />
                   
-                  {/* Common routes */}
                   <Route path="settings" element={<SettingsPage />} />
                 </Route>
-
-                {/* Admin Routes - now nested under AppLayout */}
+                
                 <Route path="/admin" element={<AdminRoute />}>
                   <Route element={<AdminContentLayout />}>
                     <Route index element={<AdminDashboard />} />
