@@ -64,7 +64,9 @@ export function useCreateVenueEvent() {
       return data as VenueEvent;
     },
     onSuccess: (data) => {
+      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
+      queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
   });
 }
@@ -83,7 +85,9 @@ export function useUpdateVenueEvent() {
       return data as VenueEvent;
     },
     onSuccess: (data) => {
+      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
+      queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
   });
 }
@@ -100,7 +104,9 @@ export function useDeleteVenueEvent() {
       return { id, venue_id };
     },
     onSuccess: (data) => {
+      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
+      queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
   });
 }
