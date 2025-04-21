@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -8,6 +7,7 @@ import type { Venue } from '@/types/venue';
 import DeleteVenueDialog from './venue/DeleteVenueDialog';
 import VenueHoursDialog from './VenueHoursDialog';
 import EditVenueDialog from './EditVenueDialog';
+import VenueEventsManager from './venue/VenueEventsManager';
 
 interface VenueManagementProps {
   breweryId: string;
@@ -60,7 +60,6 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
   };
   
   const handleSelectVenue = (venue: Venue) => {
-    // Navigate to the venue detail page when a venue is selected
     navigate(`/dashboard/venues?venueId=${venue.id}`);
   };
 
@@ -75,7 +74,11 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
         onAddVenue={handleAddVenue}
         onSelectVenue={handleSelectVenue}
       />
-      
+      {selectedVenue && (
+        <div className="mt-6">
+          <VenueEventsManager venue={selectedVenue} />
+        </div>
+      )}
       {selectedVenue && (
         <>
           <DeleteVenueDialog 
@@ -85,13 +88,11 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
             onConfirm={handleDeleteConfirm}
             isDeleting={isDeleting}
           />
-          
           <VenueHoursDialog
             open={showHoursDialog}
             onOpenChange={setShowHoursDialog}
             venue={selectedVenue}
           />
-          
           <EditVenueDialog
             open={showEditDialog}
             onOpenChange={setShowEditDialog}
