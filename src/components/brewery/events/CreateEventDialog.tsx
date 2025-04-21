@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -67,6 +66,15 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
     end_time: "",
   });
 
+  React.useEffect(() => {
+    if (open && (!form.venue_id || form.venue_id === "")) {
+      setForm(f => ({
+        ...f,
+        venue_id: defaultVenueId
+      }));
+    }
+  }, [open, defaultVenueId, venues.length]);
+
   const createEvent = useCreateVenueEvent();
   const [saving, setSaving] = useState(false);
 
@@ -106,13 +114,6 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       }
     }
   }, [open]);
-
-  // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
-  React.useEffect(() => {
-    if (startDate && endDate !== startDate) {
-      setEndDate(startDate);
-    }
-  }, [startDate]);
 
   React.useEffect(() => {
     setForm((f) => ({
@@ -271,4 +272,3 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 };
 
 export default CreateEventDialog;
-
