@@ -148,12 +148,12 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
             }}
             className="rounded border"
             components={{
-              Day: ({ date, ...props }) => (
+              Day: ({ date, ...dayProps }) => (
                 <div
-                  {...props}
+                  {...dayProps}
                   className={cn(
                     "h-14 w-full p-1 relative",
-                    props.className
+                    dayProps.className
                   )}
                 >
                   {dayRenderer(date)}
