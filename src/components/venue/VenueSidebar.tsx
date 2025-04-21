@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -124,12 +124,33 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     },
     enabled: !!venueId && !!user
   });
-  
+
   const handleCheckInSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['venueCheckins', venueId] });
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
-  
+
+  // ----------- Get Directions feature -----------
+  // Only show if venue has coordinates
+  const hasCoordinates = venue?.latitude && venue?.longitude;
+  const handleGetDirections = () => {
+    if (!hasCoordinates) return;
+    const lat = venue!.latitude;
+    const lng = venue!.longitude;
+    const title = encodeURIComponent(venue!.name);
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+    let url = '';
+    if (isIOS) {
+      url = `maps://?daddr=${lat},${lng}&q=${title}`;
+    } else {
+      url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=&travelmode=driving`;
+    }
+    window.open(url, '_blank', 'noopener');
+  };
+  // ----------------------------------------------
+
   if (!venue) return null;
   
   return (
@@ -172,7 +193,21 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       <div className="flex-1 overflow-y-auto p-4">
         <div className="space-y-5">
           <AboutSection breweryInfo={breweryInfo} />
-          <AddressSection venue={venue} />
+          <div className="space-y-1">
+            <AddressSection venue={venue} />
+            {/* Get Directions Button – show only if coordinates exist */}
+            {hasCoordinates && (
+              <Button
+                onClick={handleGetDirections}
+                variant="secondary"
+                size="sm"
+                className="mt-2"
+              >
+                <Navigation size={16} />
+                Get Directions
+              </Button>
+            )}
+          </div>
           <ContactSection venue={venue} breweryInfo={breweryInfo} />
           <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
           <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
@@ -203,3 +238,4 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
 };
 
 export default VenueSidebar;
+
