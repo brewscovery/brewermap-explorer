@@ -1,10 +1,12 @@
 
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useVenueEvents, useDeleteVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
 import EditEventDialog from "./EditEventDialog";
+import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
   AlertDialogHeader,
@@ -28,17 +30,13 @@ interface EventsTableProps {
 }
 
 const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
-  // aggregate all events from all venues
-  const allEvents: VenueEvent[] = [];
-  let isLoading = false;
-
-  // We fetch events per venue
-  venueIds.forEach((venueId) => {
-    const { data, isLoading: venueLoading } = useVenueEvents(venueId);
-    if (venueLoading) isLoading = true;
-    if (data) allEvents.push(...data);
-  });
-
+  const queryClient = useQueryClient();
+  const [allEvents, setAllEvents] = useState<VenueEvent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  
+  // Hook to batch fetch events for all venues
+  const { data: eventsData, isLoading: eventsLoading } = useVenueEvents(venueIds.length > 0 ? venueIds[0] : null);
+  
   // Create a map of venue IDs to venue names for quick lookup
   const venueMap = Object.fromEntries(venues.map(v => [v.id, v.name]));
 
@@ -51,11 +49,67 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteMutation = useDeleteVenueEvent();
 
+  // Update allEvents when eventsData changes
+  React.useEffect(() => {
+    if (venueIds.length === 0) {
+      setAllEvents([]);
+      setIsLoading(false);
+      return;
+    }
+    
+    // We'll handle loading state based on first venue's events loading
+    setIsLoading(eventsLoading);
+    
+    if (eventsData) {
+      // Fetch events for all other venues
+      const fetchAllEvents = async () => {
+        const promises = venueIds.slice(1).map(async (venueId) => {
+          const { data } = await queryClient.fetchQuery({
+            queryKey: ['venueEvents', venueId],
+            queryFn: async () => {
+              const { data, error } = await supabase
+                .from('venue_events')
+                .select('*')
+                .eq('venue_id', venueId)
+                .order('start_time', { ascending: true });
+              if (error) throw error;
+              return data as VenueEvent[];
+            }
+          });
+          return data || [];
+        });
+        
+        try {
+          const otherVenuesEvents = await Promise.all(promises);
+          const allEventsCollection = [
+            ...(eventsData || []),
+            ...otherVenuesEvents.flat()
+          ];
+          
+          // Sort by start_time DESC (future first)
+          allEventsCollection.sort((a, b) => b.start_time.localeCompare(a.start_time));
+          
+          setAllEvents(allEventsCollection);
+        } catch (error) {
+          console.error("Error fetching events for all venues:", error);
+          toast.error("Failed to load some events");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchAllEvents();
+    }
+  }, [venueIds, eventsData, eventsLoading, queryClient]);
+  
   const handleDelete = async () => {
     if (!deleteEvent) return;
     try {
       await deleteMutation.mutateAsync({ id: deleteEvent.id, venue_id: deleteEvent.venue_id });
       toast.success("Event deleted!");
+      
+      // Update local state to remove the deleted event
+      setAllEvents(prev => prev.filter(event => event.id !== deleteEvent.id));
     } catch {
       toast.error("Failed to delete event.");
     } finally {
@@ -70,9 +124,6 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
   if (isLoading) {
     return <div>Loading events...</div>;
   }
-
-  // Sort by start_time DESC (future first)
-  allEvents.sort((a, b) => b.start_time.localeCompare(a.start_time));
 
   return (
     <div className="bg-white shadow rounded p-4">
