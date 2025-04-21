@@ -71,6 +71,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({
     try {
       await updateEvent.mutateAsync({
         id: event.id,
+        venue_id: form.venue_id,
         title: form.title,
         description: form.description || "",
         start_time: mergeDateAndTimeToISO(form.start_date, form.start_time),
