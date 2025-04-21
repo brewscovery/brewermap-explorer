@@ -148,7 +148,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
             }}
             className="rounded border"
             components={{
-              Day: ({ day, ...props }) => (
+              Day: ({ date, ...props }) => (
                 <div
                   {...props}
                   className={cn(
@@ -156,7 +156,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
                     props.className
                   )}
                 >
-                  {dayRenderer(day)}
+                  {dayRenderer(date)}
                 </div>
               ),
             }}

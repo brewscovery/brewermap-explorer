@@ -1,7 +1,7 @@
 
 import React, { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { CalendarDays, ViewList } from "lucide-react";
+import { CalendarDays, List } from "lucide-react";
 import EventsTable from "./EventsTable";
 import EventsCalendarView from "./EventsCalendarView";
 import { VenueEvent } from "@/hooks/useVenueEvents";
@@ -41,7 +41,7 @@ const EventsViewToggle: React.FC<EventsViewToggleProps> = ({ events, venues, ven
             <span className="ml-2">Calendar</span>
           </ToggleGroupItem>
           <ToggleGroupItem value="table" aria-label="Table view">
-            <ViewList className="h-4 w-4" />
+            <List className="h-4 w-4" />
             <span className="ml-2">Table</span>
           </ToggleGroupItem>
         </ToggleGroup>

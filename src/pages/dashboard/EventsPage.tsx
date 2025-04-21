@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBreweryFetching } from "@/hooks/useBreweryFetching";
@@ -13,14 +13,14 @@ const EventsPage = () => {
   const { user, userType } = useAuth();
   const { selectedBrewery } = useBreweryFetching(userType === "business" ? user?.id : null);
   const { venues, isLoading: venuesLoading } = useBreweryVenues(selectedBrewery ? selectedBrewery.id : null);
-  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   
-  // Get all events for the first venue (if any)
+  // Get all venue IDs
+  const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
+  
+  // Get events for the first venue (if any)
   const firstVenueId = venues && venues.length > 0 ? venues[0].id : null;
   const { data: events = [], isLoading: eventsLoading } = useVenueEvents(firstVenueId);
-
-  // Make sure we have fallback venue IDs if venues is null or empty
-  const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
 
   const isLoading = venuesLoading || eventsLoading;
 
