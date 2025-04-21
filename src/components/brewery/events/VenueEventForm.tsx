@@ -136,7 +136,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
       />
       <div>
         <Label htmlFor="venue-id">Venue</Label>
-        <Select value={venueId} onValueChange={setVenueId} disabled={mode === "edit" && !!initialValues?.venue_id}>
+        <Select value={venueId} onValueChange={setVenueId}>
           <SelectTrigger id="venue-id">
             <SelectValue placeholder="Select venue" />
           </SelectTrigger>
