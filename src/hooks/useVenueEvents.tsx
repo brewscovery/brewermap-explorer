@@ -33,6 +33,24 @@ export function useVenueEvents(venueId: string | null) {
   });
 }
 
+// New function to fetch events for multiple venues
+export function useMultipleVenueEvents(venueIds: string[]) {
+  return useQuery({
+    queryKey: ['multipleVenueEvents', venueIds],
+    queryFn: async () => {
+      if (!venueIds.length) return [];
+      const { data, error } = await supabase
+        .from('venue_events')
+        .select('*')
+        .in('venue_id', venueIds)
+        .order('start_time', { ascending: true });
+      if (error) throw error;
+      return data as VenueEvent[];
+    },
+    enabled: venueIds.length > 0,
+  });
+}
+
 export function useCreateVenueEvent() {
   const queryClient = useQueryClient();
   return useMutation({

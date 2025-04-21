@@ -7,7 +7,7 @@ import { useBreweryVenues } from "@/hooks/useBreweryVenues";
 import EventsViewToggle from "@/components/brewery/events/EventsViewToggle";
 import CreateEventDialog from "@/components/brewery/events/CreateEventDialog";
 import { Button } from "@/components/ui/button";
-import { useVenueEvents } from "@/hooks/useVenueEvents";
+import { useVenueEvents, useMultipleVenueEvents } from "@/hooks/useVenueEvents";
 
 const EventsPage = () => {
   const { user, userType } = useAuth();
@@ -18,9 +18,8 @@ const EventsPage = () => {
   // Get all venue IDs
   const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
   
-  // Get events for the first venue (if any)
-  const firstVenueId = venues && venues.length > 0 ? venues[0].id : null;
-  const { data: events = [], isLoading: eventsLoading } = useVenueEvents(firstVenueId);
+  // Fetch events for all venues
+  const { data: allEvents = [], isLoading: eventsLoading } = useMultipleVenueEvents(venueIds);
 
   const isLoading = venuesLoading || eventsLoading;
 
@@ -38,7 +37,7 @@ const EventsPage = () => {
         <div className="text-center p-8">Loading events...</div>
       ) : venues && venues.length > 0 ? (
         <EventsViewToggle 
-          events={events} 
+          events={allEvents} 
           venues={venues} 
           venueIds={venueIds} 
         />
