@@ -1,11 +1,27 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { useCreateVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useCreateVenueEvent } from "@/hooks/useVenueEvents";
 import { toast } from "sonner";
+import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
+
+interface Venue {
+  id: string;
+  name: string;
+}
+
+interface CreateEventDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  venues: Venue[];
+  defaultVenueId: string;
+  initialDate?: Date | null;
+}
 
 const getNextHalfHourOptions = () => {
   const options = [];
@@ -20,27 +36,8 @@ const getNextHalfHourOptions = () => {
 
 function mergeDateAndTimeToISO(date: string, time: string) {
   if (!date || !time) return "";
-  // Add seconds only if time doesn't already include them
-  const timeWithSeconds = /^\d{1,2}:\d{2}(:\d{2})?$/.test(time)
-    ? (time.length === 5 ? `${time}:00` : time)
-    : time;
+  const timeWithSeconds = time.length === 5 ? `${time}:00` : time;
   return new Date(`${date}T${timeWithSeconds}`).toISOString();
-}
-
-function splitISOToLocalDateTime(isoString: string | undefined) {
-  if (!isoString) return { date: "", time: "" };
-  const d = new Date(isoString);
-  const date = d.toISOString().slice(0, 10);
-  const hours = d.getHours().toString().padStart(2, "0");
-  const mins = d.getMinutes().toString().padStart(2, "0");
-  return { date, time: `${hours}:${mins}` };
-}
-
-interface CreateEventDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  venues: { id: string; name: string }[];
-  defaultVenueId: string;
 }
 
 const TIME_OPTIONS = getNextHalfHourOptions();
@@ -50,114 +47,86 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
   onOpenChange,
   venues,
   defaultVenueId,
+  initialDate = null,
 }) => {
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [venueId, setVenueId] = useState(defaultVenueId);
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endDate, setEndDate] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [maxAttendees, setMaxAttendees] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
 
-  const [form, setForm] = useState<Partial<Omit<VenueEvent, "id" | "created_at" | "updated_at">>>({
-    venue_id: defaultVenueId,
-    title: "",
-    description: "",
-    max_attendees: undefined,
-    is_published: false,
-    start_time: "",
-    end_time: "",
-  });
-
-  React.useEffect(() => {
-    if (open && (!form.venue_id || form.venue_id === "")) {
-      setForm(f => ({
-        ...f,
-        venue_id: defaultVenueId
-      }));
+  // Set initial date when the dialog opens
+  useEffect(() => {
+    if (open && initialDate) {
+      const formattedDate = format(initialDate, "yyyy-MM-dd");
+      setStartDate(formattedDate);
+      setEndDate(formattedDate);
+      
+      // Set a default start time (10:00 AM)
+      setStartTime("10:00");
+      setEndTime("12:00");
     }
-  }, [open, defaultVenueId, venues.length]);
+  }, [open, initialDate]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setTitle("");
+      setDescription("");
+      setVenueId(defaultVenueId);
+      setStartDate("");
+      setStartTime("");
+      setEndDate("");
+      setEndTime("");
+      setMaxAttendees("");
+      setIsPublished(false);
+    }
+  }, [open, defaultVenueId]);
 
   const createEvent = useCreateVenueEvent();
   const [saving, setSaving] = useState(false);
 
-  const resetForm = () => {
-    setForm({
-      venue_id: defaultVenueId,
-      title: "",
-      description: "",
-      max_attendees: undefined,
-      is_published: false,
-      start_time: "",
-      end_time: "",
-    });
-    setStartDate("");
-    setStartTime("");
-    setEndDate("");
-    setEndTime("");
-  };
-
-  React.useEffect(() => {
-    if (open) {
-      if (form.start_time) {
-        const { date, time } = splitISOToLocalDateTime(form.start_time);
-        setStartDate(date);
-        setStartTime(time);
-      } else {
-        setStartDate("");
-        setStartTime("");
-      }
-      if (form.end_time) {
-        const { date, time } = splitISOToLocalDateTime(form.end_time);
-        setEndDate(date);
-        setEndTime(time);
-      } else {
-        setEndDate("");
-        setEndTime("");
-      }
-    }
-  }, [open]);
-
-    // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
-    React.useEffect(() => {
-      if (startDate && endDate !== startDate) {
-        setEndDate(startDate);
-      }
-    }, [startDate]);
-
-  React.useEffect(() => {
-    setForm((f) => ({
-      ...f,
-      start_time: startDate && startTime ? mergeDateAndTimeToISO(startDate, startTime) : "",
-      end_time: endDate && endTime ? mergeDateAndTimeToISO(endDate, endTime) : "",
-    }));
-  }, [startDate, startTime, endDate, endTime]);
-
-  const handleSave = async () => {
-    console.log('Trying to create an event with the following detail: venue=', form.venue_id, ', title=', form.title, 
-      ', startTime=', form.start_time, ', end_time=', form.end_time);
+  const handleCreate = async () => {
     if (
-      !form.venue_id ||
-      !form.title ||
-      !form.start_time ||
-      !form.end_time
+      !title ||
+      !venueId ||
+      !startDate ||
+      !startTime ||
+      !endDate ||
+      !endTime
     ) {
-      toast.error("Please fill title, select venue, start and end time.");
+      toast.error("Please fill all required fields");
       return;
     }
+
+    const startTimeISO = mergeDateAndTimeToISO(startDate, startTime);
+    const endTimeISO = mergeDateAndTimeToISO(endDate, endTime);
+
+    if (!startTimeISO || !endTimeISO) {
+      toast.error("Invalid date/time format");
+      return;
+    }
+
     setSaving(true);
     try {
       await createEvent.mutateAsync({
-        venue_id: form.venue_id,
-        title: form.title,
-        description: form.description || "",
-        start_time: form.start_time,
-        end_time: form.end_time,
-        max_attendees: form.max_attendees || null,
-        is_published: form.is_published || false,
+        venue_id: venueId,
+        title,
+        description,
+        start_time: startTimeISO,
+        end_time: endTimeISO,
+        max_attendees: maxAttendees ? parseInt(maxAttendees, 10) : null,
+        is_published: isPublished,
       });
-      toast.success("Event created!");
+      toast.success("Event created successfully!");
       onOpenChange(false);
-      resetForm();
-    } catch {
-      toast.error("Failed to create event.");
+    } catch (error) {
+      console.error("Error creating event:", error);
+      toast.error("Failed to create event");
     } finally {
       setSaving(false);
     }
@@ -167,110 +136,105 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Create Event</DialogTitle>
+          <DialogTitle>Create New Event</DialogTitle>
         </DialogHeader>
         <div className="space-y-3 mt-2">
-          <label>
-            Venue
-            <select
-              className="w-full border rounded p-2 bg-white"
-              value={form.venue_id || defaultVenueId}
-              onChange={e => setForm(f => ({ ...f, venue_id: e.target.value }))}
-            >
-              {venues.map(v => (
-                <option value={v.id} key={v.id}>
-                  {v.name}
-                </option>
-              ))}
-            </select>
-          </label>
           <Input
             placeholder="Event Title"
-            value={form.title || ""}
-            onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
           />
           <Textarea
             placeholder="Event Description"
-            value={form.description || ""}
-            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
           />
-
           <div>
-            <Label htmlFor="event-start-date" className="block mb-1">Start Date</Label>
+            <Label htmlFor="venue-id">Venue</Label>
+            <Select
+              value={venueId}
+              onValueChange={setVenueId}
+            >
+              <SelectTrigger id="venue-id">
+                <SelectValue placeholder="Select venue" />
+              </SelectTrigger>
+              <SelectContent>
+                {venues.map((venue) => (
+                  <SelectItem key={venue.id} value={venue.id}>
+                    {venue.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label htmlFor="event-start-date">Start Date</Label>
             <Input
               id="event-start-date"
               type="date"
               value={startDate}
-              onChange={e => setStartDate(e.target.value)}
+              onChange={(e) => setStartDate(e.target.value)}
               className="mb-1"
             />
-            <Label htmlFor="event-start-time" className="block mb-1">Start Time</Label>
-            <select
-              id="event-start-time"
-              className="border rounded w-full p-2 bg-white"
-              value={startTime}
-              onChange={e => setStartTime(e.target.value)}
-            >
-              <option value="">Select time</option>
-              {TIME_OPTIONS.map(t => (
-                <option value={t} key={t}>{t}</option>
-              ))}
-            </select>
+            <Label htmlFor="event-start-time">Start Time</Label>
+            <Select value={startTime} onValueChange={setStartTime}>
+              <SelectTrigger id="event-start-time">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_OPTIONS.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
           <div>
-            <Label htmlFor="event-end-date" className="block mb-1">End Date</Label>
+            <Label htmlFor="event-end-date">End Date</Label>
             <Input
               id="event-end-date"
               type="date"
               value={endDate}
-              onChange={e => setEndDate(e.target.value)}
+              onChange={(e) => setEndDate(e.target.value)}
               className="mb-1"
             />
-            <Label htmlFor="event-end-time" className="block mb-1">End Time</Label>
-            <select
-              id="event-end-time"
-              className="border rounded w-full p-2 bg-white"
-              value={endTime}
-              onChange={e => setEndTime(e.target.value)}
-            >
-              <option value="">Select time</option>
-              {TIME_OPTIONS.map(t => (
-                <option value={t} key={t}>{t}</option>
-              ))}
-            </select>
+            <Label htmlFor="event-end-time">End Time</Label>
+            <Select value={endTime} onValueChange={setEndTime}>
+              <SelectTrigger id="event-end-time">
+                <SelectValue placeholder="Select time" />
+              </SelectTrigger>
+              <SelectContent>
+                {TIME_OPTIONS.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {t}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-
           <Input
             type="number"
-            placeholder="Max Attendees"
-            value={form.max_attendees ?? ""}
-            min={0}
-            onChange={e => setForm(f => ({ ...f, max_attendees: Number(e.target.value) }))}
+            placeholder="Max Attendees (optional)"
+            value={maxAttendees}
+            min="0"
+            onChange={(e) => setMaxAttendees(e.target.value)}
           />
           <label className="flex items-center gap-2">
             <input
               type="checkbox"
-              checked={form.is_published ?? false}
-              onChange={e =>
-                setForm(f => ({ ...f, is_published: e.target.checked }))
-              }
+              checked={isPublished}
+              onChange={(e) => setIsPublished(e.target.checked)}
             />
             Published
           </label>
         </div>
         <DialogFooter>
-          <Button
-            variant="ghost"
-            onClick={() => {
-              onOpenChange(false);
-              resetForm();
-            }}
-          >
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? "Saving..." : "Save"}
+          <Button onClick={handleCreate} disabled={saving}>
+            {saving ? "Creating..." : "Create Event"}
           </Button>
         </DialogFooter>
       </DialogContent>
