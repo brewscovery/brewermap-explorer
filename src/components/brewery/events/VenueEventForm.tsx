@@ -102,6 +102,13 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, defaultVenueId, initialValues?.start_date]);
 
+  // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
+  React.useEffect(() => {
+    if (startDate && endDate !== startDate) {
+      setEndDate(startDate);
+    }
+  }, [startDate]);
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     onSubmit({
