@@ -123,6 +123,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
   }, [startDate, startTime, endDate, endTime]);
 
   const handleSave = async () => {
+    console.log('Trying to create an event with the following detail: venue=', form.venue_id, ', title=', form.title, 
+      ', startTime=', form.start_time, ', end_time=', form.end_time);
     if (
       !form.venue_id ||
       !form.title ||
