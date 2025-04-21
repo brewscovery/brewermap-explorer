@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ const getNextHalfHourOptions = () => {
   const options = [];
   for (let hour = 6; hour < 24; hour++) {
     options.push(
-      `${hour.toString().padStart(2, "0")}:00",
+      `${hour.toString().padStart(2, "0")}:00`,
       `${hour.toString().padStart(2, "0")}:30`
     );
   }
@@ -20,8 +21,9 @@ const getNextHalfHourOptions = () => {
 
 function mergeDateAndTimeToISO(date: string, time: string) {
   if (!date || !time) return "";
-  const timeWithSeconds = time.match(/^\d{1,2}:\d{2}(:\d{2})?$/)
-    ? (time.match(/^\d{1,2}:\d{2}$/) ? `${time}:00` : time)
+  // Add seconds only if time doesn't already include them
+  const timeWithSeconds = /^\d{1,2}:\d{2}(:\d{2})?$/.test(time)
+    ? (time.length === 5 ? `${time}:00` : time)
     : time;
   return new Date(`${date}T${timeWithSeconds}`).toISOString();
 }
@@ -104,6 +106,13 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       }
     }
   }, [open]);
+
+  // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
+  React.useEffect(() => {
+    if (startDate && endDate !== startDate) {
+      setEndDate(startDate);
+    }
+  }, [startDate]);
 
   React.useEffect(() => {
     setForm((f) => ({
@@ -260,3 +269,4 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 };
 
 export default CreateEventDialog;
+
