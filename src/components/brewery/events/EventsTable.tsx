@@ -64,7 +64,7 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
       // Fetch events for all other venues
       const fetchAllEvents = async () => {
         const promises = venueIds.slice(1).map(async (venueId) => {
-          const { data } = await queryClient.fetchQuery({
+          const data = await queryClient.fetchQuery({
             queryKey: ['venueEvents', venueId],
             queryFn: async () => {
               const { data, error } = await supabase
