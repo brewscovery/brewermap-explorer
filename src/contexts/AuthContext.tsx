@@ -143,6 +143,39 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
   }, []);
 
+  useEffect(() => {
+    if (user) {
+      const pendingEventId = localStorage.getItem('pendingEventInterest');
+      if (pendingEventId) {
+        // Remove the item from localStorage first to prevent repeated attempts
+        localStorage.removeItem('pendingEventInterest');
+
+        // Insert interest for the pending event
+        const addEventInterest = async () => {
+          try {
+            const { error } = await supabase
+              .from('event_interests')
+              .insert({
+                event_id: pendingEventId,
+                user_id: user.id
+              });
+
+            if (error) {
+              console.error('Failed to add event interest:', error);
+              toast.error('Could not automatically add event interest');
+            } else {
+              toast.success('You are now interested in the event');
+            }
+          } catch (err) {
+            console.error('Unexpected error adding event interest:', err);
+          }
+        };
+
+        addEventInterest();
+      }
+    }
+  }, [user]);
+
   return (
     <AuthContext.Provider value={{ user, userType, firstName, lastName, loading }}>
       {children}
