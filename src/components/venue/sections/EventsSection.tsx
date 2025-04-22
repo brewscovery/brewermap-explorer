@@ -73,6 +73,15 @@ const EventCard = ({
   const { user } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
 
+  // Create a proper event handler to wrap the toggleInterest function
+  const handleToggleInterest = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (user) {
+      toggleInterest();
+    } else {
+      onInterested(event);
+    }
+  };
+
   return (
     <div className="border rounded p-3 space-y-2">
       <h3 className="font-medium">{event.title}</h3>
@@ -99,7 +108,7 @@ const EventCard = ({
           variant={isInterested ? "default" : "outline"} 
           size="sm" 
           className="w-full flex items-center gap-2"
-          onClick={user ? toggleInterest : () => onInterested(event)}
+          onClick={handleToggleInterest}
           disabled={isLoading}
         >
           {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
