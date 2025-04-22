@@ -1,6 +1,5 @@
-
 import React, { useState } from 'react';
-import { X, ShieldCheck, Navigation } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -20,22 +19,13 @@ import VenueHoursSection from './sections/VenueHoursSection';
 import HappyHoursSection from './sections/HappyHoursSection';
 import DailySpecialsSection from './sections/DailySpecialsSection';
 import CheckInsSection from './sections/CheckInsSection';
+import EventsSection from './sections/EventsSection';
 import type { Brewery } from '@/types/brewery';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 interface VenueSidebarProps {
   venue: Venue | null;
   onClose: () => void;
-}
-
-interface CheckIn {
-  id: string;
-  rating: number;
-  comment: string | null;
-  visited_at: string;
-  created_at: string;
-  user_id: string;
-  first_name: string | null;
-  last_name: string | null;
 }
 
 const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
@@ -43,7 +33,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   
-  // Directly use venue?.id instead of a ref
   const venueId = venue?.id || null;
   
   console.log(`VenueSidebar rendering with venue ID: ${venueId}`);
@@ -130,8 +119,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
 
-  // ----------- Get Directions feature -----------
-  // Only show if venue has coordinates
   const hasCoordinates = venue?.latitude && venue?.longitude;
   const handleGetDirections = () => {
     if (!hasCoordinates) return;
@@ -149,7 +136,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     }
     window.open(url, '_blank', 'noopener');
   };
-  // ----------------------------------------------
 
   if (!venue) return null;
   
@@ -190,40 +176,54 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         </div>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4">
-        <div className="space-y-5">
-          <AboutSection breweryInfo={breweryInfo} />
-          <div className="space-y-1">
-            <AddressSection venue={venue} />
-            {/* Get Directions Button – show only if coordinates exist */}
-            {hasCoordinates && (
-              <Button
-                onClick={handleGetDirections}
-                variant="secondary"
-                size="sm"
-                className="mt-2"
-              >
-                <Navigation size={16} />
-                Get Directions
-              </Button>
-            )}
-          </div>
-          <ContactSection venue={venue} breweryInfo={breweryInfo} />
-          <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
-          <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
-          <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
+      <Tabs defaultValue="overview" className="flex-1 overflow-hidden">
+        <div className="px-4 border-b">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+            <TabsTrigger value="events" className="flex-1">Events</TabsTrigger>
+          </TabsList>
         </div>
         
-        <Separator className="my-5" />
+        <TabsContent value="overview" className="flex-1 overflow-y-auto">
+          <div className="p-4">
+            <div className="space-y-5">
+              <AboutSection breweryInfo={breweryInfo} />
+              <div className="space-y-1">
+                <AddressSection venue={venue} />
+                {hasCoordinates && (
+                  <Button
+                    onClick={handleGetDirections}
+                    variant="secondary"
+                    size="sm"
+                    className="mt-2"
+                  >
+                    <Navigation size={16} />
+                    Get Directions
+                  </Button>
+                )}
+              </div>
+              <ContactSection venue={venue} breweryInfo={breweryInfo} />
+              <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
+              <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
+              <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
+            </div>
+            
+            <Separator className="my-5" />
+            
+            <CheckInsSection 
+              venue={venue}
+              checkins={checkins}
+              user={user}
+              userType={userType}
+              onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
+            />
+          </div>
+        </TabsContent>
         
-        <CheckInsSection 
-          venue={venue}
-          checkins={checkins}
-          user={user}
-          userType={userType}
-          onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
-        />
-      </div>
+        <TabsContent value="events" className="flex-1 overflow-y-auto">
+          <EventsSection venueId={venue.id} />
+        </TabsContent>
+      </Tabs>
       
       {venue && user && (
         <CheckInDialog
@@ -238,4 +238,3 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
 };
 
 export default VenueSidebar;
-
