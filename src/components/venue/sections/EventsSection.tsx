@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart } from 'lucide-react';
@@ -7,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { useEventInterest } from '@/hooks/useEventInterest';
 import EventExportMenu from './EventExportMenu';
 import type { VenueEvent } from '@/hooks/useVenueEvents';
+import type { Venue } from '@/types/venue';
 import { useNavigate } from 'react-router-dom';
 
 interface EventsSectionProps {
@@ -72,8 +74,10 @@ const EventCard = ({
   const { user, userType } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
   const { data: venues = [] } = useVenueEvents(venueId);
-  const venue = venues[0]; // We know this venue exists since we're displaying its events
-
+  
+  // Find the venue by matching venueId
+  const venue = venues.find(v => v.venue_id === venueId)?.venue;
+  
   const handleToggleInterest = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (user) {
       toggleInterest();
@@ -115,7 +119,7 @@ const EventCard = ({
             {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
             Interested {isInterested ? "" : ""}
           </Button>
-          {isInterested && venue && <EventExportMenu event={event} venue={venue} />}
+          {isInterested && venue && <EventExportMenu event={event} venue={venue as Venue} />}
         </div>
       )}
     </div>
