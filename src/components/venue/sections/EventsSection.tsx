@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart } from 'lucide-react';
@@ -10,6 +9,8 @@ import EventExportMenu from './EventExportMenu';
 import type { VenueEvent } from '@/hooks/useVenueEvents';
 import type { Venue } from '@/types/venue';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface EventsSectionProps {
   venueId: string;
@@ -73,10 +74,18 @@ const EventCard = ({
 }) => {
   const { user, userType } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
-  const { data: venues = [] } = useVenueEvents(venueId);
-  
-  // Find the venue by matching venueId
-  const venue = venues.find(v => v.venue_id === venueId)?.venue;
+  const { data: venueData } = useQuery({
+    queryKey: ['venue', venueId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('venues')
+        .select('*')
+        .eq('id', venueId)
+        .single();
+      if (error) throw error;
+      return data as Venue;
+    }
+  });
   
   const handleToggleInterest = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (user) {
@@ -119,7 +128,7 @@ const EventCard = ({
             {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
             Interested {isInterested ? "" : ""}
           </Button>
-          {isInterested && venue && <EventExportMenu event={event} venue={venue as Venue} />}
+          {isInterested && venueData && <EventExportMenu event={event} venue={venueData} />}
         </div>
       )}
     </div>
