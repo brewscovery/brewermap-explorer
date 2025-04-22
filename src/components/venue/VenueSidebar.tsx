@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -177,15 +178,15 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       </div>
       
       <div className="flex flex-col flex-1 overflow-hidden">
-        <div className="px-4 border-b">
-          <TabsList className="w-full justify-start">
-            <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-            <TabsTrigger value="events" className="flex-1">Events</TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col">
-          <TabsContent value="overview" className="h-full overflow-y-auto flex-1 p-0">
+        <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
+          <div className="px-4 border-b">
+            <TabsList className="w-full justify-start">
+              <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
+              <TabsTrigger value="events" className="flex-1">Events</TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="overview" className="flex-1 overflow-y-auto p-0">
             <div className="p-4">
               <div className="space-y-5">
                 <AboutSection breweryInfo={breweryInfo} />
@@ -221,7 +222,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             </div>
           </TabsContent>
           
-          <TabsContent value="events" className="h-full overflow-y-auto flex-1 p-0">
+          <TabsContent value="events" className="flex-1 overflow-y-auto p-0">
             <EventsSection venueId={venue.id} />
           </TabsContent>
         </Tabs>
