@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, Heart, HeartOff } from 'lucide-react';
+import { Calendar, Clock, Heart } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -18,12 +17,10 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Sort events by date
   const sortedEvents = [...events].sort((a, b) => 
     new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
   );
 
-  // Filter for upcoming events
   const upcomingEvents = sortedEvents.filter(event => {
     const eventDate = new Date(event.start_time);
     return eventDate >= new Date();
@@ -31,7 +28,6 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
 
   const handleInterested = (event: VenueEvent) => {
     if (!user) {
-      // Store event ID in local storage to auto-mark interest after login
       localStorage.setItem('pendingEventInterest', event.id);
       navigate('/auth');
       return;
@@ -70,10 +66,9 @@ const EventCard = ({
   event: VenueEvent, 
   onInterested: (event: VenueEvent) => void 
 }) => {
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
 
-  // Create a proper event handler to wrap the toggleInterest function
   const handleToggleInterest = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (user) {
       toggleInterest();
@@ -103,18 +98,20 @@ const EventCard = ({
           Maximum attendees: {event.max_attendees}
         </div>
       )}
-      <div className="pt-1">
-        <Button 
-          variant={isInterested ? "default" : "outline"} 
-          size="sm" 
-          className="w-full flex items-center gap-2"
-          onClick={handleToggleInterest}
-          disabled={isLoading}
-        >
-          {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
-          Interested {isInterested ? "" : ""}
-        </Button>
-      </div>
+      {userType !== 'business' && (
+        <div className="pt-1">
+          <Button 
+            variant={isInterested ? "default" : "outline"} 
+            size="sm" 
+            className="w-full flex items-center gap-2"
+            onClick={handleToggleInterest}
+            disabled={isLoading}
+          >
+            {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
+            Interested {isInterested ? "" : ""}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
