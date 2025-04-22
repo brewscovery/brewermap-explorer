@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
