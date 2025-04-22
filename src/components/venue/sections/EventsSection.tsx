@@ -1,8 +1,10 @@
 
 import React from 'react';
 import { format } from 'date-fns';
+import { Calendar, Clock } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
 import type { VenueEvent } from '@/hooks/useVenueEvents';
 
 interface EventsSectionProps {
@@ -23,6 +25,11 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
     const eventDate = new Date(event.start_time);
     return eventDate >= new Date();
   });
+
+  const handleInterested = (event: VenueEvent) => {
+    // Placeholder for future "interested" functionality
+    console.log('Interested in event:', event.title);
+  };
 
   if (isLoading) {
     return (
@@ -48,14 +55,31 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
           {event.description && (
             <p className="text-sm text-muted-foreground">{event.description}</p>
           )}
-          <div className="text-sm text-muted-foreground">
-            {format(new Date(event.start_time), "PPP 'at' p")}
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Calendar size={14} />
+            <span>{format(new Date(event.start_time), "EEE, MMM d, yyyy")}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Clock size={14} />
+            <span>
+              {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+            </span>
           </div>
           {event.max_attendees && (
             <div className="text-sm text-muted-foreground">
               Maximum attendees: {event.max_attendees}
             </div>
           )}
+          <div className="pt-1">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full"
+              onClick={() => handleInterested(event)}
+            >
+              Interested
+            </Button>
+          </div>
         </div>
       ))}
     </div>
