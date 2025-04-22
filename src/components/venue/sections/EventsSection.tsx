@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart } from 'lucide-react';
@@ -55,7 +54,7 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
   return (
     <div className="p-4 space-y-4">
       {upcomingEvents.map((event) => (
-        <EventCard key={event.id} event={event} onInterested={handleInterested} />
+        <EventCard key={event.id} event={event} onInterested={handleInterested} venueId={venueId} />
       ))}
     </div>
   );
@@ -63,13 +62,17 @@ const EventsSection = ({ venueId }: EventsSectionProps) => {
 
 const EventCard = ({ 
   event, 
-  onInterested 
+  onInterested,
+  venueId 
 }: { 
-  event: VenueEvent, 
-  onInterested: (event: VenueEvent) => void 
+  event: VenueEvent;
+  onInterested: (event: VenueEvent) => void;
+  venueId: string;
 }) => {
   const { user, userType } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
+  const { data: venues = [] } = useVenueEvents(venueId);
+  const venue = venues[0]; // We know this venue exists since we're displaying its events
 
   const handleToggleInterest = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (user) {
@@ -112,7 +115,7 @@ const EventCard = ({
             {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
             Interested {isInterested ? "" : ""}
           </Button>
-          {isInterested && <EventExportMenu event={event} />}
+          {isInterested && venue && <EventExportMenu event={event} venue={venue} />}
         </div>
       )}
     </div>

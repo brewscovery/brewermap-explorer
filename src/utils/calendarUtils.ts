@@ -4,16 +4,28 @@ export const generateGoogleCalendarUrl = (event: {
   description?: string;
   start_time: string;
   end_time: string;
+  venue?: {
+    name: string;
+    street?: string | null;
+    city: string;
+    state: string;
+    postal_code?: string | null;
+  };
 }) => {
   const formatDate = (date: string) => {
     return new Date(date).toISOString().replace(/-|:|\.\d\d\d/g, '');
   };
+
+  const location = event.venue ? 
+    `${event.venue.street ? event.venue.street + ', ' : ''}${event.venue.city}, ${event.venue.state}${event.venue.postal_code ? ' ' + event.venue.postal_code : ''}`
+    : '';
 
   const params = new URLSearchParams({
     action: 'TEMPLATE',
     text: event.title,
     dates: `${formatDate(event.start_time)}/${formatDate(event.end_time)}`,
     details: event.description || '',
+    location: location,
   });
 
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
@@ -24,10 +36,21 @@ export const generateICalFile = (event: {
   description?: string;
   start_time: string;
   end_time: string;
+  venue?: {
+    name: string;
+    street?: string | null;
+    city: string;
+    state: string;
+    postal_code?: string | null;
+  };
 }) => {
   const formatDate = (date: string) => {
     return new Date(date).toISOString().replace(/-|:|\.\d\d\d/g, '').slice(0, -1);
   };
+
+  const location = event.venue ? 
+    `${event.venue.street ? event.venue.street + ', ' : ''}${event.venue.city}, ${event.venue.state}${event.venue.postal_code ? ' ' + event.venue.postal_code : ''}`
+    : '';
 
   const content = [
     'BEGIN:VCALENDAR',
@@ -37,6 +60,7 @@ export const generateICalFile = (event: {
     `DTEND:${formatDate(event.end_time)}`,
     `SUMMARY:${event.title}`,
     event.description ? `DESCRIPTION:${event.description}` : '',
+    location ? `LOCATION:${location}` : '',
     'END:VEVENT',
     'END:VCALENDAR'
   ].filter(Boolean).join('\r\n');

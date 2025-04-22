@@ -10,12 +10,25 @@ import {
 import { Button } from "@/components/ui/button";
 import { generateGoogleCalendarUrl, generateICalFile } from '@/utils/calendarUtils';
 import type { VenueEvent } from '@/hooks/useVenueEvents';
+import type { Venue } from '@/types/venue';
 
 interface EventExportMenuProps {
   event: VenueEvent;
+  venue: Venue;
 }
 
-const EventExportMenu = ({ event }: EventExportMenuProps) => {
+const EventExportMenu = ({ event, venue }: EventExportMenuProps) => {
+  const eventWithVenue = {
+    ...event,
+    venue: {
+      name: venue.name,
+      street: venue.street,
+      city: venue.city,
+      state: venue.state,
+      postal_code: venue.postal_code,
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -29,11 +42,11 @@ const EventExportMenu = ({ event }: EventExportMenuProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => window.open(generateGoogleCalendarUrl(event), '_blank')}>
+        <DropdownMenuItem onClick={() => window.open(generateGoogleCalendarUrl(eventWithVenue), '_blank')}>
           <CalendarIcon className="mr-2" size={16} />
           Google Calendar
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => generateICalFile(event)}>
+        <DropdownMenuItem onClick={() => generateICalFile(eventWithVenue)}>
           <Download className="mr-2" size={16} />
           Download iCal
         </DropdownMenuItem>
