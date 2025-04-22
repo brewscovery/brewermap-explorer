@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart } from 'lucide-react';
@@ -5,6 +6,7 @@ import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { useEventInterest } from '@/hooks/useEventInterest';
+import EventExportMenu from './EventExportMenu';
 import type { VenueEvent } from '@/hooks/useVenueEvents';
 import { useNavigate } from 'react-router-dom';
 
@@ -99,7 +101,7 @@ const EventCard = ({
         </div>
       )}
       {userType !== 'business' && (
-        <div className="pt-1">
+        <div className="pt-1 space-y-2">
           <Button 
             variant={isInterested ? "default" : "outline"} 
             size="sm" 
@@ -110,6 +112,7 @@ const EventCard = ({
             {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
             Interested {isInterested ? "" : ""}
           </Button>
+          {isInterested && <EventExportMenu event={event} />}
         </div>
       )}
     </div>
