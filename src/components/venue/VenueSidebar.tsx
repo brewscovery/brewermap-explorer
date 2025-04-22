@@ -176,7 +176,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         </div>
       </div>
       
-      <Tabs defaultValue="overview" className="flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
         <div className="px-4 border-b">
           <TabsList className="w-full justify-start">
             <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
@@ -184,46 +184,48 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
           </TabsList>
         </div>
         
-        <TabsContent value="overview" className="flex-1 overflow-y-auto">
-          <div className="p-4">
-            <div className="space-y-5">
-              <AboutSection breweryInfo={breweryInfo} />
-              <div className="space-y-1">
-                <AddressSection venue={venue} />
-                {hasCoordinates && (
-                  <Button
-                    onClick={handleGetDirections}
-                    variant="secondary"
-                    size="sm"
-                    className="mt-2"
-                  >
-                    <Navigation size={16} />
-                    Get Directions
-                  </Button>
-                )}
+        <Tabs defaultValue="overview" className="flex-1 overflow-hidden flex flex-col">
+          <TabsContent value="overview" className="h-full overflow-y-auto flex-1 p-0">
+            <div className="p-4">
+              <div className="space-y-5">
+                <AboutSection breweryInfo={breweryInfo} />
+                <div className="space-y-1">
+                  <AddressSection venue={venue} />
+                  {hasCoordinates && (
+                    <Button
+                      onClick={handleGetDirections}
+                      variant="secondary"
+                      size="sm"
+                      className="mt-2"
+                    >
+                      <Navigation size={16} className="mr-1" />
+                      Get Directions
+                    </Button>
+                  )}
+                </div>
+                <ContactSection venue={venue} breweryInfo={breweryInfo} />
+                <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
+                <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
+                <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
               </div>
-              <ContactSection venue={venue} breweryInfo={breweryInfo} />
-              <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
-              <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
-              <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
+              
+              <Separator className="my-5" />
+              
+              <CheckInsSection 
+                venue={venue}
+                checkins={checkins}
+                user={user}
+                userType={userType}
+                onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
+              />
             </div>
-            
-            <Separator className="my-5" />
-            
-            <CheckInsSection 
-              venue={venue}
-              checkins={checkins}
-              user={user}
-              userType={userType}
-              onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
-            />
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="events" className="flex-1 overflow-y-auto">
-          <EventsSection venueId={venue.id} />
-        </TabsContent>
-      </Tabs>
+          </TabsContent>
+          
+          <TabsContent value="events" className="h-full overflow-y-auto flex-1 p-0">
+            <EventsSection venueId={venue.id} />
+          </TabsContent>
+        </Tabs>
+      </div>
       
       {venue && user && (
         <CheckInDialog

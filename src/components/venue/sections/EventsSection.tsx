@@ -14,13 +14,41 @@ interface EventsSectionProps {
 }
 
 export default function EventsSection({ venueId }: EventsSectionProps) {
-  const { data: events = [] } = useVenueEvents(venueId);
+  const { data: events = [], isLoading, error } = useVenueEvents(venueId);
   const { user } = useAuth();
 
+  console.log("[DEBUG] EventsSection - venueId:", venueId);
+  console.log("[DEBUG] EventsSection - All events:", events);
+  console.log("[DEBUG] EventsSection - Current date:", new Date().toISOString());
+  
   // Filter for upcoming events and sort by date
   const upcomingEvents = events
-    .filter(event => new Date(event.start_time) >= new Date())
+    .filter(event => {
+      const eventDate = new Date(event.start_time);
+      const now = new Date();
+      console.log("[DEBUG] EventsSection - Event date check:", event.title, eventDate, now, eventDate >= now);
+      return eventDate >= now;
+    })
     .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+
+  console.log("[DEBUG] EventsSection - Upcoming events:", upcomingEvents);
+
+  if (isLoading) {
+    return (
+      <div className="p-4 text-center">
+        <p className="text-muted-foreground">Loading events...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("[ERROR] EventsSection - Failed to load events:", error);
+    return (
+      <div className="p-4 text-center text-destructive">
+        <p>Failed to load events. Please try again later.</p>
+      </div>
+    );
+  }
 
   if (upcomingEvents.length === 0) {
     return (
