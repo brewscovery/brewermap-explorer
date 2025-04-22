@@ -1,51 +1,33 @@
 
-import React from "react";
-import { format } from "date-fns";
-import { useVenueEvents } from "@/hooks/useVenueEvents";
-import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/AuthContext";
-import type { VenueEvent } from "@/hooks/useVenueEvents";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "lucide-react";
+import React from 'react';
+import { format } from 'date-fns';
+import { useVenueEvents } from '@/hooks/useVenueEvents';
+import { useAuth } from '@/contexts/AuthContext';
+import type { VenueEvent } from '@/hooks/useVenueEvents';
 
 interface EventsSectionProps {
   venueId: string;
 }
 
-export default function EventsSection({ venueId }: EventsSectionProps) {
-  const { data: events = [], isLoading, error } = useVenueEvents(venueId);
+const EventsSection = ({ venueId }: EventsSectionProps) => {
+  const { data: events = [], isLoading } = useVenueEvents(venueId);
   const { user } = useAuth();
 
-  console.log("[DEBUG] EventsSection - venueId:", venueId);
-  console.log("[DEBUG] EventsSection - All events:", events);
-  console.log("[DEBUG] EventsSection - Current date:", new Date().toISOString());
-  
-  // Filter for upcoming events and sort by date
-  const upcomingEvents = events
-    .filter(event => {
-      const eventDate = new Date(event.start_time);
-      const now = new Date();
-      console.log("[DEBUG] EventsSection - Event date check:", event.title, eventDate, now, eventDate >= now);
-      return eventDate >= now;
-    })
-    .sort((a, b) => new Date(a.start_time).getTime() - new Date(b.start_time).getTime());
+  // Sort events by date
+  const sortedEvents = [...events].sort((a, b) => 
+    new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+  );
 
-  console.log("[DEBUG] EventsSection - Upcoming events:", upcomingEvents);
+  // Filter for upcoming events
+  const upcomingEvents = sortedEvents.filter(event => {
+    const eventDate = new Date(event.start_time);
+    return eventDate >= new Date();
+  });
 
   if (isLoading) {
     return (
-      <div className="p-4 text-center">
-        <p className="text-muted-foreground">Loading events...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    console.error("[ERROR] EventsSection - Failed to load events:", error);
-    return (
-      <div className="p-4 text-center text-destructive">
-        <p>Failed to load events. Please try again later.</p>
+      <div className="p-4 text-center text-muted-foreground">
+        Loading events...
       </div>
     );
   }
@@ -58,65 +40,26 @@ export default function EventsSection({ venueId }: EventsSectionProps) {
     );
   }
 
-  const handleInterestClick = (event: VenueEvent) => {
-    if (!user) {
-      // Store event ID in localStorage before redirecting to login
-      localStorage.setItem('pendingEventInterest', event.id);
-      // TODO: Redirect to login page
-    } else {
-      // TODO: Handle marking interest for logged-in users
-    }
-  };
-
-  // Group events by date
-  const eventsByDate = upcomingEvents.reduce((acc, event) => {
-    const date = format(new Date(event.start_time), 'yyyy-MM-dd');
-    if (!acc[date]) {
-      acc[date] = [];
-    }
-    acc[date].push(event);
-    return acc;
-  }, {} as Record<string, VenueEvent[]>);
-
   return (
-    <div className="space-y-6 p-4">
-      {Object.entries(eventsByDate).map(([date, dateEvents]) => (
-        <div key={date}>
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">
-            {format(new Date(date), 'EEEE, MMMM d, yyyy')}
-          </h3>
-          <div className="space-y-4">
-            {dateEvents.map((event) => (
-              <Card key={event.id} className="border shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{event.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center text-sm text-muted-foreground mb-2">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    <span>
-                      {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
-                    </span>
-                  </div>
-                  {event.description && (
-                    <p className="text-sm text-muted-foreground">{event.description}</p>
-                  )}
-                  <Button
-                    variant="secondary"
-                    className="mt-4 w-full"
-                    onClick={() => handleInterestClick(event)}
-                  >
-                    I'm Interested
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+    <div className="p-4 space-y-4">
+      {upcomingEvents.map((event) => (
+        <div key={event.id} className="border rounded p-3 space-y-2">
+          <h3 className="font-medium">{event.title}</h3>
+          {event.description && (
+            <p className="text-sm text-muted-foreground">{event.description}</p>
+          )}
+          <div className="text-sm text-muted-foreground">
+            {format(new Date(event.start_time), "PPP 'at' p")}
           </div>
-          {Object.keys(eventsByDate).indexOf(date) < Object.keys(eventsByDate).length - 1 && (
-            <Separator className="my-6" />
+          {event.max_attendees && (
+            <div className="text-sm text-muted-foreground">
+              Maximum attendees: {event.max_attendees}
+            </div>
           )}
         </div>
       ))}
     </div>
   );
-}
+};
+
+export default EventsSection;
