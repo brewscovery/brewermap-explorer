@@ -88,8 +88,7 @@ export const useEventInterest = (event: VenueEvent) => {
 
       // Invalidate and refetch to ensure consistency
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterest', event.id, user?.id],
-        queryKey: ['eventInterestedUsersCount', event.id]
+        queryKey: [['eventInterest', event.id, user?.id], ['eventInterestedUsersCount', event.id]]
       });
 
       // Show a toast notification
