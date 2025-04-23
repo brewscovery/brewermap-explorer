@@ -86,9 +86,21 @@ export const useEventInterest = (event: VenueEvent) => {
         newInterestState
       );
 
-      // Invalidate and refetch to ensure consistency
+      // Update the count optimistically
+      const currentCount = queryClient.getQueryData(['eventInterestedUsersCount', event.id]) as number || 0;
+      queryClient.setQueryData(
+        ['eventInterestedUsersCount', event.id],
+        newInterestState ? currentCount + 1 : Math.max(currentCount - 1, 0)
+      );
+
+      // Invalidate both queries separately and force refetch
       queryClient.invalidateQueries({ 
-        queryKey: [['eventInterest', event.id, user?.id], ['eventInterestedUsersCount', event.id]]
+        queryKey: ['eventInterest', event.id, user?.id]
+      });
+      
+      queryClient.invalidateQueries({ 
+        queryKey: ['eventInterestedUsersCount', event.id],
+        refetchType: 'active'
       });
 
       // Show a toast notification
