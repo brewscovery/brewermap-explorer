@@ -1,6 +1,7 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, Heart } from 'lucide-react';
+import { Calendar, Clock, Heart, ChevronDown, ChevronUp } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -74,6 +75,7 @@ const EventCard = ({
 }) => {
   const { user, userType } = useAuth();
   const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { data: venueData } = useQuery({
     queryKey: ['venue', venueId],
     queryFn: async () => {
@@ -95,11 +97,40 @@ const EventCard = ({
     }
   };
 
+  const handleToggleDescription = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const shouldTruncate = event.description && event.description.length > 100;
+  const displayDescription = shouldTruncate && !isExpanded 
+    ? `${event.description.slice(0, 100)}...`
+    : event.description;
+
   return (
     <div className="border rounded p-3 space-y-2">
       <h3 className="font-medium">{event.title}</h3>
       {event.description && (
-        <p className="text-sm text-muted-foreground">{event.description}</p>
+        <div className="text-sm text-muted-foreground">
+          <p>{displayDescription}</p>
+          {shouldTruncate && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleToggleDescription}
+              className="mt-1 h-6 px-2 text-xs"
+            >
+              {isExpanded ? (
+                <>
+                  Show less <ChevronUp className="ml-1 h-3 w-3" />
+                </>
+              ) : (
+                <>
+                  Read more <ChevronDown className="ml-1 h-3 w-3" />
+                </>
+              )}
+            </Button>
+          )}
+        </div>
       )}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Calendar size={14} />
