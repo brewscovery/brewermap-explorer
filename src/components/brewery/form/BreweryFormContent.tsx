@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -35,7 +34,6 @@ const BreweryFormContent = ({
   breweryId,
   isEditMode
 }: BreweryFormContentProps) => {
-  // Initialize form with the initial data or default values
   const form = useForm<UnifiedBreweryFormValues>({
     resolver: zodResolver(unifiedBrewerySchema),
     defaultValues: {
@@ -48,7 +46,6 @@ const BreweryFormContent = ({
       logo_url: initialData?.logo_url || null,
       is_verified: initialData?.is_verified || false,
       country: initialData?.country || 'Australia',
-      contact_phone: '',
     },
   });
 
@@ -65,7 +62,6 @@ const BreweryFormContent = ({
         logo_url: initialData.logo_url || null,
         is_verified: initialData.is_verified || false,
         country: initialData.country || 'Australia',
-        contact_phone: '',
       });
     }
   }, [initialData, form]);
@@ -76,7 +72,7 @@ const BreweryFormContent = ({
         <GeneralInfoSection form={form} />
         <WebsiteSection form={form} />
         
-        {/* Show contact info only for new brewery creation */}
+        {/* Show contact info only for new brewery creation by business users */}
         <ContactInfoSection 
           form={form} 
           showContactInfo={!isEditMode && !isAdminMode} 
