@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart, ChevronDown, ChevronUp } from 'lucide-react';
@@ -147,8 +148,9 @@ const EventCard = ({
           Maximum attendees: {event.max_attendees}
         </div>
       )}
-      {userType !== 'business' && (
-        <div className="pt-1 space-y-2">
+      
+      <div className="pt-1 space-y-2">
+        {userType !== 'business' ? (
           <Button 
             variant={isInterested ? "default" : "outline"} 
             size="sm" 
@@ -163,9 +165,15 @@ const EventCard = ({
               </Badge>
             )}
           </Button>
-          {isInterested && venueData && <EventExportMenu event={event} venue={venueData} />}
-        </div>
-      )}
+        ) : (
+          <div className="flex items-center gap-2 text-sm">
+            <Heart size={16} className="text-muted-foreground" />
+            <span>Interested users:</span>
+            <Badge variant="outline">{interestedUsersCount}</Badge>
+          </div>
+        )}
+        {isInterested && venueData && userType !== 'business' && <EventExportMenu event={event} venue={venueData} />}
+      </div>
     </div>
   );
 };
