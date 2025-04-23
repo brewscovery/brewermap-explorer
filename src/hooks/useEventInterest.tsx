@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,13 +20,9 @@ export const useEventInterest = (event: VenueEvent) => {
         .select('id')
         .eq('event_id', event.id)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
       
-      if (error) {
-        // If no rows found, user is not interested
-        if (error.code === 'PGRST116') return false;
-        throw error;
-      }
+      if (error) throw error;
       
       return !!data;
     },
@@ -80,7 +75,7 @@ export const useEventInterest = (event: VenueEvent) => {
       }
     },
     onSuccess: (newInterestState) => {
-      // Optimistically update the query cache
+      // Update isInterested state optimistically
       queryClient.setQueryData(
         ['eventInterest', event.id, user?.id], 
         newInterestState
