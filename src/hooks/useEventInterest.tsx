@@ -11,7 +11,7 @@ export const useEventInterest = (event: VenueEvent) => {
   const { user } = useAuth();
 
   // Query to check if the user is interested in this event
-  const { data: isInterested, isLoading } = useQuery({
+  const { data: isInterested, isLoading: isInterestLoading } = useQuery({
     queryKey: ['eventInterest', event.id, user?.id],
     queryFn: async () => {
       if (!user) return false;
@@ -32,6 +32,21 @@ export const useEventInterest = (event: VenueEvent) => {
       return !!data;
     },
     enabled: !!user
+  });
+
+  // New query to count interested users
+  const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useQuery({
+    queryKey: ['eventInterestedUsersCount', event.id],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from('event_interests')
+        .select('user_id', { count: 'exact' })
+        .eq('event_id', event.id);
+      
+      if (error) throw error;
+      
+      return count || 0;
+    }
   });
 
   // Mutation to toggle event interest
@@ -73,7 +88,8 @@ export const useEventInterest = (event: VenueEvent) => {
 
       // Invalidate and refetch to ensure consistency
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterest', event.id, user?.id] 
+        queryKey: ['eventInterest', event.id, user?.id],
+        queryKey: ['eventInterestedUsersCount', event.id]
       });
 
       // Show a toast notification
@@ -91,7 +107,8 @@ export const useEventInterest = (event: VenueEvent) => {
 
   return {
     isInterested: isInterested || false,
-    isLoading,
+    interestedUsersCount,
+    isLoading: isInterestLoading || isCountLoading,
     toggleInterest: toggleInterestMutation.mutate
   };
 };

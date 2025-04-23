@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { Calendar, Clock, Heart, ChevronDown, ChevronUp } from 'lucide-react';
@@ -12,6 +11,7 @@ import type { Venue } from '@/types/venue';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { Badge } from '@/components/ui/badge';
 
 interface EventsSectionProps {
   venueId: string;
@@ -74,7 +74,7 @@ const EventCard = ({
   venueId: string;
 }) => {
   const { user, userType } = useAuth();
-  const { isInterested, toggleInterest, isLoading } = useEventInterest(event);
+  const { isInterested, interestedUsersCount, toggleInterest, isLoading } = useEventInterest(event);
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: venueData } = useQuery({
     queryKey: ['venue', venueId],
@@ -157,7 +157,11 @@ const EventCard = ({
             disabled={isLoading}
           >
             {isInterested ? <Heart className="mr-2" /> : <Heart className="mr-2 text-muted-foreground" />}
-            Interested {isInterested ? "" : ""}
+            Interested {interestedUsersCount > 0 && (
+              <Badge variant="secondary" className="ml-2">
+                {interestedUsersCount}
+              </Badge>
+            )}
           </Button>
           {isInterested && venueData && <EventExportMenu event={event} venue={venueData} />}
         </div>
