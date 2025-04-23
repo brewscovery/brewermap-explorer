@@ -1,12 +1,12 @@
-
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVenueEvents, useDeleteVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Users } from "lucide-react";
 import EditEventDialog from "./EditEventDialog";
 import { supabase } from '@/integrations/supabase/client';
+import { useEventInterest } from '@/hooks/useEventInterest';
 import {
   AlertDialog,
   AlertDialogHeader,
@@ -18,6 +18,7 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 
 interface Venue {
   id: string;
@@ -34,22 +35,16 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
   const [allEvents, setAllEvents] = useState<VenueEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Hook to batch fetch events for all venues
   const { data: eventsData, isLoading: eventsLoading } = useVenueEvents(venueIds.length > 0 ? venueIds[0] : null);
-  
-  // Create a map of venue IDs to venue names for quick lookup
   const venueMap = Object.fromEntries(venues.map(v => [v.id, v.name]));
 
-  // Edit dialog state
   const [editEvent, setEditEvent] = useState<VenueEvent | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
 
-  // Delete dialog state
   const [deleteEvent, setDeleteEvent] = useState<VenueEvent | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteMutation = useDeleteVenueEvent();
 
-  // Update allEvents when eventsData changes
   React.useEffect(() => {
     if (venueIds.length === 0) {
       setAllEvents([]);
@@ -57,11 +52,9 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
       return;
     }
     
-    // We'll handle loading state based on first venue's events loading
     setIsLoading(eventsLoading);
     
     if (eventsData) {
-      // Fetch events for all other venues
       const fetchAllEvents = async () => {
         const promises = venueIds.slice(1).map(async (venueId) => {
           const data = await queryClient.fetchQuery({
@@ -86,7 +79,6 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
             ...otherVenuesEvents.flat()
           ];
           
-          // Sort by start_time DESC (future first)
           allEventsCollection.sort((a, b) => b.start_time.localeCompare(a.start_time));
           
           setAllEvents(allEventsCollection);
@@ -108,7 +100,6 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
       await deleteMutation.mutateAsync({ id: deleteEvent.id, venue_id: deleteEvent.venue_id });
       toast.success("Event deleted!");
       
-      // Update local state to remove the deleted event
       setAllEvents(prev => prev.filter(event => event.id !== deleteEvent.id));
     } catch {
       toast.error("Failed to delete event.");
@@ -135,43 +126,31 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
             <th className="py-1">Start</th>
             <th className="py-1">End</th>
             <th className="py-1">Published</th>
+            <th className="py-1">
+              <div className="flex items-center gap-1">
+                <Users size={14} />
+                <span>Interest</span>
+              </div>
+            </th>
             <th className="py-1">Actions</th>
           </tr>
         </thead>
         <tbody>
           {allEvents.length === 0 ? (
             <tr>
-              <td colSpan={6} className="py-4 text-center text-muted-foreground">
+              <td colSpan={7} className="py-4 text-center text-muted-foreground">
                 No events found.
               </td>
             </tr>
           ) : (
             allEvents.map((event) => (
-              <tr key={event.id} className="hover:bg-muted/30">
-                <td className="py-1">{event.title}</td>
-                <td className="py-1">{venueMap[event.venue_id] || event.venue_id}</td>
-                <td className="py-1">{format(new Date(event.start_time), "PPPp")}</td>
-                <td className="py-1">{format(new Date(event.end_time), "PPPp")}</td>
-                <td className="py-1">{event.is_published ? "Yes" : "No"}</td>
-                <td className="py-1 flex gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => { setEditEvent(event); setShowEditDialog(true); }}
-                    aria-label="Edit"
-                  >
-                    <Edit size={16} />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => { setDeleteEvent(event); setShowDeleteDialog(true); }}
-                    aria-label="Delete"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </td>
-              </tr>
+              <EventRow 
+                key={event.id} 
+                event={event} 
+                venueMap={venueMap}
+                onEdit={() => { setEditEvent(event); setShowEditDialog(true); }}
+                onDelete={() => { setDeleteEvent(event); setShowDeleteDialog(true); }}
+              />
             ))
           )}
         </tbody>
@@ -207,6 +186,55 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  );
+};
+
+interface EventRowProps {
+  event: VenueEvent;
+  venueMap: Record<string, string>;
+  onEdit: () => void;
+  onDelete: () => void;
+}
+
+const EventRow: React.FC<EventRowProps> = ({ 
+  event, 
+  venueMap, 
+  onEdit, 
+  onDelete 
+}) => {
+  const { interestedUsersCount } = useEventInterest(event);
+
+  return (
+    <tr className="hover:bg-muted/30">
+      <td className="py-1">{event.title}</td>
+      <td className="py-1">{venueMap[event.venue_id] || event.venue_id}</td>
+      <td className="py-1">{format(new Date(event.start_time), "PPPp")}</td>
+      <td className="py-1">{format(new Date(event.end_time), "PPPp")}</td>
+      <td className="py-1">{event.is_published ? "Yes" : "No"}</td>
+      <td className="py-1">
+        <Badge variant="outline">
+          {interestedUsersCount}
+        </Badge>
+      </td>
+      <td className="py-1 flex gap-1">
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onEdit}
+          aria-label="Edit"
+        >
+          <Edit size={16} />
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onDelete}
+          aria-label="Delete"
+        >
+          <Trash2 size={16} />
+        </Button>
+      </td>
+    </tr>
   );
 };
 
