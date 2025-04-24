@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
@@ -14,6 +13,8 @@ export interface VenueEvent {
   updated_at: string;
   max_attendees: number | null;
   is_published: boolean;
+  ticket_price: number | null;
+  ticket_url: string | null;
 }
 
 export function useVenueEvents(venueId: string | null) {
@@ -33,7 +34,6 @@ export function useVenueEvents(venueId: string | null) {
   });
 }
 
-// New function to fetch events for multiple venues
 export function useMultipleVenueEvents(venueIds: string[]) {
   return useQuery({
     queryKey: ['multipleVenueEvents', venueIds],
@@ -64,7 +64,6 @@ export function useCreateVenueEvent() {
       return data as VenueEvent;
     },
     onSuccess: (data) => {
-      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
@@ -85,7 +84,6 @@ export function useUpdateVenueEvent() {
       return data as VenueEvent;
     },
     onSuccess: (data) => {
-      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
@@ -104,7 +102,6 @@ export function useDeleteVenueEvent() {
       return { id, venue_id };
     },
     onSuccess: (data) => {
-      // Invalidate both single venue events and multiple venue events queries
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
     }
