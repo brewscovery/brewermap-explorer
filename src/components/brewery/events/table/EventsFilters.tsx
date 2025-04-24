@@ -44,7 +44,7 @@ export const EventsFilters: React.FC<EventsFiltersProps> = ({
               <SelectValue placeholder="All venues" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All venues</SelectItem>
+              <SelectItem value="all">All venues</SelectItem>
               {venues.map((venue) => (
                 <SelectItem key={venue.id} value={venue.id}>
                   {venue.name}

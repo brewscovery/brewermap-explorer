@@ -15,7 +15,7 @@ interface UseEventsTableProps {
 export const useEventsTable = ({ events, venues }: UseEventsTableProps) => {
   const [sortField, setSortField] = useState<SortField>('start_time');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [selectedVenue, setSelectedVenue] = useState<string>('');
+  const [selectedVenue, setSelectedVenue] = useState<string>('all');
   const [publishedFilter, setPublishedFilter] = useState<boolean | null>(null);
   const [dateFilter, setDateFilter] = useState<DateFilter>('upcoming');
 
@@ -23,7 +23,7 @@ export const useEventsTable = ({ events, venues }: UseEventsTableProps) => {
     let filteredEvents = [...events];
 
     // Apply venue filter
-    if (selectedVenue) {
+    if (selectedVenue && selectedVenue !== 'all') {
       filteredEvents = filteredEvents.filter(event => event.venue_id === selectedVenue);
     }
 
