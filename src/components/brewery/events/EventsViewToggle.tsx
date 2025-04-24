@@ -1,8 +1,7 @@
-
 import React, { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { CalendarDays, List } from "lucide-react";
-import EventsTable from "./EventsTable";
+import EventsTable from "./table/EventsTable";
 import EventsCalendarView from "./EventsCalendarView";
 import { VenueEvent, useDeleteVenueEvent } from "@/hooks/useVenueEvents";
 import CreateEventDialog from "./CreateEventDialog";
