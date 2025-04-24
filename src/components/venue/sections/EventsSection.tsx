@@ -148,7 +148,7 @@ const EventCard = ({
         {event.ticket_price === null || event.ticket_price === 0 ? (
           <Badge variant="secondary">Free entry</Badge>
         ) : (
-          <Badge variant="secondary">${event.ticket_price?.toFixed(2) || '0.00'}</Badge>
+          <Badge variant="secondary">Price: ${event.ticket_price?.toFixed(2) || '0.00'}</Badge>
         )}
         {event.ticket_url && (
           <Button 
