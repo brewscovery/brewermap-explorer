@@ -22,6 +22,8 @@ function emptyEvent(venueId: string): Omit<VenueEvent, 'id' | 'created_at' | 'up
     end_time: '',
     max_attendees: null,
     is_published: false,
+    ticket_price: null,
+    ticket_url: null,
   };
 }
 
@@ -46,6 +48,8 @@ const VenueEventsManager: React.FC<VenueEventsManagerProps> = ({ venue }) => {
         end_time: event.end_time,
         max_attendees: event.max_attendees,
         is_published: event.is_published,
+        ticket_price: event.ticket_price,
+        ticket_url: event.ticket_url,
       });
       setEditingId(event.id);
     } else {
@@ -121,6 +125,7 @@ const VenueEventsManager: React.FC<VenueEventsManagerProps> = ({ venue }) => {
                     <div className="text-xs text-muted-foreground">
                       {ev.is_published ? "Published" : "Unpublished"} &nbsp;
                       {ev.max_attendees && <>| Max Attendees: {ev.max_attendees}</>}
+                      {ev.ticket_price && <>| Price: ${ev.ticket_price}</>}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -168,6 +173,20 @@ const VenueEventsManager: React.FC<VenueEventsManagerProps> = ({ venue }) => {
               value={editing?.max_attendees ?? ''}
               onChange={e => handleChange('max_attendees', Number(e.target.value))}
               min={0}
+            />
+            <Input
+              type="number"
+              placeholder="Ticket Price (optional)"
+              value={editing?.ticket_price ?? ''}
+              onChange={e => handleChange('ticket_price', e.target.value ? Number(e.target.value) : null)}
+              min={0}
+              step="0.01"
+            />
+            <Input
+              type="url"
+              placeholder="Ticket URL (optional)"
+              value={editing?.ticket_url ?? ''}
+              onChange={e => handleChange('ticket_url', e.target.value || null)}
             />
             <label className="flex items-center gap-2">
               <input
