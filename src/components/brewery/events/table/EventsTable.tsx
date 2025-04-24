@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Users } from "lucide-react";
 import { useVenueEvents, useDeleteVenueEvent } from "@/hooks/useVenueEvents";
 import { supabase } from '@/integrations/supabase/client';
 import EditEventDialog from "../EditEventDialog";
 import { toast } from "sonner";
 import { EventRow } from "./EventRow";
 import { DeleteEventDialog } from "./DeleteEventDialog";
+import { EventsFilters } from "./EventsFilters";
+import { TableHeader } from "./TableHeader";
+import { useEventsTable } from "./useEventsTable";
 import type { EventsTableProps } from "./types";
 import type { VenueEvent } from "@/hooks/useVenueEvents";
 
@@ -20,7 +22,6 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
 
   const [editEvent, setEditEvent] = useState<VenueEvent | null>(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
-
   const [deleteEvent, setDeleteEvent] = useState<VenueEvent | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const deleteMutation = useDeleteVenueEvent();
@@ -88,6 +89,19 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
     }
   };
 
+  const {
+    sortedAndFilteredEvents,
+    sortField,
+    sortDirection,
+    toggleSort,
+    selectedVenue,
+    setSelectedVenue,
+    publishedFilter,
+    setPublishedFilter,
+    dateFilter,
+    setDateFilter,
+  } = useEventsTable({ events: allEvents, venues });
+
   if (venueIds.length === 0) {
     return <div>No venues found. Please create a venue to add events.</div>;
   }
@@ -98,32 +112,73 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
 
   return (
     <div className="bg-white shadow rounded p-4">
+      <EventsFilters
+        venues={venues}
+        selectedVenue={selectedVenue}
+        onVenueChange={setSelectedVenue}
+        publishedFilter={publishedFilter}
+        onPublishedChange={setPublishedFilter}
+        dateFilter={dateFilter}
+        onDateFilterChange={setDateFilter}
+      />
+
       <table className="min-w-full text-sm border-separate border-spacing-y-1">
         <thead>
-          <tr className="text-left text-muted-foreground">
-            <th className="py-1">Title</th>
-            <th className="py-1">Venue</th>
-            <th className="py-1">Start</th>
-            <th className="py-1">End</th>
-            <th className="py-1">Published</th>
-            <th className="py-1">
-              <div className="flex items-center gap-1">
-                <Users size={14} />
-                <span>Interest</span>
-              </div>
-            </th>
+          <tr className="text-left">
+            <TableHeader
+              label="Title"
+              sortField="title"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('title')}
+            />
+            <TableHeader
+              label="Venue"
+              sortField="venue_id"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('venue_id')}
+            />
+            <TableHeader
+              label="Start"
+              sortField="start_time"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('start_time')}
+            />
+            <TableHeader
+              label="End"
+              sortField="end_time"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('end_time')}
+            />
+            <TableHeader
+              label="Published"
+              sortField="is_published"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('is_published')}
+            />
+            <TableHeader
+              label="Interest"
+              sortField="interest"
+              currentSort={sortField}
+              sortDirection={sortDirection}
+              onSort={() => toggleSort('interest')}
+            />
             <th className="py-1">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {allEvents.length === 0 ? (
+          {sortedAndFilteredEvents.length === 0 ? (
             <tr>
               <td colSpan={7} className="py-4 text-center text-muted-foreground">
                 No events found.
               </td>
             </tr>
           ) : (
-            allEvents.map((event) => (
+            sortedAndFilteredEvents.map((event) => (
               <EventRow 
                 key={event.id} 
                 event={event} 
