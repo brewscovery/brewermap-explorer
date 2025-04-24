@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -47,6 +46,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
       end_time,
       max_attendees,
       is_published,
+      ticket_price,
+      ticket_url,
     } = form;
 
     if (!title || !venue_id || !start_date || !start_time || !end_date || !end_time) {
@@ -72,6 +73,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
         end_time: endTimeISO,
         max_attendees: max_attendees ? parseInt(String(max_attendees), 10) : null,
         is_published,
+        ticket_price: ticket_price ? Number(ticket_price) : null,
+        ticket_url: ticket_url || null,
       });
       toast.success("Event created successfully!");
       onOpenChange(false);

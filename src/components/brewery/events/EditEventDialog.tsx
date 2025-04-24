@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useUpdateVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
@@ -78,6 +77,8 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({
         end_time: mergeDateAndTimeToISO(form.end_date, form.end_time),
         max_attendees: form.max_attendees ? Number(form.max_attendees) : null,
         is_published: form.is_published,
+        ticket_price: form.ticket_price ? Number(form.ticket_price) : null,
+        ticket_url: form.ticket_url || null,
       });
       toast.success("Event updated!");
       onOpenChange(false);

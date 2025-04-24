@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,6 +24,8 @@ export interface VenueEventFormValues {
   end_time: string;
   max_attendees?: string | number | null;
   is_published: boolean;
+  ticket_price?: string | number | null;
+  ticket_url?: string | null;
 }
 
 interface VenueEventFormProps {
@@ -52,7 +53,7 @@ const TIME_OPTIONS = getNextHalfHourOptions();
 
 export const VenueEventForm: React.FC<VenueEventFormProps> = ({
   mode,
-  venues = [], // Default to empty array
+  venues = [],
   defaultVenueId,
   initialValues,
   onSubmit,
@@ -71,8 +72,11 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
       ? String(initialValues.max_attendees) : ""
   );
   const [isPublished, setIsPublished] = useState(!!initialValues?.is_published);
+  const [ticketPrice, setTicketPrice] = useState(
+    initialValues?.ticket_price !== undefined ? String(initialValues.ticket_price) : ""
+  );
+  const [ticketUrl, setTicketUrl] = useState(initialValues?.ticket_url || "");
 
-  // Setup for edit mode
   useEffect(() => {
     if (mode === "edit" && initialValues) {
       setTitle(initialValues.title || "");
@@ -88,7 +92,6 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
     }
   }, [mode, initialValues, defaultVenueId]);
 
-  // If mode is "create" and dialog opens, set date fields if provided
   useEffect(() => {
     if (mode === "create" && initialValues?.start_date) {
       setStartDate(initialValues.start_date);
@@ -102,7 +105,6 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, defaultVenueId, initialValues?.start_date]);
 
-  // Whenever startDate changes and endDate is empty or different, update endDate to match startDate
   React.useEffect(() => {
     if (startDate && endDate !== startDate) {
       setEndDate(startDate);
@@ -121,6 +123,8 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
       end_time: endTime,
       max_attendees: maxAttendees,
       is_published: isPublished,
+      ticket_price: ticketPrice ? Number(ticketPrice) : null,
+      ticket_url: ticketUrl || null,
     });
   }
 
@@ -213,6 +217,28 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
         min="0"
         onChange={(e) => setMaxAttendees(e.target.value)}
       />
+      <div className="space-y-2">
+        <Label htmlFor="ticket-price">Ticket Price (optional)</Label>
+        <Input
+          id="ticket-price"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Enter ticket price"
+          value={ticketPrice}
+          onChange={(e) => setTicketPrice(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="ticket-url">Ticket Purchase URL (optional)</Label>
+        <Input
+          id="ticket-url"
+          type="url"
+          placeholder="https://..."
+          value={ticketUrl}
+          onChange={(e) => setTicketUrl(e.target.value)}
+        />
+      </div>
       <label className="flex items-center gap-2">
         <input
           type="checkbox"

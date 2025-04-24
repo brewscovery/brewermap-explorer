@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar, Clock, Heart, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -143,11 +142,23 @@ const EventCard = ({
           {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
         </span>
       </div>
-      {event.max_attendees && (
-        <div className="text-sm text-muted-foreground">
-          Maximum attendees: {event.max_attendees}
-        </div>
-      )}
+      
+      <div className="text-sm">
+        {event.ticket_price === null || event.ticket_price === 0 ? (
+          <Badge variant="secondary">Free entry</Badge>
+        ) : (
+          <Badge variant="secondary">${event.ticket_price.toFixed(2)}</Badge>
+        )}
+        {event.ticket_url && (
+          <Button 
+            variant="link" 
+            className="ml-2 h-6 px-2 text-xs"
+            onClick={() => window.open(event.ticket_url, '_blank')}
+          >
+            Buy tickets <ExternalLink className="ml-1 h-3 w-3" />
+          </Button>
+        )}
+      </div>
       
       <div className="pt-1 space-y-2">
         {userType !== 'business' ? (
