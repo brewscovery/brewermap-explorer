@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Sheet, SheetContent } from 'vaul';
+import { Drawer } from 'vaul';  // Changed from Sheet and SheetContent
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,12 +24,12 @@ const MobileVenueSidebar = ({
   open 
 }: MobileVenueSidebarProps) => {
   return (
-    <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent
-        side="bottom"
+    <Drawer.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <Drawer.Overlay />
+      <Drawer.Content
         className="fixed inset-x-0 bottom-0 mt-24 h-[85vh] rounded-t-[10px]"
         snapPoints={[0.25, 0.5, 0.85]}
-        initial={0.25}
+        initialHeight={0.25}
       >
         <div className="flex flex-col h-full overflow-hidden">
           {/* Drag handle */}
@@ -78,8 +78,8 @@ const MobileVenueSidebar = ({
             {children}
           </div>
         </div>
-      </SheetContent>
-    </Sheet>
+      </Drawer.Content>
+    </Drawer.Root>
   );
 };
 
