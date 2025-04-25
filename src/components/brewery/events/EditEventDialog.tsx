@@ -51,6 +51,8 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({
       end_time: endTime,
       max_attendees: event.max_attendees ?? undefined,
       is_published: event.is_published ?? false,
+      ticket_price: event.ticket_price ?? null,
+      ticket_url: event.ticket_url || null
     };
   }
 
