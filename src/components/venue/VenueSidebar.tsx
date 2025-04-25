@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("overview");
   
   const venueId = venue?.id || null;
   
@@ -143,7 +145,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   
   if (!venue) return null;
 
-  const sidebarContent = (
+  const overviewContent = (
     <div className="space-y-5 p-4">
       <AboutSection breweryInfo={breweryInfo} />
       <div className="space-y-1">
@@ -194,7 +196,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         onClose={onClose}
         open={true}
       >
-        {sidebarContent}
+        {overviewContent}
       </MobileVenueSidebar>
     );
   }
@@ -237,7 +239,18 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        {sidebarContent}
+        <Tabs defaultValue="overview" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="w-full grid grid-cols-2 sticky top-0 bg-background z-10">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
+          </TabsList>
+          <TabsContent value="overview" className="focus:outline-none">
+            {overviewContent}
+          </TabsContent>
+          <TabsContent value="events" className="focus:outline-none p-4">
+            <EventsSection venue={venue} />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
