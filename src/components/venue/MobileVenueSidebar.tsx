@@ -31,8 +31,7 @@ const MobileVenueSidebar = ({
       <Drawer.Portal>
         <Drawer.Content 
           className="fixed inset-x-0 bottom-0 z-50 mt-24 flex flex-col rounded-t-[10px] border bg-background"
-          snapPoints={[0.25, 0.5, 0.85]}
-          initialSnap={0}
+          data-state="open"
         >
           <div className="flex flex-col h-[85vh] max-h-[85vh] overflow-hidden">
             {/* Drag handle */}
@@ -87,7 +86,7 @@ const MobileVenueSidebar = ({
                   {children}
                 </TabsContent>
                 <TabsContent value="events" className="focus:outline-none">
-                  <EventsSection venue={venue} />
+                  <EventsSection venueId={venue.id} />
                 </TabsContent>
               </Tabs>
             </div>

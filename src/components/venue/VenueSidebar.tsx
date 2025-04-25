@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -248,7 +247,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
             {overviewContent}
           </TabsContent>
           <TabsContent value="events" className="focus:outline-none p-4">
-            <EventsSection venue={venue} />
+            <EventsSection venueId={venue.id} />
           </TabsContent>
         </Tabs>
       </div>
