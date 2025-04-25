@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,9 @@ import type { Venue } from '@/types/venue';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { useVenueDailySpecials } from '@/hooks/useVenueDailySpecials';
+import { useIsMobile } from '@/hooks/use-mobile';
 import BreweryLogo from '@/components/brewery/BreweryLogo';
+import MobileVenueSidebar from './MobileVenueSidebar';
 import AboutSection from './sections/AboutSection';
 import AddressSection from './sections/AddressSection';
 import ContactSection from './sections/ContactSection';
@@ -138,8 +139,66 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
     window.open(url, '_blank', 'noopener');
   };
 
-  if (!venue) return null;
+  const isMobile = useIsMobile();
   
+  if (!venue) return null;
+
+  const sidebarContent = (
+    <div className="space-y-5 p-4">
+      <AboutSection breweryInfo={breweryInfo} />
+      <div className="space-y-1">
+        <AddressSection venue={venue} />
+        {hasCoordinates && (
+          <Button
+            onClick={handleGetDirections}
+            variant="secondary"
+            size="sm"
+            className="mt-2"
+          >
+            <Navigation size={16} className="mr-1" />
+            Get Directions
+          </Button>
+        )}
+      </div>
+      <ContactSection venue={venue} breweryInfo={breweryInfo} />
+      <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
+      <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
+      <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
+      
+      <Separator className="my-5" />
+      
+      <CheckInsSection 
+        venue={venue}
+        checkins={checkins}
+        user={user}
+        userType={userType}
+        onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
+      />
+
+      {venue && user && (
+        <CheckInDialog
+          venue={venue}
+          isOpen={isCheckInDialogOpen}
+          onClose={() => setIsCheckInDialogOpen(false)}
+          onSuccess={handleCheckInSuccess}
+        />
+      )}
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <MobileVenueSidebar
+        venue={venue}
+        breweryInfo={breweryInfo}
+        onClose={onClose}
+        open={true}
+      >
+        {sidebarContent}
+      </MobileVenueSidebar>
+    );
+  }
+
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
       <div className="flex flex-col p-6 border-b">
@@ -177,65 +236,9 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         </div>
       </div>
       
-      <div className="flex flex-col flex-1 overflow-hidden">
-        <Tabs defaultValue="overview" className="flex-1 flex flex-col overflow-hidden">
-          <div className="px-4 border-b">
-            <TabsList className="w-full justify-start">
-              <TabsTrigger value="overview" className="flex-1">Overview</TabsTrigger>
-              <TabsTrigger value="events" className="flex-1">Events</TabsTrigger>
-            </TabsList>
-          </div>
-          
-          <TabsContent value="overview" className="flex-1 overflow-y-auto p-0">
-            <div className="p-4">
-              <div className="space-y-5">
-                <AboutSection breweryInfo={breweryInfo} />
-                <div className="space-y-1">
-                  <AddressSection venue={venue} />
-                  {hasCoordinates && (
-                    <Button
-                      onClick={handleGetDirections}
-                      variant="secondary"
-                      size="sm"
-                      className="mt-2"
-                    >
-                      <Navigation size={16} className="mr-1" />
-                      Get Directions
-                    </Button>
-                  )}
-                </div>
-                <ContactSection venue={venue} breweryInfo={breweryInfo} />
-                <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
-                <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
-                <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
-              </div>
-              
-              <Separator className="my-5" />
-              
-              <CheckInsSection 
-                venue={venue}
-                checkins={checkins}
-                user={user}
-                userType={userType}
-                onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
-              />
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="events" className="flex-1 overflow-y-auto p-0">
-            <EventsSection venueId={venue.id} />
-          </TabsContent>
-        </Tabs>
+      <div className="flex-1 overflow-y-auto">
+        {sidebarContent}
       </div>
-      
-      {venue && user && (
-        <CheckInDialog
-          venue={venue}
-          isOpen={isCheckInDialogOpen}
-          onClose={() => setIsCheckInDialogOpen(false)}
-          onSuccess={handleCheckInSuccess}
-        />
-      )}
     </div>
   );
 };
