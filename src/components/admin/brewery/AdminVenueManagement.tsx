@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { Button } from '@/components/ui/button';
-import { useBreweryVenues, useCreateVenue, useDeleteVenue } from '@/hooks/useAdminBreweries';
+import { useBreweryVenues, useDeleteVenue } from '@/hooks/useBreweryVenues';
+import { useAdminCreateVenue } from '@/hooks/venues/useAdminCreateVenue';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import type { Venue } from '@/types/venue';
 import { VenueList } from './AdminVenueList';
@@ -25,7 +25,7 @@ const AdminVenueManagement = ({
 }: AdminVenueManagementProps) => {
   const validBreweryId = open && breweryId ? breweryId : null;
   const { venues, isLoading, refetch } = useBreweryVenues(validBreweryId);
-  const { createVenue, isLoading: isCreateLoading, isPending } = useCreateVenue();
+  const { createVenue, isLoading: isCreateLoading, isPending } = useAdminCreateVenue();
   const deleteVenue = useDeleteVenue();
   
   const [isAddingVenue, setIsAddingVenue] = useState(false);
@@ -81,7 +81,6 @@ const AdminVenueManagement = ({
     if (!venueToDelete) return;
     
     try {
-      // Use mutate from React Query UseMutationResult
       await deleteVenue.mutate(venueToDelete.id);
       
       refetch();
