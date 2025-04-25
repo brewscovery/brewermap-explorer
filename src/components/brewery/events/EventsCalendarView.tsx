@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -36,16 +35,14 @@ interface EventsCalendarViewProps {
   onCreateEvent: (date: Date) => void;
 }
 
-// Generate a consistent color based on venue ID
-const getVenueColor = (venueId: string, alpha: number = 1): string => {
-  // Simple hash function for the venue ID
+const getVenueColor = (venueId: string, alpha: number = 1, isPublished: boolean = true): string => {
   const hash = venueId.split('').reduce((acc, char) => {
     return char.charCodeAt(0) + ((acc << 5) - acc);
   }, 0);
   
-  // Generate HSL color with fixed saturation and lightness
   const h = Math.abs(hash % 360);
-  return `hsla(${h}, 70%, 65%, ${alpha})`;
+  const finalAlpha = isPublished ? alpha : alpha * 0.6;
+  return `hsla(${h}, 70%, 65%, ${finalAlpha})`;
 };
 
 const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
@@ -58,13 +55,11 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
   const [viewType, setViewType] = useState<"month" | "week">("month");
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [weekStart, setWeekStart] = useState<Date>(startOfWeek(new Date(), { weekStartsOn: 0 }));
-  
-  // Get venue name map for quick lookup
+
   const venueMap = useMemo(() => {
     return Object.fromEntries(venues.map(v => [v.id, v.name]));
   }, [venues]);
 
-  // Group events by date
   const eventsByDate = useMemo(() => {
     const map = new Map<string, VenueEvent[]>();
     
@@ -79,7 +74,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     return map;
   }, [events]);
 
-  // Navigation functions
   const prevMonth = () => setCurrentDate(subMonths(currentDate, 1));
   const nextMonth = () => setCurrentDate(addMonths(currentDate, 1));
   const prevWeek = () => setWeekStart(subWeeks(weekStart, 1));
@@ -89,7 +83,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     setWeekStart(startOfWeek(new Date(), { weekStartsOn: 0 }));
   };
 
-  // Generate month grid
   const monthDays = useMemo(() => {
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(currentDate);
@@ -99,7 +92,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     return eachDayOfInterval({ start: calendarStart, end: calendarEnd });
   }, [currentDate]);
 
-  // Generate weeks for month grid
   const monthWeeks = useMemo(() => {
     const weeks = [];
     let week = [];
@@ -116,7 +108,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     return weeks;
   }, [monthDays]);
 
-  // Generate days for week view
   const weekDays = useMemo(() => {
     return eachDayOfInterval({
       start: weekStart,
@@ -124,12 +115,12 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     });
   }, [weekStart]);
 
-  // Render an event item in month view
   const renderMonthEvent = (event: VenueEvent, isFirst: boolean, isLast: boolean, dayEvents: VenueEvent[]) => {
     const startTime = parseISO(event.start_time);
     const venueName = venueMap[event.venue_id] || 'Unknown venue';
-    const bgColor = getVenueColor(event.venue_id, 0.8);
+    const bgColor = getVenueColor(event.venue_id, 0.8, event.is_published);
     const displayTime = format(startTime, 'h:mm a');
+    const eventTitle = event.is_published ? event.title : `[Unpublished] ${event.title}`;
     
     return (
       <div 
@@ -141,24 +132,23 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
         className={cn(
           "px-1 py-0.5 text-xs font-medium truncate cursor-pointer border-l-2 hover:opacity-90",
           isFirst ? "rounded-t" : "",
-          isLast ? "rounded-b" : ""
+          isLast ? "rounded-b" : "",
+          !event.is_published && "italic"
         )}
         style={{ 
           backgroundColor: bgColor,
-          borderLeftColor: getVenueColor(event.venue_id),
+          borderLeftColor: getVenueColor(event.venue_id, 1, event.is_published),
           color: "#000",
         }}
       >
-        {isFirst && <span className="font-semibold">{displayTime}</span>} {event.title}
+        {isFirst && <span className="font-semibold">{displayTime}</span>} {eventTitle}
       </div>
     );
   };
 
-  // Render the month view
   const renderMonthView = () => {
     return (
       <div className="border rounded">
-        {/* Month header */}
         <div className="flex justify-between items-center p-2 border-b bg-background">
           <Button variant="outline" size="sm" onClick={prevMonth}>
             <ChevronLeft className="h-4 w-4" />
@@ -176,7 +166,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
           </div>
         </div>
 
-        {/* Day headers */}
         <div className="grid grid-cols-7 border-b bg-muted/20">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
             <div key={day} className="p-2 text-center font-medium">
@@ -185,7 +174,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
           ))}
         </div>
 
-        {/* Calendar grid */}
         <div className="grid grid-cols-7">
           {monthWeeks.map((week, weekIndex) => (
             <React.Fragment key={weekIndex}>
@@ -195,12 +183,10 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
                 const isCurrentMonth = isSameMonth(day, currentDate);
                 const isCurrentDay = isToday(day);
                 
-                // Sort events by start time
                 const sortedEvents = [...dayEvents].sort((a, b) => {
                   return new Date(a.start_time).getTime() - new Date(b.start_time).getTime();
                 });
 
-                // Determine how many events to show (max 3, then "+X more")
                 const maxVisibleEvents = 3;
                 const visibleEvents = sortedEvents.slice(0, maxVisibleEvents);
                 const hiddenCount = sortedEvents.length - maxVisibleEvents;
@@ -241,7 +227,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
                       )}
                     </div>
                     
-                    {/* Event list */}
                     <div className="space-y-1">
                       {visibleEvents.map((event, index) => (
                         renderMonthEvent(
@@ -252,7 +237,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
                         )
                       ))}
                       
-                      {/* Show "+X more" if there are hidden events */}
                       {hiddenCount > 0 && (
                         <div 
                           className="text-xs text-center py-0.5 bg-muted/30 cursor-pointer rounded"
@@ -275,7 +259,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     );
   };
 
-  // Render the week view
   const renderWeekView = () => {
     return (
       <div className="border rounded">
@@ -328,40 +311,46 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
                 onClick={() => onCreateEvent(day)}
               >
                 <div className="space-y-1">
-                  {dayEvents.map((event) => (
-                    <div 
-                      key={event.id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditEvent(event);
-                      }}
-                      className="p-2 rounded cursor-pointer text-sm relative group"
-                      style={{ 
-                        backgroundColor: getVenueColor(event.venue_id, 0.7),
-                        borderLeft: `3px solid ${getVenueColor(event.venue_id)}` 
-                      }}
-                    >
-                      <div className="font-medium truncate">{event.title}</div>
-                      <div className="text-xs">
-                        {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
-                      </div>
-                      <div className="text-xs truncate">
-                        {venueMap[event.venue_id] || 'Unknown venue'}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  {dayEvents.map((event) => {
+                    const eventTitle = event.is_published ? event.title : `[Unpublished] ${event.title}`;
+                    return (
+                      <div 
+                        key={event.id}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onDeleteEvent(event);
+                          onEditEvent(event);
+                        }}
+                        className={cn(
+                          "p-2 rounded cursor-pointer text-sm relative group",
+                          !event.is_published && "italic"
+                        )}
+                        style={{ 
+                          backgroundColor: getVenueColor(event.venue_id, 0.7, event.is_published),
+                          borderLeft: `3px solid ${getVenueColor(event.venue_id, 1, event.is_published)}` 
                         }}
                       >
-                        <span className="sr-only">Delete</span>
-                        <span className="text-xs">×</span>
-                      </Button>
-                    </div>
-                  ))}
+                        <div className="font-medium truncate">{eventTitle}</div>
+                        <div className="text-xs">
+                          {format(new Date(event.start_time), 'h:mm a')} - {format(new Date(event.end_time), 'h:mm a')}
+                        </div>
+                        <div className="text-xs truncate">
+                          {venueMap[event.venue_id] || 'Unknown venue'}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteEvent(event);
+                          }}
+                        >
+                          <span className="sr-only">Delete</span>
+                          <span className="text-xs">×</span>
+                        </Button>
+                      </div>
+                    );
+                  })}
                   {dayEvents.length === 0 && (
                     <div className="text-center text-sm text-muted-foreground h-full flex items-center justify-center">
                       <div>Click to add event</div>
@@ -390,7 +379,6 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
           </ToggleGroupItem>
         </ToggleGroup>
         
-        {/* Legend for venue colors */}
         <div className="flex flex-wrap items-center gap-2 max-w-[60%]">
           {venues.map(venue => (
             <Badge 

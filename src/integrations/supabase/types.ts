@@ -304,6 +304,8 @@ export type Database = {
           is_published: boolean
           max_attendees: number | null
           start_time: string
+          ticket_price: number | null
+          ticket_url: string | null
           title: string
           updated_at: string
           venue_id: string
@@ -316,6 +318,8 @@ export type Database = {
           is_published?: boolean
           max_attendees?: number | null
           start_time: string
+          ticket_price?: number | null
+          ticket_url?: string | null
           title: string
           updated_at?: string
           venue_id: string
@@ -328,6 +332,8 @@ export type Database = {
           is_published?: boolean
           max_attendees?: number | null
           start_time?: string
+          ticket_price?: number | null
+          ticket_url?: string | null
           title?: string
           updated_at?: string
           venue_id?: string
