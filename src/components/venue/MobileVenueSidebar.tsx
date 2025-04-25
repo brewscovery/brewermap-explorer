@@ -1,6 +1,10 @@
 
 import React from 'react';
-import { Drawer } from 'vaul';  // Changed from Sheet and SheetContent
+import {
+  Drawer,
+  DrawerContent,
+  DrawerOverlay
+} from '@/components/ui/drawer';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,16 +28,11 @@ const MobileVenueSidebar = ({
   open 
 }: MobileVenueSidebarProps) => {
   return (
-    <Drawer.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <Drawer.Overlay />
-      <Drawer.Content
-        className="fixed inset-x-0 bottom-0 mt-24 h-[85vh] rounded-t-[10px]"
-        snapPoints={[0.25, 0.5, 0.85]}
-        initialHeight={0.25}
-      >
+    <Drawer open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerOverlay />
+      <DrawerContent className="h-[85vh] max-h-[85vh]">
         <div className="flex flex-col h-full overflow-hidden">
-          {/* Drag handle */}
-          <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-300 mb-4" />
+          {/* Drag handle is already included in DrawerContent */}
           
           {/* Header */}
           <div className="flex flex-col p-4 border-b">
@@ -78,8 +77,8 @@ const MobileVenueSidebar = ({
             {children}
           </div>
         </div>
-      </Drawer.Content>
-    </Drawer.Root>
+      </DrawerContent>
+    </Drawer>
   );
 };
 
