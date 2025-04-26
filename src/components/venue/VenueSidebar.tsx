@@ -141,8 +141,19 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   };
 
   const isMobile = useIsMobile();
-  
-  if (!venue) return null;
+
+  if (isMobile && venue) {
+    return (
+      <MobileVenueSidebar
+        venue={venue}
+        breweryInfo={breweryInfo}
+        onClose={onClose}
+        open={true}
+      >
+        {overviewContent}
+      </MobileVenueSidebar>
+    );
+  }
 
   const overviewContent = (
     <div className="space-y-5 p-4">
@@ -186,19 +197,6 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       )}
     </div>
   );
-
-  if (isMobile) {
-    return (
-      <MobileVenueSidebar
-        venue={venue}
-        breweryInfo={breweryInfo}
-        onClose={onClose}
-        open={true}
-      >
-        {overviewContent}
-      </MobileVenueSidebar>
-    );
-  }
 
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">

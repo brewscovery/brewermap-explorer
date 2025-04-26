@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -33,11 +32,19 @@ const MobileVenueSidebar = ({
   const snapPoints = [0.25, 0.5, 0.85];
   const [activeSnapPoint, setActiveSnapPoint] = useState(0);
   
+  useEffect(() => {
+    if (open) {
+      setActiveSnapPoint(0);
+    }
+  }, [open]);
+
   return (
     <Drawer
       open={open}
       onOpenChange={(isOpen) => !isOpen && onClose()}
       snapPoints={snapPoints}
+      activeSnapPoint={activeSnapPoint}
+      onSnapPointChange={setActiveSnapPoint}
       modal={false}
       shouldScaleBackground={false}
       dismissible
