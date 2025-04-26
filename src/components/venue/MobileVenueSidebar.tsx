@@ -41,6 +41,11 @@ const MobileVenueSidebar = ({
     }
   }, [open]);
 
+  // Create a handler function that adapts the types correctly
+  const handleSnapPointChange = (snapPoint: string | number) => {
+    setPosition(snapPoint as number);
+  };
+
   return (
     <Drawer
       direction="bottom"
@@ -48,7 +53,7 @@ const MobileVenueSidebar = ({
       onClose={onClose}
       snapPoints={snapPoints}
       activeSnapPoint={position}
-      setActiveSnapPoint={setPosition}
+      setActiveSnapPoint={handleSnapPointChange}
       modal={false}
       shouldScaleBackground={false}
     >
