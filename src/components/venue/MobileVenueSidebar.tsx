@@ -5,7 +5,12 @@ import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Drawer } from '@/components/ui/drawer';
+import { 
+  Drawer, 
+  DrawerContent, 
+  DrawerOverlay,
+  DrawerPortal 
+} from '@/components/ui/drawer';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
@@ -26,6 +31,7 @@ const MobileVenueSidebar = ({
   open 
 }: MobileVenueSidebarProps) => {
   const snapPoints = [0.25, 0.5, 0.85];
+  const [activeSnapPoint, setActiveSnapPoint] = useState(0);
   
   return (
     <Drawer
@@ -36,10 +42,10 @@ const MobileVenueSidebar = ({
       shouldScaleBackground={false}
       dismissible
     >
-      <Drawer.Overlay 
+      <DrawerOverlay 
         className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 pointer-events-none" 
       />
-      <Drawer.Content 
+      <DrawerContent 
         className="
           flex flex-col 
           h-[85vh] 
@@ -117,7 +123,7 @@ const MobileVenueSidebar = ({
             </TabsContent>
           </Tabs>
         </div>
-      </Drawer.Content>
+      </DrawerContent>
     </Drawer>
   );
 };
