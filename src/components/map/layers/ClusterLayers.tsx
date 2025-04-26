@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 
 interface ClusterLayersProps {
@@ -9,10 +9,12 @@ interface ClusterLayersProps {
 
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const layersAdded = useRef(false);
+  const checkSourceInterval = useRef<number | null>(null);
+  const [sourceReady, setSourceReady] = useState(false);
 
   useEffect(() => {
     const addLayers = () => {
-      if (!map.isStyleLoaded() || layersAdded.current) return;
+      if (!map.isStyleLoaded() || layersAdded.current || !sourceReady) return;
 
       try {
         // Add clusters layer
@@ -107,33 +109,51 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
         console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
+        // Reset flags to allow retry
+        layersAdded.current = false;
+        setSourceReady(false);
       }
     };
 
-    const initialize = () => {
-      if (!map.getSource(source)) {
-        console.log('Waiting for source to be added...');
-        const checkSource = setInterval(() => {
-          if (map.getSource(source)) {
-            clearInterval(checkSource);
-            addLayers();
-          }
-        }, 100);
-
-        return () => clearInterval(checkSource);
+    const waitForSource = () => {
+      if (checkSourceInterval.current) {
+        clearInterval(checkSourceInterval.current);
       }
 
+      checkSourceInterval.current = window.setInterval(() => {
+        if (map.getSource(source)) {
+          clearInterval(checkSourceInterval.current!);
+          checkSourceInterval.current = null;
+          setSourceReady(true);
+          console.log('Source detected, proceeding with layer creation');
+        }
+      }, 100);
+    };
+
+    // Start watching for source availability
+    waitForSource();
+
+    // Add layers once source is ready and style is loaded
+    if (map.isStyleLoaded() && sourceReady) {
       addLayers();
-    };
-
-    // Start initialization process
-    if (map.isStyleLoaded()) {
-      initialize();
     } else {
-      map.once('style.load', initialize);
+      const styleHandler = () => {
+        if (sourceReady) {
+          addLayers();
+        }
+      };
+      map.on('style.load', styleHandler);
+      return () => {
+        map.off('style.load', styleHandler);
+      };
     }
 
+    // Cleanup function
     return () => {
+      if (checkSourceInterval.current) {
+        clearInterval(checkSourceInterval.current);
+      }
+
       if (!map.getStyle()) return;
       
       try {
@@ -143,11 +163,12 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           }
         });
         layersAdded.current = false;
+        setSourceReady(false);
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }
     };
-  }, [map, source]);
+  }, [map, source, sourceReady]);
 
   return null;
 };
