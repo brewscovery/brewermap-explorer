@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
@@ -40,6 +41,11 @@ const MobileVenueSidebar = ({
     }
   }, [open]);
 
+  // Create a handler function that properly converts the snap point value to number
+  const handleSnapPointChange = (snapPoint: string | number) => {
+    setPosition(typeof snapPoint === 'string' ? parseFloat(snapPoint) : snapPoint);
+  };
+
   return (
     <Drawer
       direction="bottom"
@@ -47,7 +53,7 @@ const MobileVenueSidebar = ({
       onClose={onClose}
       snapPoints={snapPoints}
       activeSnapPoint={position}
-      setActiveSnapPoint={setPosition}
+      setActiveSnapPoint={handleSnapPointChange}
       shouldScaleBackground={false}
     >
       <DrawerOverlay 
