@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,35 +25,51 @@ const MobileVenueSidebar = ({
   children,
   open 
 }: MobileVenueSidebarProps) => {
+  const [activeSnapPoint, setActiveSnapPoint] = useState(0);
+  const snapPoints = [0.25, 0.5, 0.85];
+
   return (
     <VaulDrawer.Root
       open={open}
       onOpenChange={(isOpen) => !isOpen && onClose()}
-      snapPoints={[0.25, 0.5, 0.85]}
-      activeSnapPoint={0}
-      shouldScaleBackground={true}
+      snapPoints={snapPoints}
+      activeSnapPoint={activeSnapPoint}
+      onSnapPointChange={setActiveSnapPoint}
+      modal={false}
+      shouldScaleBackground={false}
       dismissible
     >
       <VaulDrawer.Portal>
-        <VaulDrawer.Overlay className="fixed inset-0 z-50 bg-black/80 transition-opacity duration-300" />
-        <VaulDrawer.Content className="
-          flex flex-col 
-          h-[85vh] 
-          max-h-[85vh] 
-          overflow-hidden 
-          fixed 
-          inset-x-0 
-          bottom-0 
-          z-50 
-          mt-24 
-          rounded-t-[10px] 
-          border 
-          bg-background
-          transition-transform 
-          duration-300 
-          ease-in-out
-          touch-none
-        ">
+        <VaulDrawer.Overlay 
+          className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 pointer-events-none" 
+        />
+        <VaulDrawer.Content 
+          className="
+            flex flex-col 
+            h-[85vh] 
+            max-h-[85vh] 
+            overflow-hidden 
+            fixed 
+            inset-x-0 
+            bottom-0 
+            z-50 
+            mt-24 
+            rounded-t-[10px] 
+            border 
+            bg-background
+            transition-transform 
+            duration-300 
+            ease-in-out
+            will-change-transform
+          "
+          style={{
+            transform: "translate3d(0, 0, 0)"
+          }}
+          onDrag={(dragState) => {
+            // Respond to drag state in real time
+            console.log("Drag state:", dragState);
+          }}
+        >
           <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
           
           {/* Header */}
