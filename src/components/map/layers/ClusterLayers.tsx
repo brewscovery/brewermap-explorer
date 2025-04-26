@@ -1,6 +1,7 @@
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { useMapSource } from './MapSource';
 
 interface ClusterLayersProps {
   map: mapboxgl.Map;
@@ -8,13 +9,12 @@ interface ClusterLayersProps {
 }
 
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
+  const { isSourceReady } = useMapSource();
   const layersAdded = useRef(false);
-  const checkSourceInterval = useRef<number | null>(null);
-  const [sourceReady, setSourceReady] = useState(false);
 
   useEffect(() => {
     const addLayers = () => {
-      if (!map.isStyleLoaded() || layersAdded.current || !sourceReady) return;
+      if (!map.isStyleLoaded() || layersAdded.current || !isSourceReady) return;
 
       try {
         // Add clusters layer
@@ -28,20 +28,20 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
               'circle-color': [
                 'step',
                 ['get', 'point_count'],
-                '#fbbf24', // Default color (amber-400)
+                '#fbbf24',
                 10,
-                '#f59e0b', // >= 10 points (amber-500)
+                '#f59e0b',
                 50,
-                '#d97706'  // >= 50 points (amber-600)
+                '#d97706'
               ],
               'circle-radius': [
                 'step',
                 ['get', 'point_count'],
-                20,    // Default size
-                10,    // Number of points
-                30,    // Size when points >= 10
-                50,    
-                40     // Size when points >= 50
+                20,
+                10,
+                30,
+                50,
+                40
               ],
               'circle-stroke-width': 2,
               'circle-stroke-color': '#ffffff'
@@ -67,78 +67,20 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           });
         }
 
-        // Add unclustered point layer
-        if (!map.getLayer('unclustered-point')) {
-          map.addLayer({
-            id: 'unclustered-point',
-            type: 'circle',
-            source: source,
-            filter: ['!', ['has', 'point_count']],
-            paint: {
-              'circle-color': '#fbbf24',
-              'circle-radius': 12,
-              'circle-stroke-width': 2,
-              'circle-stroke-color': '#ffffff'
-            }
-          });
-        }
-
-        // Add unclustered point label
-        if (!map.getLayer('unclustered-point-label')) {
-          map.addLayer({
-            id: 'unclustered-point-label',
-            type: 'symbol',
-            source: source,
-            filter: ['!', ['has', 'point_count']],
-            layout: {
-              'text-field': ['get', 'name'],
-              'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-              'text-size': 12,
-              'text-offset': [0, 1.5],
-              'text-anchor': 'top'
-            },
-            paint: {
-              'text-color': '#374151',
-              'text-halo-color': '#ffffff',
-              'text-halo-width': 2
-            }
-          });
-        }
-        
         layersAdded.current = true;
         console.log('Cluster layers added successfully');
       } catch (error) {
         console.error('Error adding cluster layers:', error);
-        // Reset flags to allow retry
         layersAdded.current = false;
-        setSourceReady(false);
       }
     };
 
-    const waitForSource = () => {
-      if (checkSourceInterval.current) {
-        clearInterval(checkSourceInterval.current);
-      }
-
-      checkSourceInterval.current = window.setInterval(() => {
-        if (map.getSource(source)) {
-          clearInterval(checkSourceInterval.current!);
-          checkSourceInterval.current = null;
-          setSourceReady(true);
-          console.log('Source detected, proceeding with layer creation');
-        }
-      }, 100);
-    };
-
-    // Start watching for source availability
-    waitForSource();
-
-    // Add layers once source is ready and style is loaded
-    if (map.isStyleLoaded() && sourceReady) {
+    // Add layers when source is ready and style is loaded
+    if (map.isStyleLoaded() && isSourceReady) {
       addLayers();
     } else {
       const styleHandler = () => {
-        if (sourceReady) {
+        if (isSourceReady) {
           addLayers();
         }
       };
@@ -150,25 +92,20 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
     // Cleanup function
     return () => {
-      if (checkSourceInterval.current) {
-        clearInterval(checkSourceInterval.current);
-      }
-
       if (!map.getStyle()) return;
       
       try {
-        ['cluster-count', 'clusters', 'unclustered-point', 'unclustered-point-label'].forEach(layer => {
+        ['cluster-count', 'clusters'].forEach(layer => {
           if (map.getLayer(layer)) {
             map.removeLayer(layer);
           }
         });
         layersAdded.current = false;
-        setSourceReady(false);
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }
     };
-  }, [map, source, sourceReady]);
+  }, [map, source, isSourceReady]);
 
   return null;
 };

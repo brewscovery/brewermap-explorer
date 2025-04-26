@@ -1,6 +1,6 @@
-
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
+import { useMapSource } from './MapSource';
 
 interface VenuePointsProps {
   map: mapboxgl.Map;
@@ -9,9 +9,8 @@ interface VenuePointsProps {
 }
 
 const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) => {
-  const layerIds = ['unclustered-point', 'unclustered-point-label'];
+  const { isSourceReady } = useMapSource();
   const layersAdded = useRef(false);
-  const [sourceReady, setSourceReady] = useState(false);
   const visitedIdsRef = useRef<string[]>([]);
 
   // Helper function to update point colors
@@ -38,38 +37,18 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
     }
   }, [map, visitedVenueIds]);
 
-  // Check when the source is ready
   useEffect(() => {
-    if (!sourceReady && map.getSource(source)) {
-      setSourceReady(true);
-    }
+    if (!isSourceReady) return;
 
-    const checkSource = () => {
-      if (map.getSource(source)) {
-        setSourceReady(true);
-      }
-    };
-
-    map.on('sourcedata', checkSource);
-    
-    return () => {
-      map.off('sourcedata', checkSource);
-    };
-  }, [map, source, sourceReady]);
-
-  // Add layers when source is ready
-  useEffect(() => {
-    if (!sourceReady) return;
-    
     const addLayers = () => {
       try {
         // Remove existing layers first (cleanup)
-        layerIds.forEach(layerId => {
+        ['unclustered-point', 'unclustered-point-label'].forEach(layerId => {
           if (map.getLayer(layerId)) {
             map.removeLayer(layerId);
           }
         });
-        
+
         // Add unclustered point layer with conditional colors
         map.addLayer({
           id: 'unclustered-point',
@@ -113,8 +92,6 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
 
         layersAdded.current = true;
         console.log('Point layers added successfully with', visitedVenueIds.length, 'visited venues');
-        
-        // Store current visited IDs in ref for comparison
         visitedIdsRef.current = [...visitedVenueIds];
       } catch (error) {
         console.error('Error adding point layers:', error);
@@ -132,7 +109,7 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
       if (!map.getStyle()) return;
       
       try {
-        layerIds.forEach(layerId => {
+        ['unclustered-point', 'unclustered-point-label'].forEach(layerId => {
           if (map.getLayer(layerId)) {
             map.removeLayer(layerId);
           }
@@ -143,7 +120,7 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
         console.warn('Error cleaning up point layers:', error);
       }
     };
-  }, [map, source, sourceReady, visitedVenueIds]);
+  }, [map, source, isSourceReady, visitedVenueIds]);
 
   // Update colors when visitedVenueIds changes and layers exist
   useEffect(() => {
@@ -166,7 +143,6 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
       if (layersAdded.current && !map.getLayer('unclustered-point')) {
         console.log('Style changed, need to re-add point layers');
         layersAdded.current = false;
-        setSourceReady(false);
       }
     };
 

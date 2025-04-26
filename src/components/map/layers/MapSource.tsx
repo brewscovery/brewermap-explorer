@@ -1,5 +1,4 @@
-
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo, createContext, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -16,8 +15,17 @@ interface VenueProperties {
   brewery_id: string;
 }
 
+interface MapSourceContextType {
+  isSourceReady: boolean;
+}
+
+const MapSourceContext = createContext<MapSourceContextType>({ isSourceReady: false });
+
+export const useMapSource = () => useContext(MapSourceContext);
+
 const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
+  const [isSourceReady, setIsSourceReady] = useState(false);
   const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Point, VenueProperties> | null>(null);
 
   // Create GeoJSON data from venues
@@ -64,17 +72,11 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
 
   // Add source and layers to map
   const addSourceAndLayers = useCallback(() => {
-    if (!geoJsonData) return;
+    if (!geoJsonData || sourceAdded.current) return;
     
     console.log('Adding source and layers');
     
-    // Clean up existing source and layers
-    ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-      if (map.getLayer(layer)) {
-        map.removeLayer(layer);
-      }
-    });
-    
+    // Clean up existing source
     if (map.getSource('venues')) {
       map.removeSource('venues');
     }
@@ -86,10 +88,11 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       cluster: true,
       clusterMaxZoom: 14,
       clusterRadius: 50,
-      generateId: true // Ensures unique IDs for features
+      generateId: true
     });
     
     sourceAdded.current = true;
+    setIsSourceReady(true);
     console.log('Source added successfully');
   }, [map, geoJsonData]);
 
@@ -112,7 +115,6 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       }
     };
 
-    // Initialize source when component mounts or venues change
     if (venues.length > 0) {
       console.log(`Initializing source with ${venues.length} venues`);
       initializeSource();
@@ -122,17 +124,13 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     return () => {
       if (!map.getStyle()) return;
       
-      console.log('Cleaning up source and layers');
+      console.log('Cleaning up source');
       try {
-        ['unclustered-point', 'unclustered-point-label', 'cluster-count', 'clusters'].forEach(layer => {
-          if (map.getLayer(layer)) {
-            map.removeLayer(layer);
-          }
-        });
         if (map.getSource('venues')) {
           map.removeSource('venues');
         }
         sourceAdded.current = false;
+        setIsSourceReady(false);
       } catch (error) {
         console.warn('Error cleaning up:', error);
       }
@@ -152,7 +150,11 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     }
   }, [map, geoJsonData]);
 
-  return <>{children}</>;
+  return (
+    <MapSourceContext.Provider value={{ isSourceReady }}>
+      {children}
+    </MapSourceContext.Provider>
+  );
 };
 
 export default MapSource;
