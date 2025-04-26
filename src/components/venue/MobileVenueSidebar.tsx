@@ -34,7 +34,7 @@ const MobileVenueSidebar = ({
     <VaulDrawer.Root
       open={open} 
       onOpenChange={(isOpen) => !isOpen && onClose()}
-      snapPoints={[0.85, 0.5]}
+      snapPoints={[0.25, 0.5, 0.85]}
       activeSnapPoint={0}
     >
       <VaulDrawer.Portal>
