@@ -5,7 +5,7 @@ import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Drawer } from '@/components/ui/drawer';
+import { Drawer as DrawerPrimitive } from 'vaul';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
@@ -26,15 +26,15 @@ const MobileVenueSidebar = ({
   open 
 }: MobileVenueSidebarProps) => {
   return (
-    <Drawer.Root 
+    <DrawerPrimitive.Root 
       open={open} 
       onOpenChange={(isOpen) => !isOpen && onClose()}
       snapPoints={[0.25, 0.5, 0.85]}
       initialSnap={0}
     >
-      <Drawer.Overlay className="fixed inset-0 z-50 bg-black/80" />
-      <Drawer.Portal>
-        <Drawer.Content 
+      <DrawerPrimitive.Overlay className="fixed inset-0 z-50 bg-black/80" />
+      <DrawerPrimitive.Portal>
+        <DrawerPrimitive.Content 
           className="fixed inset-x-0 bottom-0 z-50 mt-24 flex flex-col rounded-t-[10px] border bg-background"
           snapPoints={[0.25, 0.5, 0.85]}
           initialSnap={0}
@@ -97,9 +97,9 @@ const MobileVenueSidebar = ({
               </Tabs>
             </div>
           </div>
-        </Drawer.Content>
-      </Drawer.Portal>
-    </Drawer.Root>
+        </DrawerPrimitive.Content>
+      </DrawerPrimitive.Portal>
+    </DrawerPrimitive.Root>
   );
 };
 
