@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
@@ -6,11 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer as VaulDrawer } from 'vaul';
-import { 
-  Drawer,
-  DrawerContent,
-  DrawerOverlay 
-} from '@/components/ui/drawer';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
@@ -32,14 +26,33 @@ const MobileVenueSidebar = ({
 }: MobileVenueSidebarProps) => {
   return (
     <VaulDrawer.Root
-      open={open} 
+      open={open}
       onOpenChange={(isOpen) => !isOpen && onClose()}
       snapPoints={[0.25, 0.5, 0.85]}
       activeSnapPoint={0}
+      shouldScaleBackground={true}
+      dismissible
     >
       <VaulDrawer.Portal>
-        <VaulDrawer.Overlay className="fixed inset-0 z-50 bg-black/80" />
-        <VaulDrawer.Content className="flex flex-col h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-50 mt-24 rounded-t-[10px] border bg-background">
+        <VaulDrawer.Overlay className="fixed inset-0 z-50 bg-black/80 transition-opacity duration-300" />
+        <VaulDrawer.Content className="
+          flex flex-col 
+          h-[85vh] 
+          max-h-[85vh] 
+          overflow-hidden 
+          fixed 
+          inset-x-0 
+          bottom-0 
+          z-50 
+          mt-24 
+          rounded-t-[10px] 
+          border 
+          bg-background
+          transition-transform 
+          duration-300 
+          ease-in-out
+          touch-none
+        ">
           <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
           
           {/* Header */}
