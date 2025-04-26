@@ -4,7 +4,9 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
+// We need to use the type correctly and not access the component directly
 const Drawer = DrawerPrimitive.Root
+// We manually set the displayName
 Drawer.displayName = "Drawer"
 
 const DrawerTrigger = DrawerPrimitive.Trigger
