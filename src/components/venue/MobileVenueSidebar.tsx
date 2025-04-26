@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
@@ -32,21 +31,14 @@ const MobileVenueSidebar = ({
   children,
   open 
 }: MobileVenueSidebarProps) => {
-  // Define snap points as percentages
   const snapPoints = [0.25, 0.5, 0.85];
   const [position, setPosition] = useState(0);
   
   useEffect(() => {
     if (open) {
-      // Set to first snap point (25%) when drawer opens
       setPosition(0);
     }
   }, [open]);
-
-  // Create a handler function that adapts the types correctly
-  const handleSnapPointChange = (snapPoint: string | number) => {
-    setPosition(snapPoint as number);
-  };
 
   return (
     <Drawer
@@ -55,12 +47,11 @@ const MobileVenueSidebar = ({
       onClose={onClose}
       snapPoints={snapPoints}
       activeSnapPoint={position}
-      setActiveSnapPoint={handleSnapPointChange}
-      modal={false}
+      setActiveSnapPoint={setPosition}
       shouldScaleBackground={false}
     >
       <DrawerOverlay 
-        className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 pointer-events-none" 
+        className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300" 
       />
       <DrawerContent 
         className="
@@ -76,16 +67,8 @@ const MobileVenueSidebar = ({
           rounded-t-[10px] 
           border 
           bg-background
-          transition-transform 
-          duration-300 
-          ease-in-out
-          will-change-transform
         "
-        style={{
-          transform: "translate3d(0, 0, 0)"
-        }}
       >
-        {/* Add the required DrawerTitle for accessibility */}
         <VisuallyHidden>
           <DrawerTitle>{venue.name} Details</DrawerTitle>
         </VisuallyHidden>
