@@ -3,12 +3,21 @@ import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
+interface DrawerProps extends React.ComponentProps<typeof DrawerPrimitive.Root> {
+  snapPoints?: number[]
+  initialSnap?: number
+}
+
 const Drawer = ({
   shouldScaleBackground = true,
+  snapPoints,
+  initialSnap,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
+}: DrawerProps) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
+    snapPoints={snapPoints}
+    initialSnap={initialSnap}
     {...props}
   />
 )
@@ -19,6 +28,11 @@ const DrawerTrigger = DrawerPrimitive.Trigger
 const DrawerPortal = DrawerPrimitive.Portal
 
 const DrawerClose = DrawerPrimitive.Close
+
+interface DrawerContentProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
+  snapPoints?: number[]
+  initialSnap?: number
+}
 
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
@@ -34,8 +48,8 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
+  DrawerContentProps
+>(({ className, children, snapPoints, initialSnap, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
     <DrawerPrimitive.Content
@@ -44,6 +58,8 @@ const DrawerContent = React.forwardRef<
         "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
         className
       )}
+      snapPoints={snapPoints}
+      initialSnap={initialSnap}
       {...props}
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />

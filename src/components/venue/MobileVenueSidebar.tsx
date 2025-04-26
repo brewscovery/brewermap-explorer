@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Drawer } from 'vaul';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { X, ShieldCheck, Navigation } from 'lucide-react';
+import { X, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Drawer } from '@/components/ui/drawer';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
@@ -26,12 +26,18 @@ const MobileVenueSidebar = ({
   open 
 }: MobileVenueSidebarProps) => {
   return (
-    <Drawer.Root open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
+    <Drawer.Root 
+      open={open} 
+      onOpenChange={(isOpen) => !isOpen && onClose()}
+      snapPoints={[0.25, 0.5, 0.85]}
+      initialSnap={0}
+    >
       <Drawer.Overlay className="fixed inset-0 z-50 bg-black/80" />
       <Drawer.Portal>
         <Drawer.Content 
           className="fixed inset-x-0 bottom-0 z-50 mt-24 flex flex-col rounded-t-[10px] border bg-background"
-          data-state="open"
+          snapPoints={[0.25, 0.5, 0.85]}
+          initialSnap={0}
         >
           <div className="flex flex-col h-[85vh] max-h-[85vh] overflow-hidden">
             {/* Drag handle */}
