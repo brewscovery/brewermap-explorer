@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X, ShieldCheck } from 'lucide-react';
@@ -44,7 +45,6 @@ const MobileVenueSidebar = ({
       onOpenChange={(isOpen) => !isOpen && onClose()}
       snapPoints={snapPoints}
       activeSnapPoint={activeSnapPoint}
-      onSnapPointChange={setActiveSnapPoint}
       modal={false}
       shouldScaleBackground={false}
       dismissible

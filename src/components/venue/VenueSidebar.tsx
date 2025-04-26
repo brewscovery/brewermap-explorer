@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -141,20 +142,10 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   };
 
   const isMobile = useIsMobile();
+  
+  if (!venue) return null;
 
-  if (isMobile && venue) {
-    return (
-      <MobileVenueSidebar
-        venue={venue}
-        breweryInfo={breweryInfo}
-        onClose={onClose}
-        open={true}
-      >
-        {overviewContent}
-      </MobileVenueSidebar>
-    );
-  }
-
+  // Define overviewContent before using it in the conditional rendering
   const overviewContent = (
     <div className="space-y-5 p-4">
       <AboutSection breweryInfo={breweryInfo} />
@@ -197,6 +188,20 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
       )}
     </div>
   );
+
+  // Check if we should show mobile view after defining overviewContent
+  if (isMobile) {
+    return (
+      <MobileVenueSidebar
+        venue={venue}
+        breweryInfo={breweryInfo}
+        onClose={onClose}
+        open={true}
+      >
+        {overviewContent}
+      </MobileVenueSidebar>
+    );
+  }
 
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
