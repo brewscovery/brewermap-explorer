@@ -30,24 +30,27 @@ const MobileVenueSidebar = ({
   children,
   open 
 }: MobileVenueSidebarProps) => {
+  // Define snap points as percentages
   const snapPoints = [0.25, 0.5, 0.85];
-  const [activeSnapPoint, setActiveSnapPoint] = useState(0);
+  const [position, setPosition] = useState(0);
   
   useEffect(() => {
     if (open) {
-      setActiveSnapPoint(0);
+      // Set to first snap point (25%) when drawer opens
+      setPosition(0);
     }
   }, [open]);
 
   return (
     <Drawer
+      direction="bottom"
       open={open}
-      onOpenChange={(isOpen) => !isOpen && onClose()}
+      onClose={onClose}
       snapPoints={snapPoints}
-      activeSnapPoint={activeSnapPoint}
+      activeSnapPoint={position}
+      setActiveSnapPoint={setPosition}
       modal={false}
       shouldScaleBackground={false}
-      dismissible
     >
       <DrawerOverlay 
         className="fixed inset-0 z-50 bg-black/40 transition-opacity duration-300 pointer-events-none" 
