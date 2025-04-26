@@ -9,11 +9,13 @@ import {
   Drawer, 
   DrawerContent, 
   DrawerOverlay,
-  DrawerPortal 
+  DrawerPortal,
+  DrawerTitle
 } from '@/components/ui/drawer';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
 interface MobileVenueSidebarProps {
   venue: Venue;
@@ -83,6 +85,11 @@ const MobileVenueSidebar = ({
           transform: "translate3d(0, 0, 0)"
         }}
       >
+        {/* Add the required DrawerTitle for accessibility */}
+        <VisuallyHidden>
+          <DrawerTitle>{venue.name} Details</DrawerTitle>
+        </VisuallyHidden>
+        
         <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
         
         {/* Header */}
