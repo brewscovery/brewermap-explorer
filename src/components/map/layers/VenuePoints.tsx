@@ -99,7 +99,8 @@ const VenuePoints = ({ map, source, visitedVenueIds = [], onVenueSelect }: Venue
 
       // Add click handler if onVenueSelect is provided
       if (onVenueSelect) {
-        map.on('click', 'unclustered-point', (e) => {
+        // Fix: Use proper function handlers instead of strings
+        const clickHandler = (e: mapboxgl.MapLayerMouseEvent) => {
           if (e.features && e.features[0]) {
             const props = e.features[0].properties;
             if (props) {
@@ -108,16 +109,19 @@ const VenuePoints = ({ map, source, visitedVenueIds = [], onVenueSelect }: Venue
               // NOTE: onVenueSelect needs to be implemented separately as we don't have access to the full venue object here
             }
           }
-        });
+        };
         
-        // Change cursor on hover
-        map.on('mouseenter', 'unclustered-point', () => {
+        const mouseEnterHandler = () => {
           map.getCanvas().style.cursor = 'pointer';
-        });
+        };
         
-        map.on('mouseleave', 'unclustered-point', () => {
+        const mouseLeaveHandler = () => {
           map.getCanvas().style.cursor = '';
-        });
+        };
+
+        map.on('click', 'unclustered-point', clickHandler);
+        map.on('mouseenter', 'unclustered-point', mouseEnterHandler);
+        map.on('mouseleave', 'unclustered-point', mouseLeaveHandler);
       }
 
       layersAdded.current = true;
@@ -151,6 +155,7 @@ const VenuePoints = ({ map, source, visitedVenueIds = [], onVenueSelect }: Venue
         });
         
         if (onVenueSelect) {
+          // Fix: Use proper function references for event cleanup
           map.off('click', 'unclustered-point');
           map.off('mouseenter', 'unclustered-point');
           map.off('mouseleave', 'unclustered-point');
