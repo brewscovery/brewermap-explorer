@@ -19,7 +19,12 @@ const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersPro
   return (
     <MapSource map={map} venues={venues}>
       <ClusterLayers map={map} source="venues" />
-      <VenuePoints map={map} source="venues" visitedVenueIds={visitedVenueIds} />
+      <VenuePoints 
+        map={map} 
+        source="venues" 
+        visitedVenueIds={visitedVenueIds} 
+        onVenueSelect={onVenueSelect} 
+      />
     </MapSource>
   );
 };

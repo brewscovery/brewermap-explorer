@@ -25,9 +25,10 @@ const MapSourceContext = createContext<MapSourceContextType>({ isSourceReady: fa
 export const useMapSource = () => useContext(MapSourceContext);
 
 const MapSource = ({ map, venues, children }: MapSourceProps) => {
-  const sourceAdded = useRef(false);
   const [isSourceReady, setIsSourceReady] = useState(false);
   const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Point, VenueProperties> | null>(null);
+  const sourceAdded = useRef(false);
+  const addSourceAttempts = useRef(0);
 
   // Create GeoJSON data from venues
   const createGeoJsonData = useCallback(() => {
@@ -60,27 +61,19 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     } as FeatureCollection<Point, VenueProperties>;
   }, [venues]);
 
-  // Memoize venues to detect changes
-  const venueIds = useMemo(() => {
-    return new Set(venues.map(venue => venue.id));
-  }, [venues]);
-
   // Update GeoJSON data when venues change
   useEffect(() => {
     console.log('Venues changed, updating GeoJSON data');
     setGeoJsonData(createGeoJsonData());
-  }, [venues, createGeoJsonData, venueIds]);
+  }, [venues, createGeoJsonData]);
 
-  // Add source and layers to map
-  const addSourceAndLayers = useCallback(() => {
-    if (!geoJsonData || sourceAdded.current) return;
-    
-    console.log('Adding source and layers');
+  // Add source to map
+  const addSource = useCallback(() => {
+    if (!geoJsonData || sourceAdded.current || addSourceAttempts.current > 5) return false;
     
     try {
       // Clean up existing source if it exists
       if (map.getSource('venues')) {
-        console.log('Removing existing source');
         map.removeSource('venues');
         sourceAdded.current = false;
         setIsSourceReady(false);
@@ -97,83 +90,105 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       });
       
       sourceAdded.current = true;
-      console.log('Source added successfully, setting isSourceReady to true');
       setIsSourceReady(true);
+      console.log('Source added successfully, setting isSourceReady to true');
+      return true;
     } catch (error) {
       console.error('Error adding source:', error);
       sourceAdded.current = false;
       setIsSourceReady(false);
+      addSourceAttempts.current += 1;
+      return false;
     }
   }, [map, geoJsonData]);
 
   // Initialize the source when the map is loaded
   useEffect(() => {
-    if (!geoJsonData) return;
+    if (!geoJsonData || !venues.length) return;
 
     const initializeSource = () => {
-      if (!map.isStyleLoaded()) {
-        console.log('Style not loaded, waiting for style.load event');
+      if (map.isStyleLoaded()) {
+        console.log('Style already loaded, initializing source');
+        console.log('Adding source and layers');
+        addSource();
+      } else {
+        console.log('Style not loaded, setting up load event listener');
+        
         const onStyleLoad = () => {
-          console.log('Style loaded, initializing source');
-          addSourceAndLayers();
+          console.log('Style loaded event fired, initializing source');
+          addSource();
           map.off('style.load', onStyleLoad);
         };
-        map.on('style.load', onStyleLoad);
-      } else {
-        console.log('Style already loaded, initializing source');
-        addSourceAndLayers();
+        
+        map.once('style.load', onStyleLoad);
       }
     };
 
-    if (venues.length > 0) {
-      console.log(`Initializing source with ${venues.length} venues`);
-      initializeSource();
-    }
+    initializeSource();
 
     // Cleanup function
     return () => {
       if (!map.getStyle()) return;
       
-      console.log('Cleaning up source');
       try {
         if (map.getSource('venues')) {
           map.removeSource('venues');
         }
         sourceAdded.current = false;
         setIsSourceReady(false);
+        console.log('Source removed on cleanup');
       } catch (error) {
-        console.warn('Error cleaning up:', error);
+        console.warn('Error cleaning up source:', error);
       }
     };
-  }, [map, venues, geoJsonData, addSourceAndLayers]);
+  }, [map, venues, geoJsonData, addSource]);
 
-  // Update source data when venues change and source exists
+  // Update source data when venues change
   useEffect(() => {
     if (!geoJsonData) return;
     
     if (sourceAdded.current) {
       try {
         const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
-        if (source) {
+        if (source && source.setData) {
           console.log('Updating existing source data');
           source.setData(geoJsonData);
+        } else {
+          console.warn('Source exists but setData method not available, re-adding source');
+          sourceAdded.current = false;
+          setIsSourceReady(false);
+          setTimeout(addSource, 100);
         }
       } catch (error) {
         console.error('Error updating source data:', error);
-        // If updating fails, try to recreate the source
         sourceAdded.current = false;
         setIsSourceReady(false);
-        addSourceAndLayers();
+        setTimeout(addSource, 100);
       }
     }
-  }, [map, geoJsonData, addSourceAndLayers]);
+  }, [map, geoJsonData, addSource]);
 
-  // Handle style changes which might require re-adding the source
+  // Handle style changes
   useEffect(() => {
     const handleStyleData = () => {
-      if (!sourceAdded.current && geoJsonData) {
-        console.log('Style changed, re-adding source');
-        addSourceAndLayers();
+      console.log('Style changed event detected');
+      
+      // Check if we need to re-add the source after a style change
+      try {
+        if (!map.getSource('venues')) {
+          console.log('Source missing after style change, re-adding');
+          sourceAdded.current = false;
+          setIsSourceReady(false);
+          
+          // Wait a short moment to ensure map is ready
+          setTimeout(() => {
+            if (addSource()) {
+              console.log('Source successfully re-added after style change');
+            }
+          }, 100);
+        }
+      } catch (error) {
+        console.warn('Error checking source after style change:', error);
       }
     };
 
@@ -182,8 +197,9 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     return () => {
       map.off('styledata', handleStyleData);
     };
-  }, [map, geoJsonData, addSourceAndLayers]);
+  }, [map, addSource]);
 
+  // Provide source readiness state to child components
   return (
     <MapSourceContext.Provider value={{ isSourceReady }}>
       {children}

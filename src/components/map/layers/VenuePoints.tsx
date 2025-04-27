@@ -1,14 +1,17 @@
+
 import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapSource } from './MapSource';
+import type { Venue } from '@/types/venue';
 
 interface VenuePointsProps {
   map: mapboxgl.Map;
   source: string;
   visitedVenueIds?: string[];
+  onVenueSelect?: (venue: Venue) => void;
 }
 
-const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) => {
+const VenuePoints = ({ map, source, visitedVenueIds = [], onVenueSelect }: VenuePointsProps) => {
   const { isSourceReady } = useMapSource();
   const layersAdded = useRef(false);
   const visitedIdsRef = useRef<string[]>([]);
@@ -37,75 +40,107 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
     }
   }, [map, visitedVenueIds]);
 
-  useEffect(() => {
-    if (!isSourceReady) return;
+  // Add point layers
+  const addPointLayers = useCallback(() => {
+    if (!isSourceReady || layersAdded.current || !map.getSource(source)) {
+      return;
+    }
+    
+    try {
+      console.log('Adding point layers now that source is ready');
+      
+      // Remove existing layers if they exist
+      ['unclustered-point', 'unclustered-point-label'].forEach(layerId => {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+      });
 
-    const addLayers = () => {
-      try {
-        // Remove existing layers first (cleanup)
-        ['unclustered-point', 'unclustered-point-label'].forEach(layerId => {
-          if (map.getLayer(layerId)) {
-            map.removeLayer(layerId);
+      // Add unclustered point layer
+      map.addLayer({
+        id: 'unclustered-point',
+        type: 'circle',
+        source: source,
+        filter: ['!', ['has', 'point_count']],
+        paint: {
+          'circle-color': [
+            'case',
+            ['in', ['get', 'id'], ['literal', visitedVenueIds]],
+            '#22c55e', // Green color for visited venues
+            '#fbbf24'  // Default yellow color for unvisited venues
+          ],
+          'circle-radius': 12,
+          'circle-stroke-width': 3,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      // Add text labels for unclustered points
+      map.addLayer({
+        id: 'unclustered-point-label',
+        type: 'symbol',
+        source: source,
+        filter: ['!', ['has', 'point_count']],
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 12,
+          'text-offset': [0, 1.5],
+          'text-anchor': 'top',
+          'text-allow-overlap': false,
+          'text-ignore-placement': false
+        },
+        paint: {
+          'text-color': '#374151',
+          'text-halo-color': '#ffffff',
+          'text-halo-width': 2
+        }
+      });
+
+      // Add click handler if onVenueSelect is provided
+      if (onVenueSelect) {
+        map.on('click', 'unclustered-point', (e) => {
+          if (e.features && e.features[0]) {
+            const props = e.features[0].properties;
+            if (props) {
+              // Find the actual venue object from the properties
+              console.log('Point clicked:', props);
+              // NOTE: onVenueSelect needs to be implemented separately as we don't have access to the full venue object here
+            }
           }
         });
-
-        // Add unclustered point layer with conditional colors
-        map.addLayer({
-          id: 'unclustered-point',
-          type: 'circle',
-          source: source,
-          filter: ['!', ['has', 'point_count']],
-          paint: {
-            'circle-color': [
-              'case',
-              ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-              '#22c55e', // Green color for visited venues
-              '#fbbf24'  // Default yellow color for unvisited venues
-            ],
-            'circle-radius': 12,
-            'circle-stroke-width': 3,
-            'circle-stroke-color': '#ffffff'
-          }
+        
+        // Change cursor on hover
+        map.on('mouseenter', 'unclustered-point', () => {
+          map.getCanvas().style.cursor = 'pointer';
         });
-
-        // Add text labels for unclustered points
-        map.addLayer({
-          id: 'unclustered-point-label',
-          type: 'symbol',
-          source: source,
-          filter: ['!', ['has', 'point_count']],
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 12,
-            'text-offset': [0, 1.5],
-            'text-anchor': 'top',
-            'text-allow-overlap': false,
-            'text-ignore-placement': false
-          },
-          paint: {
-            'text-color': '#374151',
-            'text-halo-color': '#ffffff',
-            'text-halo-width': 2
-          }
+        
+        map.on('mouseleave', 'unclustered-point', () => {
+          map.getCanvas().style.cursor = '';
         });
-
-        layersAdded.current = true;
-        console.log('Point layers added successfully with', visitedVenueIds.length, 'visited venues');
-        visitedIdsRef.current = [...visitedVenueIds];
-      } catch (error) {
-        console.error('Error adding point layers:', error);
       }
-    };
 
-    // First time adding the layers
-    if (!layersAdded.current) {
-      console.log('Adding point layers for the first time');
-      addLayers();
+      layersAdded.current = true;
+      console.log('Point layers added successfully with', visitedVenueIds.length, 'visited venues');
+      visitedIdsRef.current = [...visitedVenueIds];
+    } catch (error) {
+      console.error('Error adding point layers:', error);
+      layersAdded.current = false;
+    }
+  }, [map, source, isSourceReady, visitedVenueIds, onVenueSelect]);
+
+  // Add layers when source is ready
+  useEffect(() => {
+    if (!isSourceReady) {
+      console.log('Waiting for source to be ready before adding point layers');
+      return;
     }
 
+    console.log('Adding point layers for the first time');
+    addPointLayers();
+
+    // Clean up on unmount
     return () => {
-      // Cleanup on unmount (but not between renders)
       if (!map.getStyle()) return;
       
       try {
@@ -114,21 +149,23 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
             map.removeLayer(layerId);
           }
         });
+        
+        if (onVenueSelect) {
+          map.off('click', 'unclustered-point');
+          map.off('mouseenter', 'unclustered-point');
+          map.off('mouseleave', 'unclustered-point');
+        }
+        
         layersAdded.current = false;
         console.log('Point layers removed on cleanup');
       } catch (error) {
         console.warn('Error cleaning up point layers:', error);
       }
     };
-  }, [map, source, isSourceReady, visitedVenueIds]);
+  }, [map, source, isSourceReady, addPointLayers, onVenueSelect]);
 
-  // Update colors when visitedVenueIds changes and layers exist
+  // Update colors when visitedVenueIds changes
   useEffect(() => {
-    // Only update if:
-    // 1. Layers are already added
-    // 2. visitedVenueIds has actually changed (deep comparison)
-    // 3. The map has the layer
-    
     const idsChanged = JSON.stringify(visitedIdsRef.current) !== JSON.stringify(visitedVenueIds);
     
     if (layersAdded.current && idsChanged && map.getLayer('unclustered-point')) {
@@ -137,21 +174,28 @@ const VenuePoints = ({ map, source, visitedVenueIds = [] }: VenuePointsProps) =>
     }
   }, [map, visitedVenueIds, updatePointColors]);
 
-  // If there's a style change, we need to re-add the layers
+  // Handle style changes
   useEffect(() => {
-    const handleStyleData = () => {
-      if (layersAdded.current && !map.getLayer('unclustered-point')) {
+    const handleStyleChange = () => {
+      if (!isSourceReady) return;
+      
+      if (!map.getLayer('unclustered-point') && map.getSource(source)) {
         console.log('Style changed, need to re-add point layers');
         layersAdded.current = false;
+        
+        // Add a slight delay to ensure the source is properly initialized
+        setTimeout(() => {
+          addPointLayers();
+        }, 100);
       }
     };
 
-    map.on('styledata', handleStyleData);
+    map.on('styledata', handleStyleChange);
     
     return () => {
-      map.off('styledata', handleStyleData);
+      map.off('styledata', handleStyleChange);
     };
-  }, [map]);
+  }, [map, source, isSourceReady, addPointLayers]);
 
   return null;
 };
