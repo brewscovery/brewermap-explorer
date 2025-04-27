@@ -100,7 +100,7 @@ const BreweryClaimForm = ({
           name="contact_email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact Email</FormLabel>
+              <RequiredFieldLabel required>Contact Email</RequiredFieldLabel>
               <FormControl>
                 <Input placeholder="your@email.com" {...field} />
               </FormControl>
@@ -114,7 +114,7 @@ const BreweryClaimForm = ({
           name="contact_phone"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact Phone</FormLabel>
+              <RequiredFieldLabel required>Contact Phone</RequiredFieldLabel>
               <FormControl>
                 <Input placeholder="Your phone number" {...field} />
               </FormControl>
@@ -128,7 +128,7 @@ const BreweryClaimForm = ({
           name="position"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Your Position</FormLabel>
+              <RequiredFieldLabel required>Your Position</RequiredFieldLabel>
               <FormControl>
                 <Input placeholder="e.g. Owner, Manager, etc." {...field} />
               </FormControl>

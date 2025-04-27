@@ -56,7 +56,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="brewery_type"
         render={({ field }) => (
           <FormItem>
-            <RequiredFieldLabel>Brewery Type</RequiredFieldLabel>
+            <RequiredFieldLabel required>Brewery Type</RequiredFieldLabel>
             <Select
               onValueChange={field.onChange}
               defaultValue={field.value || undefined}
@@ -85,7 +85,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="country"
         render={({ field }) => (
           <FormItem>
-            <RequiredFieldLabel>Country</RequiredFieldLabel>
+            <RequiredFieldLabel required>Country</RequiredFieldLabel>
             <Select
               onValueChange={field.onChange}
               defaultValue={field.value || DEFAULT_COUNTRY}
@@ -114,7 +114,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="about"
         render={({ field }) => (
           <FormItem>
-            <RequiredFieldLabel>About</RequiredFieldLabel>
+            <RequiredFieldLabel required>About</RequiredFieldLabel>
             <FormControl>
               <Textarea
                 placeholder="Enter brewery description"
