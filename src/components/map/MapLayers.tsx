@@ -14,6 +14,8 @@ interface MapLayersProps {
 }
 
 const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersProps) => {
+  console.log(`MapLayers rendering with ${venues.length} venues and ${visitedVenueIds?.length || 0} visited venues`);
+  
   return (
     <MapSource map={map} venues={venues}>
       <ClusterLayers map={map} source="venues" />

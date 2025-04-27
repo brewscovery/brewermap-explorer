@@ -13,10 +13,18 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const layersAdded = useRef(false);
 
   useEffect(() => {
+    // Only proceed when source is ready
+    if (!isSourceReady) {
+      console.log('Waiting for source to be ready before adding cluster layers');
+      return;
+    }
+
     const addLayers = () => {
-      if (!map.isStyleLoaded() || layersAdded.current || !isSourceReady) return;
+      if (!map.isStyleLoaded() || layersAdded.current) return;
 
       try {
+        console.log('Adding cluster layers now that source is ready');
+        
         // Add clusters layer
         if (!map.getLayer('clusters')) {
           map.addLayer({
@@ -76,13 +84,14 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     };
 
     // Add layers when source is ready and style is loaded
-    if (map.isStyleLoaded() && isSourceReady) {
+    if (map.isStyleLoaded()) {
+      console.log('Map style is loaded, attempting to add cluster layers');
       addLayers();
     } else {
+      console.log('Map style not loaded, setting up style.load listener for cluster layers');
       const styleHandler = () => {
-        if (isSourceReady) {
-          addLayers();
-        }
+        console.log('Style loaded event for cluster layers');
+        addLayers();
       };
       map.on('style.load', styleHandler);
       return () => {
@@ -101,11 +110,28 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
           }
         });
         layersAdded.current = false;
+        console.log('Cluster layers removed on cleanup');
       } catch (error) {
         console.warn('Error cleaning up cluster layers:', error);
       }
     };
   }, [map, source, isSourceReady]);
+
+  // Also handle style changes which might require re-adding the layers
+  useEffect(() => {
+    const handleStyleData = () => {
+      if (isSourceReady && !map.getLayer('clusters') && !layersAdded.current) {
+        console.log('Style changed, re-adding cluster layers');
+        layersAdded.current = false;
+      }
+    };
+
+    map.on('styledata', handleStyleData);
+    
+    return () => {
+      map.off('styledata', handleStyleData);
+    };
+  }, [map, isSourceReady]);
 
   return null;
 };

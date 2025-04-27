@@ -1,3 +1,4 @@
+
 import { useEffect, useRef, useState, useCallback, useMemo, createContext, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
@@ -76,24 +77,33 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     
     console.log('Adding source and layers');
     
-    // Clean up existing source
-    if (map.getSource('venues')) {
-      map.removeSource('venues');
+    try {
+      // Clean up existing source if it exists
+      if (map.getSource('venues')) {
+        console.log('Removing existing source');
+        map.removeSource('venues');
+        sourceAdded.current = false;
+        setIsSourceReady(false);
+      }
+      
+      // Add new source with clustering enabled
+      map.addSource('venues', {
+        type: 'geojson',
+        data: geoJsonData,
+        cluster: true,
+        clusterMaxZoom: 14,
+        clusterRadius: 50,
+        generateId: true
+      });
+      
+      sourceAdded.current = true;
+      console.log('Source added successfully, setting isSourceReady to true');
+      setIsSourceReady(true);
+    } catch (error) {
+      console.error('Error adding source:', error);
+      sourceAdded.current = false;
+      setIsSourceReady(false);
     }
-    
-    // Add new source with clustering enabled
-    map.addSource('venues', {
-      type: 'geojson',
-      data: geoJsonData,
-      cluster: true,
-      clusterMaxZoom: 14,
-      clusterRadius: 50,
-      generateId: true
-    });
-    
-    sourceAdded.current = true;
-    setIsSourceReady(true);
-    console.log('Source added successfully');
   }, [map, geoJsonData]);
 
   // Initialize the source when the map is loaded
@@ -142,13 +152,37 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     if (!geoJsonData) return;
     
     if (sourceAdded.current) {
-      const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
-      if (source) {
-        console.log('Updating existing source data');
-        source.setData(geoJsonData);
+      try {
+        const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
+        if (source) {
+          console.log('Updating existing source data');
+          source.setData(geoJsonData);
+        }
+      } catch (error) {
+        console.error('Error updating source data:', error);
+        // If updating fails, try to recreate the source
+        sourceAdded.current = false;
+        setIsSourceReady(false);
+        addSourceAndLayers();
       }
     }
-  }, [map, geoJsonData]);
+  }, [map, geoJsonData, addSourceAndLayers]);
+
+  // Handle style changes which might require re-adding the source
+  useEffect(() => {
+    const handleStyleData = () => {
+      if (!sourceAdded.current && geoJsonData) {
+        console.log('Style changed, re-adding source');
+        addSourceAndLayers();
+      }
+    };
+
+    map.on('styledata', handleStyleData);
+    
+    return () => {
+      map.off('styledata', handleStyleData);
+    };
+  }, [map, geoJsonData, addSourceAndLayers]);
 
   return (
     <MapSourceContext.Provider value={{ isSourceReady }}>
