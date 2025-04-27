@@ -1,4 +1,3 @@
-
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { 
@@ -42,7 +41,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Brewery Name *</FormLabel>
+            <RequiredFieldLabel required>Brewery Name</RequiredFieldLabel>
             <FormControl>
               <Input placeholder="Enter brewery name" {...field} />
             </FormControl>
@@ -56,7 +55,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="brewery_type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Brewery Type</FormLabel>
+            <RequiredFieldLabel>Brewery Type</RequiredFieldLabel>
             <Select
               onValueChange={field.onChange}
               defaultValue={field.value || undefined}
@@ -85,7 +84,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="country"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Country</FormLabel>
+            <RequiredFieldLabel>Country</RequiredFieldLabel>
             <Select
               onValueChange={field.onChange}
               defaultValue={field.value || DEFAULT_COUNTRY}
@@ -114,7 +113,7 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
         name="about"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>About</FormLabel>
+            <RequiredFieldLabel>About</RequiredFieldLabel>
             <FormControl>
               <Textarea
                 placeholder="Enter brewery description"

@@ -1,7 +1,7 @@
 
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { AddressInput } from '@/components/ui/address-input';
+import { RequiredFieldLabel } from '@/components/ui/required-field-label';
 import type { AddressSuggestion } from '@/types/address';
 
 interface VenueDetailsSectionProps {
@@ -22,7 +22,9 @@ export const VenueDetailsSection = ({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="name">Venue Name *</Label>
+        <RequiredFieldLabel htmlFor="name" required>
+          Venue Name
+        </RequiredFieldLabel>
         <Input
           id="name"
           name="name"
@@ -34,7 +36,9 @@ export const VenueDetailsSection = ({
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="address">Address *</Label>
+        <RequiredFieldLabel htmlFor="address" required>
+          Address
+        </RequiredFieldLabel>
         <AddressInput 
           value={addressInput}
           onChange={handleAddressChange}

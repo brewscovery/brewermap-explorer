@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
+import { RequiredFieldLabel } from "@/components/ui/required-field-label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 
@@ -135,18 +135,30 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 mt-2">
-      <Input
-        placeholder="Event Title"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-      />
-      <Textarea
-        placeholder="Event Description"
-        value={description}
-        onChange={e => setDescription(e.target.value)}
-      />
+      <div className="space-y-2">
+        <RequiredFieldLabel htmlFor="event-title" required>Event Title</RequiredFieldLabel>
+        <Input
+          id="event-title"
+          placeholder="Event Title"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <RequiredFieldLabel htmlFor="event-description" required>Event Description</RequiredFieldLabel>
+        <Textarea
+          id="event-description"
+          placeholder="Event Description"
+          value={description}
+          onChange={e => setDescription(e.target.value)}
+          required
+        />
+      </div>
+
       <div>
-        <Label htmlFor="venue-id">Venue</Label>
+        <RequiredFieldLabel htmlFor="venue-id" required>Venue</RequiredFieldLabel>
         <Select value={venueId} onValueChange={setVenueId}>
           <SelectTrigger id="venue-id">
             <SelectValue placeholder="Select venue" />
@@ -160,8 +172,9 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           </SelectContent>
         </Select>
       </div>
+
       <div>
-        <Label htmlFor="event-start-date">Start Date</Label>
+        <RequiredFieldLabel htmlFor="event-start-date" required>Start Date</RequiredFieldLabel>
         <Input
           id="event-start-date"
           type="date"
@@ -169,7 +182,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           onChange={(e) => setStartDate(e.target.value)}
           className="mb-1"
         />
-        <Label htmlFor="event-start-time">Start Time</Label>
+        <RequiredFieldLabel htmlFor="event-start-time" required>Start Time</RequiredFieldLabel>
         <Select value={startTime} onValueChange={setStartTime}>
           <SelectTrigger id="event-start-time">
             <SelectValue placeholder="Select time" />
@@ -185,8 +198,9 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           </SelectContent>
         </Select>
       </div>
+
       <div>
-        <Label htmlFor="event-end-date">End Date</Label>
+        <RequiredFieldLabel htmlFor="event-end-date" required>End Date</RequiredFieldLabel>
         <Input
           id="event-end-date"
           type="date"
@@ -194,7 +208,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           onChange={(e) => setEndDate(e.target.value)}
           className="mb-1"
         />
-        <Label htmlFor="event-end-time">End Time</Label>
+        <RequiredFieldLabel htmlFor="event-end-time" required>End Time</RequiredFieldLabel>
         <Select value={endTime} onValueChange={setEndTime}>
           <SelectTrigger id="event-end-time">
             <SelectValue placeholder="Select time" />
@@ -210,15 +224,19 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           </SelectContent>
         </Select>
       </div>
-      <Input
-        type="number"
-        placeholder="Max Attendees (optional)"
-        value={maxAttendees}
-        min="0"
-        onChange={(e) => setMaxAttendees(e.target.value)}
-      />
+
       <div className="space-y-2">
-        <Label htmlFor="ticket-price">Ticket Price (optional)</Label>
+        <RequiredFieldLabel htmlFor="max-attendees">Max Attendees (optional)</RequiredFieldLabel>
+        <Input
+          type="number"
+          placeholder="Max Attendees (optional)"
+          value={maxAttendees}
+          min="0"
+          onChange={(e) => setMaxAttendees(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <RequiredFieldLabel htmlFor="ticket-price">Ticket Price (optional)</RequiredFieldLabel>
         <Input
           id="ticket-price"
           type="number"
@@ -230,7 +248,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
         />
       </div>
       <div className="space-y-2">
-        <Label htmlFor="ticket-url">Ticket Purchase URL (optional)</Label>
+        <RequiredFieldLabel htmlFor="ticket-url">Ticket Purchase URL (optional)</RequiredFieldLabel>
         <Input
           id="ticket-url"
           type="url"
