@@ -33,6 +33,15 @@ const MobileVenueSidebar = ({
 }: MobileVenueSidebarProps) => {
   const [position, setPosition] = useState(0);
   
+  // Create a handler function that converts string to number if needed
+  const handleSnapPointChange = (snapPoint: string | number) => {
+    if (typeof snapPoint === 'string') {
+      setPosition(parseFloat(snapPoint));
+    } else {
+      setPosition(snapPoint);
+    }
+  };
+  
   useEffect(() => {
     if (open) {
       setPosition(0); // Will snap to 50% as default position
@@ -47,7 +56,7 @@ const MobileVenueSidebar = ({
       }}
       snapPoints={[0.5, 0.99]} 
       activeSnapPoint={position}
-      setActiveSnapPoint={setPosition}
+      setActiveSnapPoint={handleSnapPointChange}
       modal={false}
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[10px] border bg-background">
