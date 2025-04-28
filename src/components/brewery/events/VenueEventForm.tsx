@@ -123,7 +123,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
       end_time: endTime,
       max_attendees: maxAttendees,
       is_published: isPublished,
-      ticket_price: ticketPrice ? Number(ticketPrice) : null,
+      ticket_price: ticketPrice ? Number(ticketPrice) : 0,
       ticket_url: ticketUrl || null,
     });
   }
