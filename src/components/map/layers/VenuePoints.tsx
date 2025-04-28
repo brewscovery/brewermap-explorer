@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapSource } from './MapSource';
 import { usePointLayers } from './hooks/usePointLayers';
@@ -20,11 +20,13 @@ const VenuePoints = ({
   onVenueSelect 
 }: VenuePointsProps) => {
   const { isSourceReady } = useMapSource();
-  const styleLoadHandlerRef = useRef<() => void | null>(null);
+  const styleLoadHandlerRef = useRef<(() => void) | null>(null);
+  const [styleChangeCount, setStyleChangeCount] = useState(0);
   
   const { 
     updatePointColors, 
-    addPointLayers 
+    addPointLayers,
+    addLayerAttempts
   } = usePointLayers({ 
     map, 
     source, 
@@ -42,10 +44,20 @@ const VenuePoints = ({
       return;
     }
 
-    console.log('Adding point layers for the first time');
-    addPointLayers();
+    if (!map.getStyle()) {
+      console.log('Map style not ready, delaying layer addition');
+      return;
+    }
+
+    // Add a brief delay to ensure map is fully ready
+    const timer = setTimeout(() => {
+      console.log('Adding point layers for the first time');
+      addPointLayers();
+    }, 200);
 
     return () => {
+      clearTimeout(timer);
+      
       if (!map.getStyle()) return;
       
       try {
@@ -69,7 +81,7 @@ const VenuePoints = ({
     }
   }, [map, visitedVenueIds, updatePointColors, isSourceReady]);
 
-  // Enhanced style change handler with retry mechanism
+  // Enhanced style change handler with multiple safeguards
   useEffect(() => {
     // Remove any existing style change handler
     if (styleLoadHandlerRef.current) {
@@ -77,57 +89,85 @@ const VenuePoints = ({
       styleLoadHandlerRef.current = null;
     }
 
-    // Create new handler
+    // Create new handler with debouncing to avoid multiple rapid style changes
+    let styleChangeTimeout: ReturnType<typeof setTimeout> | null = null;
+    
     const handleStyleChange = () => {
       console.log('Style changed event detected');
+      setStyleChangeCount(prev => prev + 1);
       
-      // If source isn't ready, we can't add layers yet
-      if (!isSourceReady) {
-        console.log('Source not ready during style change, will wait');
-        return;
+      // Clear any pending timeouts to prevent multiple handlers
+      if (styleChangeTimeout) {
+        clearTimeout(styleChangeTimeout);
       }
       
-      // Check if point layer exists
-      const needsLayers = !map.getLayer('unclustered-point');
-      
-      // Check if source exists
-      const hasSource = map.getSource(source) ? true : false;
-      
-      if (needsLayers && hasSource) {
-        console.log('Style changed, need to re-add point layers');
+      // Debounce style change handling to ensure we only process the final event
+      styleChangeTimeout = setTimeout(() => {
+        // If source isn't ready, we can't add layers yet
+        if (!isSourceReady) {
+          console.log('Source not ready during style change, will wait');
+          return;
+        }
         
-        // Progressive retry mechanism with increasing delays
-        const attemptAddLayers = (attempts = 0) => {
+        // Verify map is ready
+        if (!map.getStyle()) {
+          console.log('Map style not available, cannot add layers');
+          return;
+        }
+        
+        // Check if point layer exists
+        const needsLayers = !map.getLayer('unclustered-point');
+        
+        // Check if source exists
+        let hasSource = false;
+        try {
+          hasSource = map.getSource(source) ? true : false;
+        } catch (e) {
+          console.log('Error checking source:', e);
+          hasSource = false;
+        }
+        
+        if (needsLayers && hasSource) {
+          console.log('Style changed, need to re-add point layers');
+          
+          // Use a more generous delay before first attempt after style change
           setTimeout(() => {
-            try {
-              if (!map.getLayer('unclustered-point') && map.getSource(source)) {
-                console.log(`Attempt ${attempts + 1} to re-add point layers after style change`);
-                addPointLayers();
-                
-                // Verify layer was actually added
-                if (!map.getLayer('unclustered-point')) {
-                  if (attempts < 3) {
-                    console.log(`Layer still not added, retrying... (attempt ${attempts + 1})`);
-                    attemptAddLayers(attempts + 1);
-                  } else {
-                    console.warn('Failed to add layers after multiple attempts');
-                  }
-                } else {
-                  console.log('Successfully re-added point layers after style change');
-                  updatePointColors();
+            const success = addPointLayers();
+            
+            if (success) {
+              console.log('Successfully added layers after style change');
+              updatePointColors();
+            } else {
+              console.log('Initial layer addition failed, will retry with progressive delays');
+              
+              // Progressive retry mechanism with increasing delays
+              const attemptAddLayers = (attempts = 0) => {
+                if (attempts >= 5) {
+                  console.warn('Failed to add layers after multiple attempts');
+                  return;
                 }
-              }
-            } catch (error) {
-              console.error('Error re-adding layers:', error);
-              if (attempts < 3) {
-                attemptAddLayers(attempts + 1);
-              }
+                
+                setTimeout(() => {
+                  // Check again if layers are still needed
+                  if (!map.getLayer('unclustered-point')) {
+                    console.log(`Retry attempt ${attempts + 1} to add point layers`);
+                    const success = addPointLayers();
+                    
+                    if (!success && attempts < 4) {
+                      attemptAddLayers(attempts + 1);
+                    } else if (success) {
+                      console.log('Successfully re-added point layers after retry');
+                      updatePointColors();
+                    }
+                  }
+                }, 500 * Math.pow(2, attempts)); // More generous backoff: 500ms, 1000ms, 2000ms, etc.
+              };
+              
+              attemptAddLayers();
             }
-          }, 100 * Math.pow(2, attempts)); // Exponential backoff: 100ms, 200ms, 400ms
-        };
-        
-        attemptAddLayers();
-      }
+          }, 300);
+        }
+      }, 200); // Debounce style changes that occur within 200ms
     };
     
     // Store reference to the handler
@@ -138,8 +178,23 @@ const VenuePoints = ({
       if (styleLoadHandlerRef.current) {
         map.off('styledata', styleLoadHandlerRef.current);
       }
+      if (styleChangeTimeout) {
+        clearTimeout(styleChangeTimeout);
+      }
     };
   }, [map, source, isSourceReady, addPointLayers, updatePointColors]);
+
+  // Force layer re-addition if style has changed multiple times but layers still missing
+  useEffect(() => {
+    if (styleChangeCount > 2 && isSourceReady && !map.getLayer('unclustered-point')) {
+      console.log('Multiple style changes detected but layers still missing - forcing layer addition');
+      const timer = setTimeout(() => {
+        addPointLayers();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [styleChangeCount, map, isSourceReady, addPointLayers]);
 
   return null;
 };
