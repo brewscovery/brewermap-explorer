@@ -73,7 +73,8 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
   );
   const [isPublished, setIsPublished] = useState(!!initialValues?.is_published);
   const [ticketPrice, setTicketPrice] = useState(
-    initialValues?.ticket_price !== undefined ? String(initialValues.ticket_price) : ""
+    initialValues?.ticket_price !== undefined && initialValues?.ticket_price !== null 
+      ? String(initialValues.ticket_price) : ""
   );
   const [ticketUrl, setTicketUrl] = useState(initialValues?.ticket_url || "");
 
