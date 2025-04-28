@@ -31,7 +31,7 @@ const MobileVenueSidebar = ({
   children,
   open 
 }: MobileVenueSidebarProps) => {
-  const snapPoints = [0.5, 0.95];
+  const snapPoints = [0.5, 0.99];
   const [position, setPosition] = useState(0);
   
   useEffect(() => {
