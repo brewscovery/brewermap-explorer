@@ -19,123 +19,80 @@ export const usePointLayers = ({
   isSourceReady 
 }: UsePointLayersProps) => {
   const layersAdded = useRef(false);
-  const visitedIdsRef = useRef<string[]>([]);
-  const addLayerAttemptsRef = useRef(0);
 
-  // Reset the attempts counter when the map or source changes
-  useEffect(() => {
-    addLayerAttemptsRef.current = 0;
-    layersAdded.current = false;
-  }, [map, source]);
-
+  // Update point colors without removing/re-adding layers
   const updatePointColors = useCallback(() => {
-    try {
-      if (!map.getLayer('unclustered-point')) {
-        console.log('Cannot update point colors - layer not found');
-        return;
-      }
+    if (!map.getLayer('unclustered-point')) return;
 
-      console.log(`Updating venue point colors with ${visitedVenueIds.length} visited venues`);
-      
-      // Ensure we're operating on the correct and current map instance
-      if (map && map.getStyle()) {
-        map.setPaintProperty('unclustered-point', 'circle-color', [
-          'case',
-          ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-          '#22c55e', // Green color for visited venues
-          '#fbbf24'  // Default yellow color for unvisited venues
-        ]);
-        
-        visitedIdsRef.current = [...visitedVenueIds];
-        console.log('Point colors updated successfully');
-      }
-    } catch (error) {
-      console.error('Error updating point colors:', error);
+    console.log(`Updating venue point colors with ${visitedVenueIds.length} visited venues`);
+    
+    if (map && map.getStyle()) {
+      map.setPaintProperty('unclustered-point', 'circle-color', [
+        'case',
+        ['in', ['get', 'id'], ['literal', visitedVenueIds]],
+        '#22c55e', // Green color for visited venues
+        '#fbbf24'  // Default yellow color for unvisited venues
+      ]);
     }
   }, [map, visitedVenueIds]);
 
+  // Add layers only once when source is ready
   const addPointLayers = useCallback(() => {
-    // Only proceed if we haven't exceeded max attempts (5), the source is ready, and layers aren't already added
-    if (addLayerAttemptsRef.current >= 5 || !isSourceReady || layersAdded.current) {
-      if (addLayerAttemptsRef.current >= 5) {
-        console.warn('Maximum layer addition attempts reached');
-      }
-      return false;
-    }
-
-    addLayerAttemptsRef.current++;
-    console.log(`Attempt ${addLayerAttemptsRef.current} to add point layers`);
+    if (!isSourceReady || layersAdded.current) return false;
 
     try {
-      // Ensure we have a valid map and style
-      if (!map || !map.getStyle()) {
-        console.log('Map or style not ready, delaying layer addition');
-        return false;
-      }
+      if (!map || !map.getStyle()) return false;
       
       // Verify source exists before proceeding
-      const sourceExists = map.getSource(source) ? true : false;
-      if (!sourceExists) {
-        console.log('Source not found, cannot add layers');
-        return false;
-      }
+      if (!map.getSource(source)) return false;
       
-      // Remove existing layers if they exist to avoid duplicates
-      ['unclustered-point', 'unclustered-point-label'].forEach(layerId => {
-        if (map.getLayer(layerId)) {
-          map.removeLayer(layerId);
-          console.log(`Removed existing layer ${layerId} before re-adding`);
-        }
-      });
+      // Add the point layer if it doesn't exist
+      if (!map.getLayer('unclustered-point')) {
+        map.addLayer({
+          id: 'unclustered-point',
+          type: 'circle',
+          source: source,
+          filter: ['!', ['has', 'point_count']],
+          paint: {
+            'circle-color': [
+              'case',
+              ['in', ['get', 'id'], ['literal', visitedVenueIds]],
+              '#22c55e',
+              '#fbbf24'
+            ],
+            'circle-radius': 12,
+            'circle-stroke-width': 3,
+            'circle-stroke-color': '#ffffff'
+          }
+        });
 
-      // Add the point layer
-      map.addLayer({
-        id: 'unclustered-point',
-        type: 'circle',
-        source: source,
-        filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': [
-            'case',
-            ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-            '#22c55e',
-            '#fbbf24'
-          ],
-          'circle-radius': 12,
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#ffffff'
-        }
-      });
+        map.addLayer({
+          id: 'unclustered-point-label',
+          type: 'symbol',
+          source: source,
+          filter: ['!', ['has', 'point_count']],
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+            'text-size': 12,
+            'text-offset': [0, 1.5],
+            'text-anchor': 'top',
+            'text-allow-overlap': false,
+            'text-ignore-placement': false
+          },
+          paint: {
+            'text-color': '#374151',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2
+          }
+        });
 
-      // Add the label layer
-      map.addLayer({
-        id: 'unclustered-point-label',
-        type: 'symbol',
-        source: source,
-        filter: ['!', ['has', 'point_count']],
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-          'text-size': 12,
-          'text-offset': [0, 1.5],
-          'text-anchor': 'top',
-          'text-allow-overlap': false,
-          'text-ignore-placement': false
-        },
-        paint: {
-          'text-color': '#374151',
-          'text-halo-color': '#ffffff',
-          'text-halo-width': 2
-        }
-      });
-
-      layersAdded.current = true;
-      console.log('Point layers added successfully with', visitedVenueIds.length, 'visited venues');
-      visitedIdsRef.current = [...visitedVenueIds];
+        layersAdded.current = true;
+        return true;
+      }
       return true;
     } catch (error) {
       console.error('Error adding point layers:', error);
-      layersAdded.current = false;
       return false;
     }
   }, [map, source, isSourceReady, visitedVenueIds]);
@@ -143,7 +100,6 @@ export const usePointLayers = ({
   return {
     layersAdded: layersAdded.current,
     updatePointColors,
-    addPointLayers,
-    addLayerAttempts: addLayerAttemptsRef.current
+    addPointLayers
   };
 };
