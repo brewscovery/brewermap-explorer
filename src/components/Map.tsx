@@ -94,6 +94,30 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
 
   // Handle venue selection from map interactions
   const handleVenueSelect = (venue: Venue) => {
+    if (map.current && venue.latitude && venue.longitude) {
+      // Get the map container dimensions
+      const bounds = map.current.getContainer().getBoundingClientRect();
+      const headerHeight = 73; // Height of the app header
+      const drawerHeight = window.innerHeight * 0.5; // 50% of viewport height
+      
+      // Calculate the visible map height
+      const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
+      
+      // Calculate the center point that will place the venue in the middle of the visible area
+      const targetCenter = map.current.unproject([
+        bounds.width / 2,
+        (visibleMapHeight / 2) + headerHeight
+      ]);
+      
+      // Fly to the new center position
+      map.current.flyTo({
+        center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
+        offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+        zoom: 15,
+        duration: 1500
+      });
+    }
+    
     setSelectedVenue(venue);
     onVenueSelect(venue);
   };
@@ -123,7 +147,6 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
         </>
       )}
       
-      {/* Venue sidebar */}
       {selectedVenue && (
         <VenueSidebar 
           venue={selectedVenue} 
