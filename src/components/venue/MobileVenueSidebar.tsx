@@ -31,26 +31,23 @@ const MobileVenueSidebar = ({
   children,
   open 
 }: MobileVenueSidebarProps) => {
-  const snapPoints = [0.5, 0.99];
   const [position, setPosition] = useState(0);
   
   useEffect(() => {
     if (open) {
-      setPosition(0); // Will snap to 50% as it's the first snap point
+      setPosition(0); // Will snap to 50% as default position
     }
   }, [open]);
-
-  const handleSnapPointChange = (snapPoint: string | number) => {
-    setPosition(typeof snapPoint === 'string' ? parseFloat(snapPoint) : snapPoint);
-  };
 
   return (
     <Drawer
       open={open}
-      onClose={onClose}
-      snapPoints={snapPoints}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) onClose();
+      }}
+      snapPoints={[0.5, 0.99]} 
       activeSnapPoint={position}
-      onSnapPointChange={handleSnapPointChange}
+      setActiveSnapPoint={setPosition}
       modal={false}
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-40 rounded-t-[10px] border bg-background">
