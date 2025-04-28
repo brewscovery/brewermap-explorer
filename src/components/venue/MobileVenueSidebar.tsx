@@ -8,7 +8,7 @@ import {
   Drawer, 
   DrawerPortal,
   DrawerTitle,
-  DrawerPrimitive
+  DrawerContent
 } from '@/components/ui/drawer';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
@@ -26,11 +26,11 @@ interface MobileVenueSidebarProps {
 
 // Custom DrawerContent that doesn't use DrawerOverlay
 const CustomDrawerContent = React.forwardRef<
-  React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
+  React.ElementRef<typeof DrawerContent>,
+  React.ComponentPropsWithoutRef<typeof DrawerContent>
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
-    <DrawerPrimitive.Content
+    <DrawerContent
       ref={ref}
       className={cn(
         "fixed inset-x-0 bottom-0 z-40 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
@@ -40,7 +40,7 @@ const CustomDrawerContent = React.forwardRef<
     >
       <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
       {children}
-    </DrawerPrimitive.Content>
+    </DrawerContent>
   </DrawerPortal>
 ));
 CustomDrawerContent.displayName = "CustomDrawerContent";
