@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -23,7 +22,6 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch user's check-ins
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
     queryFn: async () => {
@@ -40,20 +38,16 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     enabled: !!user
   });
 
-  // Handle map updates when venues change
   const updateMap = useCallback(() => {
     if (map.current && isStyleLoaded) {
-      // The MapLayers component will handle updating the GeoJSON source
       console.log('Map venues updated, source will be refreshed');
     }
   }, [map, isStyleLoaded]);
 
-  // Call updateMap when venues change
   useEffect(() => {
     updateMap();
   }, [venues, updateMap]);
 
-  // Subscribe to realtime changes on checkins
   useEffect(() => {
     if (!user) return;
 
@@ -79,10 +73,8 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     };
   }, [user, queryClient]);
 
-  // Update visited venues when check-ins data changes or when user logs out
   useEffect(() => {
     if (user && checkins) {
-      // Extract unique venue IDs using a Set
       const uniqueVenueIds = [...new Set(checkins.map(checkin => checkin.venue_id))];
       console.log(`Setting ${uniqueVenueIds.length} unique visited venue IDs`);
       setVisitedVenueIds(uniqueVenueIds);
@@ -92,27 +84,22 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Handle venue selection from map interactions
   const handleVenueSelect = (venue: Venue) => {
     if (map.current && venue.latitude && venue.longitude) {
-      // Get the map container dimensions
       const bounds = map.current.getContainer().getBoundingClientRect();
-      const headerHeight = 73; // Height of the app header
-      const drawerHeight = window.innerHeight * 0.5; // 50% of viewport height
+      const headerHeight = 73;
+      const drawerHeight = window.innerHeight * 0.5;
       
-      // Calculate the visible map height
       const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
       
-      // Calculate the center point that will place the venue in the middle of the visible area
       const targetCenter = map.current.unproject([
         bounds.width / 2,
         (visibleMapHeight / 2) + headerHeight
       ]);
       
-      // Fly to the new center position
       map.current.flyTo({
         center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
-        offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+        offset: [0, -(drawerHeight / 2)],
         zoom: 15,
         duration: 1500
       });
@@ -122,14 +109,13 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     onVenueSelect(venue);
   };
 
-  // Handle sidebar closing
   const handleSidebarClose = () => {
     setSelectedVenue(null);
   };
 
   return (
     <div className="relative flex-1 w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0" />
+      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
       {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
