@@ -20,8 +20,6 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
 
     // Handle clicks on clusters
     const handleClusterClick = (e: mapboxgl.MapMouseEvent) => {
-      e.originalEvent.stopPropagation();
-      
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['clusters']
       });
@@ -49,8 +47,6 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
 
     // Handle clicks on individual points
     const handlePointClick = (e: mapboxgl.MapMouseEvent) => {
-      e.originalEvent.stopPropagation(); // Stop event propagation
-      
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['unclustered-point']
       });
