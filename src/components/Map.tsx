@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -88,10 +89,12 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     if (map.current && venue.latitude && venue.longitude) {
       const bounds = map.current.getContainer().getBoundingClientRect();
       const headerHeight = 73;
-      const drawerHeight = window.innerHeight * 0.5;
+      const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
       
+      // Calculate the visible map height (viewport minus header minus drawer)
       const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
       
+      // Calculate the target center point to place the venue in the middle of the visible area
       const targetCenter = map.current.unproject([
         bounds.width / 2,
         (visibleMapHeight / 2) + headerHeight
@@ -99,7 +102,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
       
       map.current.flyTo({
         center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
-        offset: [0, -(drawerHeight / 2)],
+        offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
         zoom: 15,
         duration: 1500
       });
@@ -115,7 +118,10 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
 
   return (
     <div className="relative flex-1 w-full h-full">
-      <div ref={mapContainer} className="absolute inset-0 pointer-events-auto" />
+      <div 
+        ref={mapContainer} 
+        className="absolute inset-0 pointer-events-auto" // Critical: ensure map can receive events
+      />
       {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />

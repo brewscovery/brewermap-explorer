@@ -24,7 +24,7 @@ interface MobileVenueSidebarProps {
   open: boolean;
 }
 
-// Custom DrawerContent that doesn't use DrawerOverlay
+// Custom DrawerContent that doesn't use DrawerOverlay and allows map interaction
 const CustomDrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerContent>,
   React.ComponentPropsWithoutRef<typeof DrawerContent>
@@ -34,6 +34,7 @@ const CustomDrawerContent = React.forwardRef<
       ref={ref}
       className={cn(
         "fixed inset-x-0 bottom-0 z-40 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+        "pointer-events-auto", // Ensure this element can receive events
         className
       )}
       {...props}
@@ -90,7 +91,6 @@ const MobileVenueSidebar = ({
           rounded-t-[10px] 
           border 
           bg-background
-          pointer-events-auto
         "
       >
         <VisuallyHidden>
