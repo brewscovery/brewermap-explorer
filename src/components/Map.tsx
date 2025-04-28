@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -120,7 +119,7 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     <div className="relative flex-1 w-full h-full">
       <div 
         ref={mapContainer} 
-        className="absolute inset-0 pointer-events-auto" // Critical: ensure map can receive events
+        className="absolute inset-0"
       />
       {map.current && isStyleLoaded && (
         <>
