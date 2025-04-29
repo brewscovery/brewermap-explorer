@@ -264,7 +264,7 @@ export const VenueEventForm: React.FC<VenueEventFormProps> = ({
           checked={isPublished}
           onChange={(e) => setIsPublished(e.target.checked)}
         />
-        Published
+        Published (tick this box if you want this event to be visible to all users)
       </label>
       <div className="flex gap-2 justify-end pt-2">
         <Button variant="ghost" type="button" onClick={handleCancel}>
