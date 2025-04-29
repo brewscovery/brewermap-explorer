@@ -53,7 +53,6 @@ export const VenueFollowButton = ({
       />
       <span>
         {isFavorited ? 'Following' : 'Follow'}
-        {showCount && favoritesCount > 0 && ` (${favoritesCount})`}
       </span>
     </Button>
   );
