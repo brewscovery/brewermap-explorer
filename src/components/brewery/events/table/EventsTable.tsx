@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVenueEvents, useDeleteVenueEvent } from "@/hooks/useVenueEvents";
@@ -111,7 +112,7 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
   }
 
   return (
-    <div className="bg-white shadow rounded p-4">
+    <div className="w-full bg-white shadow rounded p-4">
       <EventsFilters
         venues={venues}
         selectedVenue={selectedVenue}
@@ -122,74 +123,76 @@ const EventsTable: React.FC<EventsTableProps> = ({ venueIds, venues }) => {
         onDateFilterChange={setDateFilter}
       />
 
-      <table className="min-w-full text-sm border-separate border-spacing-y-1">
-        <thead>
-          <tr className="text-left">
-            <TableHeader
-              label="Title"
-              sortField="title"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('title')}
-            />
-            <TableHeader
-              label="Venue"
-              sortField="venue_id"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('venue_id')}
-            />
-            <TableHeader
-              label="Start"
-              sortField="start_time"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('start_time')}
-            />
-            <TableHeader
-              label="End"
-              sortField="end_time"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('end_time')}
-            />
-            <TableHeader
-              label="Published"
-              sortField="is_published"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('is_published')}
-            />
-            <TableHeader
-              label="Interest"
-              sortField="interest"
-              currentSort={sortField}
-              sortDirection={sortDirection}
-              onSort={() => toggleSort('interest')}
-            />
-            <th className="py-1">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sortedAndFilteredEvents.length === 0 ? (
-            <tr>
-              <td colSpan={7} className="py-4 text-center text-muted-foreground">
-                No events found.
-              </td>
-            </tr>
-          ) : (
-            sortedAndFilteredEvents.map((event) => (
-              <EventRow 
-                key={event.id} 
-                event={event} 
-                venueMap={venueMap}
-                onEdit={() => { setEditEvent(event); setShowEditDialog(true); }}
-                onDelete={() => { setDeleteEvent(event); setShowDeleteDialog(true); }}
+      <div className="overflow-x-auto">
+        <table className="w-full text-sm border-separate border-spacing-y-1">
+          <thead>
+            <tr className="text-left">
+              <TableHeader
+                label="Title"
+                sortField="title"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('title')}
               />
-            ))
-          )}
-        </tbody>
-      </table>
+              <TableHeader
+                label="Venue"
+                sortField="venue_id"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('venue_id')}
+              />
+              <TableHeader
+                label="Start"
+                sortField="start_time"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('start_time')}
+              />
+              <TableHeader
+                label="End"
+                sortField="end_time"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('end_time')}
+              />
+              <TableHeader
+                label="Published"
+                sortField="is_published"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('is_published')}
+              />
+              <TableHeader
+                label="Interest"
+                sortField="interest"
+                currentSort={sortField}
+                sortDirection={sortDirection}
+                onSort={() => toggleSort('interest')}
+              />
+              <th className="py-1">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedAndFilteredEvents.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="py-4 text-center text-muted-foreground">
+                  No events found.
+                </td>
+              </tr>
+            ) : (
+              sortedAndFilteredEvents.map((event) => (
+                <EventRow 
+                  key={event.id} 
+                  event={event} 
+                  venueMap={venueMap}
+                  onEdit={() => { setEditEvent(event); setShowEditDialog(true); }}
+                  onDelete={() => { setDeleteEvent(event); setShowDeleteDialog(true); }}
+                />
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       <EditEventDialog
         open={showEditDialog}
