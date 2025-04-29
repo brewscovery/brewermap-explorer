@@ -206,7 +206,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
 
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
-      <div className="flex flex-col p-6 border-b">
+      <div className="flex flex-col p-6 border-b relative">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-4">
             <div className="flex flex-col items-center gap-2">
@@ -235,12 +235,14 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
               )}
             </div>
           </div>
-          <div className="flex items-start gap-2">
-            {venue.id && <VenueFollowButton venueId={venue.id} />}
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={20} />
-            </Button>
-          </div>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X size={20} />
+          </Button>
+        </div>
+        
+        {/* Follow button positioned at the bottom right of header */}
+        <div className="absolute bottom-4 right-6">
+          {venue.id && <VenueFollowButton venueId={venue.id} />}
         </div>
       </div>
       

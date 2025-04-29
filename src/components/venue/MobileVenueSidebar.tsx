@@ -69,7 +69,7 @@ const MobileVenueSidebar = ({
         <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
           
         {/* Header */}
-        <div className="flex flex-col p-4 border-b">
+        <div className="flex flex-col p-4 border-b relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               {breweryInfo?.logo_url && (
@@ -100,12 +100,14 @@ const MobileVenueSidebar = ({
                 )}
               </div>
             </div>
-            <div className="flex items-start gap-2">
-              {venue.id && <VenueFollowButton venueId={venue.id} />}
-              <Button variant="ghost" size="icon" onClick={onClose}>
-                <X size={20} />
-              </Button>
-            </div>
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X size={20} />
+            </Button>
+          </div>
+          
+          {/* Follow button positioned at the bottom right of header */}
+          <div className="absolute bottom-3 right-4">
+            {venue.id && <VenueFollowButton venueId={venue.id} />}
           </div>
         </div>
 
