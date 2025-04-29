@@ -35,7 +35,8 @@ const FavoritesPage = () => {
           *,
           breweries(name, logo_url, is_verified)
         `)
-        .in('id', venueIds);
+        .in('id', venueIds)
+        .order('name', { ascending: true }); // Sort venues by name in ascending order
         
       if (venuesError) throw venuesError;
       
