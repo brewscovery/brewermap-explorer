@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -145,6 +146,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     if (user) {
+      // Handle pending event interest
       const pendingEventId = localStorage.getItem('pendingEventInterest');
       if (pendingEventId) {
         // Remove the item from localStorage first to prevent repeated attempts
@@ -172,6 +174,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         };
 
         addEventInterest();
+      }
+      
+      // Handle pending venue favorite
+      const pendingVenueFavoriteId = localStorage.getItem('pendingVenueFavorite');
+      if (pendingVenueFavoriteId) {
+        // Remove the item from localStorage first
+        localStorage.removeItem('pendingVenueFavorite');
+        
+        // Add the venue to favorites
+        const addVenueFavorite = async () => {
+          try {
+            const { error } = await supabase
+              .from('venue_favorites')
+              .insert({
+                venue_id: pendingVenueFavoriteId,
+                user_id: user.id
+              });
+              
+            if (error) {
+              console.error('Failed to add venue to favorites:', error);
+              toast.error('Could not automatically add venue to favorites');
+            } else {
+              toast.success('Venue added to favorites');
+            }
+          } catch (err) {
+            console.error('Unexpected error adding venue favorite:', err);
+          }
+        };
+        
+        addVenueFavorite();
       }
     }
   }, [user]);

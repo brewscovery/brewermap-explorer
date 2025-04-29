@@ -23,6 +23,7 @@ import HappyHoursSection from './sections/HappyHoursSection';
 import DailySpecialsSection from './sections/DailySpecialsSection';
 import CheckInsSection from './sections/CheckInsSection';
 import EventsSection from './sections/EventsSection';
+import { VenueFollowButton } from './VenueFollowButton';
 import type { Brewery } from '@/types/brewery';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
@@ -234,9 +235,12 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
               )}
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X size={20} />
-          </Button>
+          <div className="flex items-start gap-2">
+            {venue.id && <VenueFollowButton venueId={venue.id} />}
+            <Button variant="ghost" size="icon" onClick={onClose}>
+              <X size={20} />
+            </Button>
+          </div>
         </div>
       </div>
       

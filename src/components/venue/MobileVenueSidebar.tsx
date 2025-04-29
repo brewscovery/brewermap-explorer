@@ -13,6 +13,7 @@ import {
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
+import { VenueFollowButton } from './VenueFollowButton';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { cn } from '@/lib/utils';
 
@@ -99,9 +100,12 @@ const MobileVenueSidebar = ({
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={20} />
-            </Button>
+            <div className="flex items-start gap-2">
+              {venue.id && <VenueFollowButton venueId={venue.id} />}
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X size={20} />
+              </Button>
+            </div>
           </div>
         </div>
 
