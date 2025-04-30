@@ -113,6 +113,7 @@ const FavoritesPage = () => {
         <VenueSidebar
           venue={selectedVenue}
           onClose={handleCloseSidebar}
+          displayMode="favorites"
         />
       )}
     </div>

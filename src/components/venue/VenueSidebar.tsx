@@ -27,12 +27,15 @@ import { VenueFollowButton } from './VenueFollowButton';
 import type { Brewery } from '@/types/brewery';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
+export type VenueSidebarDisplayMode = 'full' | 'favorites';
+
 interface VenueSidebarProps {
   venue: Venue | null;
   onClose: () => void;
+  displayMode?: VenueSidebarDisplayMode;
 }
 
-const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
+const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -146,46 +149,55 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
   
   if (!venue) return null;
 
-  // Define overviewContent before using it in the conditional rendering
+  // Create content based on display mode
   const overviewContent = (
     <div className="space-y-5 p-4">
-      <AboutSection breweryInfo={breweryInfo} />
-      <div className="space-y-1">
-        <AddressSection venue={venue} />
-        {hasCoordinates && (
-          <Button
-            onClick={handleGetDirections}
-            variant="secondary"
-            size="sm"
-            className="mt-2"
-          >
-            <Navigation size={16} className="mr-1" />
-            Get Directions
-          </Button>
-        )}
-      </div>
-      <ContactSection venue={venue} breweryInfo={breweryInfo} />
+      {displayMode === 'full' && (
+        <>
+          <AboutSection breweryInfo={breweryInfo} />
+          <div className="space-y-1">
+            <AddressSection venue={venue} />
+            {hasCoordinates && (
+              <Button
+                onClick={handleGetDirections}
+                variant="secondary"
+                size="sm"
+                className="mt-2"
+              >
+                <Navigation size={16} className="mr-1" />
+                Get Directions
+              </Button>
+            )}
+          </div>
+          <ContactSection venue={venue} breweryInfo={breweryInfo} />
+        </>
+      )}
+      
       <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
       <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
       <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
       
-      <Separator className="my-5" />
-      
-      <CheckInsSection 
-        venue={venue}
-        checkins={checkins}
-        user={user}
-        userType={userType}
-        onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
-      />
+      {displayMode === 'full' && (
+        <>
+          <Separator className="my-5" />
+          
+          <CheckInsSection 
+            venue={venue}
+            checkins={checkins}
+            user={user}
+            userType={userType}
+            onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
+          />
 
-      {venue && user && (
-        <CheckInDialog
-          venue={venue}
-          isOpen={isCheckInDialogOpen}
-          onClose={() => setIsCheckInDialogOpen(false)}
-          onSuccess={handleCheckInSuccess}
-        />
+          {venue && user && (
+            <CheckInDialog
+              venue={venue}
+              isOpen={isCheckInDialogOpen}
+              onClose={() => setIsCheckInDialogOpen(false)}
+              onSuccess={handleCheckInSuccess}
+            />
+          )}
+        </>
       )}
     </div>
   );
@@ -198,6 +210,7 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         breweryInfo={breweryInfo}
         onClose={onClose}
         open={true}
+        displayMode={displayMode}
       >
         {overviewContent}
       </MobileVenueSidebar>
@@ -250,14 +263,18 @@ const VenueSidebar = ({ venue, onClose }: VenueSidebarProps) => {
         <Tabs defaultValue="overview" className="w-full" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full grid grid-cols-2 sticky top-0 bg-background z-10">
             <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
+            {displayMode === 'full' && (
+              <TabsTrigger value="events">Events</TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="overview" className="focus:outline-none">
             {overviewContent}
           </TabsContent>
-          <TabsContent value="events" className="focus:outline-none p-4">
-            <EventsSection venueId={venue.id} />
-          </TabsContent>
+          {displayMode === 'full' && (
+            <TabsContent value="events" className="focus:outline-none p-4">
+              <EventsSection venueId={venue.id} />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>
