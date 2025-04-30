@@ -10,6 +10,7 @@ import {
   DrawerTitle,
   DrawerDescription
 } from '@/components/ui/drawer';
+import { CheckInDialog } from '@/components/CheckInDialog';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import EventsSection from './sections/EventsSection';
@@ -18,6 +19,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { cn } from '@/lib/utils';
 import type { VenueSidebarDisplayMode } from './VenueSidebar';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface MobileVenueSidebarProps {
   venue: Venue;
@@ -40,6 +42,8 @@ const MobileVenueSidebar = ({
 }: MobileVenueSidebarProps) => {
   const [position, setPosition] = useState(0);
   const { user, userType } = useAuth();
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
   
   // Create a handler function that converts string to number if needed
   const handleSnapPointChange = (snapPoint: string | number) => {
@@ -56,14 +60,17 @@ const MobileVenueSidebar = ({
     }
   }, [open]);
 
-  // Create a local handler for the check-in button to ensure it works
+  // Handle check-in dialog directly in this component
   const handleCheckInClick = (e: React.MouseEvent) => {
     // Prevent event bubbling which might be interfering with the drawer
     e.stopPropagation();
-    
-    if (onOpenCheckInDialog) {
-      onOpenCheckInDialog();
-    }
+    setIsCheckInDialogOpen(true);
+  };
+
+  // Handle success callback for check-in
+  const handleCheckInSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['venueCheckins', venue.id] });
+    queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
 
   return (
@@ -154,6 +161,16 @@ const MobileVenueSidebar = ({
               </TabsContent>
           </Tabs>
         </div>
+
+        {/* Add CheckInDialog component to handle check-in functionality */}
+        {venue && user && (
+          <CheckInDialog
+            venue={venue}
+            isOpen={isCheckInDialogOpen}
+            onClose={() => setIsCheckInDialogOpen(false)}
+            onSuccess={handleCheckInSuccess}
+          />
+        )}
       </DrawerContent>
     </Drawer>
   );
