@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
@@ -49,8 +50,13 @@ const FavoritesPage = () => {
   });
 
   // Handler for when a venue card is clicked
-  const handleVenueClick = (venue: Venue) => {
-    setSelectedVenue(venue);
+  const handleVenueClick = (venue: any) => {
+    // Convert venue to match Venue type by ensuring website_url exists
+    const completeVenue: Venue = {
+      ...venue,
+      website_url: venue.website_url || null // Ensure website_url is defined, even if null
+    };
+    setSelectedVenue(completeVenue);
     setIsVenueDialogOpen(true);
   };
 

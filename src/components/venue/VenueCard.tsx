@@ -18,11 +18,12 @@ interface VenueCardProps {
     logo_url?: string | null;
     is_verified?: boolean;
   };
+  onClick?: () => void; // Add optional onClick handler
 }
 
-export const VenueCard = ({ venue, brewery }: VenueCardProps) => {
+export const VenueCard = ({ venue, brewery, onClick }: VenueCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="overflow-hidden hover:shadow-md transition-shadow" onClick={onClick}>
       <div className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
