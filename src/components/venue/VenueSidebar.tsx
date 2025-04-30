@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, ShieldCheck, Navigation } from 'lucide-react';
+import { X, ShieldCheck, Navigation, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -127,6 +127,10 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
   };
 
+  const handleOpenCheckInDialog = () => {
+    setIsCheckInDialogOpen(true);
+  };
+
   const hasCoordinates = venue?.latitude && venue?.longitude;
   const handleGetDirections = () => {
     if (!hasCoordinates) return;
@@ -186,17 +190,9 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
             checkins={checkins}
             user={user}
             userType={userType}
-            onOpenCheckInDialog={() => setIsCheckInDialogOpen(true)}
+            onOpenCheckInDialog={handleOpenCheckInDialog}
+            showCheckInButton={false} // Hide the button in the CheckInsSection since we moved it to the header
           />
-
-          {venue && user && (
-            <CheckInDialog
-              venue={venue}
-              isOpen={isCheckInDialogOpen}
-              onClose={() => setIsCheckInDialogOpen(false)}
-              onSuccess={handleCheckInSuccess}
-            />
-          )}
         </>
       )}
     </div>
@@ -211,6 +207,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
         onClose={onClose}
         open={true}
         displayMode={displayMode}
+        onOpenCheckInDialog={user && userType === 'regular' ? handleOpenCheckInDialog : undefined}
       >
         {overviewContent}
       </MobileVenueSidebar>
@@ -253,8 +250,19 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
           </Button>
         </div>
         
-        {/* Follow button positioned at the bottom right of header */}
-        <div className="absolute bottom-4 right-6">
+        {/* Action buttons positioned at the bottom right of header */}
+        <div className="absolute bottom-4 right-6 flex gap-2">
+          {user && userType === 'regular' && (
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={handleOpenCheckInDialog}
+              className="flex items-center gap-1"
+            >
+              <UserCheck size={16} />
+              <span>Check In</span>
+            </Button>
+          )}
           {venue.id && <VenueFollowButton venueId={venue.id} />}
         </div>
       </div>
@@ -273,6 +281,15 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
             </TabsContent>
         </Tabs>
       </div>
+
+      {venue && user && (
+        <CheckInDialog
+          venue={venue}
+          isOpen={isCheckInDialogOpen}
+          onClose={() => setIsCheckInDialogOpen(false)}
+          onSuccess={handleCheckInSuccess}
+        />
+      )}
     </div>
   );
 };

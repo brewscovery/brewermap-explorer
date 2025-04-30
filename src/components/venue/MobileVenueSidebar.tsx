@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -17,6 +17,7 @@ import { VenueFollowButton } from './VenueFollowButton';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import { cn } from '@/lib/utils';
 import type { VenueSidebarDisplayMode } from './VenueSidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MobileVenueSidebarProps {
   venue: Venue;
@@ -25,6 +26,7 @@ interface MobileVenueSidebarProps {
   children: React.ReactNode;
   open: boolean;
   displayMode?: VenueSidebarDisplayMode;
+  onOpenCheckInDialog?: () => void;
 }
 
 const MobileVenueSidebar = ({ 
@@ -33,9 +35,11 @@ const MobileVenueSidebar = ({
   onClose, 
   children,
   open,
-  displayMode = 'full' 
+  displayMode = 'full',
+  onOpenCheckInDialog
 }: MobileVenueSidebarProps) => {
   const [position, setPosition] = useState(0);
+  const { user, userType } = useAuth();
   
   // Create a handler function that converts string to number if needed
   const handleSnapPointChange = (snapPoint: string | number) => {
@@ -108,8 +112,19 @@ const MobileVenueSidebar = ({
             </Button>
           </div>
           
-          {/* Follow button positioned at the bottom right of header */}
-          <div className="absolute bottom-3 right-4">
+          {/* Action buttons positioned at the bottom right of header */}
+          <div className="absolute bottom-3 right-4 flex gap-2">
+            {user && userType === 'regular' && onOpenCheckInDialog && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={onOpenCheckInDialog}
+                className="flex items-center gap-1"
+              >
+                <UserCheck size={16} />
+                <span>Check In</span>
+              </Button>
+            )}
             {venue.id && <VenueFollowButton venueId={venue.id} />}
           </div>
         </div>

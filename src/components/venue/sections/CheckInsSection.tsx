@@ -22,9 +22,17 @@ interface CheckInsSectionProps {
   user: any;
   userType: string | null;
   onOpenCheckInDialog: () => void;
+  showCheckInButton?: boolean; // New prop to control button visibility
 }
 
-const CheckInsSection = ({ venue, checkins, user, userType, onOpenCheckInDialog }: CheckInsSectionProps) => {
+const CheckInsSection = ({ 
+  venue, 
+  checkins, 
+  user, 
+  userType, 
+  onOpenCheckInDialog,
+  showCheckInButton = true // Default to showing the button
+}: CheckInsSectionProps) => {
   const renderStars = (rating: number) => {
     return Array(5).fill(0).map((_, i) => (
       <Star 
@@ -42,7 +50,7 @@ const CheckInsSection = ({ venue, checkins, user, userType, onOpenCheckInDialog 
     <div className="space-y-3">
       <div className="flex justify-between items-center">
         <h3 className="font-medium">Check-ins</h3>
-        {user && userType === 'regular' && (
+        {user && userType === 'regular' && showCheckInButton && (
           <Button 
             size="sm" 
             variant="default"
