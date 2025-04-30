@@ -7,13 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { VenueCard } from '@/components/venue/VenueCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Store } from 'lucide-react';
-import VenueDetailsDialog from '@/components/venue/VenueDetailsDialog';
+import VenueSidebar from '@/components/venue/VenueSidebar';
 import { Venue } from '@/types/venue';
 
 const FavoritesPage = () => {
   const { user } = useAuth();
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [isVenueDialogOpen, setIsVenueDialogOpen] = useState(false);
+  const [isVenueSidebarOpen, setIsVenueSidebarOpen] = useState(false);
 
   const { data: favoriteVenues, isLoading } = useQuery({
     queryKey: ['favoriteVenues', user?.id],
@@ -57,7 +57,12 @@ const FavoritesPage = () => {
       website_url: venue.website_url || null // Ensure website_url is defined, even if null
     };
     setSelectedVenue(completeVenue);
-    setIsVenueDialogOpen(true);
+    setIsVenueSidebarOpen(true);
+  };
+
+  // Handler to close the venue sidebar
+  const handleCloseSidebar = () => {
+    setIsVenueSidebarOpen(false);
   };
 
   return (
@@ -104,11 +109,12 @@ const FavoritesPage = () => {
         </CardContent>
       </Card>
 
-      <VenueDetailsDialog
-        venue={selectedVenue}
-        open={isVenueDialogOpen}
-        onOpenChange={setIsVenueDialogOpen}
-      />
+      {selectedVenue && isVenueSidebarOpen && (
+        <VenueSidebar
+          venue={selectedVenue}
+          onClose={handleCloseSidebar}
+        />
+      )}
     </div>
   );
 };
