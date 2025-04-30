@@ -114,7 +114,7 @@ const MobileVenueSidebar = ({
           
           {/* Action buttons positioned at the bottom right of header */}
           <div className="absolute bottom-3 right-4 flex gap-2">
-            {user && userType === 'regular' && onOpenCheckInDialog && (
+            {user && userType === 'regular' && displayMode === 'full' && (
               <Button 
                 size="sm" 
                 variant="outline"

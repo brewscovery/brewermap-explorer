@@ -252,7 +252,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
         
         {/* Action buttons positioned at the bottom right of header */}
         <div className="absolute bottom-4 right-6 flex gap-2">
-          {user && userType === 'regular' && (
+          {user && userType === 'regular' && displayMode === 'full' && (
             <Button 
               size="sm" 
               variant="outline"
