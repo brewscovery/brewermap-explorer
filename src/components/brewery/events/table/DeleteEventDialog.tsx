@@ -1,16 +1,26 @@
 
-import React from "react";
+import React from 'react';
+import { VenueEvent } from '@/hooks/useVenueEvents';
 import {
   AlertDialog,
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogTitle,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
-} from "@/components/ui/alert-dialog";
-import type { VenueEvent } from "@/hooks/useVenueEvents";
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { 
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle
+} from '@/components/ui/drawer';
+import { Button } from '@/components/ui/button';
 
 interface DeleteEventDialogProps {
   event: VenueEvent | null;
@@ -25,23 +35,46 @@ export const DeleteEventDialog: React.FC<DeleteEventDialogProps> = ({
   onOpenChange,
   onConfirm,
 }) => {
+  const isMobile = useIsMobile();
+  const eventTitle = event?.title || 'this event';
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Delete Event</DrawerTitle>
+          </DrawerHeader>
+          <div className="px-4 pb-2">
+            <p>Are you sure you want to delete "{eventTitle}"?</p>
+            <p className="text-sm text-muted-foreground mt-2">This action cannot be undone.</p>
+          </div>
+          <DrawerFooter>
+            <Button variant="destructive" onClick={onConfirm}>
+              Delete Event
+            </Button>
+            <DrawerClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    );
+  }
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Event</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete the event "{event?.title}"? This action cannot be undone.
+            Are you sure you want to delete "{eventTitle}"?
+            This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel
-            onClick={() => onOpenChange(false)}
-          >Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            className="bg-red-600 hover:bg-red-700"
-          >
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

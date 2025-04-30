@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useUpdateVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import VenueEventForm, { Venue, VenueEventFormValues } from "./VenueEventForm";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 function splitISOToLocalDateTime(isoString: string | undefined) {
   if (!isoString) return { date: "", time: "" };
@@ -93,20 +95,22 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
         </DialogHeader>
-        {event && venues && (
-          <VenueEventForm
-            mode="edit"
-            venues={venues}
-            initialValues={initialValues}
-            onSubmit={handleSubmit}
-            onCancel={() => onOpenChange(false)}
-            saving={saving}
-          />
-        )}
+        <ScrollArea className="flex-1 pr-4">
+          {event && venues && (
+            <VenueEventForm
+              mode="edit"
+              venues={venues}
+              initialValues={initialValues}
+              onSubmit={handleSubmit}
+              onCancel={() => onOpenChange(false)}
+              saving={saving}
+            />
+          )}
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

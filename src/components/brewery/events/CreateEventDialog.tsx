@@ -1,9 +1,11 @@
+
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { useCreateVenueEvent } from "@/hooks/useVenueEvents";
 import VenueEventForm, { Venue, VenueEventFormValues } from "./VenueEventForm";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CreateEventDialogProps {
   open: boolean;
@@ -88,19 +90,21 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Create New Event</DialogTitle>
         </DialogHeader>
-        <VenueEventForm
-          mode="create"
-          venues={venues}
-          defaultVenueId={defaultVenueId}
-          initialValues={initialValues}
-          onSubmit={handleSubmit}
-          onCancel={() => onOpenChange(false)}
-          saving={saving}
-        />
+        <ScrollArea className="flex-1 pr-4">
+          <VenueEventForm
+            mode="create"
+            venues={venues}
+            defaultVenueId={defaultVenueId}
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+            onCancel={() => onOpenChange(false)}
+            saving={saving}
+          />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
