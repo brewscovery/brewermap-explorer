@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVenueEvents, useDeleteVenueEvent } from "@/hooks/useVenueEvents";
 import { supabase } from '@/integrations/supabase/client';
