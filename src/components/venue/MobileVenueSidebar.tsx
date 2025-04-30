@@ -56,6 +56,16 @@ const MobileVenueSidebar = ({
     }
   }, [open]);
 
+  // Create a local handler for the check-in button to ensure it works
+  const handleCheckInClick = (e: React.MouseEvent) => {
+    // Prevent event bubbling which might be interfering with the drawer
+    e.stopPropagation();
+    
+    if (onOpenCheckInDialog) {
+      onOpenCheckInDialog();
+    }
+  };
+
   return (
     <Drawer
       open={open}
@@ -118,7 +128,7 @@ const MobileVenueSidebar = ({
               <Button 
                 size="sm" 
                 variant="outline"
-                onClick={onOpenCheckInDialog}
+                onClick={handleCheckInClick}
                 className="flex items-center gap-1"
               >
                 <UserCheck size={16} />
