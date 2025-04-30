@@ -119,18 +119,14 @@ const MobileVenueSidebar = ({
           <Tabs defaultValue="overview" className="w-full">
             <TabsList className="w-full grid grid-cols-2 sticky top-0 bg-background z-10">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              {displayMode === 'full' && (
-                <TabsTrigger value="events">Events</TabsTrigger>
-              )}
+              <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
             <TabsContent value="overview" className="focus:outline-none">
               {children}
             </TabsContent>
-            {displayMode === 'full' && (
               <TabsContent value="events" className="focus:outline-none">
                 <EventsSection venueId={venue.id} />
               </TabsContent>
-            )}
           </Tabs>
         </div>
       </DrawerContent>
