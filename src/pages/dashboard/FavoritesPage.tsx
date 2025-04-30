@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -7,9 +6,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { VenueCard } from '@/components/venue/VenueCard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Store } from 'lucide-react';
+import VenueDetailsDialog from '@/components/venue/VenueDetailsDialog';
+import { Venue } from '@/types/venue';
 
 const FavoritesPage = () => {
   const { user } = useAuth();
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [isVenueDialogOpen, setIsVenueDialogOpen] = useState(false);
 
   const { data: favoriteVenues, isLoading } = useQuery({
     queryKey: ['favoriteVenues', user?.id],
@@ -45,6 +48,12 @@ const FavoritesPage = () => {
     enabled: !!user
   });
 
+  // Handler for when a venue card is clicked
+  const handleVenueClick = (venue: Venue) => {
+    setSelectedVenue(venue);
+    setIsVenueDialogOpen(true);
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <Card>
@@ -72,6 +81,7 @@ const FavoritesPage = () => {
                     logo_url: venue.breweries.logo_url,
                     is_verified: venue.breweries.is_verified
                   }}
+                  onClick={() => handleVenueClick(venue)}
                 />
               ))}
             </div>
@@ -87,6 +97,12 @@ const FavoritesPage = () => {
           )}
         </CardContent>
       </Card>
+
+      <VenueDetailsDialog
+        venue={selectedVenue}
+        open={isVenueDialogOpen}
+        onOpenChange={setIsVenueDialogOpen}
+      />
     </div>
   );
 };
