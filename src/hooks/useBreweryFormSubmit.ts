@@ -47,7 +47,6 @@ export const useBreweryFormSubmit = ({
 
       const breweryData = {
         name: values.name,
-        brewery_type: values.brewery_type || null,
         website_url: values.website_url || null,
         about: values.about || null,
         facebook_url: values.facebook_url || null,

@@ -10,24 +10,18 @@ import {
 } from '@/components/ui/select';
 
 interface BreweriesFiltersProps {
-  typeFilter: string;
-  setTypeFilter: (value: string) => void;
   verificationFilter: string;
   setVerificationFilter: (value: string) => void;
   countryFilter: string;
   setCountryFilter: (value: string) => void;
-  breweryTypes: string[];
   countries: string[];
 }
 
 const BreweriesFilters = ({
-  typeFilter,
-  setTypeFilter,
   verificationFilter,
   setVerificationFilter,
   countryFilter,
   setCountryFilter,
-  breweryTypes,
   countries,
 }: BreweriesFiltersProps) => {
   return (
@@ -35,26 +29,6 @@ const BreweriesFilters = ({
       <div className="flex items-center gap-2">
         <Filter className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium">Filters:</span>
-      </div>
-      
-      <div className="flex gap-2 items-center">
-        <span className="text-sm">Type:</span>
-        <Select
-          value={typeFilter}
-          onValueChange={setTypeFilter}
-        >
-          <SelectTrigger className="w-[140px] h-8">
-            <SelectValue placeholder="All Types" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            {breweryTypes.map(type => (
-              <SelectItem key={type} value={type}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </div>
       
       <div className="flex gap-2 items-center">

@@ -43,19 +43,6 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
           </FormItem>
         )}
       />
-
-      <FormField
-        control={form.control}
-        name="brewery_type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Type</FormLabel>
-            <FormControl>
-              <Input placeholder="micro, brewpub, etc." {...field} value={field.value || ''} />
-            </FormControl>
-          </FormItem>
-        )}
-      />
       
       <FormField
         control={form.control}

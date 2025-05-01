@@ -3,7 +3,6 @@ import React from 'react';
 import { TableCell, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, X, Globe, MapPin } from 'lucide-react';
-import { getBreweryTypeBadge } from '../BreweryTypeUtils';
 import BreweryRowActions from './BreweryRowActions';
 import type { BreweryData } from '@/hooks/useAdminData';
 
@@ -25,7 +24,6 @@ const BreweryTableRow = ({
   return (
     <TableRow key={brewery.id}>
       <TableCell className="font-medium">{brewery.name}</TableCell>
-      <TableCell>{getBreweryTypeBadge(brewery.brewery_type)}</TableCell>
       <TableCell>
         <div className="flex items-center gap-1">
           <Globe className="h-4 w-4 text-muted-foreground" />

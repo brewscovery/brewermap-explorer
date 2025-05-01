@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -38,7 +39,6 @@ const BreweryFormContent = ({
     resolver: zodResolver(unifiedBrewerySchema),
     defaultValues: {
       name: initialData?.name || '',
-      brewery_type: initialData?.brewery_type || null,
       about: initialData?.about || null,
       website_url: initialData?.website_url || null,
       facebook_url: initialData?.facebook_url || null,
@@ -54,7 +54,6 @@ const BreweryFormContent = ({
     if (initialData) {
       form.reset({
         name: initialData.name || '',
-        brewery_type: initialData.brewery_type || null,
         about: initialData.about || null,
         website_url: initialData.website_url || null,
         facebook_url: initialData.facebook_url || null,

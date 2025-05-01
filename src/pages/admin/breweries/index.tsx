@@ -8,10 +8,7 @@ import BreweriesSearchForm from './BreweriesSearchForm';
 import BreweriesFilters from './BreweriesFilters';
 import { BreweriesTable } from './table';
 import type { BreweryData } from '@/hooks/useAdminData';
-
-// Type for sorting options
-type SortField = 'name' | 'brewery_type' | 'venue_count' | 'is_verified' | 'created_at' | 'country';
-type SortDirection = 'asc' | 'desc';
+import { SortDirection, SortField } from './table/types';
 
 const BreweriesManagement = () => {
   const { 
@@ -34,7 +31,6 @@ const BreweriesManagement = () => {
   // State for sorting and filtering
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
-  const [typeFilter, setTypeFilter] = useState<string>('all');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
   
@@ -140,10 +136,6 @@ const BreweriesManagement = () => {
     // First apply filters
     let filtered = [...breweries];
     
-    if (typeFilter !== 'all') {
-      filtered = filtered.filter(brewery => brewery.brewery_type === typeFilter);
-    }
-    
     if (verificationFilter !== 'all') {
       const isVerified = verificationFilter === 'verified';
       filtered = filtered.filter(brewery => brewery.is_verified === isVerified);
@@ -159,7 +151,7 @@ const BreweriesManagement = () => {
     // Then apply sorting
     return filtered.sort((a, b) => {
       // Handle different field types
-      if (sortField === 'name' || sortField === 'brewery_type' || sortField === 'country') {
+      if (sortField === 'name' || sortField === 'country') {
         const aValue = ((a[sortField] as string) || '').toLowerCase();
         const bValue = ((b[sortField] as string) || '').toLowerCase();
         
@@ -194,21 +186,7 @@ const BreweriesManagement = () => {
       
       return 0;
     });
-  }, [breweries, sortField, sortDirection, typeFilter, verificationFilter, countryFilter]);
-  
-  // Extract unique brewery types for filter dropdown
-  const breweryTypes = useMemo(() => {
-    if (!breweries) return [];
-    
-    const types = new Set<string>();
-    breweries.forEach(brewery => {
-      if (brewery.brewery_type) {
-        types.add(brewery.brewery_type);
-      }
-    });
-    
-    return Array.from(types);
-  }, [breweries]);
+  }, [breweries, sortField, sortDirection, verificationFilter, countryFilter]);
   
   if (error) {
     return (
@@ -233,13 +211,10 @@ const BreweriesManagement = () => {
       />
       
       <BreweriesFilters
-        typeFilter={typeFilter}
-        setTypeFilter={setTypeFilter}
         verificationFilter={verificationFilter}
         setVerificationFilter={setVerificationFilter}
         countryFilter={countryFilter}
         setCountryFilter={setCountryFilter}
-        breweryTypes={breweryTypes}
         countries={countries}
       />
       
@@ -247,7 +222,6 @@ const BreweriesManagement = () => {
         breweries={filteredAndSortedBreweries}
         isLoading={isLoading}
         searchQuery={searchQuery}
-        typeFilter={typeFilter}
         verificationFilter={verificationFilter}
         countryFilter={countryFilter}
         sortField={sortField}

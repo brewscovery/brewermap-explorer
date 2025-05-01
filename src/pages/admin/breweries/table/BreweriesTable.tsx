@@ -15,7 +15,6 @@ interface BreweriesTableProps {
   breweries: BreweryData[];
   isLoading: boolean;
   searchQuery: string;
-  typeFilter: string;
   verificationFilter: string;
   countryFilter: string;
   sortField: SortField;
@@ -31,7 +30,6 @@ const BreweriesTable = ({
   breweries,
   isLoading,
   searchQuery,
-  typeFilter,
   verificationFilter,
   countryFilter,
   sortField,
@@ -67,7 +65,6 @@ const BreweriesTable = ({
           ) : (
             <EmptyBreweriesState 
               searchQuery={searchQuery}
-              typeFilter={typeFilter}
               verificationFilter={verificationFilter}
               countryFilter={countryFilter}
             />

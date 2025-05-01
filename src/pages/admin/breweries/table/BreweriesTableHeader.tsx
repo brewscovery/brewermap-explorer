@@ -1,8 +1,8 @@
 
 import React from 'react';
 import { TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import SortIndicator from './SortIndicator';
-import { SortDirection, SortField } from './types';
+import { SortField, SortDirection } from './types';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 interface BreweriesTableHeaderProps {
   sortField: SortField;
@@ -10,59 +10,40 @@ interface BreweriesTableHeaderProps {
   handleSort: (field: SortField) => void;
 }
 
-const BreweriesTableHeader = ({
+const BreweriesTableHeader = ({ 
   sortField,
   sortDirection,
-  handleSort
+  handleSort 
 }: BreweriesTableHeaderProps) => {
+  const renderSortIcon = (field: SortField) => {
+    if (sortField !== field) return null;
+    
+    return sortDirection === 'asc' ? (
+      <ChevronUp className="ml-1 h-4 w-4" />
+    ) : (
+      <ChevronDown className="ml-1 h-4 w-4" />
+    );
+  };
+
+  const makeColumn = (field: SortField, label: string) => (
+    <TableHead 
+      className={`cursor-pointer ${sortField === field ? 'text-primary' : ''}`}
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center">
+        {label}
+        {renderSortIcon(field)}
+      </div>
+    </TableHead>
+  );
+
   return (
     <TableHeader>
       <TableRow>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => handleSort('name')}
-        >
-          <div className="flex items-center">
-            Name
-            <SortIndicator field="name" currentSortField={sortField} sortDirection={sortDirection} />
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => handleSort('brewery_type')}
-        >
-          <div className="flex items-center">
-            Type
-            <SortIndicator field="brewery_type" currentSortField={sortField} sortDirection={sortDirection} />
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => handleSort('country')}
-        >
-          <div className="flex items-center">
-            Country
-            <SortIndicator field="country" currentSortField={sortField} sortDirection={sortDirection} />
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => handleSort('venue_count')}
-        >
-          <div className="flex items-center">
-            Venues
-            <SortIndicator field="venue_count" currentSortField={sortField} sortDirection={sortDirection} />
-          </div>
-        </TableHead>
-        <TableHead 
-          className="cursor-pointer"
-          onClick={() => handleSort('is_verified')}
-        >
-          <div className="flex items-center">
-            Verified
-            <SortIndicator field="is_verified" currentSortField={sortField} sortDirection={sortDirection} />
-          </div>
-        </TableHead>
+        {makeColumn('name', 'Name')}
+        <TableHead>Country</TableHead>
+        {makeColumn('venue_count', 'Venues')}
+        {makeColumn('is_verified', 'Status')}
         <TableHead>Owner</TableHead>
         <TableHead className="text-right">Actions</TableHead>
       </TableRow>
