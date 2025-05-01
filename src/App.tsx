@@ -5,6 +5,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Toaster } from '@/components/ui/sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; 
 import './App.css';
 
 // Pages
@@ -33,8 +34,11 @@ import AdminLayout from '@/components/admin/AdminLayout';
 // Protected routes
 import AdminRoute from '@/components/protected/AdminRoute';
 
+// Create a client for React Query
+const queryClient = new QueryClient();
+
 function App() {
-  const { setUser, setUserType } = useAuth();
+  const { user, setUser, userType, setUserType } = useAuth();
   
   useEffect(() => {
     // Set up auth state listener
@@ -71,37 +75,39 @@ function App() {
   }, [setUser, setUserType]);
   
   return (
-    <BrowserRouter>
-      <SidebarProvider>
-        <Routes>
-          <Route path="/" element={<AppLayout />}>
-            <Route index element={<Index />} />
-            <Route path="auth" element={<Auth />} />
-            
-            {/* Dashboard Routes */}
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="dashboard/settings" element={<SettingsPage />} />
-            <Route path="dashboard/venues" element={<VenuesPage />} />
-            <Route path="dashboard/favorites" element={<FavoritesPage />} />
-            <Route path="dashboard/history" element={<CheckInHistoryPage />} />
-            <Route path="dashboard/discoveries" element={<DiscoveriesPage />} />
-            <Route path="dashboard/subscription" element={<SubscriptionPage />} />
-            <Route path="dashboard/events" element={<EventsPage />} />
-            <Route path="dashboard/todo-lists" element={<TodoListsPage />} />
-            
-            {/* Admin Routes */}
-            <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-              <Route index element={<AdminIndex />} />
-              <Route path="breweries" element={<AdminBreweries />} />
-              <Route path="claims" element={<AdminClaims />} />
-              <Route path="users" element={<AdminUsers />} />
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <SidebarProvider>
+          <Routes>
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Index />} />
+              <Route path="auth" element={<Auth />} />
+              
+              {/* Dashboard Routes */}
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard/settings" element={<SettingsPage />} />
+              <Route path="dashboard/venues" element={<VenuesPage />} />
+              <Route path="dashboard/favorites" element={<FavoritesPage />} />
+              <Route path="dashboard/history" element={<CheckInHistoryPage />} />
+              <Route path="dashboard/discoveries" element={<DiscoveriesPage />} />
+              <Route path="dashboard/subscription" element={<SubscriptionPage />} />
+              <Route path="dashboard/events" element={<EventsPage />} />
+              <Route path="dashboard/todo-lists" element={<TodoListsPage />} />
+              
+              {/* Admin Routes */}
+              <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                <Route index element={<AdminIndex />} />
+                <Route path="breweries" element={<AdminBreweries />} />
+                <Route path="claims" element={<AdminClaims />} />
+                <Route path="users" element={<AdminUsers />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
-        
-        <Toaster />
-      </SidebarProvider>
-    </BrowserRouter>
+          </Routes>
+          
+          <Toaster />
+        </SidebarProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 
