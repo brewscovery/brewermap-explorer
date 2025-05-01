@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, ShieldCheck, Navigation, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -170,7 +169,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
 
   // Create content based on display mode
   const overviewContent = (
-    <div className="space-y-5 p-4">
+    <div className="space-y-5 p-4 text-left">
       {displayMode === 'full' && (
         <>
           <AboutSection breweryInfo={breweryInfo} />
@@ -264,7 +263,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
                 )}
               </div>
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 text-left">
               <h2 className="text-xl font-bold truncate">{venue.name}</h2>
               {breweryInfo?.name && (
                 <p className="text-sm text-muted-foreground truncate">
@@ -318,7 +317,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
           <TabsContent value="overview" className="focus:outline-none">
             {overviewContent}
           </TabsContent>
-            <TabsContent value="events" className="focus:outline-none p-4">
+            <TabsContent value="events" className="focus:outline-none p-4 text-left">
               <EventsSection venueId={venue.id} />
             </TabsContent>
         </Tabs>
