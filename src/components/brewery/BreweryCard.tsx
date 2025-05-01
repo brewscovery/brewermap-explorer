@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Edit } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Brewery } from '@/types/brewery';
 
@@ -76,11 +75,7 @@ const BreweryCard = ({ brewery, isSelected, onClick, onEdit }: BreweryCardProps)
           </Avatar>
           <div className="space-y-1">
             <CardTitle className="text-lg">{brewery.name}</CardTitle>
-            {brewery.brewery_type && (
-              <Badge variant="outline" className="font-normal">
-                {brewery.brewery_type}
-              </Badge>
-            )}
+            {/* Removed brewery_type badge as this field no longer exists */}
           </div>
         </div>
       </CardHeader>
