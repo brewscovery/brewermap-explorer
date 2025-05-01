@@ -1,93 +1,223 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-export type UserType = 'admin' | 'business' | 'regular' | null;
-
-export interface AuthContextType {
+type AuthContextType = {
   user: User | null;
-  setUser: (user: User | null) => void;
-  userType: UserType;
-  setUserType: (userType: UserType) => void;
-  loading: boolean;
+  userType: 'business' | 'regular' | 'admin' | null;
   firstName: string | null;
   lastName: string | null;
-  setFirstName: (firstName: string | null) => void;
-  setLastName: (lastName: string | null) => void;
+  loading: boolean;
+};
+
+// Define a type for our profile data structure
+interface UserProfileData {
+  user_type: 'business' | 'regular' | 'admin';
+  first_name: string | null;
+  last_name: string | null;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  setUser: () => {},
   userType: null,
-  setUserType: () => {},
-  loading: true,
   firstName: null,
   lastName: null,
-  setFirstName: () => {},
-  setLastName: () => {},
+  loading: true,
 });
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [userType, setUserType] = useState<UserType>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [userType, setUserType] = useState<'business' | 'regular' | 'admin' | null>(null);
   const [firstName, setFirstName] = useState<string | null>(null);
   const [lastName, setLastName] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [profileFetchAttempted, setProfileFetchAttempted] = useState(false);
+
+  const fetchUserProfile = async (userId: string) => {
+    // Skip if we've already attempted to fetch for this session
+    if (profileFetchAttempted) return;
+    
+    setProfileFetchAttempted(true);
+    
+    try {
+      console.log('Fetching profile for user:', userId);
+      
+      // Use the security definer function to avoid infinite recursion
+      const { data, error } = await supabase
+        .rpc('get_user_profile', { profile_id: userId });
+        
+      if (error) {
+        console.error('Error fetching profile:', error);
+        toast.error('Unable to load user profile. Some features may be limited.');
+        return;
+      }
+      
+      console.log('Profile data received:', data);
+      if (data) {
+        // Properly cast the JSON response to our interface
+        const profileData = data as unknown as UserProfileData;
+        setUserType(profileData.user_type);
+        setFirstName(profileData.first_name || '');
+        setLastName(profileData.last_name || '');
+      } else {
+        console.log('No profile found for user:', userId);
+        setUserType('regular');
+      }
+    } catch (error) {
+      console.error('Error in fetchUserProfile:', error);
+      toast.error('Something went wrong while loading your profile.');
+    }
+  };
 
   useEffect(() => {
-    const getSession = async () => {
+    let mounted = true;
+    
+    const fetchInitialSession = async () => {
       try {
+        console.log('Fetching initial session...');
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
         if (session) {
+          console.log('Initial session found', session.user.id);
           setUser(session.user);
           
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('user_type, first_name, last_name')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profile) {
-              setUserType(profile.user_type);
-              setFirstName(profile.first_name);
-              setLastName(profile.last_name);
-            }
-          } catch (err) {
-            console.error('Error fetching user profile:', err);
-            setUserType('regular');
+          // Fetch additional user data if needed
+          if (session.user) {
+            // Use setTimeout to avoid potential deadlocks
+            setTimeout(async () => {
+              if (mounted) {
+                await fetchUserProfile(session.user.id);
+              }
+            }, 0);
           }
+        } else {
+          console.log('No initial session found');
+          setUserType(null);
         }
       } catch (error) {
-        console.error('Error getting session:', error);
+        console.error('Error fetching session:', error);
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
-    getSession();
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth event:', event);
+        
+        if (session) {
+          console.log('Session found in auth state change', session.user.id);
+          setUser(session.user);
+          setProfileFetchAttempted(false); // Reset flag on new auth event
+          
+          // Use setTimeout to avoid potential deadlocks
+          if (session.user) {
+            setTimeout(async () => {
+              if (mounted) {
+                await fetchUserProfile(session.user.id);
+              }
+            }, 0);
+          }
+        } else {
+          console.log('No session in auth state change');
+          setUser(null);
+          setUserType(null);
+          setFirstName(null);
+          setLastName(null);
+          setProfileFetchAttempted(false);
+        }
+      }
+    );
+
+    fetchInitialSession();
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const value = {
-    user,
-    setUser,
-    userType,
-    setUserType,
-    loading,
-    firstName,
-    lastName,
-    setFirstName,
-    setLastName,
-  };
+  useEffect(() => {
+    if (user) {
+      // Handle pending event interest
+      const pendingEventId = localStorage.getItem('pendingEventInterest');
+      if (pendingEventId) {
+        // Remove the item from localStorage first to prevent repeated attempts
+        localStorage.removeItem('pendingEventInterest');
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+        // Insert interest for the pending event
+        const addEventInterest = async () => {
+          try {
+            const { error } = await supabase
+              .from('event_interests')
+              .insert({
+                event_id: pendingEventId,
+                user_id: user.id
+              });
+
+            if (error) {
+              console.error('Failed to add event interest:', error);
+              toast.error('Could not automatically add event interest');
+            } else {
+              toast.success('You are now interested in the event');
+            }
+          } catch (err) {
+            console.error('Unexpected error adding event interest:', err);
+          }
+        };
+
+        addEventInterest();
+      }
+      
+      // Handle pending venue favorite
+      const pendingVenueFavoriteId = localStorage.getItem('pendingVenueFavorite');
+      if (pendingVenueFavoriteId) {
+        // Remove the item from localStorage first
+        localStorage.removeItem('pendingVenueFavorite');
+        
+        // Add the venue to favorites
+        const addVenueFavorite = async () => {
+          try {
+            const { error } = await supabase
+              .from('venue_favorites')
+              .insert({
+                venue_id: pendingVenueFavoriteId,
+                user_id: user.id
+              });
+              
+            if (error) {
+              console.error('Failed to add venue to favorites:', error);
+              toast.error('Could not automatically add venue to favorites');
+            } else {
+              toast.success('Venue added to favorites');
+            }
+          } catch (err) {
+            console.error('Unexpected error adding venue favorite:', err);
+          }
+        };
+        
+        addVenueFavorite();
+      }
+    }
+  }, [user]);
+
+  return (
+    <AuthContext.Provider value={{ user, userType, firstName, lastName, loading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;

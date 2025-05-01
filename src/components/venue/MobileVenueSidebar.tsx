@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
+import { X, ShieldCheck, UserCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -20,8 +20,6 @@ import { cn } from '@/lib/utils';
 import type { VenueSidebarDisplayMode } from './VenueSidebar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
-import { TodoListDialog } from './TodoListDialog';
-import { useTodoLists } from '@/hooks/useTodoLists';
 
 interface MobileVenueSidebarProps {
   venue: Venue;
@@ -31,7 +29,6 @@ interface MobileVenueSidebarProps {
   open: boolean;
   displayMode?: VenueSidebarDisplayMode;
   onOpenCheckInDialog?: () => void;
-  onOpenTodoListDialog?: () => void;
 }
 
 const MobileVenueSidebar = ({ 
@@ -41,19 +38,12 @@ const MobileVenueSidebar = ({
   children,
   open,
   displayMode = 'full',
-  onOpenCheckInDialog,
-  onOpenTodoListDialog
+  onOpenCheckInDialog
 }: MobileVenueSidebarProps) => {
   const [position, setPosition] = useState(0);
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
-  const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { isVenueInAnyTodoList, getTodoListForVenue } = useTodoLists();
-  
-  // Get todo list status for this venue if user is logged in
-  const venueInTodoList = user && venue ? isVenueInAnyTodoList(venue.id) : false;
-  const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
   
   // Create a handler function that converts string to number if needed
   const handleSnapPointChange = (snapPoint: string | number) => {
@@ -77,18 +67,10 @@ const MobileVenueSidebar = ({
     setIsCheckInDialogOpen(true);
   };
 
-  // Handle todo list dialog 
-  const handleTodoListClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsTodoListDialogOpen(true);
-  };
-
   // Handle success callback for check-in
   const handleCheckInSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['venueCheckins', venue.id] });
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
-    // Also invalidate todo lists to update completion status
-    queryClient.invalidateQueries({ queryKey: ['todoListVenues', user?.id] });
   };
 
   return (
@@ -161,30 +143,16 @@ const MobileVenueSidebar = ({
           
           {/* Action buttons positioned at the bottom right of header */}
           <div className="absolute bottom-3 right-4 flex gap-2">
-            {user && userType === 'regular' && (
-              <>
-                {displayMode === 'full' && (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleCheckInClick}
-                    className="flex items-center gap-1"
-                  >
-                    <UserCheck size={16} />
-                    <span>Check In</span>
-                  </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  variant={venueInTodoList ? "secondary" : "outline"}
-                  onClick={handleTodoListClick}
-                  className="flex items-center gap-1"
-                  title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
-                >
-                  <ListTodo size={16} />
-                  <span>{venueInTodoList ? "In ToDo" : "ToDo"}</span>
-                </Button>
-              </>
+            {user && userType === 'regular' && displayMode === 'full' && (
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleCheckInClick}
+                className="flex items-center gap-1"
+              >
+                <UserCheck size={16} />
+                <span>Check In</span>
+              </Button>
             )}
             {venue.id && <VenueFollowButton venueId={venue.id} />}
           </div>
@@ -208,19 +176,12 @@ const MobileVenueSidebar = ({
 
         {/* Add CheckInDialog component to handle check-in functionality */}
         {venue && user && (
-          <>
-            <CheckInDialog
-              venue={venue}
-              isOpen={isCheckInDialogOpen}
-              onClose={() => setIsCheckInDialogOpen(false)}
-              onSuccess={handleCheckInSuccess}
-            />
-            <TodoListDialog
-              venue={venue}
-              isOpen={isTodoListDialogOpen}
-              onClose={() => setIsTodoListDialogOpen(false)}
-            />
-          </>
+          <CheckInDialog
+            venue={venue}
+            isOpen={isCheckInDialogOpen}
+            onClose={() => setIsCheckInDialogOpen(false)}
+            onSuccess={handleCheckInSuccess}
+          />
         )}
       </DrawerContent>
     </Drawer>

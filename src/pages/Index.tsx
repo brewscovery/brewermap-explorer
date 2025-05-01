@@ -37,6 +37,7 @@ const Index = () => {
     }
   }, [error]);
 
+  // The Map component itself should not be conditionally rendered based on auth state
   return (
     <div className="flex-1 flex flex-col h-full">
       <Map

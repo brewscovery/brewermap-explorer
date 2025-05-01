@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
@@ -16,7 +15,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard, Calendar, ListTodo
+  CreditCard, Calendar
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -260,15 +259,6 @@ const SidebarContentComponent = () => {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      isActive={isActive('/dashboard/todo-lists')}
-                      onClick={() => handleNavigationWithSidebarClose('/dashboard/todo-lists')}
-                    >
-                      <ListTodo size={18} />
-                      <span>ToDo Lists</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton 
                       isActive={isActive('/dashboard/history')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/history')}
                     >
@@ -305,6 +295,7 @@ const SidebarContentComponent = () => {
                   </SidebarMenuItem>
                 </>
               )}
+
             </>
           )}
         </SidebarMenu>
