@@ -11,6 +11,7 @@ import WebsiteSection from './WebsiteSection';
 import ContactInfoSection from './ContactInfoSection';
 import LogoUploadSection from './logo';
 import BreweryVerificationField from '@/components/admin/brewery/form/BreweryVerificationField';
+import BreweryIndependentField from '@/components/admin/brewery/form/BreweryIndependentField';
 import { brewerySchema } from '@/components/admin/brewery/form/types';
 import type { Brewery } from '@/types/brewery';
 
@@ -46,6 +47,7 @@ const BreweryFormContent = ({
       logo_url: initialData?.logo_url || null,
       is_verified: initialData?.is_verified || false,
       country: initialData?.country || 'Australia',
+      is_independent: initialData?.is_independent || false,
     },
   });
 
@@ -61,6 +63,7 @@ const BreweryFormContent = ({
         logo_url: initialData.logo_url || null,
         is_verified: initialData.is_verified || false,
         country: initialData.country || 'Australia',
+        is_independent: initialData.is_independent || false,
       });
     }
   }, [initialData, form]);
@@ -79,7 +82,10 @@ const BreweryFormContent = ({
         
         {/* Show verification toggle only for admin users */}
         {isAdminMode && (
-          <BreweryVerificationField form={form} />
+          <>
+            <BreweryVerificationField form={form} />
+            <BreweryIndependentField form={form} />
+          </>
         )}
         
         {/* Show logo upload for everyone */}

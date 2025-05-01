@@ -60,7 +60,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
       
       const { data, error } = await supabase
         .from('breweries')
-        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url, is_verified')
+        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url, is_verified, is_independent')
         .eq('id', venue.brewery_id)
         .single();
       
@@ -225,16 +225,28 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
                 name={breweryInfo?.name}
                 size="medium"
               />
-              {breweryInfo?.is_verified ? (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                  <ShieldCheck size={14} />
-                  <span>Verified Brewery</span>
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="text-muted-foreground">
-                  Unverified
-                </Badge>
-              )}
+              <div className="flex flex-col gap-1 items-center">
+                {breweryInfo?.is_verified ? (
+                  <Badge variant="secondary" className="flex items-center gap-1">
+                    <ShieldCheck size={14} />
+                    <span>Verified Brewery</span>
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-muted-foreground">
+                    Unverified
+                  </Badge>
+                )}
+                
+                {breweryInfo?.is_independent && (
+                  <div className="mt-1">
+                    <img 
+                      src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                      alt="Certified Independent Brewery" 
+                      className="h-8" 
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div className="min-w-0">
               <h2 className="text-xl font-bold truncate">{venue.name}</h2>

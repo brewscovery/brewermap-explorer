@@ -12,6 +12,7 @@ export const brewerySchema = z.object({
   is_verified: z.boolean().default(false),
   country: z.string().optional().nullable(),
   contact_phone: z.string().optional(),
+  is_independent: z.boolean().optional().nullable().default(false),
 });
 
 export type BreweryFormValues = z.infer<typeof brewerySchema>;
