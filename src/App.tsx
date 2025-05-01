@@ -38,7 +38,7 @@ import AdminRoute from '@/components/protected/AdminRoute';
 const queryClient = new QueryClient();
 
 function App() {
-  const { user, setUser, userType, setUserType } = useAuth();
+  const { user, setUser, userType, setUserType, setFirstName, setLastName } = useAuth();
   
   useEffect(() => {
     // Set up auth state listener
@@ -51,12 +51,14 @@ function App() {
         try {
           const { data: profile, error } = await supabase
             .from('profiles')
-            .select('user_type')
+            .select('user_type, first_name, last_name')
             .eq('id', session.user.id)
             .single();
           
           if (error) throw error;
           setUserType(profile.user_type);
+          setFirstName(profile.first_name);
+          setLastName(profile.last_name);
           
         } catch (err) {
           console.error('Error fetching user profile:', err);
@@ -65,6 +67,8 @@ function App() {
       } else {
         setUser(null);
         setUserType(null);
+        setFirstName(null);
+        setLastName(null);
       }
     });
 
@@ -72,7 +76,7 @@ function App() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [setUser, setUserType]);
+  }, [setUser, setUserType, setFirstName, setLastName]);
   
   return (
     <QueryClientProvider client={queryClient}>
@@ -95,7 +99,11 @@ function App() {
               <Route path="dashboard/todo-lists" element={<TodoListsPage />} />
               
               {/* Admin Routes */}
-              <Route path="admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+              <Route path="admin" element={
+                <AdminRoute>
+                  <AdminLayout />
+                </AdminRoute>
+              }>
                 <Route index element={<AdminIndex />} />
                 <Route path="breweries" element={<AdminBreweries />} />
                 <Route path="claims" element={<AdminClaims />} />

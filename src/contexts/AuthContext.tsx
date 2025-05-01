@@ -11,6 +11,10 @@ export interface AuthContextType {
   userType: UserType;
   setUserType: (userType: UserType) => void;
   loading: boolean;
+  firstName: string | null;
+  lastName: string | null;
+  setFirstName: (firstName: string | null) => void;
+  setLastName: (lastName: string | null) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,12 +23,18 @@ const AuthContext = createContext<AuthContextType>({
   userType: null,
   setUserType: () => {},
   loading: true,
+  firstName: null,
+  lastName: null,
+  setFirstName: () => {},
+  setLastName: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [userType, setUserType] = useState<UserType>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
 
   useEffect(() => {
     const getSession = async () => {
@@ -36,12 +46,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('user_type')
+              .select('user_type, first_name, last_name')
               .eq('id', session.user.id)
               .single();
             
             if (profile) {
               setUserType(profile.user_type);
+              setFirstName(profile.first_name);
+              setLastName(profile.last_name);
             }
           } catch (err) {
             console.error('Error fetching user profile:', err);
@@ -64,6 +76,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     userType,
     setUserType,
     loading,
+    firstName,
+    lastName,
+    setFirstName,
+    setLastName,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
