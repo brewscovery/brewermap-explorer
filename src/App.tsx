@@ -27,6 +27,7 @@ import { useAuth } from "./contexts/AuthContext";
 import AppLayout from "./components/layout/AppLayout";
 import AdminContentLayout from "./components/admin/AdminContentLayout";
 import EventsPage from "./pages/dashboard/EventsPage";
+import TodoListsPage from "./pages/dashboard/TodoListsPage"
 
 const UserTypeRoute = ({ 
   element, 
@@ -94,6 +95,7 @@ const App = () => {
                   <Route path="events" element={<EventsPage />} />
                   
                   <Route path="favorites" element={<FavoritesPage />} />
+                  <Route path="todoLists" element={<TodoListsPage />} />
                   <Route path="history" element={<CheckInHistoryPage />} />
                   <Route path="discoveries" element={<DiscoveriesPage />} />
                   <Route path="subscription" element={<SubscriptionPage />} />
