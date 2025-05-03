@@ -15,7 +15,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard, Calendar
+  CreditCard, Calendar, ListTodo
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -255,6 +255,15 @@ const SidebarContentComponent = () => {
                     >
                       <Star size={18} />
                       <span>My Favorites</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/todo-lists')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/todo-lists')}
+                    >
+                      <ListTodo size={18} />
+                      <span>ToDo Lists</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>

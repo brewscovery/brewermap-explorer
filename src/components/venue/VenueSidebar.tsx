@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, ShieldCheck, Navigation, UserCheck } from 'lucide-react';
+import { X, ShieldCheck, Navigation, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +26,8 @@ import EventsSection from './sections/EventsSection';
 import { VenueFollowButton } from './VenueFollowButton';
 import type { Brewery } from '@/types/brewery';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { TodoListDialog } from './TodoListDialog';
+import { useTodoLists } from '@/hooks/useTodoLists';
 
 export type VenueSidebarDisplayMode = 'full' | 'favorites';
 
@@ -38,8 +40,11 @@ interface VenueSidebarProps {
 const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
+  const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  
+  const { isVenueInAnyTodoList, getTodoListForVenue } = useTodoLists();
   
   const venueId = venue?.id || null;
   
@@ -125,10 +130,16 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const handleCheckInSuccess = () => {
     queryClient.invalidateQueries({ queryKey: ['venueCheckins', venueId] });
     queryClient.invalidateQueries({ queryKey: ['checkins', user?.id] });
+    // Also invalidate todo lists to update completion status
+    queryClient.invalidateQueries({ queryKey: ['todoListVenues', user?.id] });
   };
 
   const handleOpenCheckInDialog = () => {
     setIsCheckInDialogOpen(true);
+  };
+
+  const handleOpenTodoListDialog = () => {
+    setIsTodoListDialogOpen(true);
   };
 
   const hasCoordinates = venue?.latitude && venue?.longitude;
@@ -152,6 +163,10 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const isMobile = useIsMobile();
   
   if (!venue) return null;
+
+  // Get todo list status for this venue if user is logged in
+  const venueInTodoList = user && venue ? isVenueInAnyTodoList(venue.id) : false;
+  const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
 
   // Create content based on display mode
   const overviewContent = (
@@ -208,6 +223,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
         open={true}
         displayMode={displayMode}
         onOpenCheckInDialog={user && userType === 'regular' ? handleOpenCheckInDialog : undefined}
+        onOpenTodoListDialog={user && userType === 'regular' ? handleOpenTodoListDialog : undefined}
       >
         {overviewContent}
       </MobileVenueSidebar>
@@ -264,16 +280,30 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
         
         {/* Action buttons positioned at the bottom right of header */}
         <div className="absolute bottom-4 right-6 flex gap-2">
-          {user && userType === 'regular' && displayMode === 'full' && (
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={handleOpenCheckInDialog}
-              className="flex items-center gap-1"
-            >
-              <UserCheck size={16} />
-              <span>Check In</span>
-            </Button>
+        {user && userType === 'regular' && (
+            <>
+              {displayMode === 'full' && (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  onClick={handleOpenCheckInDialog}
+                  className="flex items-center gap-1"
+                >
+                  <UserCheck size={16} />
+                  <span>Check In</span>
+                </Button>
+              )}
+              <Button 
+                size="sm" 
+                variant={venueInTodoList ? "secondary" : "outline"}
+                onClick={handleOpenTodoListDialog}
+                className="flex items-center gap-1"
+                title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
+              >
+                <ListTodo size={16} />
+                <span>{venueInTodoList ? "In ToDo" : "ToDo"}</span>
+              </Button>
+            </>
           )}
           {venue.id && <VenueFollowButton venueId={venue.id} />}
         </div>
@@ -295,12 +325,19 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
       </div>
 
       {venue && user && (
+        <>
         <CheckInDialog
           venue={venue}
           isOpen={isCheckInDialogOpen}
           onClose={() => setIsCheckInDialogOpen(false)}
           onSuccess={handleCheckInSuccess}
         />
+        <TodoListDialog
+          venue={venue}
+          isOpen={isTodoListDialogOpen}
+          onClose={() => setIsTodoListDialogOpen(false)}
+        />
+      </>
       )}
     </div>
   );

@@ -17,6 +17,7 @@ export type Database = {
           facebook_url: string | null
           id: string
           instagram_url: string | null
+          is_independent: boolean | null
           is_verified: boolean | null
           logo_url: string | null
           name: string
@@ -30,6 +31,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          is_independent?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name: string
@@ -43,6 +45,7 @@ export type Database = {
           facebook_url?: string | null
           id?: string
           instagram_url?: string | null
+          is_independent?: boolean | null
           is_verified?: boolean | null
           logo_url?: string | null
           name?: string
@@ -245,6 +248,75 @@ export type Database = {
           last_name?: string | null
           updated_at?: string
           user_type?: Database["public"]["Enums"]["user_type"]
+        }
+        Relationships: []
+      }
+      todo_list_venues: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean
+          todo_list_id: string
+          updated_at: string
+          venue_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          todo_list_id: string
+          updated_at?: string
+          venue_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean
+          todo_list_id?: string
+          updated_at?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_todo_list"
+            columns: ["todo_list_id"]
+            isOneToOne: false
+            referencedRelation: "todo_lists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_venue"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      todo_lists: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
