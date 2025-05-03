@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import EnhancedSearchBar from '@/components/search/EnhancedSearchBar';
+import { useVenueData } from '@/hooks/useVenueData';
 
 interface DashboardHeaderProps {
   displayName: string;
@@ -22,6 +23,7 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
+  const { setSelectedVenue } = useVenueData();
 
   const handleLogout = async () => {
     try {
@@ -34,10 +36,11 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
     }
   };
 
-  const handleSearch = (searchTerm: string, searchType: 'name' | 'city' | 'country') => {
-    // When searching from dashboard, navigate to the main map view with search params
+  const handleVenueSelect = (venue) => {
+    console.log('Venue selected from dashboard search:', venue);
+    setSelectedVenue(venue);
+    // When searching from dashboard, navigate to the main map view
     navigate('/');
-    // The search will be handled by the useVenueData hook in the Index component
   };
   
   return (
@@ -54,7 +57,7 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
 
       <div className="flex-1 flex justify-center">
         <EnhancedSearchBar 
-          onSearch={handleSearch} 
+          onVenueSelect={handleVenueSelect} 
           className="max-w-md w-full"
         />
       </div>

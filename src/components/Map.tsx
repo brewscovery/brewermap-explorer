@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -83,6 +84,14 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
       setVisitedVenueIds([]);
     }
   }, [checkins, user, isLoading]);
+
+  // Update local selected venue when prop changes
+  useEffect(() => {
+    const selectedVenueFromProps = venues.find(v => v === onVenueSelect.selectedVenue);
+    if (selectedVenueFromProps && (!selectedVenue || selectedVenue.id !== selectedVenueFromProps.id)) {
+      handleVenueSelect(selectedVenueFromProps);
+    }
+  }, [venues, onVenueSelect.selectedVenue]);
 
   const handleVenueSelect = (venue: Venue) => {
     if (map.current && venue.latitude && venue.longitude) {

@@ -21,7 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
-  const { updateSearch } = useVenueData();
+  const { setSelectedVenue } = useVenueData();
   
   // Try/catch to handle case when Header is used outside a SidebarProvider
   let sidebarState = null;
@@ -78,8 +78,9 @@ const Header = () => {
   
   const { toggleSidebar } = useSidebar();
 
-  const handleSearch = (searchTerm: string, searchType: 'name' | 'city' | 'country') => {
-    updateSearch(searchTerm, searchType);
+  const handleVenueSelect = (venue) => {
+    console.log('Venue selected from search:', venue);
+    setSelectedVenue(venue);
     
     // If we're not already on the homepage, navigate there
     if (location.pathname !== '/') {
@@ -101,7 +102,7 @@ const Header = () => {
 
       <div className="flex-1 flex justify-center">
         <EnhancedSearchBar 
-          onSearch={handleSearch} 
+          onVenueSelect={handleVenueSelect} 
           className="max-w-md w-full"
         />
       </div>
