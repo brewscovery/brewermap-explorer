@@ -90,7 +90,6 @@ const MobileVenueSidebar = ({
     // Also invalidate todo lists to update completion status
     queryClient.invalidateQueries({ queryKey: ['todoListVenues', user?.id] });
   };
-  };
 
   return (
     <Drawer
@@ -227,5 +226,4 @@ const MobileVenueSidebar = ({
     </Drawer>
   );
 };
-
 export default MobileVenueSidebar;
