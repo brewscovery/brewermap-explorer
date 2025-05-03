@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useTodoLists } from '@/hooks/useTodoLists';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,6 +33,8 @@ const TodoListsPage = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [listToDelete, setListToDelete] = useState<string | null>(null);
   
+  console.log("TodoListsPage rendering, user:", user);
+  
   const {
     todoLists,
     todoListVenues,
@@ -40,6 +43,10 @@ const TodoListsPage = () => {
     createTodoList,
     toggleVenueCompletion
   } = useTodoLists();
+  
+  console.log("todoLists:", todoLists);
+  console.log("todoListVenues:", todoListVenues);
+  console.log("isLoadingTodoLists:", isLoadingTodoLists);
 
   const handleAddList = async () => {
     if (newListName.trim()) {

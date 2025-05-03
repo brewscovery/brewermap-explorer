@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,12 +22,19 @@ export const useTodoLists = () => {
     queryFn: async () => {
       if (!user) return [];
       
+      console.log("Fetching todo lists for user:", user.id);
       const { data, error } = await supabase
         .from('todo_lists')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching todo lists:", error);
+        throw error;
+      }
+      
+      console.log("Todo lists fetched:", data);
       return data as TodoList[];
     },
     enabled: !!user
@@ -42,6 +50,7 @@ export const useTodoLists = () => {
     queryFn: async () => {
       if (!user) return [];
       
+      console.log("Fetching todo list venues for user:", user.id);
       const { data, error } = await supabase
         .from('todo_list_venues')
         .select(`
@@ -51,7 +60,12 @@ export const useTodoLists = () => {
         `)
         .eq('todo_lists.user_id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching todo list venues:", error);
+        throw error;
+      }
+      
+      console.log("Todo list venues fetched:", data);
       return data as (TodoListVenue & { venues: Venue, todo_lists: TodoList })[];
     },
     enabled: !!user
@@ -62,13 +76,19 @@ export const useTodoLists = () => {
     mutationFn: async (name: string) => {
       if (!user) throw new Error('User not authenticated');
       
+      console.log("Creating new todo list:", name);
       const { data, error } = await supabase
         .from('todo_lists')
         .insert({ name, user_id: user.id })
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating todo list:", error);
+        throw error;
+      }
+      
+      console.log("New todo list created:", data);
       return data as TodoList;
     },
     onSuccess: (newList) => {

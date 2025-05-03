@@ -259,8 +259,8 @@ const SidebarContentComponent = () => {
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
-                      isActive={isActive('/dashboard/todo-lists')}
-                      onClick={() => handleNavigationWithSidebarClose('/dashboard/todo-lists')}
+                      isActive={isActive('/dashboard/todoLists')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/todoLists')}
                     >
                       <ListTodo size={18} />
                       <span>ToDo Lists</span>
