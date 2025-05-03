@@ -17,7 +17,6 @@ const Index = () => {
     refetch,
     selectedVenue,
     setSelectedVenue,
-    updateSearch
   } = useVenueData();
 
   // Handle auth redirects for recovery/signup flows

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import EnhancedSearchBar from '@/components/search/EnhancedSearchBar';
 
 interface DashboardHeaderProps {
   displayName: string;
@@ -31,6 +33,12 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
       toast.error('Failed to logout. Please try again.');
     }
   };
+
+  const handleSearch = (searchTerm: string, searchType: 'name' | 'city' | 'country') => {
+    // When searching from dashboard, navigate to the main map view with search params
+    navigate('/');
+    // The search will be handled by the useVenueData hook in the Index component
+  };
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between sticky top-0 z-10">
@@ -45,10 +53,13 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
       </Button>
 
       <div className="flex-1 flex justify-center">
-        <h1 className="text-xl font-bold">Brewery Dashboard</h1>
+        <EnhancedSearchBar 
+          onSearch={handleSearch} 
+          className="max-w-md w-full"
+        />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ml-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">

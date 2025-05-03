@@ -7,6 +7,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import LoginPopover from '@/components/auth/LoginPopover';
 import { useSidebar } from '@/components/ui/sidebar';
+import EnhancedSearchBar from '@/components/search/EnhancedSearchBar';
+import { useVenueData } from '@/hooks/useVenueData';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
+  const { updateSearch } = useVenueData();
   
   // Try/catch to handle case when Header is used outside a SidebarProvider
   let sidebarState = null;
@@ -74,6 +77,15 @@ const Header = () => {
   };
   
   const { toggleSidebar } = useSidebar();
+
+  const handleSearch = (searchTerm: string, searchType: 'name' | 'city' | 'country') => {
+    updateSearch(searchTerm, searchType);
+    
+    // If we're not already on the homepage, navigate there
+    if (location.pathname !== '/') {
+      navigate('/');
+    }
+  };
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b fixed w-full z-50 flex items-center">
@@ -88,10 +100,13 @@ const Header = () => {
       </Button>
 
       <div className="flex-1 flex justify-center">
-        <h1 className="text-xl font-bold">Brewery Explorer</h1>
+        <EnhancedSearchBar 
+          onSearch={handleSearch} 
+          className="max-w-md w-full"
+        />
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 ml-4">
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
