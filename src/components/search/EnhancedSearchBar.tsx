@@ -56,10 +56,8 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     
     // Make sure we're passing a valid venue object
     if (venue && venue.id) {
-      // Add a small delay to ensure UI updates first
-      setTimeout(() => {
-        onVenueSelect(venue);
-      }, 10);
+      // Call the parent component's handler immediately
+      onVenueSelect(venue);
     }
   };
 

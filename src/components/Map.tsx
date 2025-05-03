@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/MapLayers';
@@ -89,49 +89,45 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
     }
   }, [checkins, user, isLoading]);
 
-  // Update local selected venue when selectedVenueFromProps changes
+  // Update local selected venue and zoom map when selectedVenueFromProps changes
   useEffect(() => {
     if (selectedVenueFromProps) {
       console.log('Map received selected venue from props:', selectedVenueFromProps.name);
       setLocalSelectedVenue(selectedVenueFromProps);
       
-      // Zoom to venue location after a short delay to ensure the map is ready
-      const timer = setTimeout(() => {
-        if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
-          try {
-            console.log('Zooming map to venue coordinates:', {
-              lng: selectedVenueFromProps.longitude,
-              lat: selectedVenueFromProps.latitude
-            });
-            
-            const headerHeight = 73;
-            const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-            
-            map.current.flyTo({
-              center: [
-                parseFloat(selectedVenueFromProps.longitude), 
-                parseFloat(selectedVenueFromProps.latitude)
-              ],
-              offset: [0, -(drawerHeight / 2)], // Offset for drawer
-              zoom: 15,
-              duration: 1500
-            });
-          } catch (error) {
-            console.error('Error zooming to venue:', error);
-          }
-        } else {
-          console.warn(
-            'Cannot zoom to venue: Map not ready or venue missing coordinates',
-            {
-              mapReady: !!map.current,
-              lng: selectedVenueFromProps.longitude,
-              lat: selectedVenueFromProps.latitude
-            }
-          );
+      // Zoom to venue location if map is ready
+      if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
+        try {
+          console.log('Zooming map to venue coordinates:', {
+            lng: selectedVenueFromProps.longitude,
+            lat: selectedVenueFromProps.latitude
+          });
+          
+          const headerHeight = 73;
+          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+          
+          map.current.flyTo({
+            center: [
+              parseFloat(selectedVenueFromProps.longitude), 
+              parseFloat(selectedVenueFromProps.latitude)
+            ],
+            offset: [0, -(drawerHeight / 2)], // Offset for drawer
+            zoom: 15,
+            duration: 1500
+          });
+        } catch (error) {
+          console.error('Error zooming to venue:', error);
         }
-      }, 100);
-      
-      return () => clearTimeout(timer);
+      } else {
+        console.warn(
+          'Cannot zoom to venue: Map not ready or venue missing coordinates',
+          {
+            mapReady: !!map.current,
+            lng: selectedVenueFromProps.longitude,
+            lat: selectedVenueFromProps.latitude
+          }
+        );
+      }
     }
   }, [selectedVenueFromProps]);
 

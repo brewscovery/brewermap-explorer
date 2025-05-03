@@ -82,6 +82,7 @@ const Header = () => {
     if (!venue) return;
     
     console.log('Venue selected from search:', venue);
+    // Set the selected venue first
     setSelectedVenue(venue);
     
     // If we're not already on the homepage, navigate there

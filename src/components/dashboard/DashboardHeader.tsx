@@ -13,8 +13,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import EnhancedSearchBar from '@/components/search/EnhancedSearchBar';
-import { useVenueData } from '@/hooks/useVenueData';
 
 interface DashboardHeaderProps {
   displayName: string;
@@ -23,7 +21,6 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
-  const { setSelectedVenue } = useVenueData();
 
   const handleLogout = async () => {
     try {
@@ -34,20 +31,6 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
     } catch (error: any) {
       toast.error('Failed to logout. Please try again.');
     }
-  };
-
-  const handleVenueSelect = (venue) => {
-    if (!venue) return;
-    
-    console.log('Venue selected from dashboard search:', venue);
-    
-    // First navigate to map view if not already there
-    navigate('/');
-    
-    // Use setTimeout to ensure navigation completes first
-    setTimeout(() => {
-      setSelectedVenue(venue);
-    }, 50);
   };
   
   return (
@@ -62,12 +45,7 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
         <span className="sr-only">Toggle Sidebar</span>
       </Button>
 
-      <div className="flex-1 flex justify-center">
-        <EnhancedSearchBar 
-          onVenueSelect={handleVenueSelect} 
-          className="max-w-md w-full"
-        />
-      </div>
+      <div className="flex-1"></div>
 
       <div className="flex items-center gap-4 ml-4">
         <DropdownMenu>

@@ -39,7 +39,10 @@ const Index = () => {
   // Handle venue selection
   const handleVenueSelect = (venue) => {
     console.log('Index page: Setting selected venue:', venue?.name || 'none');
-    setSelectedVenue(venue);
+    // Make sure we're passing a valid venue object
+    if (venue && venue.id) {
+      setSelectedVenue(venue);
+    }
   };
 
   return (
