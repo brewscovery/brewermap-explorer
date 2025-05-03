@@ -40,9 +40,14 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
     if (!venue) return;
     
     console.log('Venue selected from dashboard search:', venue);
-    setSelectedVenue(venue);
-    // When searching from dashboard, navigate to the main map view
+    
+    // First navigate to map view if not already there
     navigate('/');
+    
+    // Use setTimeout to ensure navigation completes first
+    setTimeout(() => {
+      setSelectedVenue(venue);
+    }, 50);
   };
   
   return (

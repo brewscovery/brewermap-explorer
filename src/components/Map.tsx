@@ -93,58 +93,70 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   useEffect(() => {
     if (selectedVenueFromProps) {
       console.log('Map received selected venue from props:', selectedVenueFromProps.name);
-      
-      // Don't call handleVenueSelect directly, as it would trigger another call to onVenueSelect,
-      // which could cause an infinite loop. Instead, perform the map actions directly here.
-      if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
-        const bounds = map.current.getContainer().getBoundingClientRect();
-        const headerHeight = 73;
-        const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
-        
-        // Calculate the visible map height (viewport minus header minus drawer)
-        const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
-        
-        console.log('Zooming map to venue location:', selectedVenueFromProps.name);
-        
-        // Calculate the target center point to place the venue in the middle of the visible area
-        const targetCenter = map.current.unproject([
-          bounds.width / 2,
-          (visibleMapHeight / 2) + headerHeight
-        ]);
-        
-        map.current.flyTo({
-          center: [parseFloat(selectedVenueFromProps.longitude), parseFloat(selectedVenueFromProps.latitude)],
-          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
-          zoom: 15,
-          duration: 1500
-        });
-      }
-      
       setLocalSelectedVenue(selectedVenueFromProps);
+      
+      // Zoom to venue location after a short delay to ensure the map is ready
+      const timer = setTimeout(() => {
+        if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
+          try {
+            console.log('Zooming map to venue coordinates:', {
+              lng: selectedVenueFromProps.longitude,
+              lat: selectedVenueFromProps.latitude
+            });
+            
+            const headerHeight = 73;
+            const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+            
+            map.current.flyTo({
+              center: [
+                parseFloat(selectedVenueFromProps.longitude), 
+                parseFloat(selectedVenueFromProps.latitude)
+              ],
+              offset: [0, -(drawerHeight / 2)], // Offset for drawer
+              zoom: 15,
+              duration: 1500
+            });
+          } catch (error) {
+            console.error('Error zooming to venue:', error);
+          }
+        } else {
+          console.warn(
+            'Cannot zoom to venue: Map not ready or venue missing coordinates',
+            {
+              mapReady: !!map.current,
+              lng: selectedVenueFromProps.longitude,
+              lat: selectedVenueFromProps.latitude
+            }
+          );
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [selectedVenueFromProps]);
 
   const handleVenueSelect = (venue: Venue) => {
+    console.log('Map handleVenueSelect called with venue:', venue.name);
+    
     if (map.current && venue.latitude && venue.longitude) {
-      const bounds = map.current.getContainer().getBoundingClientRect();
       const headerHeight = 73;
       const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
       
-      // Calculate the visible map height (viewport minus header minus drawer)
-      const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
-      
-      // Calculate the target center point to place the venue in the middle of the visible area
-      const targetCenter = map.current.unproject([
-        bounds.width / 2,
-        (visibleMapHeight / 2) + headerHeight
-      ]);
-      
-      map.current.flyTo({
-        center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
-        offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
-        zoom: 15,
-        duration: 1500
-      });
+      try {
+        console.log('Zooming map to venue coordinates:', {
+          lng: venue.longitude,
+          lat: venue.latitude
+        });
+        
+        map.current.flyTo({
+          center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
+          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+          zoom: 15,
+          duration: 1500
+        });
+      } catch (error) {
+        console.error('Error in flyTo:', error);
+      }
     }
     
     setLocalSelectedVenue(venue);

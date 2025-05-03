@@ -53,7 +53,14 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     console.log('Venue selected from EnhancedSearchBar:', venue.name);
     setInputValue(venue.name);
     setIsDropdownOpen(false);
-    onVenueSelect(venue);
+    
+    // Make sure we're passing a valid venue object
+    if (venue && venue.id) {
+      // Add a small delay to ensure UI updates first
+      setTimeout(() => {
+        onVenueSelect(venue);
+      }, 10);
+    }
   };
 
   return (

@@ -36,11 +36,17 @@ const Index = () => {
     }
   }, [error]);
 
+  // Handle venue selection
+  const handleVenueSelect = (venue) => {
+    console.log('Index page: Setting selected venue:', venue?.name || 'none');
+    setSelectedVenue(venue);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       <Map
         venues={venues}
-        onVenueSelect={setSelectedVenue}
+        onVenueSelect={handleVenueSelect}
         selectedVenue={selectedVenue}
       />
     </div>
