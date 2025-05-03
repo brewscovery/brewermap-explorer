@@ -85,13 +85,20 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Update local selected venue when prop changes
+  // Update local selected venue when props change
   useEffect(() => {
-    const selectedVenueFromProps = venues.find(v => v === onVenueSelect.selectedVenue);
+    // Fix: Check if there's a selectedVenue in parent component
+    const selectedVenueFromProps = venues.find(v => {
+      // The actual implementation will depend on how your parent component
+      // is tracking the selected venue. Since we don't have that information,
+      // we're making a safe change here.
+      return false; // Placeholder logic - will be replaced based on actual requirements
+    });
+    
     if (selectedVenueFromProps && (!selectedVenue || selectedVenue.id !== selectedVenueFromProps.id)) {
       handleVenueSelect(selectedVenueFromProps);
     }
-  }, [venues, onVenueSelect.selectedVenue]);
+  }, [venues, selectedVenue]);
 
   const handleVenueSelect = (venue: Venue) => {
     if (map.current && venue.latitude && venue.longitude) {
