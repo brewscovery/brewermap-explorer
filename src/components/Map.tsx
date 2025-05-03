@@ -14,14 +14,18 @@ import VenueSidebar from './venue/VenueSidebar';
 interface MapProps {
   venues: Venue[];
   onVenueSelect: (venue: Venue) => void;
+  selectedVenue?: Venue | null;
 }
 
-const Map = ({ venues, onVenueSelect }: MapProps) => {
+const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
+  
+  // Use either the prop value or local state
+  const selectedVenue = selectedVenueFromProps || localSelectedVenue;
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -85,20 +89,12 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Update local selected venue when props change
+  // Update local selected venue when selectedVenueFromProps changes
   useEffect(() => {
-    // Fix: Check if there's a selectedVenue in parent component
-    const selectedVenueFromProps = venues.find(v => {
-      // The actual implementation will depend on how your parent component
-      // is tracking the selected venue. Since we don't have that information,
-      // we're making a safe change here.
-      return false; // Placeholder logic - will be replaced based on actual requirements
-    });
-    
-    if (selectedVenueFromProps && (!selectedVenue || selectedVenue.id !== selectedVenueFromProps.id)) {
+    if (selectedVenueFromProps) {
       handleVenueSelect(selectedVenueFromProps);
     }
-  }, [venues, selectedVenue]);
+  }, [selectedVenueFromProps]);
 
   const handleVenueSelect = (venue: Venue) => {
     if (map.current && venue.latitude && venue.longitude) {
@@ -123,12 +119,16 @@ const Map = ({ venues, onVenueSelect }: MapProps) => {
       });
     }
     
-    setSelectedVenue(venue);
+    setLocalSelectedVenue(venue);
     onVenueSelect(venue);
   };
 
   const handleSidebarClose = () => {
-    setSelectedVenue(null);
+    setLocalSelectedVenue(null);
+    // Also notify parent component
+    if (selectedVenueFromProps) {
+      onVenueSelect(null as any);
+    }
   };
 
   return (

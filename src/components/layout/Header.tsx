@@ -79,6 +79,8 @@ const Header = () => {
   const { toggleSidebar } = useSidebar();
 
   const handleVenueSelect = (venue) => {
+    if (!venue) return;
+    
     console.log('Venue selected from search:', venue);
     setSelectedVenue(venue);
     

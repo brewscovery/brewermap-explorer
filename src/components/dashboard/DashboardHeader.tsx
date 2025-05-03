@@ -37,6 +37,8 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   };
 
   const handleVenueSelect = (venue) => {
+    if (!venue) return;
+    
     console.log('Venue selected from dashboard search:', venue);
     setSelectedVenue(venue);
     // When searching from dashboard, navigate to the main map view
