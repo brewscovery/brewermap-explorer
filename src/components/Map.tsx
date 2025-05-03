@@ -92,7 +92,35 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   // Update local selected venue when selectedVenueFromProps changes
   useEffect(() => {
     if (selectedVenueFromProps) {
-      handleVenueSelect(selectedVenueFromProps);
+      console.log('Map received selected venue from props:', selectedVenueFromProps.name);
+      
+      // Don't call handleVenueSelect directly, as it would trigger another call to onVenueSelect,
+      // which could cause an infinite loop. Instead, perform the map actions directly here.
+      if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
+        const bounds = map.current.getContainer().getBoundingClientRect();
+        const headerHeight = 73;
+        const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
+        
+        // Calculate the visible map height (viewport minus header minus drawer)
+        const visibleMapHeight = window.innerHeight - headerHeight - drawerHeight;
+        
+        console.log('Zooming map to venue location:', selectedVenueFromProps.name);
+        
+        // Calculate the target center point to place the venue in the middle of the visible area
+        const targetCenter = map.current.unproject([
+          bounds.width / 2,
+          (visibleMapHeight / 2) + headerHeight
+        ]);
+        
+        map.current.flyTo({
+          center: [parseFloat(selectedVenueFromProps.longitude), parseFloat(selectedVenueFromProps.latitude)],
+          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+          zoom: 15,
+          duration: 1500
+        });
+      }
+      
+      setLocalSelectedVenue(selectedVenueFromProps);
     }
   }, [selectedVenueFromProps]);
 
