@@ -17,7 +17,7 @@ interface MapProps {
   selectedVenue?: Venue | null;
 }
 
-const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
+const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
@@ -25,7 +25,7 @@ const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
   const queryClient = useQueryClient();
   
   // Use either the prop value or local state
-  const selectedVenue = selectedVenueFromProps || localSelectedVenue;
+  const selectedVenueToShow = selectedVenue || localSelectedVenue;
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -89,18 +89,18 @@ const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Update local selected venue and zoom map when selectedVenueFromProps changes
+  // Update local selected venue and zoom map when selectedVenue prop changes
   useEffect(() => {
-    if (selectedVenueFromProps) {
-      console.log('Map received selected venue from props:', selectedVenueFromProps.name);
-      setLocalSelectedVenue(selectedVenueFromProps);
+    if (selectedVenue) {
+      console.log('Map received selected venue from props:', selectedVenue.name);
+      setLocalSelectedVenue(selectedVenue);
       
       // Zoom to venue location if map is ready
-      if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
+      if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
         try {
           console.log('Zooming map to venue coordinates:', {
-            lng: selectedVenueFromProps.longitude,
-            lat: selectedVenueFromProps.latitude
+            lng: selectedVenue.longitude,
+            lat: selectedVenue.latitude
           });
           
           const headerHeight = 73;
@@ -108,8 +108,8 @@ const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
           
           map.current.flyTo({
             center: [
-              parseFloat(selectedVenueFromProps.longitude), 
-              parseFloat(selectedVenueFromProps.latitude)
+              parseFloat(selectedVenue.longitude), 
+              parseFloat(selectedVenue.latitude)
             ],
             offset: [0, -(drawerHeight / 2)], // Offset for drawer
             zoom: 15,
@@ -123,13 +123,13 @@ const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
           'Cannot zoom to venue: Map not ready or venue missing coordinates',
           {
             mapReady: !!map.current,
-            lng: selectedVenueFromProps.longitude,
-            lat: selectedVenueFromProps.latitude
+            lng: selectedVenue.longitude,
+            lat: selectedVenue.latitude
           }
         );
       }
     }
-  }, [selectedVenueFromProps]);
+  }, [selectedVenue]);
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('Map handleVenueSelect called with venue:', venue?.name || 'none');
@@ -188,9 +188,9 @@ const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
         </>
       )}
       
-      {selectedVenue && (
+      {selectedVenueToShow && (
         <VenueSidebar 
-          venue={selectedVenue} 
+          venue={selectedVenueToShow} 
           onClose={handleSidebarClose}
         />
       )}
