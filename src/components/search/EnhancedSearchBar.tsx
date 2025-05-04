@@ -1,9 +1,9 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useVenueSearch } from '@/hooks/useVenueSearch';
 import type { Venue } from '@/types/venue';
+import { toast } from 'sonner';
 
 interface EnhancedSearchBarProps {
   onVenueSelect: (venue: Venue) => void;
@@ -71,7 +71,7 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     // Check venue has required coordinates before selecting
     if (!venue.latitude || !venue.longitude) {
       console.warn('EnhancedSearchBar: Selected venue missing coordinates:', venue);
-      toast.warn('Selected venue is missing location coordinates');
+      toast.warning('Selected venue is missing location coordinates');
     }
     
     // Call the parent component's handler with the selected venue
