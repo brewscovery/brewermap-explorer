@@ -76,7 +76,7 @@ const Header = () => {
       lng: venue.longitude
     });
     
-    // Set the selected venue using the hook's function
+    // Set the selected venue
     setSelectedVenue(venue);
     console.log('Header: setSelectedVenue called with venue:', venue.name);
     

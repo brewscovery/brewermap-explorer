@@ -76,26 +76,8 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
       return;
     }
     
-    // Create a clean copy of the venue to avoid any reference issues
-    const venueCopy = {
-      id: venue.id,
-      brewery_id: venue.brewery_id,
-      name: venue.name,
-      street: venue.street,
-      city: venue.city,
-      state: venue.state,
-      postal_code: venue.postal_code,
-      country: venue.country,
-      longitude: venue.longitude,
-      latitude: venue.latitude,
-      phone: venue.phone,
-      website_url: venue.website_url,
-      created_at: venue.created_at,
-      updated_at: venue.updated_at
-    };
-    
-    // Call the parent component's handler with the clean copy
-    onVenueSelect(venueCopy);
+    // Call the parent component's handler with the venue
+    onVenueSelect(venue);
     console.log('EnhancedSearchBar: onVenueSelect parent handler called');
   };
 

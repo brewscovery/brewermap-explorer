@@ -21,7 +21,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
-  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
   
   // Debug: Log when props change
@@ -35,23 +34,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       });
     }
   }, [selectedVenue]);
-
-  // Always use the prop value if it's provided, otherwise use local state
-  // This ensures proper synchronization between parent and child components
-  useEffect(() => {
-    if (selectedVenue !== undefined) {
-      console.log('Map: Syncing localSelectedVenue with selectedVenue prop:', selectedVenue?.name || 'null');
-      setLocalSelectedVenue(selectedVenue);
-    }
-  }, [selectedVenue]);
-
-  // Use either the prop value or local state, prioritizing the prop value
-  const activeVenue = selectedVenue !== undefined ? selectedVenue : localSelectedVenue;
-
-  // Debug: Log the current active venue
-  useEffect(() => {
-    console.log('Map: Current active venue is:', activeVenue?.name || 'null');
-  }, [activeVenue]);
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -130,11 +112,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           const headerHeight = 73;
           const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
           
-          console.log('Map: Executing flyTo with coordinates:', {
-            lng: parseFloat(selectedVenue.longitude), 
-            lat: parseFloat(selectedVenue.latitude)
-          });
-          
           map.current.flyTo({
             center: [
               parseFloat(selectedVenue.longitude), 
@@ -172,19 +149,16 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       
       // Create a clean copy to avoid reference issues
       const venueCopy = { ...venue };
-      setLocalSelectedVenue(venueCopy);
-      console.log('Map: setLocalSelectedVenue called with venue:', venue?.name || 'none');
       
       // Also notify parent component with the copy
       onVenueSelect(venueCopy);
-      console.log('Map: onVenueSelect parent handler called');
+      console.log('Map: onVenueSelect parent handler called with venue:', venueCopy.name);
     }
   }, [onVenueSelect]);
 
   const handleSidebarClose = useCallback(() => {
     console.log('Map: handleSidebarClose called');
-    setLocalSelectedVenue(null);
-    // Also notify parent component
+    // Notify parent component
     onVenueSelect(null);
     console.log('Map: onVenueSelect parent handler called with null');
   }, [onVenueSelect]);
@@ -219,26 +193,24 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
           <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
           <div className="mt-2 font-bold">Venue Selection:</div>
-          <div>Selected Venue (prop): {selectedVenue?.name || 'None'}</div>
-          <div>Local Selected Venue: {localSelectedVenue?.name || 'None'}</div>
-          <div>Active Venue: {activeVenue?.name || 'None'}</div>
-          {activeVenue && (
+          <div>Selected Venue: {selectedVenue?.name || 'None'}</div>
+          {selectedVenue && (
             <>
               <div className="mt-2 font-bold">Venue Details:</div>
-              <div>ID: {activeVenue.id || 'N/A'}</div>
-              <div>Name: {activeVenue.name || 'N/A'}</div>
-              <div>Lat: {activeVenue.latitude || 'N/A'}</div>
-              <div>Lng: {activeVenue.longitude || 'N/A'}</div>
-              <div>City: {activeVenue.city || 'N/A'}</div>
+              <div>ID: {selectedVenue.id || 'N/A'}</div>
+              <div>Name: {selectedVenue.name || 'N/A'}</div>
+              <div>Lat: {selectedVenue.latitude || 'N/A'}</div>
+              <div>Lng: {selectedVenue.longitude || 'N/A'}</div>
+              <div>City: {selectedVenue.city || 'N/A'}</div>
             </>
           )}
         </div>
       )}
       
-      {/* Only render sidebar if we have a valid active venue */}
-      {activeVenue && activeVenue.id && (
+      {/* Only render sidebar if we have a valid selected venue */}
+      {selectedVenue && selectedVenue.id && (
         <VenueSidebar 
-          venue={activeVenue} 
+          venue={selectedVenue} 
           onClose={handleSidebarClose}
         />
       )}
