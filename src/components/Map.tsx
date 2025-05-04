@@ -100,7 +100,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
 
-    console.log('Map: selectedVenueName: ', selectedVenue.name);
+    console.log('Map: selectedVenue: ', selectedVenue);
     console.log('Map: map.current: ', map.current)
     console.log('Map: isStyleLoaded: ', isStyleLoaded)
 
