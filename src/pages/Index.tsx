@@ -59,7 +59,10 @@ const Index = () => {
     
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
-      setSelectedVenue(venue);
+      
+      // Create a fresh copy of the venue to avoid reference issues
+      const venueCopy = { ...venue };
+      setSelectedVenue(venueCopy);
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);

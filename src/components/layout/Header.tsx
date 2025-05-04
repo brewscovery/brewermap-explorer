@@ -76,9 +76,12 @@ const Header = () => {
       lng: venue.longitude
     });
     
+    // Create a fresh copy of the venue to avoid reference issues
+    const venueCopy = { ...venue };
+    
     // Set the selected venue
-    setSelectedVenue(venue);
-    console.log('Header: setSelectedVenue called with venue:', venue.name);
+    setSelectedVenue(venueCopy);
+    console.log('Header: setSelectedVenue called with venue:', venueCopy.name);
     
     // If we're not already on the homepage, navigate there
     if (location.pathname !== '/') {

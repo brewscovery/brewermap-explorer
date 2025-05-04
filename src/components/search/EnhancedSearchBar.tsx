@@ -76,8 +76,11 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
       return;
     }
     
+    // Create a fresh copy of the venue object to avoid reference issues
+    const venueCopy = { ...venue };
+    
     // Call the parent component's handler with the venue
-    onVenueSelect(venue);
+    onVenueSelect(venueCopy);
     console.log('EnhancedSearchBar: onVenueSelect parent handler called');
   };
 

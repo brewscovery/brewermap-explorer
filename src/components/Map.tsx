@@ -99,42 +99,43 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
-    if (selectedVenue && map.current && isStyleLoaded) {
-      console.log('Map: Handling selectedVenue change:', selectedVenue.name);
+    if (!selectedVenue || !map.current || !isStyleLoaded) return;
+    
+    console.log('Map: Handling selectedVenue change:', selectedVenue.name);
+    
+    if (!selectedVenue.latitude || !selectedVenue.longitude) {
+      console.warn('Cannot zoom to venue: Missing coordinates', {
+        lat: selectedVenue.latitude,
+        lng: selectedVenue.longitude
+      });
+      return;
+    }
+    
+    try {
+      console.log('Map: Zooming map to venue coordinates:', {
+        lng: selectedVenue.longitude,
+        lat: selectedVenue.latitude
+      });
       
-      if (selectedVenue.latitude && selectedVenue.longitude) {
-        try {
-          console.log('Map: Attempting to zoom map to venue coordinates:', {
-            lng: selectedVenue.longitude,
-            lat: selectedVenue.latitude
-          });
-          
-          const headerHeight = 73;
-          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-          
-          map.current.flyTo({
-            center: [
-              parseFloat(selectedVenue.longitude), 
-              parseFloat(selectedVenue.latitude)
-            ],
-            offset: [0, -(drawerHeight / 2)], // Offset for drawer
-            zoom: 15,
-            duration: 1500
-          });
-          
-          console.log('Map: flyTo method called successfully');
-        } catch (error) {
-          console.error('Error zooming to venue:', error);
-        }
-      } else {
-        console.warn(
-          'Cannot zoom to venue: Venue missing coordinates',
-          {
-            lng: selectedVenue.longitude,
-            lat: selectedVenue.latitude
-          }
-        );
-      }
+      const coordinates = [
+        parseFloat(selectedVenue.longitude), 
+        parseFloat(selectedVenue.latitude)
+      ];
+      
+      // Calculate offset for the drawer
+      const headerHeight = 73;
+      const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+      
+      map.current.flyTo({
+        center: coordinates,
+        offset: [0, -(drawerHeight / 2)], // Offset for drawer
+        zoom: 15,
+        duration: 1500
+      });
+      
+      console.log('Map: flyTo method called successfully');
+    } catch (error) {
+      console.error('Error zooming to venue:', error);
     }
   }, [selectedVenue, map, isStyleLoaded]);
 
@@ -208,7 +209,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       )}
       
       {/* Only render sidebar if we have a valid selected venue */}
-      {selectedVenue && selectedVenue.id && (
+      {selectedVenue && selectedVenue.id && selectedVenue.name && (
         <VenueSidebar 
           venue={selectedVenue} 
           onClose={handleSidebarClose}
