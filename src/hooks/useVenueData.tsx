@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Venue } from '@/types/venue';
 import { useVenueSearch } from './useVenueSearch';
 import { useVenueRealtimeUpdates } from './useVenueRealtimeUpdates';
@@ -9,6 +9,9 @@ import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeU
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  
+  // Use a ref to track the current venue for logging purposes
+  const selectedVenueRef = useRef<Venue | null>(null);
   
   // Get venue search functionality
   const { 
@@ -33,6 +36,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
 
   // Reset search subscriptions when selectedVenue changes
   useEffect(() => {
+    selectedVenueRef.current = selectedVenue;
     console.log('useVenueData: Selected venue changed:', selectedVenue?.name || 'none');
     if (selectedVenue) {
       console.log('useVenueData: Selected venue coordinates:', {
@@ -56,13 +60,14 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     // Log the update
     console.log('useVenueData: Setting selectedVenue to:', venue?.name || 'null');
     
-    // Update the state
+    // Update the state and ref immediately
     setSelectedVenue(venue);
+    selectedVenueRef.current = venue;
     
-    // Verify the update immediately after
+    // Check that the state was updated properly
     setTimeout(() => {
-      console.log('useVenueData: After setSelectedVenue, current state is:', 
-        selectedVenue?.name || 'null');
+      console.log('useVenueData: After setSelectedVenue, immediately accessible ref value is:', 
+        selectedVenueRef.current?.name || 'null');
     }, 0);
   }, []);
 

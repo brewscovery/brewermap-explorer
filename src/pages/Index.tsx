@@ -40,6 +40,18 @@ const Index = () => {
   useEffect(() => {
     console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
     console.log('Index: selectedVenue object:', selectedVenue);
+    
+    // Track when venue is set from search vs other mechanisms
+    if (selectedVenue) {
+      console.log('Index: Venue is now selected:', {
+        id: selectedVenue.id,
+        name: selectedVenue.name,
+        coords: {
+          lat: selectedVenue.latitude,
+          lng: selectedVenue.longitude
+        }
+      });
+    }
   }, [selectedVenue]);
 
   // Handle venue selection with proper validation
@@ -48,7 +60,16 @@ const Index = () => {
     
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
-      setSelectedVenue(venue);
+      
+      // Create a clean venue object to avoid reference issues
+      const venueToSet = { ...venue };
+      setSelectedVenue(venueToSet);
+      
+      // Add debug delay to check if venue was properly set
+      setTimeout(() => {
+        console.log('Index: After setSelectedVenue, current state is:', 
+          selectedVenue?.name || 'null');
+      }, 50);
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);

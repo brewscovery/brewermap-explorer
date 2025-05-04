@@ -88,8 +88,26 @@ const Header = () => {
       lng: venue.longitude
     });
     
+    // Ensure clean object is passed
+    const venueToSet = {
+      id: venue.id,
+      brewery_id: venue.brewery_id,
+      name: venue.name,
+      street: venue.street,
+      city: venue.city,
+      state: venue.state,
+      postal_code: venue.postal_code,
+      country: venue.country,
+      longitude: venue.longitude,
+      latitude: venue.latitude,
+      phone: venue.phone,
+      website_url: venue.website_url,
+      created_at: venue.created_at,
+      updated_at: venue.updated_at
+    };
+    
     // Set the selected venue
-    setSelectedVenue(venue);
+    setSelectedVenue(venueToSet);
     console.log('Header: setSelectedVenue called with venue:', venue.name);
     
     // If we're not already on the homepage, navigate there

@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/MapLayers';
@@ -23,16 +22,21 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
+  const selectedVenueRef = useRef<Venue | null>(null);
   
   // Debug: Log when props change
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
     console.log('Map: selectedVenue prop object:', selectedVenue);
+    
     if (selectedVenue) {
       console.log('Map: selectedVenue coordinates:', {
         lat: selectedVenue.latitude,
         lng: selectedVenue.longitude
       });
+      
+      // Store in ref for debugging purposes
+      selectedVenueRef.current = selectedVenue;
     }
   }, [selectedVenue]);
 
@@ -121,6 +125,9 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     if (selectedVenue) {
       console.log('Map: Handling selectedVenue change:', selectedVenue.name);
       
+      // Store in ref for debugging 
+      selectedVenueRef.current = selectedVenue;
+      
       // Zoom to venue location if map is ready
       if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
         try {
@@ -139,16 +146,17 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           
           // Add a small delay to ensure map is fully ready
           setTimeout(() => {
-            if (map.current) {
+            if (map.current && selectedVenueRef.current) {
+              // Re-check that we still have the same venue
               console.log('Map: Executing flyTo with coordinates:', {
-                lng: parseFloat(selectedVenue.longitude), 
-                lat: parseFloat(selectedVenue.latitude)
+                lng: parseFloat(selectedVenueRef.current.longitude), 
+                lat: parseFloat(selectedVenueRef.current.latitude)
               });
               
               map.current.flyTo({
                 center: [
-                  parseFloat(selectedVenue.longitude), 
-                  parseFloat(selectedVenue.latitude)
+                  parseFloat(selectedVenueRef.current.longitude), 
+                  parseFloat(selectedVenueRef.current.latitude)
                 ],
                 offset: [0, -(drawerHeight / 2)], // Offset for drawer
                 zoom: 15,
@@ -175,29 +183,34 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     }
   }, [selectedVenue, map, isStyleLoaded]);
 
-  const handleVenueSelect = (venue: Venue) => {
+  const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
     console.log('Map: Venue object:', venue);
-    console.log('Map: Venue coordinates:', venue ? {
-      lat: venue.latitude,
-      lng: venue.longitude
-    } : 'none');
     
-    setLocalSelectedVenue(venue);
-    console.log('Map: setLocalSelectedVenue called with venue:', venue?.name || 'none');
-    
-    // Also notify parent component
-    onVenueSelect(venue);
-    console.log('Map: onVenueSelect parent handler called');
-  };
+    if (venue) {
+      console.log('Map: Venue coordinates:', {
+        lat: venue.latitude,
+        lng: venue.longitude
+      });
+      
+      // Create a clean copy to avoid reference issues
+      const venueCopy = { ...venue };
+      setLocalSelectedVenue(venueCopy);
+      console.log('Map: setLocalSelectedVenue called with venue:', venue?.name || 'none');
+      
+      // Also notify parent component with the copy
+      onVenueSelect(venueCopy);
+      console.log('Map: onVenueSelect parent handler called');
+    }
+  }, [onVenueSelect]);
 
-  const handleSidebarClose = () => {
+  const handleSidebarClose = useCallback(() => {
     console.log('Map: handleSidebarClose called');
     setLocalSelectedVenue(null);
     // Also notify parent component
     onVenueSelect(null);
     console.log('Map: onVenueSelect parent handler called with null');
-  };
+  }, [onVenueSelect]);
 
   return (
     <div className="relative flex-1 w-full h-full">
