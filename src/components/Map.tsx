@@ -26,6 +26,17 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   
   // Use either the prop value or local state
   const selectedVenueToShow = selectedVenue || localSelectedVenue;
+  
+  // Debug: Log when props change
+  useEffect(() => {
+    console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
+    if (selectedVenue) {
+      console.log('Map: selectedVenue coordinates:', {
+        lat: selectedVenue.latitude,
+        lng: selectedVenue.longitude
+      });
+    }
+  }, [selectedVenue]);
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -92,13 +103,13 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   // Update local selected venue and zoom map when selectedVenue prop changes
   useEffect(() => {
     if (selectedVenue) {
-      console.log('Map received selected venue from props:', selectedVenue.name);
+      console.log('Map: Handling selectedVenue change:', selectedVenue.name);
       setLocalSelectedVenue(selectedVenue);
       
       // Zoom to venue location if map is ready
       if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
         try {
-          console.log('Zooming map to venue coordinates:', {
+          console.log('Map: Zooming map to venue coordinates:', {
             lng: selectedVenue.longitude,
             lat: selectedVenue.latitude
           });
@@ -115,6 +126,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
             zoom: 15,
             duration: 1500
           });
+          
+          console.log('Map: flyTo method called successfully');
         } catch (error) {
           console.error('Error zooming to venue:', error);
         }
@@ -124,22 +137,23 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           {
             mapReady: !!map.current,
             lng: selectedVenue.longitude,
-            lat: selectedVenue.latitude
+            lat: selectedVenue.latitude,
+            isStyleLoaded: isStyleLoaded
           }
         );
       }
     }
-  }, [selectedVenue]);
+  }, [selectedVenue, isStyleLoaded]);
 
   const handleVenueSelect = (venue: Venue) => {
-    console.log('Map handleVenueSelect called with venue:', venue?.name || 'none');
+    console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
     
     if (map.current && venue?.latitude && venue?.longitude) {
       const headerHeight = 73;
       const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
       
       try {
-        console.log('Zooming map to venue coordinates:', {
+        console.log('Map: Zooming map to venue coordinates:', {
           lng: venue.longitude,
           lat: venue.latitude
         });
@@ -150,16 +164,25 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           zoom: 15,
           duration: 1500
         });
+        
+        console.log('Map: flyTo method called successfully for direct selection');
       } catch (error) {
         console.error('Error in flyTo:', error);
       }
+    } else {
+      console.warn('Map: Cannot zoom to venue - invalid coordinates or map not ready');
     }
     
     setLocalSelectedVenue(venue);
+    console.log('Map: setLocalSelectedVenue called with venue:', venue?.name || 'none');
+    
+    // Also notify parent component
     onVenueSelect(venue);
+    console.log('Map: onVenueSelect parent handler called');
   };
 
   const handleSidebarClose = () => {
+    console.log('Map: handleSidebarClose called');
     setLocalSelectedVenue(null);
     // Also notify parent component
     onVenueSelect(null);
@@ -186,6 +209,21 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
             onVenueSelect={handleVenueSelect}
           />
         </>
+      )}
+      
+      {/* Debug info */}
+      {process.env.NODE_ENV === 'development' && (
+        <div className="absolute top-20 left-4 p-2 bg-white/80 text-xs text-black rounded shadow z-50 max-w-xs">
+          <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
+          <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
+          <div>Selected Venue: {selectedVenueToShow?.name || 'None'}</div>
+          {selectedVenueToShow && (
+            <>
+              <div>Lat: {selectedVenueToShow.latitude || 'N/A'}</div>
+              <div>Lng: {selectedVenueToShow.longitude || 'N/A'}</div>
+            </>
+          )}
+        </div>
       )}
       
       {selectedVenueToShow && (

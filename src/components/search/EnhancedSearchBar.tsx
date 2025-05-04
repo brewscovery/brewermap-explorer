@@ -50,12 +50,21 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
   }, [inputValue, updateSearch]);
 
   const handleVenueSelect = (venue: Venue) => {
-    console.log('Venue selected from EnhancedSearchBar:', venue.name);
+    console.log('EnhancedSearchBar: handleVenueSelect called with venue:', venue?.name || 'none');
     setInputValue(venue.name);
     setIsDropdownOpen(false);
     
+    // DEBUG: Log the venue coordinates
+    console.log('EnhancedSearchBar: Selected venue coordinates:', {
+      lat: venue.latitude,
+      lng: venue.longitude
+    });
+    
     // Call the parent component's handler with the selected venue
     onVenueSelect(venue);
+    
+    // DEBUG: Log after calling the parent handler
+    console.log('EnhancedSearchBar: onVenueSelect parent handler called');
   };
 
   return (

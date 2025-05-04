@@ -33,17 +33,37 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
 
   // Reset search subscriptions when selectedVenue changes
   useEffect(() => {
-    console.log('Selected venue changed:', selectedVenue?.name || 'none');
+    console.log('useVenueData: Selected venue changed:', selectedVenue?.name || 'none');
+    if (selectedVenue) {
+      console.log('useVenueData: Selected venue coordinates:', {
+        lat: selectedVenue.latitude,
+        lng: selectedVenue.longitude
+      });
+    }
   }, [selectedVenue]);
 
   // Provide a wrapped setter for selectedVenue that does additional validation
   const setSelectedVenueWithValidation = useCallback((venue: Venue | null) => {
+    console.log('useVenueData: setSelectedVenueWithValidation called with venue:', 
+      venue?.name || 'null');
+    
     // Validate venue object if provided
     if (venue !== null && (!venue.id || !venue.name)) {
       console.error('Invalid venue object provided to setSelectedVenue:', venue);
       return;
     }
+    
+    // Log the update
+    console.log('useVenueData: Setting selectedVenue to:', venue?.name || 'null');
+    
+    // Update the state
     setSelectedVenue(venue);
+    
+    // Debug: Check if state was updated correctly
+    setTimeout(() => {
+      console.log('useVenueData: After setSelectedVenue, current state is:', 
+        selectedVenue?.name || 'null');
+    }, 0);
   }, []);
 
   return {

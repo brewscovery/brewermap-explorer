@@ -81,13 +81,19 @@ const Header = () => {
   const handleVenueSelect = (venue) => {
     if (!venue) return;
     
-    console.log('Venue selected from search:', venue);
+    console.log('Header: Venue selected from search:', venue.name);
+    console.log('Header: Venue coordinates:', {
+      lat: venue.latitude,
+      lng: venue.longitude
+    });
     
     // Set the selected venue
     setSelectedVenue(venue);
+    console.log('Header: setSelectedVenue called with venue:', venue.name);
     
     // If we're not already on the homepage, navigate there
     if (location.pathname !== '/') {
+      console.log('Header: Navigating to homepage from:', location.pathname);
       navigate('/');
     }
   };
