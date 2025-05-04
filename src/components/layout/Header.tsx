@@ -88,8 +88,8 @@ const Header = () => {
       lng: venue.longitude
     });
     
-    // Ensure clean object is passed
-    const venueToSet = {
+    // Deep copy the venue object to avoid any reference issues
+    const venueCopy = {
       id: venue.id,
       brewery_id: venue.brewery_id,
       name: venue.name,
@@ -107,7 +107,7 @@ const Header = () => {
     };
     
     // Set the selected venue
-    setSelectedVenue(venueToSet);
+    setSelectedVenue(venueCopy);
     console.log('Header: setSelectedVenue called with venue:', venue.name);
     
     // If we're not already on the homepage, navigate there

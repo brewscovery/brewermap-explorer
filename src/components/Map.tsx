@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -23,6 +24,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
   const selectedVenueRef = useRef<Venue | null>(null);
+  const venueUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Debug: Log when props change
   useEffect(() => {
@@ -122,6 +124,12 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   // Update local selected venue and zoom map when selectedVenue prop changes
   useEffect(() => {
+    // Clear any existing timeout to avoid race conditions
+    if (venueUpdateTimeoutRef.current) {
+      clearTimeout(venueUpdateTimeoutRef.current);
+      venueUpdateTimeoutRef.current = null;
+    }
+    
     if (selectedVenue) {
       console.log('Map: Handling selectedVenue change:', selectedVenue.name);
       
@@ -136,27 +144,47 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
             lat: selectedVenue.latitude
           });
           
-          if (!isStyleLoaded) {
-            console.log('Map: Style not loaded yet, will try again when it is ready');
-            return;
-          }
-          
-          const headerHeight = 73;
-          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-          
-          // Add a small delay to ensure map is fully ready
-          setTimeout(() => {
-            if (map.current && selectedVenueRef.current) {
-              // Re-check that we still have the same venue
+          // Set a small delay to ensure map and all components are fully initialized
+          venueUpdateTimeoutRef.current = setTimeout(() => {
+            if (map.current && selectedVenue) {
+              // Check that map is ready
+              if (!isStyleLoaded) {
+                console.log('Map style not loaded yet, waiting a bit longer');
+                
+                // Try again with a longer delay if style not loaded
+                venueUpdateTimeoutRef.current = setTimeout(() => {
+                  if (map.current && isStyleLoaded && selectedVenue) {
+                    console.log('Map now ready, executing delayed flyTo');
+                    
+                    const headerHeight = 73;
+                    const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+                    
+                    map.current.flyTo({
+                      center: [
+                        parseFloat(selectedVenue.longitude), 
+                        parseFloat(selectedVenue.latitude)
+                      ],
+                      offset: [0, -(drawerHeight / 2)], // Offset for drawer
+                      zoom: 15,
+                      duration: 1500
+                    });
+                  }
+                }, 500);
+                return;
+              }
+              
+              const headerHeight = 73;
+              const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+              
               console.log('Map: Executing flyTo with coordinates:', {
-                lng: parseFloat(selectedVenueRef.current.longitude), 
-                lat: parseFloat(selectedVenueRef.current.latitude)
+                lng: parseFloat(selectedVenue.longitude), 
+                lat: parseFloat(selectedVenue.latitude)
               });
               
               map.current.flyTo({
                 center: [
-                  parseFloat(selectedVenueRef.current.longitude), 
-                  parseFloat(selectedVenueRef.current.latitude)
+                  parseFloat(selectedVenue.longitude), 
+                  parseFloat(selectedVenue.latitude)
                 ],
                 offset: [0, -(drawerHeight / 2)], // Offset for drawer
                 zoom: 15,
@@ -181,6 +209,13 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         );
       }
     }
+    
+    // Cleanup the timeout on unmount
+    return () => {
+      if (venueUpdateTimeoutRef.current) {
+        clearTimeout(venueUpdateTimeoutRef.current);
+      }
+    };
   }, [selectedVenue, map, isStyleLoaded]);
 
   const handleVenueSelect = useCallback((venue: Venue) => {
@@ -258,8 +293,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         </div>
       )}
       
-      {/* Render sidebar if we have an active venue (either from props or local state) */}
-      {activeVenue && (
+      {/* Only render sidebar if we have a valid active venue */}
+      {activeVenue && activeVenue.id && (
         <VenueSidebar 
           venue={activeVenue} 
           onClose={handleSidebarClose}

@@ -8,6 +8,7 @@ import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
+  // Use state for the selected venue with a proper initial value
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
   // Use a ref to track the current venue for logging purposes
@@ -36,8 +37,11 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
 
   // Reset search subscriptions when selectedVenue changes
   useEffect(() => {
+    // Update our ref when the state changes
     selectedVenueRef.current = selectedVenue;
+    
     console.log('useVenueData: Selected venue changed:', selectedVenue?.name || 'none');
+    
     if (selectedVenue) {
       console.log('useVenueData: Selected venue coordinates:', {
         lat: selectedVenue.latitude,
@@ -60,11 +64,14 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     // Log the update
     console.log('useVenueData: Setting selectedVenue to:', venue?.name || 'null');
     
-    // Update the state and ref immediately
-    setSelectedVenue(venue);
-    selectedVenueRef.current = venue;
+    // Ensure we're working with a clean copy of the venue object to avoid reference issues
+    const venueCopy = venue ? { ...venue } : null;
     
-    // Check that the state was updated properly
+    // Update the state and ref immediately
+    setSelectedVenue(venueCopy);
+    selectedVenueRef.current = venueCopy;
+    
+    // Double check that the state was updated properly
     setTimeout(() => {
       console.log('useVenueData: After setSelectedVenue, immediately accessible ref value is:', 
         selectedVenueRef.current?.name || 'null');
