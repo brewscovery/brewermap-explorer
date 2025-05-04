@@ -42,6 +42,8 @@ const Index = () => {
     // Make sure we're passing a valid venue object
     if (venue && venue.id) {
       setSelectedVenue(venue);
+    } else if (venue === null) {
+      setSelectedVenue(null);
     }
   };
 

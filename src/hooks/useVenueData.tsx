@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Venue } from '@/types/venue';
 import { useVenueSearch } from './useVenueSearch';
 import { useVenueRealtimeUpdates } from './useVenueRealtimeUpdates';
@@ -36,13 +36,23 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     console.log('Selected venue changed:', selectedVenue?.name || 'none');
   }, [selectedVenue]);
 
+  // Provide a wrapped setter for selectedVenue that does additional validation
+  const setSelectedVenueWithValidation = useCallback((venue: Venue | null) => {
+    // Validate venue object if provided
+    if (venue !== null && (!venue.id || !venue.name)) {
+      console.error('Invalid venue object provided to setSelectedVenue:', venue);
+      return;
+    }
+    setSelectedVenue(venue);
+  }, []);
+
   return {
     venues,
     isLoading,
     error,
     refetch,
     selectedVenue,
-    setSelectedVenue,
+    setSelectedVenue: setSelectedVenueWithValidation,
     searchTerm,
     searchType,
     updateSearch

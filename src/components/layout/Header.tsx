@@ -82,7 +82,8 @@ const Header = () => {
     if (!venue) return;
     
     console.log('Venue selected from search:', venue);
-    // Set the selected venue first
+    
+    // Set the selected venue
     setSelectedVenue(venue);
     
     // If we're not already on the homepage, navigate there
@@ -90,6 +91,9 @@ const Header = () => {
       navigate('/');
     }
   };
+  
+  // Don't show search bar on dashboard pages
+  const showSearchBar = !isOnDashboard && !isOnAdmin;
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b fixed w-full z-50 flex items-center">
@@ -104,10 +108,12 @@ const Header = () => {
       </Button>
 
       <div className="flex-1 flex justify-center">
-        <EnhancedSearchBar 
-          onVenueSelect={handleVenueSelect} 
-          className="max-w-md w-full"
-        />
+        {showSearchBar && (
+          <EnhancedSearchBar 
+            onVenueSelect={handleVenueSelect} 
+            className="max-w-md w-full"
+          />
+        )}
       </div>
 
       <div className="flex items-center gap-4 ml-4">

@@ -54,11 +54,8 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     setInputValue(venue.name);
     setIsDropdownOpen(false);
     
-    // Make sure we're passing a valid venue object
-    if (venue && venue.id) {
-      // Call the parent component's handler immediately
-      onVenueSelect(venue);
-    }
+    // Call the parent component's handler with the selected venue
+    onVenueSelect(venue);
   };
 
   return (

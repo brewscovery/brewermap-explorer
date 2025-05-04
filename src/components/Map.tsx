@@ -13,11 +13,11 @@ import VenueSidebar from './venue/VenueSidebar';
 
 interface MapProps {
   venues: Venue[];
-  onVenueSelect: (venue: Venue) => void;
+  onVenueSelect: (venue: Venue | null) => void;
   selectedVenue?: Venue | null;
 }
 
-const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: MapProps) => {
+const Map = ({ venues, onVenueSelect, selectedVenueFromProps }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
@@ -132,9 +132,9 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   }, [selectedVenueFromProps]);
 
   const handleVenueSelect = (venue: Venue) => {
-    console.log('Map handleVenueSelect called with venue:', venue.name);
+    console.log('Map handleVenueSelect called with venue:', venue?.name || 'none');
     
-    if (map.current && venue.latitude && venue.longitude) {
+    if (map.current && venue?.latitude && venue?.longitude) {
       const headerHeight = 73;
       const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
       
@@ -162,9 +162,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   const handleSidebarClose = () => {
     setLocalSelectedVenue(null);
     // Also notify parent component
-    if (selectedVenueFromProps) {
-      onVenueSelect(null as any);
-    }
+    onVenueSelect(null);
   };
 
   return (
