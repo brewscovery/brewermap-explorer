@@ -21,7 +21,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
-  const { setSelectedVenue } = useVenueData();
+  const { selectedVenue, setSelectedVenue } = useVenueData();
   
   // Try/catch to handle case when Header is used outside a SidebarProvider
   let sidebarState = null;
@@ -82,6 +82,7 @@ const Header = () => {
     if (!venue) return;
     
     console.log('Header: Venue selected from search:', venue.name);
+    console.log('Header: Venue object:', venue);
     console.log('Header: Venue coordinates:', {
       lat: venue.latitude,
       lng: venue.longitude
@@ -96,6 +97,12 @@ const Header = () => {
       console.log('Header: Navigating to homepage from:', location.pathname);
       navigate('/');
     }
+    
+    // Add a delay to check if venue was properly set
+    setTimeout(() => {
+      console.log('Header: Current selected venue after setting:', 
+        selectedVenue?.name || 'null');
+    }, 100);
   };
   
   // Don't show search bar on dashboard pages

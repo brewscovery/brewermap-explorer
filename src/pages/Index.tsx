@@ -39,6 +39,7 @@ const Index = () => {
   // Debug: Log when selectedVenue changes
   useEffect(() => {
     console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
+    console.log('Index: selectedVenue object:', selectedVenue);
   }, [selectedVenue]);
 
   // Handle venue selection with proper validation

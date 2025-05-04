@@ -27,11 +27,21 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   // Debug: Log when props change
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
+    console.log('Map: selectedVenue prop object:', selectedVenue);
     if (selectedVenue) {
       console.log('Map: selectedVenue coordinates:', {
         lat: selectedVenue.latitude,
         lng: selectedVenue.longitude
       });
+    }
+  }, [selectedVenue]);
+
+  // Always use the prop value if it's provided, otherwise use local state
+  // This ensures proper synchronization between parent and child components
+  useEffect(() => {
+    if (selectedVenue !== undefined) {
+      console.log('Map: Syncing localSelectedVenue with selectedVenue prop:', selectedVenue?.name || 'null');
+      setLocalSelectedVenue(selectedVenue);
     }
   }, [selectedVenue]);
 
@@ -41,6 +51,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   // Debug: Log the current active venue
   useEffect(() => {
     console.log('Map: Current active venue is:', activeVenue?.name || 'null');
+    console.log('Map: Active venue object:', activeVenue);
   }, [activeVenue]);
 
   const { data: checkins, isLoading } = useQuery({
@@ -109,7 +120,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   useEffect(() => {
     if (selectedVenue) {
       console.log('Map: Handling selectedVenue change:', selectedVenue.name);
-      setLocalSelectedVenue(selectedVenue);
       
       // Zoom to venue location if map is ready
       if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
@@ -163,10 +173,11 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         );
       }
     }
-  }, [selectedVenue, isStyleLoaded]);
+  }, [selectedVenue, map, isStyleLoaded]);
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
+    console.log('Map: Venue object:', venue);
     console.log('Map: Venue coordinates:', venue ? {
       lat: venue.latitude,
       lng: venue.longitude
@@ -211,18 +222,24 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         </>
       )}
       
-      {/* Debug info */}
+      {/* Enhanced debug info */}
       {process.env.NODE_ENV !== 'production' && (
-        <div className="absolute top-20 left-4 p-2 bg-white/80 text-xs text-black rounded shadow z-50 max-w-xs">
+        <div className="absolute top-20 left-4 p-2 bg-white/80 text-xs text-black rounded shadow z-50 max-w-xs overflow-auto max-h-96">
+          <div className="mb-2 font-bold text-sm">Debug Info:</div>
           <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
           <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
+          <div className="mt-2 font-bold">Venue Selection:</div>
           <div>Selected Venue (prop): {selectedVenue?.name || 'None'}</div>
           <div>Local Selected Venue: {localSelectedVenue?.name || 'None'}</div>
           <div>Active Venue: {activeVenue?.name || 'None'}</div>
           {activeVenue && (
             <>
+              <div className="mt-2 font-bold">Venue Details:</div>
+              <div>ID: {activeVenue.id || 'N/A'}</div>
+              <div>Name: {activeVenue.name || 'N/A'}</div>
               <div>Lat: {activeVenue.latitude || 'N/A'}</div>
               <div>Lng: {activeVenue.longitude || 'N/A'}</div>
+              <div>City: {activeVenue.city || 'N/A'}</div>
             </>
           )}
         </div>
