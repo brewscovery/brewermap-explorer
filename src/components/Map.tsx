@@ -117,7 +117,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         lat: selectedVenue.latitude
       });
       
-      const coordinates = [
+      // Fixed: Use a tuple to satisfy the LngLatLike type requirement
+      const coordinates: [number, number] = [
         parseFloat(selectedVenue.longitude), 
         parseFloat(selectedVenue.latitude)
       ];
@@ -220,3 +221,4 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 };
 
 export default Map;
+
