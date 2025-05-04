@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -99,10 +98,9 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
-
     console.log('Map: selectedVenue: ', selectedVenue);
-    console.log('Map: map.current: ', map.current)
-    console.log('Map: isStyleLoaded: ', isStyleLoaded)
+    console.log('Map: map.current: ', map.current);
+    console.log('Map: isStyleLoaded: ', isStyleLoaded);
 
     if (!selectedVenue || !map.current || !isStyleLoaded) return;
     
@@ -226,4 +224,3 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 };
 
 export default Map;
-

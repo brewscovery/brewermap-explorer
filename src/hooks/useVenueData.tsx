@@ -61,6 +61,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     // Create a clean copy of the venue to avoid reference issues
     if (venue) {
       const venueCopy = {
+        ...venue,
         id: venue.id,
         brewery_id: venue.brewery_id,
         name: venue.name,

@@ -74,7 +74,7 @@ const Index = () => {
       <Map
         venues={venues}
         onVenueSelect={handleVenueSelect}
-        selectedVenue={selectedVenue}
+        selectedVenue={selectedVenue} // Ensure this prop is being passed correctly
       />
     </div>
   );
