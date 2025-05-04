@@ -36,15 +36,15 @@ const Index = () => {
     }
   }, [error]);
 
-  // Handle venue selection
+  // Debug: Log when selectedVenue changes
+  useEffect(() => {
+    console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
+  }, [selectedVenue]);
+
+  // Handle venue selection with proper validation
   const handleVenueSelect = (venue) => {
     console.log('Index: handleVenueSelect called with venue:', venue?.name || 'none');
-    console.log('Index: Venue coordinates:', venue ? {
-      lat: venue.latitude,
-      lng: venue.longitude
-    } : 'none');
     
-    // Make sure we're passing a valid venue object
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
       setSelectedVenue(venue);
@@ -52,18 +52,7 @@ const Index = () => {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);
     }
-    
-    // Debug: Check if selectedVenue was updated
-    setTimeout(() => {
-      console.log('Index: After setSelectedVenue, current selectedVenue is:', 
-        selectedVenue?.name || 'null');
-    }, 0);
   };
-
-  // Debug: Log when selectedVenue changes
-  useEffect(() => {
-    console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
-  }, [selectedVenue]);
 
   return (
     <div className="flex-1 flex flex-col h-full">

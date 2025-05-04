@@ -51,6 +51,14 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('EnhancedSearchBar: handleVenueSelect called with venue:', venue?.name || 'none');
+    
+    // Make sure we're working with a valid venue object
+    if (!venue || !venue.id || !venue.name) {
+      console.error('EnhancedSearchBar: Invalid venue selected:', venue);
+      return;
+    }
+    
+    // Set the input value to the selected venue name
     setInputValue(venue.name);
     setIsDropdownOpen(false);
     
@@ -60,10 +68,14 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
       lng: venue.longitude
     });
     
+    // Check venue has required coordinates before selecting
+    if (!venue.latitude || !venue.longitude) {
+      console.warn('EnhancedSearchBar: Selected venue missing coordinates:', venue);
+      toast.warn('Selected venue is missing location coordinates');
+    }
+    
     // Call the parent component's handler with the selected venue
     onVenueSelect(venue);
-    
-    // DEBUG: Log after calling the parent handler
     console.log('EnhancedSearchBar: onVenueSelect parent handler called');
   };
 

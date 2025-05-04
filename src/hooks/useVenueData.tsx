@@ -58,12 +58,6 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     
     // Update the state
     setSelectedVenue(venue);
-    
-    // Debug: Check if state was updated correctly
-    setTimeout(() => {
-      console.log('useVenueData: After setSelectedVenue, current state is:', 
-        selectedVenue?.name || 'null');
-    }, 0);
   }, []);
 
   return {

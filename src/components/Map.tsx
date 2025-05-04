@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/MapLayers';
@@ -24,9 +24,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
   
-  // Use either the prop value or local state
-  const selectedVenueToShow = selectedVenue || localSelectedVenue;
-  
   // Debug: Log when props change
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
@@ -37,6 +34,14 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       });
     }
   }, [selectedVenue]);
+
+  // Use either the prop value or local state, prioritizing the prop value
+  const activeVenue = selectedVenue !== undefined ? selectedVenue : localSelectedVenue;
+
+  // Debug: Log the current active venue
+  useEffect(() => {
+    console.log('Map: Current active venue is:', activeVenue?.name || 'null');
+  }, [activeVenue]);
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -109,25 +114,40 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       // Zoom to venue location if map is ready
       if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
         try {
-          console.log('Map: Zooming map to venue coordinates:', {
+          console.log('Map: Attempting to zoom map to venue coordinates:', {
             lng: selectedVenue.longitude,
             lat: selectedVenue.latitude
           });
           
+          if (!isStyleLoaded) {
+            console.log('Map: Style not loaded yet, will try again when it is ready');
+            return;
+          }
+          
           const headerHeight = 73;
           const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
           
-          map.current.flyTo({
-            center: [
-              parseFloat(selectedVenue.longitude), 
-              parseFloat(selectedVenue.latitude)
-            ],
-            offset: [0, -(drawerHeight / 2)], // Offset for drawer
-            zoom: 15,
-            duration: 1500
-          });
-          
-          console.log('Map: flyTo method called successfully');
+          // Add a small delay to ensure map is fully ready
+          setTimeout(() => {
+            if (map.current) {
+              console.log('Map: Executing flyTo with coordinates:', {
+                lng: parseFloat(selectedVenue.longitude), 
+                lat: parseFloat(selectedVenue.latitude)
+              });
+              
+              map.current.flyTo({
+                center: [
+                  parseFloat(selectedVenue.longitude), 
+                  parseFloat(selectedVenue.latitude)
+                ],
+                offset: [0, -(drawerHeight / 2)], // Offset for drawer
+                zoom: 15,
+                duration: 1500
+              });
+              
+              console.log('Map: flyTo method called successfully');
+            }
+          }, 100);
         } catch (error) {
           console.error('Error zooming to venue:', error);
         }
@@ -147,31 +167,10 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
-    
-    if (map.current && venue?.latitude && venue?.longitude) {
-      const headerHeight = 73;
-      const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
-      
-      try {
-        console.log('Map: Zooming map to venue coordinates:', {
-          lng: venue.longitude,
-          lat: venue.latitude
-        });
-        
-        map.current.flyTo({
-          center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
-          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
-          zoom: 15,
-          duration: 1500
-        });
-        
-        console.log('Map: flyTo method called successfully for direct selection');
-      } catch (error) {
-        console.error('Error in flyTo:', error);
-      }
-    } else {
-      console.warn('Map: Cannot zoom to venue - invalid coordinates or map not ready');
-    }
+    console.log('Map: Venue coordinates:', venue ? {
+      lat: venue.latitude,
+      lng: venue.longitude
+    } : 'none');
     
     setLocalSelectedVenue(venue);
     console.log('Map: setLocalSelectedVenue called with venue:', venue?.name || 'none');
@@ -186,6 +185,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     setLocalSelectedVenue(null);
     // Also notify parent component
     onVenueSelect(null);
+    console.log('Map: onVenueSelect parent handler called with null');
   };
 
   return (
@@ -212,23 +212,26 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       )}
       
       {/* Debug info */}
-      {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV !== 'production' && (
         <div className="absolute top-20 left-4 p-2 bg-white/80 text-xs text-black rounded shadow z-50 max-w-xs">
           <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
           <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
-          <div>Selected Venue: {selectedVenueToShow?.name || 'None'}</div>
-          {selectedVenueToShow && (
+          <div>Selected Venue (prop): {selectedVenue?.name || 'None'}</div>
+          <div>Local Selected Venue: {localSelectedVenue?.name || 'None'}</div>
+          <div>Active Venue: {activeVenue?.name || 'None'}</div>
+          {activeVenue && (
             <>
-              <div>Lat: {selectedVenueToShow.latitude || 'N/A'}</div>
-              <div>Lng: {selectedVenueToShow.longitude || 'N/A'}</div>
+              <div>Lat: {activeVenue.latitude || 'N/A'}</div>
+              <div>Lng: {activeVenue.longitude || 'N/A'}</div>
             </>
           )}
         </div>
       )}
       
-      {selectedVenueToShow && (
+      {/* Render sidebar if we have an active venue (either from props or local state) */}
+      {activeVenue && (
         <VenueSidebar 
-          venue={selectedVenueToShow} 
+          venue={activeVenue} 
           onClose={handleSidebarClose}
         />
       )}
