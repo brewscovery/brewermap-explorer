@@ -1,10 +1,11 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import type { Venue } from '@/types/venue';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -18,14 +19,6 @@ const Index = () => {
     selectedVenue,
     setSelectedVenue,
   } = useVenueData();
-  
-  // Create a ref to track the selected venue for debugging
-  const selectedVenueRef = useRef(selectedVenue);
-  
-  // Update the ref when selectedVenue changes
-  useEffect(() => {
-    selectedVenueRef.current = selectedVenue;
-  }, [selectedVenue]);
 
   // Handle auth redirects for recovery/signup flows
   useEffect(() => {
@@ -44,12 +37,10 @@ const Index = () => {
     }
   }, [error]);
 
-  // Debug: Log when selectedVenue changes with more details
+  // Debug: Log when selectedVenue changes
   useEffect(() => {
     console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
-    console.log('Index: selectedVenue object:', selectedVenue);
     
-    // Track when venue is set from search vs other mechanisms
     if (selectedVenue) {
       console.log('Index: Venue is now selected:', {
         id: selectedVenue.id,
@@ -62,39 +53,13 @@ const Index = () => {
     }
   }, [selectedVenue]);
 
-  // Handle venue selection with proper validation
-  const handleVenueSelect = (venue) => {
+  // Handle venue selection
+  const handleVenueSelect = (venue: Venue | null) => {
     console.log('Index: handleVenueSelect called with venue:', venue?.name || 'none');
     
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
-      
-      // Create a deep copy of the venue object to avoid reference issues
-      const venueCopy = {
-        id: venue.id,
-        brewery_id: venue.brewery_id,
-        name: venue.name,
-        street: venue.street,
-        city: venue.city,
-        state: venue.state,
-        postal_code: venue.postal_code,
-        country: venue.country,
-        longitude: venue.longitude,
-        latitude: venue.latitude,
-        phone: venue.phone,
-        website_url: venue.website_url,
-        created_at: venue.created_at,
-        updated_at: venue.updated_at
-      };
-      
-      // Set the selected venue
-      setSelectedVenue(venueCopy);
-      
-      // Add debug delay to check if venue was properly set
-      setTimeout(() => {
-        console.log('Index: After setSelectedVenue, selectedVenue is now:', 
-          selectedVenueRef.current?.name || 'null');
-      }, 50);
+      setSelectedVenue(venue);
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);

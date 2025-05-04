@@ -16,24 +16,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import type { Venue } from '@/types/venue';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
   const { selectedVenue, setSelectedVenue } = useVenueData();
-  
-  // Try/catch to handle case when Header is used outside a SidebarProvider
-  let sidebarState = null;
-  let toggleSidebarFn = null;
-  
-  try {
-    const sidebarContext = useSidebar();
-    sidebarState = sidebarContext.state;
-    toggleSidebarFn = sidebarContext.toggleSidebar;
-  } catch (error) {
-    // Sidebar context not available, will not render sidebar controls
-  }
+  const { toggleSidebar } = useSidebar();
   
   const isOnDashboard = location.pathname.includes('/dashboard');
   const isOnAdmin = location.pathname.includes('/admin');
@@ -75,10 +65,8 @@ const Header = () => {
       toast.error('Error during logout, but you have been redirected home.');
     }
   };
-  
-  const { toggleSidebar } = useSidebar();
 
-  const handleVenueSelect = (venue) => {
+  const handleVenueSelect = (venue: Venue) => {
     if (!venue) return;
     
     console.log('Header: Venue selected from search:', venue.name);
@@ -88,26 +76,8 @@ const Header = () => {
       lng: venue.longitude
     });
     
-    // Deep copy the venue object to avoid any reference issues
-    const venueCopy = {
-      id: venue.id,
-      brewery_id: venue.brewery_id,
-      name: venue.name,
-      street: venue.street,
-      city: venue.city,
-      state: venue.state,
-      postal_code: venue.postal_code,
-      country: venue.country,
-      longitude: venue.longitude,
-      latitude: venue.latitude,
-      phone: venue.phone,
-      website_url: venue.website_url,
-      created_at: venue.created_at,
-      updated_at: venue.updated_at
-    };
-    
-    // Set the selected venue
-    setSelectedVenue(venueCopy);
+    // Set the selected venue using the hook's function
+    setSelectedVenue(venue);
     console.log('Header: setSelectedVenue called with venue:', venue.name);
     
     // If we're not already on the homepage, navigate there
@@ -115,12 +85,6 @@ const Header = () => {
       console.log('Header: Navigating to homepage from:', location.pathname);
       navigate('/');
     }
-    
-    // Add a delay to check if venue was properly set
-    setTimeout(() => {
-      console.log('Header: Current selected venue after setting:', 
-        selectedVenue?.name || 'null');
-    }, 100);
   };
   
   // Don't show search bar on dashboard pages

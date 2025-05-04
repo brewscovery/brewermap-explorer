@@ -23,22 +23,16 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
-  const selectedVenueRef = useRef<Venue | null>(null);
-  const venueUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Debug: Log when props change
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
-    console.log('Map: selectedVenue prop object:', selectedVenue);
     
     if (selectedVenue) {
       console.log('Map: selectedVenue coordinates:', {
         lat: selectedVenue.latitude,
         lng: selectedVenue.longitude
       });
-      
-      // Store in ref for debugging purposes
-      selectedVenueRef.current = selectedVenue;
     }
   }, [selectedVenue]);
 
@@ -57,7 +51,6 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   // Debug: Log the current active venue
   useEffect(() => {
     console.log('Map: Current active venue is:', activeVenue?.name || 'null');
-    console.log('Map: Active venue object:', activeVenue);
   }, [activeVenue]);
 
   const { data: checkins, isLoading } = useQuery({
@@ -122,105 +115,54 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Update local selected venue and zoom map when selectedVenue prop changes
+  // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
-    // Clear any existing timeout to avoid race conditions
-    if (venueUpdateTimeoutRef.current) {
-      clearTimeout(venueUpdateTimeoutRef.current);
-      venueUpdateTimeoutRef.current = null;
-    }
-    
-    if (selectedVenue) {
+    if (selectedVenue && map.current && isStyleLoaded) {
       console.log('Map: Handling selectedVenue change:', selectedVenue.name);
       
-      // Store in ref for debugging 
-      selectedVenueRef.current = selectedVenue;
-      
-      // Zoom to venue location if map is ready
-      if (map.current && selectedVenue.latitude && selectedVenue.longitude) {
+      if (selectedVenue.latitude && selectedVenue.longitude) {
         try {
           console.log('Map: Attempting to zoom map to venue coordinates:', {
             lng: selectedVenue.longitude,
             lat: selectedVenue.latitude
           });
           
-          // Set a small delay to ensure map and all components are fully initialized
-          venueUpdateTimeoutRef.current = setTimeout(() => {
-            if (map.current && selectedVenue) {
-              // Check that map is ready
-              if (!isStyleLoaded) {
-                console.log('Map style not loaded yet, waiting a bit longer');
-                
-                // Try again with a longer delay if style not loaded
-                venueUpdateTimeoutRef.current = setTimeout(() => {
-                  if (map.current && isStyleLoaded && selectedVenue) {
-                    console.log('Map now ready, executing delayed flyTo');
-                    
-                    const headerHeight = 73;
-                    const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-                    
-                    map.current.flyTo({
-                      center: [
-                        parseFloat(selectedVenue.longitude), 
-                        parseFloat(selectedVenue.latitude)
-                      ],
-                      offset: [0, -(drawerHeight / 2)], // Offset for drawer
-                      zoom: 15,
-                      duration: 1500
-                    });
-                  }
-                }, 500);
-                return;
-              }
-              
-              const headerHeight = 73;
-              const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-              
-              console.log('Map: Executing flyTo with coordinates:', {
-                lng: parseFloat(selectedVenue.longitude), 
-                lat: parseFloat(selectedVenue.latitude)
-              });
-              
-              map.current.flyTo({
-                center: [
-                  parseFloat(selectedVenue.longitude), 
-                  parseFloat(selectedVenue.latitude)
-                ],
-                offset: [0, -(drawerHeight / 2)], // Offset for drawer
-                zoom: 15,
-                duration: 1500
-              });
-              
-              console.log('Map: flyTo method called successfully');
-            }
-          }, 100);
+          const headerHeight = 73;
+          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+          
+          console.log('Map: Executing flyTo with coordinates:', {
+            lng: parseFloat(selectedVenue.longitude), 
+            lat: parseFloat(selectedVenue.latitude)
+          });
+          
+          map.current.flyTo({
+            center: [
+              parseFloat(selectedVenue.longitude), 
+              parseFloat(selectedVenue.latitude)
+            ],
+            offset: [0, -(drawerHeight / 2)], // Offset for drawer
+            zoom: 15,
+            duration: 1500
+          });
+          
+          console.log('Map: flyTo method called successfully');
         } catch (error) {
           console.error('Error zooming to venue:', error);
         }
       } else {
         console.warn(
-          'Cannot zoom to venue: Map not ready or venue missing coordinates',
+          'Cannot zoom to venue: Venue missing coordinates',
           {
-            mapReady: !!map.current,
             lng: selectedVenue.longitude,
-            lat: selectedVenue.latitude,
-            isStyleLoaded: isStyleLoaded
+            lat: selectedVenue.latitude
           }
         );
       }
     }
-    
-    // Cleanup the timeout on unmount
-    return () => {
-      if (venueUpdateTimeoutRef.current) {
-        clearTimeout(venueUpdateTimeoutRef.current);
-      }
-    };
   }, [selectedVenue, map, isStyleLoaded]);
 
   const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
-    console.log('Map: Venue object:', venue);
     
     if (venue) {
       console.log('Map: Venue coordinates:', {
