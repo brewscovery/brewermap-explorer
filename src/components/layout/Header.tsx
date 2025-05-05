@@ -1,3 +1,4 @@
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, LogOut, Map, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
@@ -26,6 +27,9 @@ const Header = () => {
   
   const isOnDashboard = location.pathname.includes('/dashboard');
   const isOnAdmin = location.pathname.includes('/admin');
+  
+  // Log initial state
+  console.log('Header: Component rendered with selectedVenue:', selectedVenue?.name || 'null');
   
   // Display name based on user type
   const displayName = firstName || lastName 
@@ -77,6 +81,12 @@ const Header = () => {
     
     // Create a deep copy of the venue using JSON parse/stringify
     const venueCopy = JSON.parse(JSON.stringify(venue));
+    
+    // Ensure coordinates are in string format
+    if (venueCopy.latitude && venueCopy.longitude) {
+      venueCopy.latitude = String(venueCopy.latitude);
+      venueCopy.longitude = String(venueCopy.longitude);
+    }
     
     // Set the selected venue using the useVenueData hook
     setSelectedVenue(venueCopy);

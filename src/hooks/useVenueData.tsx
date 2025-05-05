@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Venue } from '@/types/venue';
 import { useVenueSearch } from './useVenueSearch';
 import { useVenueRealtimeUpdates } from './useVenueRealtimeUpdates';
@@ -13,6 +13,11 @@ let globalSelectedVenue: Venue | null = null;
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
   // Important: This ensures the component starts with the global state
   const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalSelectedVenue);
+  // Create a ref to track whether the selectedVenue has changed since mount
+  const hasSelectedVenueChanged = useRef(false);
+  
+  // Log that the hook has been initialized
+  console.log('useVenueData: Hook initialized with selectedVenue:', selectedVenue?.name || 'null');
   
   // Get venue search functionality
   const { 
@@ -25,9 +30,10 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     updateSearch
   } = useVenueSearch(initialSearchTerm, initialSearchType);
 
-  // Set up realtime updates
+  // Set up realtime updates - this runs on mount and when selectedVenue changes
   useVenueRealtimeUpdates(selectedVenue, (updatedVenue) => {
     if (updatedVenue) {
+      console.log('useVenueData: Received venue update from realtime:', updatedVenue.name);
       setSelectedVenueWithValidation(updatedVenue);
     }
   });
@@ -51,7 +57,11 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     }
     
     // Update the global state when local state changes
-    globalSelectedVenue = selectedVenue;
+    if (selectedVenue !== globalSelectedVenue) {
+      globalSelectedVenue = selectedVenue;
+      console.log('useVenueData: Global state updated:', selectedVenue?.name || 'null');
+      hasSelectedVenueChanged.current = true;
+    }
   }, [selectedVenue]);
 
   // Wrapper for setting selected venue that updates both local and global state
@@ -80,6 +90,12 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
       // Use JSON parse/stringify for a true deep copy
       const venueCopy = JSON.parse(JSON.stringify(venue));
       
+      // Ensure latitude and longitude are present and in the right format
+      if (venueCopy.latitude && venueCopy.longitude) {
+        venueCopy.latitude = String(venueCopy.latitude);
+        venueCopy.longitude = String(venueCopy.longitude);
+      }
+      
       // Update the state with the deep copy
       setSelectedVenueState(venueCopy);
       // Also update the global state
@@ -103,6 +119,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     setSelectedVenue,
     searchTerm,
     searchType,
-    updateSearch
+    updateSearch,
+    hasSelectedVenueChanged: hasSelectedVenueChanged.current
   };
 };

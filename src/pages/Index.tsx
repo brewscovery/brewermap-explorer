@@ -18,7 +18,14 @@ const Index = () => {
     refetch,
     selectedVenue,
     setSelectedVenue,
+    hasSelectedVenueChanged
   } = useVenueData();
+
+  // Log Index component mount
+  useEffect(() => {
+    console.log('Index: Component mounted with selectedVenue:', selectedVenue?.name || 'null');
+    console.log('Index: hasSelectedVenueChanged:', hasSelectedVenueChanged);
+  }, [selectedVenue, hasSelectedVenueChanged]);
 
   // Handle auth redirects for recovery/signup flows
   useEffect(() => {
@@ -60,10 +67,9 @@ const Index = () => {
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
       
-      // Use JSON.parse(JSON.stringify()) for a true deep copy to avoid reference issues
-      const venueCopy = JSON.parse(JSON.stringify(venue));
-      setSelectedVenue(venueCopy);
-      console.log('Index: setSelectedVenue called with venue copy');
+      // This will now pass a deep copy to the state setter in useVenueData
+      setSelectedVenue(venue);
+      console.log('Index: setSelectedVenue called with venue:', venue.name);
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);

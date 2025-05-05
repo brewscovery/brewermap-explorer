@@ -25,6 +25,12 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(selectedVenue || null);
   const hasInitiallyRendered = useRef(false);
   
+  // Log initial props and state on mount
+  useEffect(() => {
+    console.log('Map: Component mounted with props.selectedVenue:', selectedVenue?.name || 'null');
+    console.log('Map: Initial localSelectedVenue:', localSelectedVenue?.name || 'null');
+  }, []);
+  
   // Sync local state with prop - this is crucial for updates from outside
   useEffect(() => {
     // Make sure we're using a deep comparison or JSON.stringify to detect actual changes
@@ -125,7 +131,17 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     console.log('Map: hasInitiallyRendered.current:', hasInitiallyRendered.current);
 
     // Only proceed if we have a selected venue, an initialized map, and the style is loaded
-    if (!localSelectedVenue || !map.current || !isStyleLoaded || !hasInitiallyRendered.current) {
+    if (!localSelectedVenue || !map.current || !isStyleLoaded) {
+      return;
+    }
+    
+    // Set hasInitiallyRendered to true on the first update that has a valid venue
+    if (!hasInitiallyRendered.current && localSelectedVenue) {
+      hasInitiallyRendered.current = true;
+    }
+    
+    // Skip the rest if we haven't initially rendered yet
+    if (!hasInitiallyRendered.current) {
       return;
     }
     
@@ -145,24 +161,28 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         lat: localSelectedVenue.latitude
       });
       
-      // Fixed: Use a tuple to satisfy the LngLatLike type requirement
+      // Fixed: Parse coordinates to handle both string and number formats
       const coordinates: [number, number] = [
-        parseFloat(localSelectedVenue.longitude), 
-        parseFloat(localSelectedVenue.latitude)
+        parseFloat(String(localSelectedVenue.longitude)), 
+        parseFloat(String(localSelectedVenue.latitude))
       ];
       
       // Calculate offset for the drawer
       const headerHeight = 73;
       const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
       
-      map.current.flyTo({
-        center: coordinates,
-        offset: [0, -(drawerHeight / 2)], // Offset for drawer
-        zoom: 15,
-        duration: 1500
-      });
-      
-      console.log('Map: flyTo method called successfully');
+      // Use a timeout to ensure the map is ready
+      setTimeout(() => {
+        if (map.current) {
+          map.current.flyTo({
+            center: coordinates,
+            offset: [0, -(drawerHeight / 2)], // Offset for drawer
+            zoom: 15,
+            duration: 1500
+          });
+          console.log('Map: flyTo method called successfully');
+        }
+      }, 100);
     } catch (error) {
       console.error('Error zooming to venue:', error);
     }
@@ -180,7 +200,13 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       // Create a deep copy to avoid reference issues
       const venueCopy = JSON.parse(JSON.stringify(venue));
       
-      // Update local state
+      // Ensure coordinates are strings (mapbox requires this)
+      if (venueCopy.latitude && venueCopy.longitude) {
+        venueCopy.latitude = String(venueCopy.latitude);
+        venueCopy.longitude = String(venueCopy.longitude);
+      }
+      
+      // Update local state first
       setLocalSelectedVenue(venueCopy);
       
       // Also notify parent component with the copy

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -77,6 +78,12 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     
     // Do a deep copy of the venue object to ensure we don't have reference issues
     const venueCopy = JSON.parse(JSON.stringify(venue));
+    
+    // Ensure coordinates are in string format
+    if (venueCopy.latitude && venueCopy.longitude) {
+      venueCopy.latitude = String(venueCopy.latitude);
+      venueCopy.longitude = String(venueCopy.longitude);
+    }
     
     // Call the parent component's handler with the deep copy
     onVenueSelect(venueCopy);
