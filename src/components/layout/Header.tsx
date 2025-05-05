@@ -1,7 +1,7 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, LogOut, Map, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
+import { PanelLeft, LogOut, Map as MapIcon, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -157,7 +157,7 @@ const Header = () => {
               
               {(isOnDashboard || isOnAdmin) && (
                 <DropdownMenuItem onClick={() => navigate('/')}>
-                  <Map className="mr-2" size={18} />
+                  <MapIcon className="mr-2" size={18} />
                   View Map
                 </DropdownMenuItem>
               )}

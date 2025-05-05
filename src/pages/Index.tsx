@@ -21,7 +21,7 @@ const Index = () => {
     hasSelectedVenueChanged
   } = useVenueData();
 
-  // Log Index component mount
+  // Log Index component mount and venue state
   useEffect(() => {
     console.log('Index: Component mounted with selectedVenue:', selectedVenue?.name || 'null');
     console.log('Index: hasSelectedVenueChanged:', hasSelectedVenueChanged);
@@ -44,7 +44,7 @@ const Index = () => {
     }
   }, [error]);
 
-  // Debug: Log when selectedVenue changes in Index
+  // Log when selectedVenue changes in Index
   useEffect(() => {
     console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
     
@@ -60,16 +60,24 @@ const Index = () => {
     }
   }, [selectedVenue]);
 
-  // Handle venue selection
+  // Handle venue selection with proper deep copying
   const handleVenueSelect = (venue: Venue | null) => {
     console.log('Index: handleVenueSelect called with venue:', venue?.name || 'none');
     
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
       
-      // This will now pass a deep copy to the state setter in useVenueData
-      setSelectedVenue(venue);
-      console.log('Index: setSelectedVenue called with venue:', venue.name);
+      // Deep copy the venue object to avoid reference issues
+      const venueCopy = JSON.parse(JSON.stringify(venue));
+      
+      // Ensure coordinates are in string format
+      if (venueCopy.latitude && venueCopy.longitude) {
+        venueCopy.latitude = String(venueCopy.latitude);
+        venueCopy.longitude = String(venueCopy.longitude);
+      }
+      
+      // Pass the deep copy to the state setter
+      setSelectedVenue(venueCopy);
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);

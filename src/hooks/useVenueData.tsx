@@ -7,16 +7,19 @@ import { useBreweryRealtimeUpdates } from './useBreweryRealtimeUpdates';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 
-// Global state holder that persists between component remounts
-let globalSelectedVenue: Venue | null = null;
+// Global state holder that persists between component remounts and window focus events
+const globalVenueState = {
+  selectedVenue: null as Venue | null,
+};
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
-  // Important: This ensures the component starts with the global state
-  const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalSelectedVenue);
+  // Always initialize state from the global reference to ensure consistency
+  const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalVenueState.selectedVenue);
+  
   // Create a ref to track whether the selectedVenue has changed since mount
   const hasSelectedVenueChanged = useRef(false);
   
-  // Log that the hook has been initialized
+  // Log that the hook has been initialized with the current global state
   console.log('useVenueData: Hook initialized with selectedVenue:', selectedVenue?.name || 'null');
   
   // Get venue search functionality
@@ -45,22 +48,23 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   useVenueHoursRealtimeUpdates(selectedVenue?.id || null);
   useVenueHappyHoursRealtimeUpdates(selectedVenue?.id || null);
 
-  // Log when selectedVenue changes
+  // Log whenever selectedVenue changes
   useEffect(() => {
-    console.log('useVenueData: Selected venue changed:', selectedVenue?.name || 'none');
-    
     if (selectedVenue) {
+      console.log('useVenueData: Selected venue changed:', selectedVenue.name);
       console.log('useVenueData: Selected venue coordinates:', {
         lat: selectedVenue.latitude,
         lng: selectedVenue.longitude
       });
-    }
-    
-    // Update the global state when local state changes
-    if (selectedVenue !== globalSelectedVenue) {
-      globalSelectedVenue = selectedVenue;
-      console.log('useVenueData: Global state updated:', selectedVenue?.name || 'null');
+      
+      // Update the global state when local state changes
+      globalVenueState.selectedVenue = selectedVenue;
+      console.log('useVenueData: Global state updated:', selectedVenue.name);
       hasSelectedVenueChanged.current = true;
+    } else {
+      console.log('useVenueData: Selected venue changed: none');
+      globalVenueState.selectedVenue = null;
+      console.log('useVenueData: Global state updated: null');
     }
   }, [selectedVenue]);
 
@@ -96,16 +100,14 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         venueCopy.longitude = String(venueCopy.longitude);
       }
       
-      // Update the state with the deep copy
+      // Update both the component state and global state
       setSelectedVenueState(venueCopy);
-      // Also update the global state
-      globalSelectedVenue = venueCopy;
+      globalVenueState.selectedVenue = venueCopy;
       console.log('useVenueData: Global state updated with venue:', venueCopy.name);
     } else {
       // Update the state with null
       setSelectedVenueState(null);
-      // Also update the global state
-      globalSelectedVenue = null;
+      globalVenueState.selectedVenue = null;
       console.log('useVenueData: Global state updated with null venue');
     }
   }, []);
