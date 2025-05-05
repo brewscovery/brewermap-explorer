@@ -7,9 +7,13 @@ import { useBreweryRealtimeUpdates } from './useBreweryRealtimeUpdates';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 
+// Create a global state holder to ensure state is shared across components
+// This is a simple solution to avoid prop drilling and ensure consistent state
+let globalSelectedVenue: Venue | null = null;
+
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
   // Use state for the selected venue with a proper initial value
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalSelectedVenue);
   
   // Get venue search functionality
   const { 
@@ -23,7 +27,11 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   } = useVenueSearch(initialSearchTerm, initialSearchType);
 
   // Set up realtime updates
-  useVenueRealtimeUpdates(selectedVenue, setSelectedVenue);
+  useVenueRealtimeUpdates(selectedVenue, (updatedVenue) => {
+    if (updatedVenue) {
+      setSelectedVenueWithValidation(updatedVenue);
+    }
+  });
   
   // Pass null for both parameters since we don't need to track brewery updates here
   useBreweryRealtimeUpdates(null, () => null);
@@ -42,7 +50,17 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         lng: selectedVenue.longitude
       });
     }
+    
+    // Update the global state when local state changes
+    globalSelectedVenue = selectedVenue;
   }, [selectedVenue]);
+
+  // Wrapper for setting selected venue that updates both local and global state
+  const setSelectedVenue = useCallback((venue: Venue | null) => {
+    console.log('useVenueData: setSelectedVenue called directly with venue:', 
+      venue?.name || 'null');
+    setSelectedVenueWithValidation(venue);
+  }, []);
 
   // Provide a setter for selectedVenue that creates a clean copy of the venue object
   const setSelectedVenueWithValidation = useCallback((venue: Venue | null) => {
@@ -79,10 +97,16 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
       };
       
       // Update the state with the clean copy
-      setSelectedVenue(venueCopy);
+      setSelectedVenueState(venueCopy);
+      // Also update the global state
+      globalSelectedVenue = venueCopy;
+      console.log('useVenueData: Global state updated with venue:', venueCopy.name);
     } else {
       // Update the state with null
-      setSelectedVenue(null);
+      setSelectedVenueState(null);
+      // Also update the global state
+      globalSelectedVenue = null;
+      console.log('useVenueData: Global state updated with null venue');
     }
   }, []);
 
@@ -92,7 +116,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     error,
     refetch,
     selectedVenue,
-    setSelectedVenue: setSelectedVenueWithValidation,
+    setSelectedVenue,
     searchTerm,
     searchType,
     updateSearch

@@ -63,6 +63,7 @@ const Index = () => {
       // Create a fresh copy of the venue to avoid reference issues
       const venueCopy = { ...venue };
       setSelectedVenue(venueCopy);
+      console.log('Index: setSelectedVenue called with venue copy');
     } else if (venue === null) {
       console.log('Index: Setting selected venue to null');
       setSelectedVenue(null);
@@ -74,7 +75,7 @@ const Index = () => {
       <Map
         venues={venues}
         onVenueSelect={handleVenueSelect}
-        selectedVenue={selectedVenue} // Ensure this prop is being passed correctly
+        selectedVenue={selectedVenue} 
       />
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -21,6 +22,15 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(selectedVenue || null);
+  
+  // Sync local state with prop
+  useEffect(() => {
+    if (selectedVenue !== localSelectedVenue) {
+      console.log('Map: Syncing local state with selectedVenue prop:', selectedVenue?.name || 'null');
+      setLocalSelectedVenue(selectedVenue || null);
+    }
+  }, [selectedVenue, localSelectedVenue]);
   
   // Debug: Log when props change
   useEffect(() => {
@@ -98,32 +108,32 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
-    console.log('Map: selectedVenue: ', selectedVenue);
-    console.log('Map: map.current: ', map.current);
-    console.log('Map: isStyleLoaded: ', isStyleLoaded);
+    console.log('Map: selectedVenue updated in state, localSelectedVenue:', localSelectedVenue?.name);
+    console.log('Map: map.current status:', map.current ? 'initialized' : 'not initialized');
+    console.log('Map: isStyleLoaded status:', isStyleLoaded ? 'loaded' : 'not loaded');
 
-    if (!selectedVenue || !map.current || !isStyleLoaded) return;
+    if (!localSelectedVenue || !map.current || !isStyleLoaded) return;
     
-    console.log('Map: Handling selectedVenue change:', selectedVenue.name);
+    console.log('Map: Handling selectedVenue change:', localSelectedVenue.name);
     
-    if (!selectedVenue.latitude || !selectedVenue.longitude) {
+    if (!localSelectedVenue.latitude || !localSelectedVenue.longitude) {
       console.warn('Cannot zoom to venue: Missing coordinates', {
-        lat: selectedVenue.latitude,
-        lng: selectedVenue.longitude
+        lat: localSelectedVenue.latitude,
+        lng: localSelectedVenue.longitude
       });
       return;
     }
     
     try {
       console.log('Map: Zooming map to venue coordinates:', {
-        lng: selectedVenue.longitude,
-        lat: selectedVenue.latitude
+        lng: localSelectedVenue.longitude,
+        lat: localSelectedVenue.latitude
       });
       
       // Fixed: Use a tuple to satisfy the LngLatLike type requirement
       const coordinates: [number, number] = [
-        parseFloat(selectedVenue.longitude), 
-        parseFloat(selectedVenue.latitude)
+        parseFloat(localSelectedVenue.longitude), 
+        parseFloat(localSelectedVenue.latitude)
       ];
       
       // Calculate offset for the drawer
@@ -141,7 +151,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     } catch (error) {
       console.error('Error zooming to venue:', error);
     }
-  }, [selectedVenue, map, isStyleLoaded]);
+  }, [localSelectedVenue, map, isStyleLoaded]);
 
   const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
@@ -155,6 +165,9 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       // Create a clean copy to avoid reference issues
       const venueCopy = { ...venue };
       
+      // Update local state
+      setLocalSelectedVenue(venueCopy);
+      
       // Also notify parent component with the copy
       onVenueSelect(venueCopy);
       console.log('Map: onVenueSelect parent handler called with venue:', venueCopy.name);
@@ -163,6 +176,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   const handleSidebarClose = useCallback(() => {
     console.log('Map: handleSidebarClose called');
+    // Update local state
+    setLocalSelectedVenue(null);
     // Notify parent component
     onVenueSelect(null);
     console.log('Map: onVenueSelect parent handler called with null');
@@ -198,24 +213,25 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
           <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
           <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
           <div className="mt-2 font-bold">Venue Selection:</div>
-          <div>Selected Venue: {selectedVenue?.name || 'None'}</div>
-          {selectedVenue && (
+          <div>Selected Venue: {localSelectedVenue?.name || 'None'}</div>
+          <div>Prop Venue: {selectedVenue?.name || 'None'}</div>
+          {localSelectedVenue && (
             <>
               <div className="mt-2 font-bold">Venue Details:</div>
-              <div>ID: {selectedVenue.id || 'N/A'}</div>
-              <div>Name: {selectedVenue.name || 'N/A'}</div>
-              <div>Lat: {selectedVenue.latitude || 'N/A'}</div>
-              <div>Lng: {selectedVenue.longitude || 'N/A'}</div>
-              <div>City: {selectedVenue.city || 'N/A'}</div>
+              <div>ID: {localSelectedVenue.id || 'N/A'}</div>
+              <div>Name: {localSelectedVenue.name || 'N/A'}</div>
+              <div>Lat: {localSelectedVenue.latitude || 'N/A'}</div>
+              <div>Lng: {localSelectedVenue.longitude || 'N/A'}</div>
+              <div>City: {localSelectedVenue.city || 'N/A'}</div>
             </>
           )}
         </div>
       )}
       
       {/* Only render sidebar if we have a valid selected venue */}
-      {selectedVenue && selectedVenue.id && selectedVenue.name && (
+      {localSelectedVenue && localSelectedVenue.id && localSelectedVenue.name && (
         <VenueSidebar 
-          venue={selectedVenue} 
+          venue={localSelectedVenue} 
           onClose={handleSidebarClose}
         />
       )}

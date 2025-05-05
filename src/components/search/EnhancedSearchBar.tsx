@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -76,12 +75,12 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
       return;
     }
     
-    // Create a fresh copy of the venue object to avoid reference issues
-    const venueCopy = { ...venue };
+    // Do a deep copy of the venue object to ensure we don't have reference issues
+    const venueCopy = JSON.parse(JSON.stringify(venue));
     
-    // Call the parent component's handler with the venue
+    // Call the parent component's handler with the deep copy
     onVenueSelect(venueCopy);
-    console.log('EnhancedSearchBar: onVenueSelect parent handler called');
+    console.log('EnhancedSearchBar: onVenueSelect parent handler called with venue:', venueCopy.name);
   };
 
   return (
