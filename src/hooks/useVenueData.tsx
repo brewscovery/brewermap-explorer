@@ -14,7 +14,12 @@ const globalVenueState = {
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
   // Always initialize state from the global reference to ensure consistency
-  const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalVenueState.selectedVenue);
+  const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(() => {
+    console.log('useVenueData: Initializing with global state:', globalVenueState.selectedVenue?.name || 'null');
+    return globalVenueState.selectedVenue 
+      ? JSON.parse(JSON.stringify(globalVenueState.selectedVenue)) 
+      : null;
+  });
   
   // Create a ref to track whether the selectedVenue has changed since mount
   const hasSelectedVenueChanged = useRef(false);
@@ -48,7 +53,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   useVenueHoursRealtimeUpdates(selectedVenue?.id || null);
   useVenueHappyHoursRealtimeUpdates(selectedVenue?.id || null);
 
-  // Log whenever selectedVenue changes
+  // Log whenever selectedVenue changes and update global state
   useEffect(() => {
     if (selectedVenue) {
       console.log('useVenueData: Selected venue changed:', selectedVenue.name);
@@ -57,8 +62,8 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         lng: selectedVenue.longitude
       });
       
-      // Update the global state when local state changes
-      globalVenueState.selectedVenue = selectedVenue;
+      // Update the global state when local state changes (deep copy to avoid reference issues)
+      globalVenueState.selectedVenue = JSON.parse(JSON.stringify(selectedVenue));
       console.log('useVenueData: Global state updated:', selectedVenue.name);
       hasSelectedVenueChanged.current = true;
     } else {
@@ -102,7 +107,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
       
       // Update both the component state and global state
       setSelectedVenueState(venueCopy);
-      globalVenueState.selectedVenue = venueCopy;
+      globalVenueState.selectedVenue = JSON.parse(JSON.stringify(venueCopy));
       console.log('useVenueData: Global state updated with venue:', venueCopy.name);
     } else {
       // Update the state with null

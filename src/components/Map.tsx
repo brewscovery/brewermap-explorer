@@ -18,6 +18,7 @@ interface MapProps {
 }
 
 const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
+  console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
@@ -25,41 +26,40 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(selectedVenue || null);
   const hasInitiallyRendered = useRef(false);
   const venueZoomAttempted = useRef(false);
+  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
-  // Log initial props and state
+  // Log initial props and state at mount time
   useEffect(() => {
     console.log('Map: Component mounted with props.selectedVenue:', selectedVenue?.name || 'null');
     console.log('Map: Initial localSelectedVenue:', localSelectedVenue?.name || 'null');
+    
+    // Force a rerender if the map is ready but venue isn't processed
+    if (map.current && isStyleLoaded && selectedVenue && !localSelectedVenue) {
+      setLocalSelectedVenue(JSON.parse(JSON.stringify(selectedVenue)));
+    }
   }, []);
   
-  // Sync local state with prop whenever the selectedVenue prop changes
-  useEffect(() => {
-    // Use stringified comparison to detect actual data changes
-    const currentJSON = localSelectedVenue ? JSON.stringify(localSelectedVenue) : 'null';
-    const incomingJSON = selectedVenue ? JSON.stringify(selectedVenue) : 'null';
-    
-    // Only update if there's an actual change in the data
-    if (currentJSON !== incomingJSON) {
-      console.log('Map: Syncing local state with new selectedVenue prop:', selectedVenue?.name || 'null');
-      
-      // Deep copy to ensure no reference issues
-      const venueCopy = selectedVenue ? JSON.parse(JSON.stringify(selectedVenue)) : null;
-      setLocalSelectedVenue(venueCopy);
-      
-      // Reset zoom attempt flag to ensure we try zooming again with new venue
-      venueZoomAttempted.current = false;
-    }
-  }, [selectedVenue, localSelectedVenue]);
-  
-  // Debug: Log when props change
+  // Critical: Sync local state with prop whenever the selectedVenue prop changes
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
     
+    // Always update local state when props change, even if seemingly identical
     if (selectedVenue) {
-      console.log('Map: selectedVenue coordinates:', {
+      console.log('Map: Received venue coordinates:', {
         lat: selectedVenue.latitude,
         lng: selectedVenue.longitude
       });
+      
+      // Deep copy to ensure no reference issues
+      const venueCopy = JSON.parse(JSON.stringify(selectedVenue));
+      setLocalSelectedVenue(venueCopy);
+      
+      // Reset zoom attempt flag for new venue
+      venueZoomAttempted.current = false;
+      console.log('Map: venueZoomAttempted flag reset');
+    } else if (selectedVenue === null && localSelectedVenue !== null) {
+      console.log('Map: Clearing localSelectedVenue because props.selectedVenue is null');
+      setLocalSelectedVenue(null);
     }
   }, [selectedVenue]);
 
@@ -125,10 +125,16 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Update map when localSelectedVenue changes (zoom to venue location)
+  // Critical: Update map when localSelectedVenue changes (zoom to venue location)
   useEffect(() => {
+    // Clean up any existing zoom timeout
+    if (zoomTimeoutRef.current) {
+      clearTimeout(zoomTimeoutRef.current);
+      zoomTimeoutRef.current = null;
+    }
+    
     // Only proceed if we have all the necessary pieces and haven't already attempted to zoom
-    if (!localSelectedVenue || !map.current || !isStyleLoaded || venueZoomAttempted.current) {
+    if (!localSelectedVenue || !map.current || !isStyleLoaded) {
       return;
     }
     
@@ -143,45 +149,57 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       return;
     }
     
-    try {
-      // Mark that we've attempted to zoom to this venue
-      venueZoomAttempted.current = true;
-      
-      // Parse coordinates to handle both string and number formats
-      const lat = parseFloat(String(localSelectedVenue.latitude));
-      const lng = parseFloat(String(localSelectedVenue.longitude));
-      
-      if (isNaN(lat) || isNaN(lng)) {
-        console.error('Invalid coordinates:', { lat, lng });
-        return;
-      }
-      
-      // Calculate offset for the drawer
-      const headerHeight = 73;
-      const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-      
-      // Use a timeout to ensure the map is fully initialized
-      setTimeout(() => {
-        if (map.current) {
-          console.log('Map: Executing flyTo with coordinates:', { lng, lat });
-          
-          map.current.flyTo({
-            center: [lng, lat],
-            offset: [0, -(drawerHeight / 2)], // Offset for drawer
-            zoom: 15,
-            essential: true, // This ensures the animation completes
-            duration: 1500
-          });
-          
-          console.log('Map: flyTo method executed');
-          
-          // Force a map render
-          map.current.triggerRepaint();
+    // Set up a timeout to ensure the map is ready
+    zoomTimeoutRef.current = setTimeout(() => {
+      try {
+        // Check all conditions again inside the timeout
+        if (!map.current || !localSelectedVenue) {
+          console.error('Map: Map or venue no longer available in zoom timeout');
+          return;
         }
-      }, 300); // Increased timeout to ensure map is ready
-    } catch (error) {
-      console.error('Error zooming to venue:', error);
-    }
+        
+        // Parse coordinates to handle both string and number formats
+        const lat = parseFloat(String(localSelectedVenue.latitude));
+        const lng = parseFloat(String(localSelectedVenue.longitude));
+        
+        if (isNaN(lat) || isNaN(lng)) {
+          console.error('Invalid coordinates:', { lat, lng });
+          return;
+        }
+        
+        // Calculate offset for the drawer
+        const headerHeight = 73;
+        const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+        
+        console.log('Map: Executing flyTo with coordinates:', { lng, lat });
+        
+        map.current.flyTo({
+          center: [lng, lat],
+          offset: [0, -(drawerHeight / 2)], // Offset for drawer
+          zoom: 15,
+          essential: true, // This ensures the animation completes
+          duration: 1500
+        });
+        
+        console.log('Map: flyTo method executed successfully');
+        
+        // Force a map render
+        map.current.triggerRepaint();
+        
+        // Mark that we've attempted to zoom to this venue
+        venueZoomAttempted.current = true;
+      } catch (error) {
+        console.error('Error zooming to venue:', error);
+      }
+    }, 500); // Increased timeout to ensure map is ready
+
+    // Clean up timeout on unmount
+    return () => {
+      if (zoomTimeoutRef.current) {
+        clearTimeout(zoomTimeoutRef.current);
+        zoomTimeoutRef.current = null;
+      }
+    };
   }, [localSelectedVenue, map, isStyleLoaded]);
 
   const handleVenueSelect = useCallback((venue: Venue) => {

@@ -84,9 +84,13 @@ const Index = () => {
     }
   };
 
+  // Force refresh a key for the Map component to ensure it gets new props
+  const mapKey = selectedVenue ? selectedVenue.id : 'no-venue';
+
   return (
     <div className="flex-1 flex flex-col h-full">
       <Map
+        key={mapKey}
         venues={venues}
         onVenueSelect={handleVenueSelect}
         selectedVenue={selectedVenue} 
