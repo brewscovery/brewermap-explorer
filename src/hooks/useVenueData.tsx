@@ -7,12 +7,11 @@ import { useBreweryRealtimeUpdates } from './useBreweryRealtimeUpdates';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 
-// Create a global state holder to ensure state is shared across components
-// This is a simple solution to avoid prop drilling and ensure consistent state
+// Global state holder that persists between component remounts
 let globalSelectedVenue: Venue | null = null;
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
-  // Use state for the selected venue with a proper initial value
+  // Important: This ensures the component starts with the global state
   const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(globalSelectedVenue);
   
   // Get venue search functionality
@@ -62,7 +61,7 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     setSelectedVenueWithValidation(venue);
   }, []);
 
-  // Provide a setter for selectedVenue that creates a clean copy of the venue object
+  // Ensure venue objects are properly copied and validated
   const setSelectedVenueWithValidation = useCallback((venue: Venue | null) => {
     console.log('useVenueData: setSelectedVenueWithValidation called with venue:', 
       venue?.name || 'null');
@@ -76,27 +75,12 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
     // Log the update
     console.log('useVenueData: Setting selectedVenue to:', venue?.name || 'null');
     
-    // Create a clean copy of the venue to avoid reference issues
+    // Create a DEEP copy of the venue to avoid reference issues
     if (venue) {
-      const venueCopy = {
-        ...venue,
-        id: venue.id,
-        brewery_id: venue.brewery_id,
-        name: venue.name,
-        street: venue.street,
-        city: venue.city,
-        state: venue.state,
-        postal_code: venue.postal_code,
-        country: venue.country,
-        longitude: venue.longitude,
-        latitude: venue.latitude,
-        phone: venue.phone,
-        website_url: venue.website_url,
-        created_at: venue.created_at,
-        updated_at: venue.updated_at
-      };
+      // Use JSON parse/stringify for a true deep copy
+      const venueCopy = JSON.parse(JSON.stringify(venue));
       
-      // Update the state with the clean copy
+      // Update the state with the deep copy
       setSelectedVenueState(venueCopy);
       // Also update the global state
       globalSelectedVenue = venueCopy;

@@ -75,10 +75,10 @@ const Header = () => {
       lng: venue.longitude
     });
     
-    // Create a fresh copy of the venue to avoid reference issues
-    const venueCopy = { ...venue };
+    // Create a deep copy of the venue using JSON parse/stringify
+    const venueCopy = JSON.parse(JSON.stringify(venue));
     
-    // Set the selected venue
+    // Set the selected venue using the useVenueData hook
     setSelectedVenue(venueCopy);
     console.log('Header: setSelectedVenue called with venue:', venueCopy.name);
     

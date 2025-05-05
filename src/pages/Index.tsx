@@ -37,7 +37,7 @@ const Index = () => {
     }
   }, [error]);
 
-  // Debug: Log when selectedVenue changes
+  // Debug: Log when selectedVenue changes in Index
   useEffect(() => {
     console.log('Index: selectedVenue changed to:', selectedVenue?.name || 'null');
     
@@ -60,8 +60,8 @@ const Index = () => {
     if (venue && venue.id) {
       console.log('Index: Setting selected venue to:', venue.name);
       
-      // Create a fresh copy of the venue to avoid reference issues
-      const venueCopy = { ...venue };
+      // Use JSON.parse(JSON.stringify()) for a true deep copy to avoid reference issues
+      const venueCopy = JSON.parse(JSON.stringify(venue));
       setSelectedVenue(venueCopy);
       console.log('Index: setSelectedVenue called with venue copy');
     } else if (venue === null) {

@@ -23,12 +23,23 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(selectedVenue || null);
+  const hasInitiallyRendered = useRef(false);
   
-  // Sync local state with prop
+  // Sync local state with prop - this is crucial for updates from outside
   useEffect(() => {
-    if (selectedVenue !== localSelectedVenue) {
+    // Make sure we're using a deep comparison or JSON.stringify to detect actual changes
+    const currentJSON = localSelectedVenue ? JSON.stringify(localSelectedVenue) : 'null';
+    const incomingJSON = selectedVenue ? JSON.stringify(selectedVenue) : 'null';
+    
+    if (currentJSON !== incomingJSON) {
       console.log('Map: Syncing local state with selectedVenue prop:', selectedVenue?.name || 'null');
-      setLocalSelectedVenue(selectedVenue || null);
+      
+      // Deep copy to ensure no reference issues
+      const venueCopy = selectedVenue ? JSON.parse(JSON.stringify(selectedVenue)) : null;
+      setLocalSelectedVenue(venueCopy);
+      
+      // Force-set the hasInitiallyRendered flag to ensure map zoom happens
+      hasInitiallyRendered.current = true;
     }
   }, [selectedVenue, localSelectedVenue]);
   
@@ -108,13 +119,17 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
 
   // Update map when selectedVenue changes (zoom to venue location)
   useEffect(() => {
-    console.log('Map: selectedVenue updated in state, localSelectedVenue:', localSelectedVenue?.name);
+    console.log('Map: localSelectedVenue updated in state, value:', localSelectedVenue?.name || 'null');
     console.log('Map: map.current status:', map.current ? 'initialized' : 'not initialized');
     console.log('Map: isStyleLoaded status:', isStyleLoaded ? 'loaded' : 'not loaded');
+    console.log('Map: hasInitiallyRendered.current:', hasInitiallyRendered.current);
 
-    if (!localSelectedVenue || !map.current || !isStyleLoaded) return;
+    // Only proceed if we have a selected venue, an initialized map, and the style is loaded
+    if (!localSelectedVenue || !map.current || !isStyleLoaded || !hasInitiallyRendered.current) {
+      return;
+    }
     
-    console.log('Map: Handling selectedVenue change:', localSelectedVenue.name);
+    console.log('Map: Handling localSelectedVenue change:', localSelectedVenue.name);
     
     if (!localSelectedVenue.latitude || !localSelectedVenue.longitude) {
       console.warn('Cannot zoom to venue: Missing coordinates', {
@@ -162,8 +177,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         lng: venue.longitude
       });
       
-      // Create a clean copy to avoid reference issues
-      const venueCopy = { ...venue };
+      // Create a deep copy to avoid reference issues
+      const venueCopy = JSON.parse(JSON.stringify(venue));
       
       // Update local state
       setLocalSelectedVenue(venueCopy);
