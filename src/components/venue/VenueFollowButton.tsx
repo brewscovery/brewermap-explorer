@@ -51,9 +51,6 @@ export const VenueFollowButton = ({
           isFavorited ? "fill-current" : ""
         )}
       />
-      <span>
-        {isFavorited ? 'Following' : 'Follow'}
-      </span>
     </Button>
   );
 };
