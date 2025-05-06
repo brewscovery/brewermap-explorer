@@ -11,7 +11,7 @@ export interface Venue {
   longitude: string | null;
   latitude: string | null;
   phone: string | null;
-  website_url: string | null;
+  website_url?: string | null; // Changed to optional with ?
   created_at: string;
   updated_at: string;
 }

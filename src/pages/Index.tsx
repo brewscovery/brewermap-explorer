@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
 import FloatingAuthButtons from '@/components/auth/FloatingAuthButtons';
 import { supabase } from '@/integrations/supabase/client';
+import type { Venue } from '@/types/venue';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -57,7 +58,8 @@ const Index = () => {
             
             if (data) {
               console.log('Fetched venue from URL parameter:', data.name);
-              setSelectedVenue(data);
+              // Cast the data to Venue type to ensure compatibility
+              setSelectedVenue(data as Venue);
             }
           } catch (error) {
             console.error('Error fetching venue from ID:', error);
