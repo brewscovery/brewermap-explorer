@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -10,6 +11,7 @@ const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
+  const isRootRoute = location.pathname === '/';
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -32,6 +34,10 @@ const AppLayout = () => {
                 <Outlet />
               </main>
             </div>
+          ) : isRootRoute ? (
+            <main className="flex-1 flex flex-col h-full">
+              <Outlet />
+            </main>
           ) : (
             <div className="flex-1 flex flex-col h-full">
               <Header />

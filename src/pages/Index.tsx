@@ -5,6 +5,9 @@ import Map from '@/components/Map';
 import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
+import FloatingSearchBar from '@/components/search/FloatingSearchBar';
+import FloatingAuthButtons from '@/components/auth/FloatingAuthButtons';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -47,6 +50,11 @@ const Index = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full">
+      {/* Floating UI Elements */}
+      <FloatingSidebarToggle position="top-left" />
+      <FloatingSearchBar onVenueSelect={handleVenueSelect} />
+      <FloatingAuthButtons />
+      
       <Map
         venues={venues}
         onVenueSelect={handleVenueSelect}

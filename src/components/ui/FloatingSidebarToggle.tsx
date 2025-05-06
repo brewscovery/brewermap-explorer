@@ -25,9 +25,9 @@ export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSide
       size="icon"
       className={cn(
         "fixed z-[100] rounded-full shadow-md hover:shadow-lg transition-all duration-200",
-        "bg-background/80 backdrop-blur-sm",
+        "bg-white/80 backdrop-blur-sm",
         position === "top-left" 
-          ? "left-6 top-[85px]" // Adjusted position to be below header and more visible
+          ? "left-4 top-4"
           : "left-4 bottom-4"
       )}
       onClick={handleClick}
