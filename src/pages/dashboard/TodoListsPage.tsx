@@ -84,6 +84,7 @@ const TodoListsPage = () => {
   };
 
   const handleViewVenue = (venueId: string) => {
+    // Navigate to home page with venueId parameter
     navigate(`/?venueId=${venueId}`);
   };
 

@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
 import FloatingAuthButtons from '@/components/auth/FloatingAuthButtons';
+import { supabase } from '@/integrations/supabase/client';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -30,6 +31,44 @@ const Index = () => {
       navigate('/auth' + window.location.search);
     }
   }, [navigate, searchParams, user]);
+
+  // Handle venueId from URL parameter
+  useEffect(() => {
+    const venueId = searchParams.get('venueId');
+    
+    if (venueId && venues.length > 0) {
+      // First try to find the venue in our loaded venues
+      const venue = venues.find(v => v.id === venueId);
+      
+      if (venue) {
+        console.log('Found venue from URL parameter:', venue.name);
+        setSelectedVenue(venue);
+      } else {
+        // If venue is not in our loaded venues, fetch it directly
+        const fetchVenue = async () => {
+          try {
+            const { data, error } = await supabase
+              .from('venues')
+              .select('*')
+              .eq('id', venueId)
+              .single();
+              
+            if (error) throw error;
+            
+            if (data) {
+              console.log('Fetched venue from URL parameter:', data.name);
+              setSelectedVenue(data);
+            }
+          } catch (error) {
+            console.error('Error fetching venue from ID:', error);
+            toast.error('Could not find the selected venue');
+          }
+        };
+        
+        fetchVenue();
+      }
+    }
+  }, [searchParams, venues, setSelectedVenue]);
 
   // Handle venue data errors
   useEffect(() => {
