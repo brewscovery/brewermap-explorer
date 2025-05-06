@@ -1,3 +1,4 @@
+
 import { useState, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -174,11 +175,6 @@ export const useTodoLists = () => {
     return todoListVenues.some(item => item.venue_id === venueId);
   }, [todoListVenues]);
 
-  // Check if venue is in any todo list and still not completed
-  const isVenueInAnyTodoListNotCompleted = useCallback((venueId: string) => {
-    return todoListVenues.some(item => item.venue_id === venueId && !item.is_completed);
-  }, [todoListVenues]);
-
   // Get todo list that contains a venue
   const getTodoListForVenue = useCallback((venueId: string) => {
     const todoVenue = todoListVenues.find(item => item.venue_id === venueId);
@@ -201,7 +197,6 @@ export const useTodoLists = () => {
     removeVenueFromList,
     toggleVenueCompletion,
     isVenueInAnyTodoList,
-    isVenueInAnyTodoListNotCompleted,
     getTodoListForVenue
   };
 };

@@ -32,7 +32,6 @@ export function TodoListDialog({ venue, isOpen, onClose }: TodoListDialogProps) 
     createTodoList,
     addVenueToList,
     isVenueInAnyTodoList,
-    isVenueInAnyTodoListNotCompleted,
     getTodoListForVenue
   } = useTodoLists();
   
@@ -42,7 +41,6 @@ export function TodoListDialog({ venue, isOpen, onClose }: TodoListDialogProps) 
   
   const venueInList = user ? getTodoListForVenue(venue.id) : null;
   const alreadyInTodoList = user ? isVenueInAnyTodoList(venue.id) : false;
-  const alreadyInTodoListAndNotCompleted = user ? isVenueInAnyTodoListNotCompleted(venue.id) : false;
 
   const handleAddToList = async () => {
     if (isCreatingNew && newListName.trim()) {
