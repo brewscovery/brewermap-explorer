@@ -6,23 +6,45 @@ import { useVenueRealtimeUpdates } from './useVenueRealtimeUpdates';
 import { useBreweryRealtimeUpdates } from './useBreweryRealtimeUpdates';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
+import { useWindowFocus } from './useWindowFocus';
 
 // Global state holder that persists between component remounts and window focus events
-const globalVenueState = {
-  selectedVenue: null as Venue | null,
+// Using sessionStorage for persistence across focus events
+const getGlobalVenueState = (): Venue | null => {
+  try {
+    const savedVenue = sessionStorage.getItem('selectedVenue');
+    return savedVenue ? JSON.parse(savedVenue) : null;
+  } catch (e) {
+    console.error('Error parsing saved venue:', e);
+    return null;
+  }
+};
+
+const saveGlobalVenueState = (venue: Venue | null): void => {
+  try {
+    if (venue) {
+      sessionStorage.setItem('selectedVenue', JSON.stringify(venue));
+      console.log('useVenueData: Saved venue to sessionStorage:', venue.name);
+    } else {
+      sessionStorage.removeItem('selectedVenue');
+      console.log('useVenueData: Removed venue from sessionStorage');
+    }
+  } catch (e) {
+    console.error('Error saving venue:', e);
+  }
 };
 
 export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' | 'city' | 'country' = 'name') => {
-  // Always initialize state from the global reference to ensure consistency
+  // Always initialize state from sessionStorage to ensure consistency
   const [selectedVenue, setSelectedVenueState] = useState<Venue | null>(() => {
-    console.log('useVenueData: Initializing with global state:', globalVenueState.selectedVenue?.name || 'null');
-    return globalVenueState.selectedVenue 
-      ? JSON.parse(JSON.stringify(globalVenueState.selectedVenue)) 
-      : null;
+    const savedVenue = getGlobalVenueState();
+    console.log('useVenueData: Initializing with saved state:', savedVenue?.name || 'null');
+    return savedVenue;
   });
   
   // Create a ref to track whether the selectedVenue has changed since mount
   const hasSelectedVenueChanged = useRef(false);
+  const isWindowFocused = useWindowFocus();
   
   // Log that the hook has been initialized with the current global state
   console.log('useVenueData: Hook initialized with selectedVenue:', selectedVenue?.name || 'null');
@@ -53,6 +75,21 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
   useVenueHoursRealtimeUpdates(selectedVenue?.id || null);
   useVenueHappyHoursRealtimeUpdates(selectedVenue?.id || null);
 
+  // Handle window focus events to ensure state consistency
+  useEffect(() => {
+    if (isWindowFocused) {
+      console.log('useVenueData: Window focused, checking for saved venue state');
+      const savedVenue = getGlobalVenueState();
+      
+      // Only update if there's a saved venue and our current state doesn't match
+      if (savedVenue && (!selectedVenue || savedVenue.id !== selectedVenue.id)) {
+        console.log('useVenueData: Restoring venue from saved state:', savedVenue.name);
+        setSelectedVenueState(savedVenue);
+        hasSelectedVenueChanged.current = true;
+      }
+    }
+  }, [isWindowFocused, selectedVenue]);
+
   // Log whenever selectedVenue changes and update global state
   useEffect(() => {
     if (selectedVenue) {
@@ -62,14 +99,12 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         lng: selectedVenue.longitude
       });
       
-      // Update the global state when local state changes (deep copy to avoid reference issues)
-      globalVenueState.selectedVenue = JSON.parse(JSON.stringify(selectedVenue));
-      console.log('useVenueData: Global state updated:', selectedVenue.name);
+      // Update the sessionStorage when local state changes
+      saveGlobalVenueState(selectedVenue);
       hasSelectedVenueChanged.current = true;
     } else {
       console.log('useVenueData: Selected venue changed: none');
-      globalVenueState.selectedVenue = null;
-      console.log('useVenueData: Global state updated: null');
+      saveGlobalVenueState(null);
     }
   }, [selectedVenue]);
 
@@ -105,15 +140,13 @@ export const useVenueData = (initialSearchTerm = '', initialSearchType: 'name' |
         venueCopy.longitude = String(venueCopy.longitude);
       }
       
-      // Update both the component state and global state
+      // Update both component state and sessionStorage
       setSelectedVenueState(venueCopy);
-      globalVenueState.selectedVenue = JSON.parse(JSON.stringify(venueCopy));
-      console.log('useVenueData: Global state updated with venue:', venueCopy.name);
+      saveGlobalVenueState(venueCopy);
     } else {
       // Update the state with null
       setSelectedVenueState(null);
-      globalVenueState.selectedVenue = null;
-      console.log('useVenueData: Global state updated with null venue');
+      saveGlobalVenueState(null);
     }
   }, []);
 

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -23,27 +22,21 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
-  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(selectedVenue || null);
-  const hasInitiallyRendered = useRef(false);
+  
+  // Create a state for tracking the selected venue locally
+  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const venueZoomAttempted = useRef(false);
   const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Log initial props and state at mount time
   useEffect(() => {
     console.log('Map: Component mounted with props.selectedVenue:', selectedVenue?.name || 'null');
-    console.log('Map: Initial localSelectedVenue:', localSelectedVenue?.name || 'null');
-    
-    // Force a rerender if the map is ready but venue isn't processed
-    if (map.current && isStyleLoaded && selectedVenue && !localSelectedVenue) {
-      setLocalSelectedVenue(JSON.parse(JSON.stringify(selectedVenue)));
-    }
   }, []);
   
-  // Critical: Sync local state with prop whenever the selectedVenue prop changes
+  // Sync local state with props whenever selectedVenue changes
   useEffect(() => {
     console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
     
-    // Always update local state when props change, even if seemingly identical
     if (selectedVenue) {
       console.log('Map: Received venue coordinates:', {
         lat: selectedVenue.latitude,
@@ -149,7 +142,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       return;
     }
     
-    // Set up a timeout to ensure the map is ready
+    // Set up a timeout to ensure the map is ready - use a longer timeout to be safe
     zoomTimeoutRef.current = setTimeout(() => {
       try {
         // Check all conditions again inside the timeout
@@ -191,7 +184,7 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
       } catch (error) {
         console.error('Error zooming to venue:', error);
       }
-    }, 500); // Increased timeout to ensure map is ready
+    }, 1000); // Increased timeout to ensure map is ready
 
     // Clean up timeout on unmount
     return () => {
