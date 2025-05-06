@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
@@ -12,49 +13,19 @@ import VenueSidebar from './venue/VenueSidebar';
 
 interface MapProps {
   venues: Venue[];
-  onVenueSelect: (venue: Venue | null) => void;
+  onVenueSelect: (venue: Venue) => void;
   selectedVenue?: Venue | null;
 }
 
-const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
-  console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
+const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: MapProps) => {
   const { user } = useAuth();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
+  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const queryClient = useQueryClient();
   
-  // Create a state for tracking the selected venue locally
-  const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
-  const venueZoomAttempted = useRef(false);
-  const zoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  // Log initial props and state at mount time
-  useEffect(() => {
-    console.log('Map: Component mounted with props.selectedVenue:', selectedVenue?.name || 'null');
-  }, []);
-  
-  // Sync local state with props whenever selectedVenue changes
-  useEffect(() => {
-    console.log('Map: selectedVenue prop changed to:', selectedVenue?.name || 'null');
-    
-    if (selectedVenue) {
-      console.log('Map: Received venue coordinates:', {
-        lat: selectedVenue.latitude,
-        lng: selectedVenue.longitude
-      });
-      
-      // Deep copy to ensure no reference issues
-      const venueCopy = JSON.parse(JSON.stringify(selectedVenue));
-      setLocalSelectedVenue(venueCopy);
-      
-      // Reset zoom attempt flag for new venue
-      venueZoomAttempted.current = false;
-      console.log('Map: venueZoomAttempted flag reset');
-    } else if (selectedVenue === null && localSelectedVenue !== null) {
-      console.log('Map: Clearing localSelectedVenue because props.selectedVenue is null');
-      setLocalSelectedVenue(null);
-    }
-  }, [selectedVenue]);
+  // Use either the prop value or local state
+  const selectedVenue = selectedVenueFromProps || localSelectedVenue;
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -118,122 +89,83 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
     }
   }, [checkins, user, isLoading]);
 
-  // Critical: Update map when localSelectedVenue changes (zoom to venue location)
+  // Update local selected venue and zoom map when selectedVenueFromProps changes
   useEffect(() => {
-    // Clean up any existing zoom timeout
-    if (zoomTimeoutRef.current) {
-      clearTimeout(zoomTimeoutRef.current);
-      zoomTimeoutRef.current = null;
+    if (selectedVenueFromProps) {
+      console.log('Map received selected venue from props:', selectedVenueFromProps.name);
+      setLocalSelectedVenue(selectedVenueFromProps);
+      
+      // Zoom to venue location if map is ready
+      if (map.current && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
+        try {
+          console.log('Zooming map to venue coordinates:', {
+            lng: selectedVenueFromProps.longitude,
+            lat: selectedVenueFromProps.latitude
+          });
+          
+          const headerHeight = 73;
+          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+          
+          map.current.flyTo({
+            center: [
+              parseFloat(selectedVenueFromProps.longitude), 
+              parseFloat(selectedVenueFromProps.latitude)
+            ],
+            offset: [0, -(drawerHeight / 2)], // Offset for drawer
+            zoom: 15,
+            duration: 1500
+          });
+        } catch (error) {
+          console.error('Error zooming to venue:', error);
+        }
+      } else {
+        console.warn(
+          'Cannot zoom to venue: Map not ready or venue missing coordinates',
+          {
+            mapReady: !!map.current,
+            lng: selectedVenueFromProps.longitude,
+            lat: selectedVenueFromProps.latitude
+          }
+        );
+      }
     }
+  }, [selectedVenueFromProps]);
+
+  const handleVenueSelect = (venue: Venue) => {
+    console.log('Map handleVenueSelect called with venue:', venue.name);
     
-    // Only proceed if we have all the necessary pieces and haven't already attempted to zoom
-    if (!localSelectedVenue || !map.current || !isStyleLoaded) {
-      return;
-    }
-    
-    console.log('Map: Attempting to zoom to venue:', localSelectedVenue.name);
-    console.log('Map: Venue coordinates:', {
-      lat: localSelectedVenue.latitude,
-      lng: localSelectedVenue.longitude
-    });
-    
-    if (!localSelectedVenue.latitude || !localSelectedVenue.longitude) {
-      console.warn('Cannot zoom to venue: Missing coordinates');
-      return;
-    }
-    
-    // Set up a timeout to ensure the map is ready - use a longer timeout to be safe
-    zoomTimeoutRef.current = setTimeout(() => {
+    if (map.current && venue.latitude && venue.longitude) {
+      const headerHeight = 73;
+      const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
+      
       try {
-        // Check all conditions again inside the timeout
-        if (!map.current || !localSelectedVenue) {
-          console.error('Map: Map or venue no longer available in zoom timeout');
-          return;
-        }
-        
-        // Parse coordinates to handle both string and number formats
-        const lat = parseFloat(String(localSelectedVenue.latitude));
-        const lng = parseFloat(String(localSelectedVenue.longitude));
-        
-        if (isNaN(lat) || isNaN(lng)) {
-          console.error('Invalid coordinates:', { lat, lng });
-          return;
-        }
-        
-        // Calculate offset for the drawer
-        const headerHeight = 73;
-        const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
-        
-        console.log('Map: Executing flyTo with coordinates:', { lng, lat });
-        
-        map.current.flyTo({
-          center: [lng, lat],
-          offset: [0, -(drawerHeight / 2)], // Offset for drawer
-          zoom: 15,
-          essential: true, // This ensures the animation completes
-          duration: 1500
+        console.log('Zooming map to venue coordinates:', {
+          lng: venue.longitude,
+          lat: venue.latitude
         });
         
-        console.log('Map: flyTo method executed successfully');
-        
-        // Force a map render
-        map.current.triggerRepaint();
-        
-        // Mark that we've attempted to zoom to this venue
-        venueZoomAttempted.current = true;
+        map.current.flyTo({
+          center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
+          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+          zoom: 15,
+          duration: 1500
+        });
       } catch (error) {
-        console.error('Error zooming to venue:', error);
+        console.error('Error in flyTo:', error);
       }
-    }, 1000); // Increased timeout to ensure map is ready
-
-    // Clean up timeout on unmount
-    return () => {
-      if (zoomTimeoutRef.current) {
-        clearTimeout(zoomTimeoutRef.current);
-        zoomTimeoutRef.current = null;
-      }
-    };
-  }, [localSelectedVenue, map, isStyleLoaded]);
-
-  const handleVenueSelect = useCallback((venue: Venue) => {
-    console.log('Map: handleVenueSelect called with venue:', venue?.name || 'none');
-    
-    if (venue) {
-      console.log('Map: Venue coordinates:', {
-        lat: venue.latitude,
-        lng: venue.longitude
-      });
-      
-      // Create a deep copy to avoid reference issues
-      const venueCopy = JSON.parse(JSON.stringify(venue));
-      
-      // Ensure coordinates are strings (mapbox requires this)
-      if (venueCopy.latitude && venueCopy.longitude) {
-        venueCopy.latitude = String(venueCopy.latitude);
-        venueCopy.longitude = String(venueCopy.longitude);
-      }
-      
-      // Update local state first
-      setLocalSelectedVenue(venueCopy);
-      
-      // Also notify parent component with the copy
-      onVenueSelect(venueCopy);
-      
-      // Reset zoom attempt flag
-      venueZoomAttempted.current = false;
-      
-      console.log('Map: onVenueSelect parent handler called with venue:', venueCopy.name);
     }
-  }, [onVenueSelect]);
+    
+    setLocalSelectedVenue(venue);
+    onVenueSelect(venue);
+  };
 
-  const handleSidebarClose = useCallback(() => {
-    console.log('Map: handleSidebarClose called');
-    // Update local state
+  const handleSidebarClose = () => {
     setLocalSelectedVenue(null);
-    // Notify parent component
-    onVenueSelect(null);
-    console.log('Map: onVenueSelect parent handler called with null');
-  }, [onVenueSelect]);
+    // Also notify parent component
+    if (selectedVenueFromProps) {
+      onVenueSelect(null as any);
+    }
+  };
 
   return (
     <div className="relative flex-1 w-full h-full">
@@ -258,33 +190,9 @@ const Map = ({ venues, onVenueSelect, selectedVenue }: MapProps) => {
         </>
       )}
       
-      {/* Enhanced debug info */}
-      {process.env.NODE_ENV !== 'production' && (
-        <div className="absolute top-20 left-4 p-2 bg-white/80 text-xs text-black rounded shadow z-50 max-w-xs overflow-auto max-h-96">
-          <div className="mb-2 font-bold text-sm">Debug Info:</div>
-          <div>Map Ready: {map.current ? 'Yes' : 'No'}</div>
-          <div>Styles Loaded: {isStyleLoaded ? 'Yes' : 'No'}</div>
-          <div>Zoom Attempted: {venueZoomAttempted.current ? 'Yes' : 'No'}</div>
-          <div className="mt-2 font-bold">Venue Selection:</div>
-          <div>Selected Venue: {localSelectedVenue?.name || 'None'}</div>
-          <div>Prop Venue: {selectedVenue?.name || 'None'}</div>
-          {localSelectedVenue && (
-            <>
-              <div className="mt-2 font-bold">Venue Details:</div>
-              <div>ID: {localSelectedVenue.id || 'N/A'}</div>
-              <div>Name: {localSelectedVenue.name || 'N/A'}</div>
-              <div>Lat: {localSelectedVenue.latitude || 'N/A'}</div>
-              <div>Lng: {localSelectedVenue.longitude || 'N/A'}</div>
-              <div>City: {localSelectedVenue.city || 'N/A'}</div>
-            </>
-          )}
-        </div>
-      )}
-      
-      {/* Only render sidebar if we have a valid selected venue */}
-      {localSelectedVenue && localSelectedVenue.id && localSelectedVenue.name && (
+      {selectedVenue && (
         <VenueSidebar 
-          venue={localSelectedVenue} 
+          venue={selectedVenue} 
           onClose={handleSidebarClose}
         />
       )}

@@ -4,7 +4,6 @@ import { Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useVenueSearch } from '@/hooks/useVenueSearch';
 import type { Venue } from '@/types/venue';
-import { toast } from 'sonner';
 
 interface EnhancedSearchBarProps {
   onVenueSelect: (venue: Venue) => void;
@@ -51,43 +50,15 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
   }, [inputValue, updateSearch]);
 
   const handleVenueSelect = (venue: Venue) => {
-    console.log('EnhancedSearchBar: handleVenueSelect called with venue:', venue?.name || 'none');
-    
-    // Make sure we're working with a valid venue object
-    if (!venue || !venue.id || !venue.name) {
-      console.error('EnhancedSearchBar: Invalid venue selected:', venue);
-      return;
-    }
-    
-    // Set the input value to the selected venue name
+    console.log('Venue selected from EnhancedSearchBar:', venue.name);
     setInputValue(venue.name);
     setIsDropdownOpen(false);
     
-    // Log the venue coordinates
-    console.log('EnhancedSearchBar: Selected venue coordinates:', {
-      lat: venue.latitude,
-      lng: venue.longitude
-    });
-    
-    // Check venue has required coordinates before selecting
-    if (!venue.latitude || !venue.longitude) {
-      console.warn('EnhancedSearchBar: Selected venue missing coordinates:', venue);
-      toast.warning('Selected venue is missing location coordinates');
-      return;
+    // Make sure we're passing a valid venue object
+    if (venue && venue.id) {
+      // Call the parent component's handler immediately
+      onVenueSelect(venue);
     }
-    
-    // Do a deep copy of the venue object to ensure we don't have reference issues
-    const venueCopy = JSON.parse(JSON.stringify(venue));
-    
-    // Ensure coordinates are in string format
-    if (venueCopy.latitude && venueCopy.longitude) {
-      venueCopy.latitude = String(venueCopy.latitude);
-      venueCopy.longitude = String(venueCopy.longitude);
-    }
-    
-    // Call the parent component's handler with the deep copy
-    onVenueSelect(venueCopy);
-    console.log('EnhancedSearchBar: onVenueSelect parent handler called with venue:', venueCopy.name);
   };
 
   return (

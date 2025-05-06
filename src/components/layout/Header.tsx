@@ -1,7 +1,7 @@
 
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { PanelLeft, LogOut, Map as MapIcon, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
+import { PanelLeft, LogOut, Map, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -16,20 +16,27 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { Venue } from '@/types/venue';
 
 const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
-  const { selectedVenue, setSelectedVenue } = useVenueData();
-  const { toggleSidebar } = useSidebar();
+  const { setSelectedVenue } = useVenueData();
+  
+  // Try/catch to handle case when Header is used outside a SidebarProvider
+  let sidebarState = null;
+  let toggleSidebarFn = null;
+  
+  try {
+    const sidebarContext = useSidebar();
+    sidebarState = sidebarContext.state;
+    toggleSidebarFn = sidebarContext.toggleSidebar;
+  } catch (error) {
+    // Sidebar context not available, will not render sidebar controls
+  }
   
   const isOnDashboard = location.pathname.includes('/dashboard');
   const isOnAdmin = location.pathname.includes('/admin');
-  
-  // Log initial state
-  console.log('Header: Component rendered with selectedVenue:', selectedVenue?.name || 'null');
   
   // Display name based on user type
   const displayName = firstName || lastName 
@@ -68,39 +75,21 @@ const Header = () => {
       toast.error('Error during logout, but you have been redirected home.');
     }
   };
+  
+  const { toggleSidebar } = useSidebar();
 
-  const handleVenueSelect = (venue: Venue) => {
+  const handleVenueSelect = (venue) => {
     if (!venue) return;
     
-    console.log('Header: Venue selected from search:', venue.name);
-    console.log('Header: Venue object:', venue);
-    console.log('Header: Venue coordinates:', {
-      lat: venue.latitude,
-      lng: venue.longitude
-    });
-    
-    // Create a deep copy of the venue using JSON parse/stringify
-    const venueCopy = JSON.parse(JSON.stringify(venue));
-    
-    // Ensure coordinates are in string format
-    if (venueCopy.latitude && venueCopy.longitude) {
-      venueCopy.latitude = String(venueCopy.latitude);
-      venueCopy.longitude = String(venueCopy.longitude);
-    }
-    
-    // Set the selected venue using the useVenueData hook
-    setSelectedVenue(venueCopy);
-    console.log('Header: setSelectedVenue called with venue:', venueCopy.name);
+    console.log('Venue selected from search:', venue);
+    // Set the selected venue first
+    setSelectedVenue(venue);
     
     // If we're not already on the homepage, navigate there
     if (location.pathname !== '/') {
-      console.log('Header: Navigating to homepage from:', location.pathname);
       navigate('/');
     }
   };
-  
-  // Don't show search bar on dashboard pages
-  const showSearchBar = !isOnDashboard && !isOnAdmin;
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b fixed w-full z-50 flex items-center">
@@ -115,12 +104,10 @@ const Header = () => {
       </Button>
 
       <div className="flex-1 flex justify-center">
-        {showSearchBar && (
-          <EnhancedSearchBar 
-            onVenueSelect={handleVenueSelect} 
-            className="max-w-md w-full"
-          />
-        )}
+        <EnhancedSearchBar 
+          onVenueSelect={handleVenueSelect} 
+          className="max-w-md w-full"
+        />
       </div>
 
       <div className="flex items-center gap-4 ml-4">
@@ -157,7 +144,7 @@ const Header = () => {
               
               {(isOnDashboard || isOnAdmin) && (
                 <DropdownMenuItem onClick={() => navigate('/')}>
-                  <MapIcon className="mr-2" size={18} />
+                  <Map className="mr-2" size={18} />
                   View Map
                 </DropdownMenuItem>
               )}
