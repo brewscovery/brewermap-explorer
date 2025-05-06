@@ -58,6 +58,8 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     if (venue && venue.id) {
       // Call the parent component's handler immediately
       onVenueSelect(venue);
+      // Added closing dropdown after the venue has been selected because it reopens, let's see if putting it here will fix the issue
+      setIsDropdownOpen(false);
     }
   };
 
