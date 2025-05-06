@@ -12,6 +12,7 @@ export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSide
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   
   const handleClick = () => {
+    console.log("FloatingSidebarToggle: handleClick called");
     if (isMobile) {
       setOpenMobile(!openMobile);
     } else {

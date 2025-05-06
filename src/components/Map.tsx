@@ -13,7 +13,7 @@ import VenueSidebar from './venue/VenueSidebar';
 
 interface MapProps {
   venues: Venue[];
-  onVenueSelect: (venue: Venue) => void;
+  onVenueSelect: (venue: Venue | null) => void;
   selectedVenue?: Venue | null;
 }
 
@@ -26,6 +26,8 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   
   // Use either the prop value or local state
   const selectedVenue = selectedVenueFromProps || localSelectedVenue;
+  
+  console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
 
   const { data: checkins, isLoading } = useQuery({
     queryKey: ['checkins', user?.id],
@@ -128,8 +130,11 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
           }
         );
       }
+    } else {
+      // Clear local state when props are null
+      setLocalSelectedVenue(null);
     }
-  }, [selectedVenueFromProps]);
+  }, [selectedVenueFromProps, map]);
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('Map handleVenueSelect called with venue:', venue.name);
@@ -160,11 +165,10 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
   };
 
   const handleSidebarClose = () => {
+    console.log('Map: handleSidebarClose called');
     setLocalSelectedVenue(null);
     // Also notify parent component
-    if (selectedVenueFromProps) {
-      onVenueSelect(null as any);
-    }
+    onVenueSelect(null);
   };
 
   return (

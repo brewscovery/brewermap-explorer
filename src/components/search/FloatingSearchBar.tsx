@@ -12,6 +12,11 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   onVenueSelect,
   className 
 }) => {
+  const handleVenueSelect = (venue) => {
+    console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
+    onVenueSelect(venue);
+  };
+
   return (
     <div className={cn(
       "fixed z-[100] top-4 left-20 w-[320px] md:w-[400px] lg:w-[520px]",
@@ -19,7 +24,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
       className
     )}>
       <EnhancedSearchBar 
-        onVenueSelect={onVenueSelect}
+        onVenueSelect={handleVenueSelect}
         className="w-full shadow-lg"
       />
     </div>

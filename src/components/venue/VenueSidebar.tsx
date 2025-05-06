@@ -142,6 +142,13 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
     setIsTodoListDialogOpen(true);
   };
 
+  const handleClose = () => {
+    console.log("VenueSidebar: handleClose called");
+    if (onClose) {
+      onClose();
+    }
+  };
+
   const hasCoordinates = venue?.latitude && venue?.longitude;
   const handleGetDirections = () => {
     if (!hasCoordinates) return;
@@ -219,7 +226,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
       <MobileVenueSidebar
         venue={venue}
         breweryInfo={breweryInfo}
-        onClose={onClose}
+        onClose={handleClose}
         open={true}
         displayMode={displayMode}
         onOpenCheckInDialog={user && userType === 'regular' ? handleOpenCheckInDialog : undefined}
@@ -273,8 +280,14 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
               )}
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleClose}
+            className="hover:bg-gray-100"
+          >
             <X size={20} />
+            <span className="sr-only">Close</span>
           </Button>
         </div>
         
