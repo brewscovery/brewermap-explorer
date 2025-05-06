@@ -13,6 +13,7 @@ interface EnhancedSearchBarProps {
 const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarProps) => {
   const [inputValue, setInputValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [manualInputChange, setManualInputChange] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -41,26 +42,38 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
 
   // Update search results when input changes
   useEffect(() => {
-    if (inputValue.length > 0) {
+    // Only update search and open dropdown if this was a manual input change
+    if (inputValue.length > 0 && manualInputChange) {
       updateSearch(inputValue, 'name');
       setIsDropdownOpen(true);
-    } else {
+    } else if (inputValue.length === 0) {
       setIsDropdownOpen(false);
     }
-  }, [inputValue, updateSearch]);
+  }, [inputValue, updateSearch, manualInputChange]);
 
   const handleVenueSelect = (venue: Venue) => {
     console.log('Venue selected from EnhancedSearchBar:', venue.name);
+    
+    // Flag that the next input change is programmatic, not manual
+    setManualInputChange(false);
+    
+    // Update input value with venue name
     setInputValue(venue.name);
+    
+    // Close dropdown
     setIsDropdownOpen(false);
     
     // Make sure we're passing a valid venue object
     if (venue && venue.id) {
-      // Call the parent component's handler immediately
+      // Call the parent component's handler
       onVenueSelect(venue);
-      // Added closing dropdown after the venue has been selected because it reopens, let's see if putting it here will fix the issue
-      setIsDropdownOpen(false);
     }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Mark this as a manual input change
+    setManualInputChange(true);
+    setInputValue(e.target.value);
   };
 
   return (
@@ -73,8 +86,8 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
           ref={inputRef}
           placeholder="Search venues..." 
           value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onFocus={() => inputValue.length > 0 && setIsDropdownOpen(true)}
+          onChange={handleInputChange}
+          onFocus={() => manualInputChange && inputValue.length > 0 && setIsDropdownOpen(true)}
           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full"
         />
         {isLoading && (
