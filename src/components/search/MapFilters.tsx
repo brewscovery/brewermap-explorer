@@ -80,7 +80,11 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
                   onPressedChange={() => toggleFilter(filter.id)}
                   variant="outline" 
                   size="sm"
-                  className="flex items-center gap-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs whitespace-nowrap"
+                  className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200
+                    ${activeFilters.includes(filter.id) 
+                      ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
+                      : "bg-background text-muted-foreground hover:bg-accent/50"
+                    }`}
                 >
                   {filter.icon}
                   <span>{filter.label}</span>
@@ -97,7 +101,7 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
               variant="ghost" 
               size="sm" 
               onClick={clearFilters} 
-              className="text-xs font-normal"
+              className="text-xs font-normal hover:bg-destructive/10 hover:text-destructive"
             >
               Clear
             </Button>
