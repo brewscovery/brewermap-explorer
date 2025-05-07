@@ -182,7 +182,6 @@ const MobileVenueSidebar = ({
                   title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
                 >
                   <ListTodo size={16} />
-                  <span>{venueInTodoList ? "In ToDo" : "ToDo"}</span>
                 </Button>
               </>
             )}
