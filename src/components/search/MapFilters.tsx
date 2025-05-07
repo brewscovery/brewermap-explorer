@@ -1,10 +1,9 @@
 
 import React from 'react';
 import { Clock, Utensils, Beer, MenuSquare, Calendar } from 'lucide-react';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Toggle } from "@/components/ui/toggle";
+import { Button } from "@/components/ui/button";
 
 export interface VenueFilter {
   id: string;
@@ -72,30 +71,37 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <TooltipProvider>
-        <div className="bg-white border rounded-lg shadow-md p-2 flex flex-wrap gap-2">
+        <div className="bg-white border rounded-lg shadow-md p-1 flex flex-wrap gap-1">
           {VENUE_FILTERS.map((filter) => (
             <Tooltip key={filter.id} delayDuration={300}>
               <TooltipTrigger asChild>
-                <div className="flex items-center gap-2 px-2 py-1">
-                  <Switch 
-                    id={`filter-${filter.id}`}
-                    checked={activeFilters.includes(filter.id)}
-                    onCheckedChange={() => toggleFilter(filter.id)}
-                  />
-                  <Label 
-                    htmlFor={`filter-${filter.id}`}
-                    className="flex items-center gap-1.5 cursor-pointer text-xs whitespace-nowrap"
-                  >
-                    {filter.icon}
-                    <span>{filter.label}</span>
-                  </Label>
-                </div>
+                <Toggle
+                  pressed={activeFilters.includes(filter.id)}
+                  onPressedChange={() => toggleFilter(filter.id)}
+                  variant="outline" 
+                  size="sm"
+                  className="flex items-center gap-1 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground text-xs whitespace-nowrap"
+                >
+                  {filter.icon}
+                  <span>{filter.label}</span>
+                </Toggle>
               </TooltipTrigger>
               <TooltipContent side="bottom" align="center">
                 <p>{filter.tooltip}</p>
               </TooltipContent>
             </Tooltip>
           ))}
+          
+          {activeFilters.length > 0 && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={clearFilters} 
+              className="text-xs font-normal"
+            >
+              Clear
+            </Button>
+          )}
         </div>
       </TooltipProvider>
     </div>
