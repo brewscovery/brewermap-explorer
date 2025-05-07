@@ -42,15 +42,43 @@ const Map = ({
   console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
   console.log(`Map: Rendering with ${venues.length} venues and ${activeFilters.length} active filters`);
 
-  // Force map resize when venues array length changes
+  // Force map resize and recenter when venues array changes
   useEffect(() => {
     if (map.current && isStyleLoaded) {
       const timer = setTimeout(() => {
-        map.current?.resize();
+        if (map.current) {
+          map.current.resize();
+          
+          // If venues exist, adjust the map view to fit them
+          if (venues.length > 0) {
+            setTimeout(() => {
+              if (!map.current) return;
+              
+              // This forces a redraw of the map layers
+              const currentZoom = map.current.getZoom();
+              map.current.setZoom(currentZoom - 0.1);
+              setTimeout(() => {
+                if (map.current) map.current.setZoom(currentZoom);
+              }, 150);
+            }, 300);
+          }
+        }
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [map, isStyleLoaded, venues.length]);
+
+  // Also force a map resize when filters change
+  useEffect(() => {
+    if (map.current && isStyleLoaded) {
+      const timer = setTimeout(() => {
+        if (map.current) {
+          map.current.resize();
+        }
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [map, isStyleLoaded, activeFilters]);
 
   return (
     <div className="relative flex-1 w-full h-full">
@@ -76,6 +104,7 @@ const Map = ({
             venues={venues}
             visitedVenueIds={visitedVenueIds}
             onVenueSelect={handleVenueSelect}
+            key={`map-layers-${venues.length}-${activeFilters.join('-')}`}
           />
           <MapInteractions
             map={map.current}

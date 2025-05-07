@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapSource } from './MapSource';
 
@@ -12,6 +12,26 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const { isSourceReady } = useMapSource();
   const layersAdded = useRef(false);
 
+  // Safely remove cluster layers
+  const removeClusterLayers = useCallback(() => {
+    if (!map.getStyle()) return;
+    
+    try {
+      const layers = ['cluster-count', 'clusters'];
+      
+      layers.forEach(layer => {
+        if (map.getLayer(layer)) {
+          map.removeLayer(layer);
+          console.log(`Removed cluster layer: ${layer}`);
+        }
+      });
+      
+      layersAdded.current = false;
+    } catch (error) {
+      console.warn('Error removing cluster layers:', error);
+    }
+  }, [map]);
+
   // Add layers when source is ready
   useEffect(() => {
     if (!isSourceReady) {
@@ -23,9 +43,12 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     
     const addLayers = () => {
       try {
-        // Check if layers already exist
-        if (map.getLayer('clusters') || layersAdded.current) {
-          console.log('Cluster layers already exist, skipping addition');
+        // First remove any existing layers
+        removeClusterLayers();
+        
+        // Check if source exists
+        if (!map.getSource(source)) {
+          console.log('Source not available for cluster layers');
           return;
         }
 
@@ -94,14 +117,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     return () => {
       clearTimeout(timer);
     };
-  }, [map, source, isSourceReady]);
+  }, [map, source, isSourceReady, removeClusterLayers]);
   
-  // Reset when source changes
+  // Handle source changes
   useEffect(() => {
     return () => {
+      removeClusterLayers();
       layersAdded.current = false;
     };
-  }, [source]);
+  }, [source, removeClusterLayers]);
   
   return null;
 };

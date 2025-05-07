@@ -40,9 +40,30 @@ export const usePointLayers = ({
     }
   }, [map, visitedVenueIds]);
 
+  // Safely remove layers
+  const removeLayers = useCallback(() => {
+    if (!map.getStyle()) return;
+    
+    try {
+      // Remove layers in proper order
+      const layers = ['unclustered-point-label', 'unclustered-point'];
+      
+      layers.forEach(layer => {
+        if (map.getLayer(layer)) {
+          map.removeLayer(layer);
+          console.log(`Removed layer: ${layer}`);
+        }
+      });
+      
+      layersAdded.current = false;
+    } catch (error) {
+      console.warn('Error removing point layers:', error);
+    }
+  }, [map]);
+
   // Add layers only once when source is ready
   const addPointLayers = useCallback(() => {
-    if (!isSourceReady || layersAdded.current) return false;
+    if (!isSourceReady) return false;
 
     try {
       if (!map || !map.getStyle()) return false;
@@ -113,7 +134,7 @@ export const usePointLayers = ({
     }
   }, [map, source, isSourceReady, visitedVenueIds, updatePointColors]);
 
-  // Make sure layers are properly reset when the component unmounts
+  // Clean up on unmount
   useEffect(() => {
     return () => {
       layersAdded.current = false;
@@ -123,6 +144,7 @@ export const usePointLayers = ({
   return {
     layersAdded: layersAdded.current,
     updatePointColors,
-    addPointLayers
+    addPointLayers,
+    removeLayers
   };
 };

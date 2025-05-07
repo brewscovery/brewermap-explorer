@@ -25,6 +25,7 @@ const VenuePoints = ({
   const { 
     updatePointColors, 
     addPointLayers,
+    removeLayers
   } = usePointLayers({ 
     map, 
     source, 
@@ -39,19 +40,21 @@ const VenuePoints = ({
   useEffect(() => {
     if (!isSourceReady || !map.getStyle()) return;
 
-    // Reset layers added flag when source changes
-    if (!layersAddedRef.current) {
-      const timer = setTimeout(() => {
-        // Only try to add point layers if the source exists
-        if (map.getSource(source)) {
-          const success = addPointLayers();
-          layersAddedRef.current = success;
-        }
-      }, 300);
+    const timer = setTimeout(() => {
+      // First remove any existing layers to ensure clean state
+      removeLayers();
+      layersAddedRef.current = false;
+      
+      // Only try to add point layers if the source exists
+      if (map.getSource(source)) {
+        console.log('Source exists, adding point layers');
+        const success = addPointLayers();
+        layersAddedRef.current = success;
+      }
+    }, 300);
 
-      return () => clearTimeout(timer);
-    }
-  }, [map, source, isSourceReady, addPointLayers]);
+    return () => clearTimeout(timer);
+  }, [map, source, isSourceReady, addPointLayers, removeLayers]);
 
   // Update colors whenever visited venues change
   useEffect(() => {

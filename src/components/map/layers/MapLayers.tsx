@@ -16,8 +16,11 @@ interface MapLayersProps {
 const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersProps) => {
   console.log(`MapLayers rendering with ${venues.length} venues and ${visitedVenueIds?.length || 0} visited venues`);
   
+  // Use a unique key based on venues length to force re-mounting when venue count changes
+  const sourceKey = `venues-source-${venues.length}`;
+  
   return (
-    <MapSource map={map} venues={venues}>
+    <MapSource map={map} venues={venues} key={sourceKey}>
       <ClusterLayers map={map} source="venues" />
       <VenuePoints 
         map={map} 
