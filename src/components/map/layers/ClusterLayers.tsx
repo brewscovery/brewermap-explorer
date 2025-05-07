@@ -83,130 +83,19 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
       }
     };
 
-    // Check if map style is loaded before adding layers
-    if (map.isStyleLoaded()) {
-      console.log('Map style is loaded, adding cluster layers');
-      addLayers();
-    } else {
-      console.log('Map style not loaded, setting up style.load listener for cluster layers');
-      
-      const styleHandler = () => {
-        console.log('Style loaded event fired for cluster layers');
+    // Short delay to ensure source is fully ready
+    const timer = setTimeout(() => {
+      if (map.isStyleLoaded() && map.getSource(source)) {
+        console.log('Map style is loaded, adding cluster layers');
         addLayers();
-      };
-      
-      map.once('style.load', styleHandler);
-      
-      return () => {
-        map.off('style.load', styleHandler);
-      };
-    }
-
-    return () => {
-      // No need to clean up here as we'll have a separate cleanup effect
-    };
-  }, [map, source, isSourceReady]);
-
-  // Clean up layers on unmount or before re-adding
-  useEffect(() => {
-    return () => {
-      if (!map.getStyle()) return;
-      
-      try {
-        if (map.getLayer('cluster-count')) {
-          map.removeLayer('cluster-count');
-        }
-        
-        if (map.getLayer('clusters')) {
-          map.removeLayer('clusters');
-        }
-        
-        layersAdded.current = false;
-        console.log('Cluster layers removed on cleanup');
-      } catch (error) {
-        console.warn('Error cleaning up cluster layers:', error);
       }
-    };
-  }, [map]);
-
-  // Re-add layers when the style changes
-  useEffect(() => {
-    const handleStyleChange = () => {
-      if (!isSourceReady) return;
-      
-      // Check if we need to re-add layers after a style change
-      if (!map.getLayer('clusters') && !layersAdded.current) {
-        console.log('Style changed, re-adding cluster layers');
-        
-        // We need to wait a bit to ensure the source is properly re-added
-        setTimeout(() => {
-          try {
-            if (map.getSource(source) && !map.getLayer('clusters')) {
-              layersAdded.current = false;
-              
-              // Add clusters layer
-              map.addLayer({
-                id: 'clusters',
-                type: 'circle',
-                source: source,
-                filter: ['has', 'point_count'],
-                paint: {
-                  'circle-color': [
-                    'step',
-                    ['get', 'point_count'],
-                    '#fbbf24',
-                    10,
-                    '#f59e0b',
-                    50,
-                    '#d97706'
-                  ],
-                  'circle-radius': [
-                    'step',
-                    ['get', 'point_count'],
-                    20,
-                    10,
-                    30,
-                    50,
-                    40
-                  ],
-                  'circle-stroke-width': 2,
-                  'circle-stroke-color': '#ffffff'
-                }
-              });
-
-              // Add cluster count layer
-              map.addLayer({
-                id: 'cluster-count',
-                type: 'symbol',
-                source: source,
-                filter: ['has', 'point_count'],
-                layout: {
-                  'text-field': '{point_count_abbreviated}',
-                  'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-                  'text-size': 14
-                },
-                paint: {
-                  'text-color': '#ffffff'
-                }
-              });
-              
-              layersAdded.current = true;
-              console.log('Cluster layers re-added after style change');
-            }
-          } catch (error) {
-            console.error('Error re-adding cluster layers after style change:', error);
-          }
-        }, 100); // Short delay to ensure source is ready
-      }
-    };
-
-    map.on('styledata', handleStyleChange);
+    }, 300);
     
     return () => {
-      map.off('styledata', handleStyleChange);
+      clearTimeout(timer);
     };
   }, [map, source, isSourceReady]);
-
+  
   return null;
 };
 

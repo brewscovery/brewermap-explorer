@@ -39,8 +39,11 @@ const VenuePoints = ({
     if (!isSourceReady || !map.getStyle()) return;
 
     const timer = setTimeout(() => {
-      addPointLayers();
-    }, 200);
+      // Only try to add point layers if the source exists
+      if (map.getSource(source)) {
+        addPointLayers();
+      }
+    }, 300);
 
     return () => clearTimeout(timer);
   }, [map, source, isSourceReady, addPointLayers]);

@@ -40,16 +40,7 @@ const Map = ({
   });
   
   console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
-
-  const updateMap = useCallback(() => {
-    if (map.current && isStyleLoaded) {
-      console.log('Map venues updated, source will be refreshed');
-    }
-  }, [map, isStyleLoaded]);
-
-  useEffect(() => {
-    updateMap();
-  }, [venues, updateMap]);
+  console.log(`Map: Rendering with ${venues.length} venues and ${activeFilters.length} active filters`);
 
   return (
     <div className="relative flex-1 w-full h-full">

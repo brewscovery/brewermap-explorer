@@ -20,10 +20,13 @@ export function useVenueFilters(
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   
   const handleFilterChange = useCallback((filters: string[]) => {
+    console.log('Filter changed to:', filters);
     setActiveFilters(filters);
   }, []);
   
   const filteredVenues = useMemo(() => {
+    console.log(`Filtering ${venues.length} venues with ${activeFilters.length} active filters`);
+    
     if (activeFilters.length === 0) {
       return venues;
     }

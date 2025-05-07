@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState, useCallback, useMemo, createContext, useContext } from 'react';
+import { useEffect, useRef, useState, useCallback, createContext, useContext } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import type { Feature, Point, FeatureCollection } from 'geojson';
@@ -26,11 +26,10 @@ export const useMapSource = () => useContext(MapSourceContext);
 
 const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const [isSourceReady, setIsSourceReady] = useState(false);
-  const [geoJsonData, setGeoJsonData] = useState<FeatureCollection<Point, VenueProperties> | null>(null);
   const sourceAdded = useRef(false);
-  const addSourceAttempts = useRef(0);
   const styleChangeCountRef = useRef(0);
-
+  const layersRemovedRef = useRef(false);
+  
   // Create GeoJSON data from venues
   const createGeoJsonData = useCallback(() => {
     const features: Feature<Point, VenueProperties>[] = venues
@@ -62,15 +61,59 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     } as FeatureCollection<Point, VenueProperties>;
   }, [venues]);
 
-  // Update GeoJSON data when venues change
-  useEffect(() => {
-    console.log('Venues changed, updating GeoJSON data');
-    setGeoJsonData(createGeoJsonData());
-  }, [venues, createGeoJsonData]);
+  // Safely remove layers first, then source
+  const safelyRemoveLayers = useCallback(() => {
+    if (!map.getStyle()) return;
+    
+    try {
+      // Remove layers first
+      if (map.getLayer('unclustered-point-label')) {
+        map.removeLayer('unclustered-point-label');
+      }
+      
+      if (map.getLayer('unclustered-point')) {
+        map.removeLayer('unclustered-point');
+      }
+      
+      if (map.getLayer('cluster-count')) {
+        map.removeLayer('cluster-count');
+      }
+      
+      if (map.getLayer('clusters')) {
+        map.removeLayer('clusters');
+      }
+      
+      layersRemovedRef.current = true;
+      console.log('All layers removed successfully');
+    } catch (error) {
+      console.warn('Error removing layers:', error);
+    }
+  }, [map]);
 
-  // Add source to map with retry mechanism
+  // Update the source data without recreating it
+  const updateSourceData = useCallback(() => {
+    try {
+      if (sourceAdded.current && map.getSource('venues')) {
+        const geoJsonData = createGeoJsonData();
+        const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
+        
+        if (source && source.setData) {
+          console.log(`Updating existing source data with ${geoJsonData.features.length} features`);
+          source.setData(geoJsonData);
+        }
+      }
+    } catch (error) {
+      console.warn('Error updating source data:', error);
+    }
+  }, [map, createGeoJsonData]);
+
+  // Add source to map
   const addSource = useCallback(() => {
-    if (!geoJsonData || sourceAdded.current || addSourceAttempts.current > 5) return false;
+    if (sourceAdded.current) {
+      // Just update the data if source already exists
+      updateSourceData();
+      return true;
+    }
     
     try {
       // Verify map is ready
@@ -79,7 +122,10 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
         return false;
       }
       
-      // Clean up existing source if it exists
+      // First ensure all layers are removed
+      safelyRemoveLayers();
+      
+      // Then remove source if it exists
       try {
         if (map.getSource('venues')) {
           map.removeSource('venues');
@@ -94,7 +140,7 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       // Add new source with clustering enabled
       map.addSource('venues', {
         type: 'geojson',
-        data: geoJsonData,
+        data: createGeoJsonData(),
         cluster: true,
         clusterMaxZoom: 14,
         clusterRadius: 50,
@@ -103,30 +149,26 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       
       sourceAdded.current = true;
       setIsSourceReady(true);
-      addSourceAttempts.current = 0;
+      layersRemovedRef.current = false;
       console.log('Source added successfully, setting isSourceReady to true');
       return true;
     } catch (error) {
       console.error('Error adding source:', error);
       sourceAdded.current = false;
       setIsSourceReady(false);
-      addSourceAttempts.current += 1;
       
-      // If we've had multiple attempts, wait longer between retries
-      const retryDelay = addSourceAttempts.current > 3 ? 1000 : 300;
-      
-      if (addSourceAttempts.current <= 5) {
-        console.log(`Will retry adding source in ${retryDelay}ms (attempt ${addSourceAttempts.current})`);
-        setTimeout(() => addSource(), retryDelay);
-      }
-      
+      // Try again after a delay
+      setTimeout(() => addSource(), 500);
       return false;
     }
-  }, [map, geoJsonData]);
+  }, [map, createGeoJsonData, safelyRemoveLayers, updateSourceData]);
 
   // Initialize the source when the map is loaded
   useEffect(() => {
-    if (!geoJsonData || !venues.length) return;
+    if (!venues || venues.length === 0) {
+      console.log('No venues to display, skipping source initialization');
+      return;
+    }
 
     const initializeSource = () => {
       if (map.isStyleLoaded() && map.getStyle()) {
@@ -155,6 +197,8 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
       if (!map.getStyle()) return;
       
       try {
+        safelyRemoveLayers();
+        
         if (map.getSource('venues')) {
           map.removeSource('venues');
         }
@@ -165,102 +209,58 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
         console.warn('Error cleaning up source:', error);
       }
     };
-  }, [map, venues, geoJsonData, addSource]);
+  }, [map, venues.length, addSource, safelyRemoveLayers]);
 
   // Update source data when venues change
   useEffect(() => {
-    if (!geoJsonData) return;
+    if (!venues || venues.length === 0) return;
     
-    if (sourceAdded.current) {
-      try {
-        const source = map.getSource('venues') as mapboxgl.GeoJSONSource;
-        if (source && source.setData && typeof source.setData === 'function') {
-          console.log('Updating existing source data');
-          source.setData(geoJsonData);
-        } else {
-          console.warn('Source exists but setData method not available, re-adding source');
-          sourceAdded.current = false;
-          setIsSourceReady(false);
-          setTimeout(addSource, 200);
-        }
-      } catch (error) {
-        console.error('Error updating source data:', error);
-        sourceAdded.current = false;
-        setIsSourceReady(false);
-        setTimeout(addSource, 200);
+    // Use a debounce mechanism to avoid too many rapid updates
+    const timeoutId = setTimeout(() => {
+      if (sourceAdded.current && map.getSource('venues')) {
+        updateSourceData();
+      } else {
+        // If source doesn't exist, try to add it
+        addSource();
       }
-    }
-  }, [map, geoJsonData, addSource]);
-
-  // Handle style changes with improved resilience
-  useEffect(() => {
-    let styleChangeTimeout: ReturnType<typeof setTimeout> | null = null;
+    }, 300);
     
-    const handleStyleData = () => {
-      // Increment style change counter
+    return () => clearTimeout(timeoutId);
+  }, [map, venues, updateSourceData, addSource]);
+
+  // Handle style changes
+  useEffect(() => {
+    const handleStyleChange = () => {
       styleChangeCountRef.current += 1;
       console.log(`Style changed event detected (count: ${styleChangeCountRef.current})`);
       
-      // Debounce multiple rapid style changes
-      if (styleChangeTimeout) {
-        clearTimeout(styleChangeTimeout);
-      }
-      
-      styleChangeTimeout = setTimeout(() => {
-        // Check if we need to re-add the source after a style change
+      // Check if we need to re-add the source after a style change
+      setTimeout(() => {
         try {
           if (!map.getSource('venues')) {
             console.log('Source missing after style change, re-adding');
             sourceAdded.current = false;
-            
-            // Wait a longer moment for map to fully stabilize
-            setTimeout(() => {
-              if (addSource()) {
-                console.log('Source successfully re-added after style change');
-              }
-            }, 500);
+            layersRemovedRef.current = false;
+            addSource();
           } else {
             console.log('Source still exists after style change');
-            
-            // Set isSourceReady to true to signal layers can be added
             if (!isSourceReady) {
               setIsSourceReady(true);
             }
           }
         } catch (error) {
           console.warn('Error checking source after style change:', error);
-          
-          // If error checking source, try re-adding after a brief delay
-          setTimeout(() => {
-            sourceAdded.current = false;
-            addSource();
-          }, 500);
+          setTimeout(() => addSource(), 500);
         }
-      }, 300);
+      }, 500);
     };
 
-    map.on('styledata', handleStyleData);
+    map.on('styledata', handleStyleChange);
     
     return () => {
-      map.off('styledata', handleStyleData);
-      if (styleChangeTimeout) {
-        clearTimeout(styleChangeTimeout);
-      }
+      map.off('styledata', handleStyleChange);
     };
   }, [map, addSource, isSourceReady]);
-
-  // Force source re-addition if we've had multiple style changes but source is still missing
-  useEffect(() => {
-    if (styleChangeCountRef.current > 2 && !sourceAdded.current) {
-      console.log('Multiple style changes detected but source still missing - forcing source addition');
-      const timer = setTimeout(() => {
-        addSourceAttempts.current = 0; // Reset attempts counter
-        addSource();
-      }, 1000);
-      
-      return () => clearTimeout(timer);
-    }
-  }, [addSource]);
 
   // Provide source readiness state to child components
   return (
