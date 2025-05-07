@@ -2,9 +2,9 @@
 import React from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
-import MapSource from './layers/MapSource';
-import ClusterLayers from './layers/ClusterLayers';
-import VenuePoints from './layers/VenuePoints';
+import MapSource from './MapSource';
+import ClusterLayers from './ClusterLayers';
+import VenuePoints from './VenuePoints';
 
 interface MapLayersProps {
   map: mapboxgl.Map;
