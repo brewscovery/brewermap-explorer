@@ -17,10 +17,13 @@ const Index = () => {
   
   const {
     venues,
+    allVenues,
     error,
     refetch,
     selectedVenue,
     setSelectedVenue,
+    activeFilters,
+    handleFilterChange
   } = useVenueData();
 
   // Handle auth redirects for recovery/signup flows
@@ -37,9 +40,9 @@ const Index = () => {
   useEffect(() => {
     const venueId = searchParams.get('venueId');
     
-    if (venueId && venues.length > 0) {
+    if (venueId && allVenues.length > 0) {
       // First try to find the venue in our loaded venues
-      const venue = venues.find(v => v.id === venueId);
+      const venue = allVenues.find(v => v.id === venueId);
       
       if (venue) {
         console.log('Found venue from URL parameter:', venue.name);
@@ -70,7 +73,7 @@ const Index = () => {
         fetchVenue();
       }
     }
-  }, [searchParams, venues, setSelectedVenue]);
+  }, [searchParams, allVenues, setSelectedVenue]);
 
   // Handle venue data errors
   useEffect(() => {
@@ -96,6 +99,8 @@ const Index = () => {
         venues={venues}
         onVenueSelect={handleVenueSelect}
         selectedVenue={selectedVenue}
+        activeFilters={activeFilters}
+        onFilterChange={handleFilterChange}
       />
     </div>
   );

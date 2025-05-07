@@ -9,14 +9,23 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 import { useVenueMapInteraction } from '@/hooks/useVenueMapInteraction';
 import VenueSidebar from './venue/VenueSidebar';
+import MapFilters from './search/MapFilters';
 
 interface MapProps {
   venues: Venue[];
   onVenueSelect: (venue: Venue | null) => void;
   selectedVenue?: Venue | null;
+  activeFilters?: string[];
+  onFilterChange?: (filters: string[]) => void;
 }
 
-const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: MapProps) => {
+const Map = ({ 
+  venues, 
+  onVenueSelect, 
+  selectedVenue: selectedVenueFromProps,
+  activeFilters = [],
+  onFilterChange = () => {}
+}: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
   
@@ -48,6 +57,16 @@ const Map = ({ venues, onVenueSelect, selectedVenue: selectedVenueFromProps }: M
         ref={mapContainer} 
         className="absolute inset-0"
       />
+      
+      {/* Filters positioned after search bar */}
+      <div className="absolute top-20 left-4 right-4 z-20">
+        <MapFilters 
+          activeFilters={activeFilters} 
+          onFilterChange={onFilterChange} 
+          className="justify-center sm:justify-start"
+        />
+      </div>
+      
       {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
