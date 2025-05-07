@@ -29,6 +29,7 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const sourceAdded = useRef(false);
   const styleChangeCountRef = useRef(0);
   const layersRemovedRef = useRef(false);
+  const prevVenueCountRef = useRef(venues.length);
   
   // Create GeoJSON data from venues
   const createGeoJsonData = useCallback(() => {
@@ -165,11 +166,6 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
 
   // Initialize the source when the map is loaded
   useEffect(() => {
-    if (!venues || venues.length === 0) {
-      console.log('No venues to display, skipping source initialization');
-      return;
-    }
-
     const initializeSource = () => {
       if (map.isStyleLoaded() && map.getStyle()) {
         console.log('Style already loaded, initializing source');
@@ -209,24 +205,48 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
         console.warn('Error cleaning up source:', error);
       }
     };
-  }, [map, venues.length, addSource, safelyRemoveLayers]);
+  }, [map, addSource, safelyRemoveLayers]);
 
   // Update source data when venues change
   useEffect(() => {
-    if (!venues || venues.length === 0) return;
+    // Force recreate source when venues go from 0 to some venues
+    const venuesNowAvailable = prevVenueCountRef.current === 0 && venues.length > 0;
+    prevVenueCountRef.current = venues.length;
+    
+    // If we have venues available now but didn't before, force recreate the source
+    if (venuesNowAvailable && map.getStyle()) {
+      console.log('Venues now available, recreating source');
+      // Force recreate source and layers
+      try {
+        safelyRemoveLayers();
+        
+        if (map.getSource('venues')) {
+          map.removeSource('venues');
+          sourceAdded.current = false;
+        }
+      } catch (error) {
+        console.warn('Error removing source during recreation:', error);
+      }
+      
+      // Short delay to ensure clean slate
+      setTimeout(() => {
+        addSource();
+      }, 100);
+      return;
+    }
     
     // Use a debounce mechanism to avoid too many rapid updates
     const timeoutId = setTimeout(() => {
       if (sourceAdded.current && map.getSource('venues')) {
         updateSourceData();
-      } else {
-        // If source doesn't exist, try to add it
+      } else if (venues.length > 0) {
+        // If source doesn't exist but we have venues, try to add it
         addSource();
       }
     }, 300);
     
     return () => clearTimeout(timeoutId);
-  }, [map, venues, updateSourceData, addSource]);
+  }, [map, venues, updateSourceData, addSource, safelyRemoveLayers]);
 
   // Handle style changes
   useEffect(() => {

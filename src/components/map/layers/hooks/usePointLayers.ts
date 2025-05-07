@@ -113,6 +113,13 @@ export const usePointLayers = ({
     }
   }, [map, source, isSourceReady, visitedVenueIds, updatePointColors]);
 
+  // Make sure layers are properly reset when the component unmounts
+  useEffect(() => {
+    return () => {
+      layersAdded.current = false;
+    };
+  }, [source]);
+
   return {
     layersAdded: layersAdded.current,
     updatePointColors,

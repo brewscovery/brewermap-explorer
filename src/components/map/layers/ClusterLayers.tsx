@@ -96,6 +96,13 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
     };
   }, [map, source, isSourceReady]);
   
+  // Reset when source changes
+  useEffect(() => {
+    return () => {
+      layersAdded.current = false;
+    };
+  }, [source]);
+  
   return null;
 };
 

@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import { useMapSource } from './MapSource';
 import { usePointLayers } from './hooks/usePointLayers';
@@ -20,6 +20,7 @@ const VenuePoints = ({
   onVenueSelect 
 }: VenuePointsProps) => {
   const { isSourceReady } = useMapSource();
+  const layersAddedRef = useRef(false);
   
   const { 
     updatePointColors, 
@@ -38,14 +39,18 @@ const VenuePoints = ({
   useEffect(() => {
     if (!isSourceReady || !map.getStyle()) return;
 
-    const timer = setTimeout(() => {
-      // Only try to add point layers if the source exists
-      if (map.getSource(source)) {
-        addPointLayers();
-      }
-    }, 300);
+    // Reset layers added flag when source changes
+    if (!layersAddedRef.current) {
+      const timer = setTimeout(() => {
+        // Only try to add point layers if the source exists
+        if (map.getSource(source)) {
+          const success = addPointLayers();
+          layersAddedRef.current = success;
+        }
+      }, 300);
 
-    return () => clearTimeout(timer);
+      return () => clearTimeout(timer);
+    }
   }, [map, source, isSourceReady, addPointLayers]);
 
   // Update colors whenever visited venues change
@@ -54,6 +59,13 @@ const VenuePoints = ({
       updatePointColors();
     }
   }, [map, visitedVenueIds, updatePointColors, isSourceReady]);
+
+  // Reset when source changes
+  useEffect(() => {
+    return () => {
+      layersAddedRef.current = false;
+    };
+  }, [source]);
 
   return null;
 };

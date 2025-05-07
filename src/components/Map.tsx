@@ -2,7 +2,7 @@
 import React, { useEffect, useCallback } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
-import MapLayers from './map/MapLayers';
+import MapLayers from './map/layers/MapLayers';
 import MapInteractions from './map/MapInteractions';
 import MapGeolocation from './map/MapGeolocation';
 import { useMapInitialization } from '@/hooks/useMapInitialization';
@@ -41,6 +41,16 @@ const Map = ({
   
   console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
   console.log(`Map: Rendering with ${venues.length} venues and ${activeFilters.length} active filters`);
+
+  // Force map resize when venues array length changes
+  useEffect(() => {
+    if (map.current && isStyleLoaded) {
+      const timer = setTimeout(() => {
+        map.current?.resize();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [map, isStyleLoaded, venues.length]);
 
   return (
     <div className="relative flex-1 w-full h-full">
