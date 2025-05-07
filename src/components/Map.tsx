@@ -50,7 +50,7 @@ const Map = ({
           map.current.resize();
           
           // If venues exist, adjust the map view to fit them
-          if (venues.length > 0) {
+          /*if (venues.length > 0) {
             setTimeout(() => {
               if (!map.current) return;
               
@@ -61,7 +61,7 @@ const Map = ({
                 if (map.current) map.current.setZoom(currentZoom);
               }, 150);
             }, 300);
-          }
+          }*/
         }
       }, 500);
       return () => clearTimeout(timer);
