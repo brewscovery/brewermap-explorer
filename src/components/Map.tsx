@@ -68,18 +68,6 @@ const Map = ({
     }
   }, [map, isStyleLoaded, venues.length]);
 
-  // Also force a map resize when filters change
-  useEffect(() => {
-    if (map.current && isStyleLoaded) {
-      const timer = setTimeout(() => {
-        if (map.current) {
-          map.current.resize();
-        }
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [map, isStyleLoaded, activeFilters]);
-
   return (
     <div className="relative flex-1 w-full h-full">
       <div 
