@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -92,7 +91,11 @@ const Index = () => {
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Floating UI Elements */}
-      <FloatingSearchBar onVenueSelect={handleVenueSelect} />
+      <FloatingSearchBar 
+        onVenueSelect={handleVenueSelect} 
+        activeFilters={activeFilters}
+        onFilterChange={handleFilterChange}
+      />
       <FloatingAuthButtons />
       
       <Map

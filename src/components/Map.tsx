@@ -9,7 +9,7 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 import { useVenueMapInteraction } from '@/hooks/useVenueMapInteraction';
 import VenueSidebar from './venue/VenueSidebar';
-import MapFilters from './search/MapFilters';
+// We'll remove MapFilters import as we'll no longer use it directly here
 
 interface MapProps {
   venues: Venue[];
@@ -75,14 +75,7 @@ const Map = ({
         className="absolute inset-0"
       />
       
-      {/* Filters positioned after search bar */}
-      <div className="absolute top-20 left-4 right-4 z-20">
-        <MapFilters 
-          activeFilters={activeFilters} 
-          onFilterChange={onFilterChange} 
-          className="justify-center sm:justify-start"
-        />
-      </div>
+      {/* We've removed the MapFilters component from here */}
       
       {map.current && isStyleLoaded && (
         <>

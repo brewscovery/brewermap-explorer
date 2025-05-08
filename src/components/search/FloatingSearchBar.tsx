@@ -5,15 +5,20 @@ import { cn } from '@/lib/utils';
 import { PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import MapFilters from './MapFilters';
 
 interface FloatingSearchBarProps {
   onVenueSelect: (venue: any) => void;
   className?: string;
+  activeFilters?: string[];
+  onFilterChange?: (filters: string[]) => void;
 }
 
 const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({ 
   onVenueSelect,
-  className 
+  className,
+  activeFilters = [],
+  onFilterChange = () => {}
 }) => {
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   
@@ -33,7 +38,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
 
   return (
     <div className={cn(
-      "fixed z-[100] top-4 left-4 w-[320px] md:w-[400px] lg:w-[520px]",
+      "fixed z-[100] top-4 left-4 right-4 flex flex-col",
       "animate-fade-in duration-300",
       className
     )}>
@@ -53,9 +58,24 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
           )} />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
-        <EnhancedSearchBar 
-          onVenueSelect={handleVenueSelect}
-          className="w-full shadow-lg"
+        <div className="flex flex-1 items-center gap-2">
+          <EnhancedSearchBar 
+            onVenueSelect={handleVenueSelect}
+            className="flex-1 shadow-lg"
+          />
+          <MapFilters 
+            activeFilters={activeFilters} 
+            onFilterChange={onFilterChange} 
+            className="hidden sm:flex"
+          />
+        </div>
+      </div>
+      {/* Responsive filters for mobile */}
+      <div className="mt-2 sm:hidden">
+        <MapFilters 
+          activeFilters={activeFilters} 
+          onFilterChange={onFilterChange} 
+          className="justify-center"
         />
       </div>
     </div>
