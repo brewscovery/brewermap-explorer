@@ -9,12 +9,14 @@ interface EnhancedSearchBarProps {
   onVenueSelect: (venue: Venue) => void;
   className?: string;
   leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
 const EnhancedSearchBar = ({ 
   onVenueSelect, 
   className = '',
-  leftIcon = <Search size={20} /> 
+  leftIcon = <Search size={20} />,
+  rightIcon = null
 }: EnhancedSearchBarProps) => {
   const [inputValue, setInputValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -95,9 +97,13 @@ const EnhancedSearchBar = ({
           onFocus={() => manualInputChange && inputValue.length > 0 && setIsDropdownOpen(true)}
           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full"
         />
-        {isLoading && (
+        {isLoading ? (
           <div className="pr-4">
             <Loader2 size={20} className="animate-spin text-gray-400" />
+          </div>
+        ) : rightIcon && (
+          <div className="pr-4">
+            {rightIcon}
           </div>
         )}
       </div>

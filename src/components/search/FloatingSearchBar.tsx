@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import MapFilters from './MapFilters';
@@ -10,6 +10,7 @@ import LoginPopover from '@/components/auth/LoginPopover';
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface FloatingSearchBarProps {
   onVenueSelect: (venue: any) => void;
@@ -28,6 +29,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
+  const [filtersVisible, setFiltersVisible] = useState(true);
   
   const handleVenueSelect = (venue) => {
     console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
@@ -90,6 +92,25 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   };
 
+  // Create a filter toggle button component
+  const FilterToggleButton = () => (
+    <TooltipProvider>
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <div 
+            onClick={() => setFiltersVisible(prev => !prev)} 
+            className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
+          >
+            <Filter className="h-5 w-5" />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>{filtersVisible ? 'Hide filters' : 'Show filters'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+
   return (
     <div className={cn(
       "fixed z-[100] top-4 left-4 right-4 flex flex-col",
@@ -103,23 +124,28 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
               onVenueSelect={handleVenueSelect}
               className="shadow-lg w-full"
               leftIcon={<SidebarToggleButton />}
+              rightIcon={<FilterToggleButton />}
             />
           </div>
-          <MapFilters 
-            activeFilters={activeFilters} 
-            onFilterChange={onFilterChange} 
-            className="hidden sm:flex"
-          />
+          {filtersVisible && (
+            <MapFilters 
+              activeFilters={activeFilters} 
+              onFilterChange={onFilterChange} 
+              className="hidden sm:flex"
+            />
+          )}
         </div>
       </div>
       {/* Responsive filters for mobile */}
-      <div className="mt-2 sm:hidden">
-        <MapFilters 
-          activeFilters={activeFilters} 
-          onFilterChange={onFilterChange} 
-          className="justify-center"
-        />
-      </div>
+      {filtersVisible && (
+        <div className="mt-2 sm:hidden">
+          <MapFilters 
+            activeFilters={activeFilters} 
+            onFilterChange={onFilterChange} 
+            className="justify-center"
+          />
+        </div>
+      )}
     </div>
   );
 };
