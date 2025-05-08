@@ -38,7 +38,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
 
   return (
     <div className={cn(
-      "fixed z-[100] top-4 left-4 sm:max-w-[400px] md:max-w-[450px] lg:max-w-sm", 
+      "fixed z-[100] top-4 left-4 right-4 flex flex-col",
       "animate-fade-in duration-300",
       className
     )}>

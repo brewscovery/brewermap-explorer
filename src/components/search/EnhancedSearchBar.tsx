@@ -78,7 +78,7 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
 
   return (
     <div className={`relative ${className}`}>
-      <div className="flex items-center bg-white/80 backdrop-blur-sm rounded-full shadow-md">
+      <div className="flex items-center bg-white rounded-full shadow-md">
         <div className="pl-4 pr-2 text-gray-400">
           <Search size={20} />
         </div>
@@ -88,7 +88,7 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => manualInputChange && inputValue.length > 0 && setIsDropdownOpen(true)}
-          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full bg-transparent"
+          className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full"
         />
         {isLoading && (
           <div className="pr-4">
