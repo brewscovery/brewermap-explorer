@@ -19,7 +19,13 @@ interface UserProfileData {
   last_name: string | null;
 }
 
-const LoginPopover = () => {
+interface LoginPopoverProps {
+  triggerElement?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+const LoginPopover = ({ triggerElement, open, onOpenChange }: LoginPopoverProps) => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -81,12 +87,22 @@ const LoginPopover = () => {
     navigate('/auth?forgot=true');
   };
 
+  const handleSignUp = () => {
+    navigate('/auth');
+  };
+
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
-        <Button variant="outline">Login</Button>
+        {triggerElement || <Button variant="outline">Login</Button>}
       </PopoverTrigger>
       <PopoverContent className="w-80">
+        <div className="space-y-2 mb-4">
+          <h3 className="font-medium text-lg">Welcome back</h3>
+          <p className="text-sm text-muted-foreground">
+            Login to access your account and preferences
+          </p>
+        </div>
         <form onSubmit={handleLogin} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
@@ -111,14 +127,24 @@ const LoginPopover = () => {
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? 'Loading...' : 'Login'}
           </Button>
-          <Button
-            type="button"
-            variant="link"
-            className="w-full"
-            onClick={handleForgotPassword}
-          >
-            Forgot your password?
-          </Button>
+          <div className="flex justify-between pt-2">
+            <Button
+              type="button"
+              variant="link"
+              className="text-xs p-0 h-auto"
+              onClick={handleForgotPassword}
+            >
+              Forgot password?
+            </Button>
+            <Button
+              type="button"
+              variant="link"
+              className="text-xs p-0 h-auto"
+              onClick={handleSignUp}
+            >
+              Create account
+            </Button>
+          </div>
         </form>
       </PopoverContent>
     </Popover>

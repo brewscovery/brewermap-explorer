@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -5,7 +6,6 @@ import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
-import FloatingAuthButtons from '@/components/auth/FloatingAuthButtons';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 
@@ -96,7 +96,6 @@ const Index = () => {
         activeFilters={activeFilters}
         onFilterChange={handleFilterChange}
       />
-      <FloatingAuthButtons />
       
       <Map
         venues={venues}
