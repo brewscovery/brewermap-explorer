@@ -65,6 +65,31 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   };
 
+  // Create a sidebar toggle button component based on user authentication state
+  const SidebarToggleButton = () => {
+    if (user) {
+      // Avatar with initials for authenticated users
+      return (
+        <Avatar className="h-5 w-5 cursor-pointer" onClick={handleSidebarToggle}>
+          <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
+            {getUserInitials()}
+          </AvatarFallback>
+        </Avatar>
+      );
+    } else {
+      // Login popover trigger for unauthenticated users
+      return (
+        <LoginPopover
+          open={loginOpen}
+          onOpenChange={setLoginOpen}
+          triggerElement={
+            <PanelLeft className="h-5 w-5 cursor-pointer" />
+          }
+        />
+      );
+    }
+  };
+
   return (
     <div className={cn(
       "fixed z-[100] top-4 left-4 right-4 flex flex-col",
@@ -72,49 +97,12 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
       className
     )}>
       <div className="flex w-full items-center">
-        {user ? (
-          // Avatar with initials for authenticated users
-          <Button
-            variant="outline"
-            size="icon"
-            className={cn(
-              "mr-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200",
-              "bg-white/80 backdrop-blur-sm h-12 w-12 flex-shrink-0"
-            )}
-            onClick={handleSidebarToggle}
-          >
-            <Avatar className="h-full w-full">
-              <AvatarFallback className="text-sm font-medium">
-                {getUserInitials()}
-              </AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle Sidebar</span>
-          </Button>
-        ) : (
-          // Login popover for unauthenticated users
-          <LoginPopover 
-            open={loginOpen} 
-            onOpenChange={setLoginOpen}
-            triggerElement={
-              <Button
-                variant="outline"
-                size="icon"
-                className={cn(
-                  "mr-2 rounded-full shadow-md hover:shadow-lg transition-all duration-200",
-                  "bg-white/80 backdrop-blur-sm h-12 w-12 flex-shrink-0"
-                )}
-              >
-                <PanelLeft className="h-4 w-4" />
-                <span className="sr-only">Login</span>
-              </Button>
-            } 
-          />
-        )}
         <div className="flex flex-1 items-center gap-2">
           <div className="flex-1 sm:max-w-[25%]"> {/* Limited width on desktop */}
             <EnhancedSearchBar 
               onVenueSelect={handleVenueSelect}
               className="shadow-lg w-full"
+              leftIcon={<SidebarToggleButton />}
             />
           </div>
           <MapFilters 

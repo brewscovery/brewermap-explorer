@@ -8,9 +8,14 @@ import type { Venue } from '@/types/venue';
 interface EnhancedSearchBarProps {
   onVenueSelect: (venue: Venue) => void;
   className?: string;
+  leftIcon?: React.ReactNode;
 }
 
-const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarProps) => {
+const EnhancedSearchBar = ({ 
+  onVenueSelect, 
+  className = '',
+  leftIcon = <Search size={20} /> 
+}: EnhancedSearchBarProps) => {
   const [inputValue, setInputValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [manualInputChange, setManualInputChange] = useState(true);
@@ -80,7 +85,7 @@ const EnhancedSearchBar = ({ onVenueSelect, className = '' }: EnhancedSearchBarP
     <div className={`relative ${className}`}>
       <div className="flex items-center bg-white rounded-full shadow-md">
         <div className="pl-4 pr-2 text-gray-400">
-          <Search size={20} />
+          {leftIcon}
         </div>
         <Input 
           ref={inputRef}
