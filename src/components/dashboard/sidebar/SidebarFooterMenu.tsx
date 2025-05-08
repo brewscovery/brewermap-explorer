@@ -5,7 +5,8 @@ import {
   SidebarMenu, 
   SidebarMenuItem, 
   SidebarMenuButton,
-  SidebarFooter 
+  SidebarFooter,
+  useSidebar
 } from '@/components/ui/sidebar';
 import { Map, User, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +14,7 @@ import { toast } from 'sonner';
 
 export const SidebarFooterMenu: React.FC = () => {
   const navigate = useNavigate();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   
   const handleLogout = async () => {
     try {
@@ -33,13 +35,23 @@ export const SidebarFooterMenu: React.FC = () => {
       localStorage.removeItem('supabase.auth.refreshToken');
       
       // Always navigate and show success regardless of session state
-      navigate('/');
+      handleNavigationWithSidebarClose('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
       console.error('Logout error:', error);
       // Even if there's an error, force navigation to the login page
-      navigate('/');
+      handleNavigationWithSidebarClose('/');
       toast.error('Error during logout, but you have been redirected home.');
+    }
+  };
+
+  const handleNavigationWithSidebarClose = (path: string) => {
+    navigate(path);
+    
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      toggleSidebar();
     }
   };
   
@@ -47,14 +59,14 @@ export const SidebarFooterMenu: React.FC = () => {
     <SidebarFooter className="p-4">
       <SidebarMenu>
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => navigate('/')}>
+          <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/')}>
             <Map size={18} />
             <span>View Map</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
         
         <SidebarMenuItem>
-          <SidebarMenuButton onClick={() => navigate('/profile')}>
+          <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/profile')}>
             <User size={18} />
             <span>Profile</span>
           </SidebarMenuButton>
