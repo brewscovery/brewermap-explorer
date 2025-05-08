@@ -25,7 +25,7 @@ const MapGeolocation = ({ map }: MapGeolocationProps) => {
         showUserHeading: true
       });
 
-      map.addControl(geolocateControl, 'top-right');
+      map.addControl(geolocateControl, 'bottom-right');
     }, 2000); // Wait 2 seconds before adding geolocation control
 
     return () => {
