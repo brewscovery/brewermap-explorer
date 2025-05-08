@@ -71,7 +71,7 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <TooltipProvider>
-        <div className="bg-white border rounded-lg shadow-md p-1 flex flex-wrap gap-1">
+        <div className="bg-white/80 backdrop-blur-sm border rounded-lg shadow-md p-1 flex flex-wrap gap-1">
           {VENUE_FILTERS.map((filter) => (
             <Tooltip key={filter.id} delayDuration={300}>
               <TooltipTrigger asChild>
@@ -83,7 +83,7 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
                   className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200
                     ${activeFilters.includes(filter.id) 
                       ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
-                      : "bg-background text-muted-foreground hover:bg-accent/50"
+                      : "bg-background/80 text-muted-foreground hover:bg-accent/50"
                     }`}
                 >
                   {filter.icon}
