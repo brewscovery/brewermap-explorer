@@ -8,6 +8,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import MapFilters from './MapFilters';
 import LoginPopover from '@/components/auth/LoginPopover';
 import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
 
 interface FloatingSearchBarProps {
@@ -25,7 +26,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
 }) => {
   const navigate = useNavigate();
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
-  const { user } = useAuth();
+  const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   
   const handleVenueSelect = (venue) => {
@@ -49,6 +50,21 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   };
 
+  // Get user initials for the avatar
+  const getUserInitials = () => {
+    if (firstName && lastName) {
+      return `${firstName[0]}${lastName[0]}`.toUpperCase();
+    } else if (firstName) {
+      return firstName[0].toUpperCase();
+    } else if (lastName) {
+      return lastName[0].toUpperCase();
+    } else if (user?.email) {
+      return user.email[0].toUpperCase();
+    } else {
+      return 'U';
+    }
+  };
+
   return (
     <div className={cn(
       "fixed z-[100] top-4 left-4 right-4 flex flex-col",
@@ -57,7 +73,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     )}>
       <div className="flex w-full items-center">
         {user ? (
-          // Regular sidebar toggle for authenticated users
+          // Avatar with initials for authenticated users
           <Button
             variant="outline"
             size="icon"
@@ -67,10 +83,11 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
             )}
             onClick={handleSidebarToggle}
           >
-            <PanelLeft className={cn(
-              "h-4 w-4 transition-transform duration-200",
-              !isMobile && state === "expanded" ? "rotate-0" : "rotate-180"
-            )} />
+            <Avatar className="h-full w-full">
+              <AvatarFallback className="text-sm font-medium">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
         ) : (
