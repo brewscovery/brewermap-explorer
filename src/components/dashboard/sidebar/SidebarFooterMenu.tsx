@@ -35,12 +35,12 @@ export const SidebarFooterMenu: React.FC = () => {
       localStorage.removeItem('supabase.auth.refreshToken');
       
       // Always navigate and show success regardless of session state
-      handleNavigationWithSidebarClose('/');
+      navigate('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
       console.error('Logout error:', error);
       // Even if there's an error, force navigation to the login page
-      handleNavigationWithSidebarClose('/');
+      navigate('/');
       toast.error('Error during logout, but you have been redirected home.');
     }
   };

@@ -111,10 +111,12 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
           />
         )}
         <div className="flex flex-1 items-center gap-2">
-          <EnhancedSearchBar 
-            onVenueSelect={handleVenueSelect}
-            className="flex-1 shadow-lg"
-          />
+          <div className="flex-1 sm:max-w-[25%]"> {/* Limited width on desktop */}
+            <EnhancedSearchBar 
+              onVenueSelect={handleVenueSelect}
+              className="shadow-lg w-full"
+            />
+          </div>
           <MapFilters 
             activeFilters={activeFilters} 
             onFilterChange={onFilterChange} 

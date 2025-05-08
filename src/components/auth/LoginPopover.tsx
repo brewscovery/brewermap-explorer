@@ -76,6 +76,12 @@ const LoginPopover = ({ triggerElement, open, onOpenChange }: LoginPopoverProps)
       } else {
         toast.success('Logged in successfully');
       }
+      
+      // Close the popover after successful login
+      if (onOpenChange) {
+        onOpenChange(false);
+      }
+      
     } catch (error: any) {
       toast.error(error.message);
     } finally {

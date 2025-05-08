@@ -27,8 +27,8 @@ export const useMapInitialization = () => {
         preserveDrawingBuffer: true // Make the map more resilient to container changes
       });
 
-      // Add navigation controls
-      newMap.addControl(new mapboxgl.NavigationControl(), 'top-right');
+      // Add navigation controls (MOVED FROM TOP-RIGHT TO BOTTOM-RIGHT)
+      newMap.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
 
       // Create and store the style load listener
       const onStyleLoad = () => {
