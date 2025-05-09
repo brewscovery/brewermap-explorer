@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -65,7 +64,16 @@ const App = () => {
   useEffect(() => {
     if (isWindowFocused) {
       refreshSupabaseConnection();
-      queryClient.invalidateQueries();
+      // Only refresh data queries, don't force map refresh
+      queryClient.invalidateQueries({ 
+        predicate: (query) => {
+          // Don't invalidate map-related queries on window focus
+          return !query.queryKey.some(key => 
+            typeof key === 'string' && 
+            (key.includes('map') || key.includes('venue') || key.includes('brewery'))
+          );
+        }
+      });
     }
   }, [isWindowFocused, queryClient]);
 

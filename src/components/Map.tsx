@@ -54,23 +54,7 @@ const Map = ({
     }
   }, [map, isStyleLoaded, venues.length]);
 
-  // Force reset of map layers when navigating back to the map
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (!document.hidden && map.current && isStyleLoaded) {
-        console.log('Page became visible again, refreshing map layers');
-        setMapInstanceKey(`map-${Date.now()}`);
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
-    };
-  }, [map, isStyleLoaded]);
+  // Removed the effect that was refreshing map layers on visibility/focus changes
 
   return (
     <div className="relative flex-1 w-full h-full">
