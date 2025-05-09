@@ -148,15 +148,11 @@ export function useVenueFilters(
             const now = new Date();
             const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            
             return events.some(event => {
               //All day event
               if (!event.start_time || !event.end_time) return true;
 
               //Check if current time is before event ends
-              const eventDate = new Date(event.start_time);
               const endTime = event.end_time.substring(0,5);
               return currentTimeStr < endTime;
             });
