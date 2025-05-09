@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import {
   Dialog,
@@ -18,6 +19,7 @@ interface Brewery {
   name: string;
   is_verified: boolean;
   has_owner: boolean;
+  country?: string | null;
 }
 
 interface CreateBreweryDialogProps {
@@ -119,8 +121,13 @@ const CreateBreweryDialog = ({
                         }
                       }}
                     >
-                      <div className="flex justify-between items-center gap-2">
-                        <span className="truncate">{brewery.name}</span>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{brewery.name}</span>
+                        {brewery.country && (
+                          <span className="text-sm text-muted-foreground">
+                            {brewery.country}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
