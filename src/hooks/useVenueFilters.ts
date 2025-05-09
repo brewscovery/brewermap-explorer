@@ -5,6 +5,8 @@ import { VenueHour } from '@/types/venueHours';
 import { VenueHappyHour } from '@/types/venueHappyHours';
 import { VenueDailySpecial } from '@/types/venueDailySpecials';
 import { getVenueOpenStatus, getKitchenOpenStatus, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
+import { useTodoLists } from '@/hooks/useTodoLists';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface VenueFiltersState {
   activeFilters: string[];
@@ -18,6 +20,8 @@ export function useVenueFilters(
   venueEvents: Record<string, any[]>
 ) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const { user } = useAuth();
+  const { todoListVenues } = useTodoLists();
   
   const handleFilterChange = useCallback((filters: string[]) => {
     console.log('Filter changed to:', filters);
@@ -43,8 +47,37 @@ export function useVenueFilters(
       const dailySpecials = venueDailySpecials[venueId] || [];
       const events = venueEvents[venueId] || [];
       
-      // Check each active filter
-      return activeFilters.every(filter => {
+      // Group filters into types
+      const standardFilters = activeFilters.filter(f => !f.startsWith('todo-list-'));
+      const todoListFilters = activeFilters.filter(f => f.startsWith('todo-list-'));
+      
+      // If we have todo list filters, check if this venue is in any of the selected todo lists
+      // and is not completed
+      if (todoListFilters.length > 0) {
+        // Return false if user is not logged in (shouldn't happen in UI, but just in case)
+        if (!user) return false;
+        
+        const matchesTodoListFilter = todoListFilters.some(filter => {
+          const listId = filter.replace('todo-list-', '');
+          // Check if this venue is in this todo list and not completed
+          return todoListVenues.some(item => 
+            item.todo_list_id === listId && 
+            item.venue_id === venueId && 
+            !item.is_completed
+          );
+        });
+        
+        // If no matches with todo list filters, exclude this venue
+        if (!matchesTodoListFilter) return false;
+      }
+      
+      // If no standard filters remain, we're done
+      if (standardFilters.length === 0) {
+        return true;
+      }
+      
+      // Check each standard filter
+      return standardFilters.every(filter => {
         switch (filter) {
           case 'open-now': {
             const openStatus = getVenueOpenStatus(hours);
@@ -127,7 +160,7 @@ export function useVenueFilters(
         }
       });
     });
-  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents]);
+  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents, todoListVenues, user]);
   
   return {
     activeFilters,

@@ -1,9 +1,12 @@
 
 import React from 'react';
-import { Clock, Utensils, Beer, MenuSquare, Calendar } from 'lucide-react';
+import { Clock, Utensils, Beer, MenuSquare, Calendar, ListTodo } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
+import { Separator } from '@/components/ui/separator';
+import { useAuth } from "@/contexts/AuthContext";
+import { useTodoLists } from "@/hooks/useTodoLists";
 
 export interface VenueFilter {
   id: string;
@@ -52,6 +55,20 @@ interface MapFiltersProps {
 }
 
 const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProps) => {
+  const { user } = useAuth();
+  const { todoLists, todoListVenues } = useTodoLists();
+  
+  // Filter todo lists to get only those with incomplete items
+  const todoListsWithIncomplete = todoLists.filter(list => {
+    const venuesInList = todoListVenues.filter(item => 
+      item.todo_list_id === list.id && !item.is_completed
+    );
+    return venuesInList.length > 0;
+  });
+  
+  // Create filter IDs for todo lists
+  const getTodoListFilterId = (listId: string) => `todo-list-${listId}`;
+  
   // Handle individual filter toggle
   const toggleFilter = (filterId: string) => {
     if (activeFilters.includes(filterId)) {
@@ -67,6 +84,9 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
   const clearFilters = () => {
     onFilterChange([]);
   };
+
+  // Check if we have any todo list filters active
+  const hasTodoListFilters = activeFilters.some(filter => filter.startsWith('todo-list-'));
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
@@ -95,6 +115,43 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
               </TooltipContent>
             </Tooltip>
           ))}
+          
+          {user && todoListsWithIncomplete.length > 0 && (
+            <>
+              <Separator orientation="vertical" className="h-6 mx-1" />
+              
+              {todoListsWithIncomplete.map(list => {
+                const filterId = getTodoListFilterId(list.id);
+                const incompleteCount = todoListVenues.filter(
+                  item => item.todo_list_id === list.id && !item.is_completed
+                ).length;
+                
+                return (
+                  <Tooltip key={filterId} delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <Toggle
+                        pressed={activeFilters.includes(filterId)}
+                        onPressedChange={() => toggleFilter(filterId)}
+                        variant="outline" 
+                        size="sm"
+                        className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200
+                          ${activeFilters.includes(filterId) 
+                            ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
+                            : "bg-background text-muted-foreground hover:bg-accent/50"
+                          }`}
+                      >
+                        <ListTodo size={18} />
+                        <span>{list.name} ({incompleteCount})</span>
+                      </Toggle>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" align="center">
+                      <p>Venues in "{list.name}" to visit</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </>
+          )}
           
           {activeFilters.length > 0 && (
             <Button 
