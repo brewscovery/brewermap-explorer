@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock, Utensils, Beer, MenuSquare, Calendar, ListTodo } from 'lucide-react';
+import { Clock, Utensils, Beer, MenuSquare, Calendar, ListTodo, Shield, Leaf } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,18 @@ export const VENUE_FILTERS: VenueFilter[] = [
     label: 'Events',
     icon: <Calendar size={18} />,
     tooltip: 'Events Today'
+  },
+  {
+    id: 'verified-breweries',
+    label: 'Verified',
+    icon: <Shield size={18} />,
+    tooltip: 'Venues from Verified Breweries'
+  },
+  {
+    id: 'independent-breweries',
+    label: 'Indie',
+    icon: <Leaf size={18} />,
+    tooltip: 'Venues from Independent Breweries'
   }
 ];
 

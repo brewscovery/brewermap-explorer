@@ -1,6 +1,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 import type { Venue } from '@/types/venue';
+import type { Brewery } from '@/types/brewery';
 import { VenueHour } from '@/types/venueHours';
 import { VenueHappyHour } from '@/types/venueHappyHours';
 import { VenueDailySpecial } from '@/types/venueDailySpecials';
@@ -17,7 +18,8 @@ export function useVenueFilters(
   venueHours: Record<string, VenueHour[]>,
   venueHappyHours: Record<string, VenueHappyHour[]>,
   venueDailySpecials: Record<string, VenueDailySpecial[]>,
-  venueEvents: Record<string, any[]>
+  venueEvents: Record<string, any[]>,
+  breweries: Record<string, Brewery> = {}
 ) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { user } = useAuth();
@@ -42,6 +44,8 @@ export function useVenueFilters(
       }
       
       const venueId = venue.id;
+      const breweryId = venue.brewery_id;
+      const brewery = breweries[breweryId];
       const hours = venueHours[venueId] || [];
       const happyHours = venueHappyHours[venueId] || [];
       const dailySpecials = venueDailySpecials[venueId] || [];
@@ -155,12 +159,22 @@ export function useVenueFilters(
             });
           }
           
+          case 'verified-breweries': {
+            // Check if this venue belongs to a verified brewery
+            return brewery && brewery.is_verified === true;
+          }
+          
+          case 'independent-breweries': {
+            // Check if this venue belongs to an independent brewery
+            return brewery && brewery.is_independent === true;
+          }
+          
           default:
             return true;
         }
       });
     });
-  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents, todoListVenues, user]);
+  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents, todoListVenues, user, breweries]);
   
   return {
     activeFilters,
