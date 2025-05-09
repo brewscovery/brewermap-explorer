@@ -112,10 +112,10 @@ export function useVenueFilters(
               // All day happy hour
               if (!h.start_time || !h.end_time) return true;
               
-              // Check if current time is within the happy hour
+              // Check if current time is before happy hour ends
               const start = h.start_time.substring(0, 5);
               const end = h.end_time.substring(0, 5);
-              return currentTimeStr >= start && currentTimeStr <= end;
+              return currentTimeStr <= end;
             });
           }
           
@@ -128,7 +128,6 @@ export function useVenueFilters(
             
             if (todaySpecials.length === 0) return false;
             
-            // Check if any special is currently active
             const now = new Date();
             const currentHour = now.getHours();
             const currentMinute = now.getMinutes();
@@ -138,24 +137,28 @@ export function useVenueFilters(
               // All day special
               if (!s.start_time || !s.end_time) return true;
               
-              // Check if current time is within the special time
+              // Check if current time is before daily special ends
               const start = s.start_time.substring(0, 5);
               const end = s.end_time.substring(0, 5);
-              return currentTimeStr >= start && currentTimeStr <= end;
+              return currentTimeStr < end;
             });
           }
           
           case 'events': {
-            // Check if there are events today
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
+            const now = new Date();
+            const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             
             return events.some(event => {
+              //All day event
+              if (!event.start_time || !event.end_time) return true;
+
+              //Check if current time is before event ends
               const eventDate = new Date(event.start_time);
-              return eventDate >= today && eventDate < tomorrow;
+              const endTime = event.end_time.substring(0,5);
+              return currentTimeStr < endTime;
             });
           }
           
