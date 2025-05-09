@@ -91,7 +91,7 @@ const EnhancedSearchBar = ({
         </div>
         <Input 
           ref={inputRef}
-          placeholder="Search venues..." 
+          placeholder="Brewscover..." 
           value={inputValue}
           onChange={handleInputChange}
           onFocus={() => manualInputChange && inputValue.length > 0 && setIsDropdownOpen(true)}
