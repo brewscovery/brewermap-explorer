@@ -149,10 +149,10 @@ export function useVenueFilters(
             const currentTimeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
             
             return events.some(event => {
-              //All day event
+              // All day event
               if (!event.start_time || !event.end_time) return true;
 
-              //Check if current time is before event ends
+              // Check if current time is before event ends
               const endTime = event.end_time.substring(0,5);
               return currentTimeStr < endTime;
             });

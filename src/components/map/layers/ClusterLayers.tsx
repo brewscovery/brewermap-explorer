@@ -11,6 +11,8 @@ interface ClusterLayersProps {
 const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const { isSourceReady } = useMapSource();
   const layersAdded = useRef(false);
+  const attemptCount = useRef(0);
+  const maxAttempts = 3;
 
   // Safely remove cluster layers
   const removeClusterLayers = useCallback(() => {
@@ -33,99 +35,140 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   }, [map]);
 
   // Add layers when source is ready
-  useEffect(() => {
+  const addClusterLayers = useCallback(() => {
     if (!isSourceReady) {
-      console.log('Waiting for source to be ready before adding cluster layers');
-      return;
+      console.log('Source not ready yet for cluster layers');
+      return false;
     }
 
-    console.log('Source is ready, attempting to add cluster layers');
-    
-    const addLayers = () => {
-      try {
-        // First remove any existing layers
-        removeClusterLayers();
-        
-        // Check if source exists
-        if (!map.getSource(source)) {
-          console.log('Source not available for cluster layers');
-          return;
-        }
+    try {
+      // Check if source exists
+      if (!map.getSource(source)) {
+        console.log('Source not available for cluster layers');
+        return false;
+      }
 
-        // Add clusters layer
-        map.addLayer({
-          id: 'clusters',
-          type: 'circle',
-          source: source,
-          filter: ['has', 'point_count'],
-          paint: {
-            'circle-color': [
-              'step',
-              ['get', 'point_count'],
-              '#fbbf24',
-              10,
-              '#f59e0b',
-              50,
-              '#d97706'
-            ],
-            'circle-radius': [
-              'step',
-              ['get', 'point_count'],
-              20,
-              10,
-              30,
-              50,
-              40
-            ],
-            'circle-stroke-width': 2,
-            'circle-stroke-color': '#ffffff'
-          }
-        });
-
-        // Add cluster count layer
-        map.addLayer({
-          id: 'cluster-count',
-          type: 'symbol',
-          source: source,
-          filter: ['has', 'point_count'],
-          layout: {
-            'text-field': '{point_count_abbreviated}',
-            'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
-            'text-size': 14
-          },
-          paint: {
-            'text-color': '#ffffff'
-          }
-        });
-
-        console.log('Cluster layers added successfully');
+      // Check if layers already exist
+      if (map.getLayer('clusters') && map.getLayer('cluster-count')) {
+        console.log('Cluster layers already exist');
         layersAdded.current = true;
-      } catch (error) {
-        console.error('Error adding cluster layers:', error);
+        return true;
+      }
+
+      // Remove any existing layers first
+      removeClusterLayers();
+      
+      console.log('Adding cluster layers to map...');
+
+      // Add clusters layer
+      map.addLayer({
+        id: 'clusters',
+        type: 'circle',
+        source: source,
+        filter: ['has', 'point_count'],
+        paint: {
+          'circle-color': [
+            'step',
+            ['get', 'point_count'],
+            '#fbbf24',
+            10,
+            '#f59e0b',
+            50,
+            '#d97706'
+          ],
+          'circle-radius': [
+            'step',
+            ['get', 'point_count'],
+            20,
+            10,
+            30,
+            50,
+            40
+          ],
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff'
+        }
+      });
+
+      // Add cluster count layer
+      map.addLayer({
+        id: 'cluster-count',
+        type: 'symbol',
+        source: source,
+        filter: ['has', 'point_count'],
+        layout: {
+          'text-field': '{point_count_abbreviated}',
+          'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+          'text-size': 14
+        },
+        paint: {
+          'text-color': '#ffffff'
+        }
+      });
+
+      console.log('Cluster layers added successfully');
+      layersAdded.current = true;
+      return true;
+    } catch (error) {
+      console.error('Error adding cluster layers:', error);
+      layersAdded.current = false;
+      return false;
+    }
+  }, [map, source, isSourceReady, removeClusterLayers]);
+
+  // Handle source changes and retries
+  useEffect(() => {
+    const handleStyleChange = () => {
+      // If layers were previously added but now missing, try to add them again
+      if (layersAdded.current && !map.getLayer('clusters')) {
+        console.log('Detected missing cluster layers after style change, attempting to re-add');
         layersAdded.current = false;
+        
+        // Short delay to ensure style is stable
+        setTimeout(() => {
+          addClusterLayers();
+        }, 200);
       }
     };
 
-    // Short delay to ensure source is fully ready
-    const timer = setTimeout(() => {
-      if (map.isStyleLoaded() && map.getSource(source)) {
-        console.log('Map style is loaded, adding cluster layers');
-        addLayers();
-      }
-    }, 300);
+    // Add style change listener
+    map.on('styledata', handleStyleChange);
     
-    return () => {
-      clearTimeout(timer);
+    const attemptLayerAddition = () => {
+      if (attemptCount.current < maxAttempts) {
+        attemptCount.current += 1;
+        console.log(`Attempt ${attemptCount.current}/${maxAttempts} to add cluster layers`);
+        
+        const success = addClusterLayers();
+        
+        if (!success && attemptCount.current < maxAttempts) {
+          // Try again with increasing delay
+          setTimeout(attemptLayerAddition, 300 * attemptCount.current);
+        }
+      }
     };
-  }, [map, source, isSourceReady, removeClusterLayers]);
-  
-  // Handle source changes
-  useEffect(() => {
+
+    // Initial attempt to add layers
+    if (map.isStyleLoaded() && isSourceReady) {
+      attemptLayerAddition();
+    } else {
+      // Wait for style and source to be ready
+      const checkReadiness = setInterval(() => {
+        if (map.isStyleLoaded() && isSourceReady) {
+          clearInterval(checkReadiness);
+          attemptLayerAddition();
+        }
+      }, 200);
+
+      // Clear interval after 5 seconds to prevent infinite checks
+      setTimeout(() => clearInterval(checkReadiness), 5000);
+    }
+
     return () => {
+      map.off('styledata', handleStyleChange);
       removeClusterLayers();
-      layersAdded.current = false;
     };
-  }, [source, removeClusterLayers]);
+  }, [map, addClusterLayers, removeClusterLayers, isSourceReady]);
   
   return null;
 };

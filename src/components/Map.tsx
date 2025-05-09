@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/layers/MapLayers';
@@ -9,7 +9,6 @@ import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 import { useVenueMapInteraction } from '@/hooks/useVenueMapInteraction';
 import VenueSidebar from './venue/VenueSidebar';
-// We'll remove MapFilters import as we'll no longer use it directly here
 
 interface MapProps {
   venues: Venue[];
@@ -28,6 +27,7 @@ const Map = ({
 }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
+  const [mapInstanceKey, setMapInstanceKey] = useState<string>(`map-${Date.now()}`);
   
   const { 
     selectedVenue,
@@ -42,31 +42,35 @@ const Map = ({
   console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
   console.log(`Map: Rendering with ${venues.length} venues and ${activeFilters.length} active filters`);
 
-  // Force map resize and recenter when venues array changes
+  // Force map resize when venues array changes
   useEffect(() => {
     if (map.current && isStyleLoaded) {
       const timer = setTimeout(() => {
         if (map.current) {
           map.current.resize();
-          
-          // If venues exist, adjust the map view to fit them
-          /*if (venues.length > 0) {
-            setTimeout(() => {
-              if (!map.current) return;
-              
-              // This forces a redraw of the map layers
-              const currentZoom = map.current.getZoom();
-              map.current.setZoom(currentZoom - 0.1);
-              setTimeout(() => {
-                if (map.current) map.current.setZoom(currentZoom);
-              }, 150);
-            }, 300);
-          }*/
         }
       }, 500);
       return () => clearTimeout(timer);
     }
   }, [map, isStyleLoaded, venues.length]);
+
+  // Force reset of map layers when navigating back to the map
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden && map.current && isStyleLoaded) {
+        console.log('Page became visible again, refreshing map layers');
+        setMapInstanceKey(`map-${Date.now()}`);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleVisibilityChange);
+    };
+  }, [map, isStyleLoaded]);
 
   return (
     <div className="relative flex-1 w-full h-full">
@@ -74,8 +78,6 @@ const Map = ({
         ref={mapContainer} 
         className="absolute inset-0"
       />
-      
-      {/* We've removed the MapFilters component from here */}
       
       {map.current && isStyleLoaded && (
         <>
@@ -85,7 +87,7 @@ const Map = ({
             venues={venues}
             visitedVenueIds={visitedVenueIds}
             onVenueSelect={handleVenueSelect}
-            key={`map-layers-${venues.length}-${activeFilters.join('-')}`}
+            key={`${mapInstanceKey}-layers-${venues.length}-${activeFilters.join('-')}`}
           />
           <MapInteractions
             map={map.current}
