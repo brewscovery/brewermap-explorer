@@ -45,13 +45,17 @@ const SidebarContentComponent = () => {
   );
 
   const handleNavigationWithSidebarClose = (path: string) => {
+    // First navigate to maintain the app's flow
     navigate(path);
     
-    if (isMobile) {
-      setOpenMobile(false);
-    } else {
-      toggleSidebar();
-    }
+    // Then close sidebar after a very slight delay to ensure smooth transition
+    setTimeout(() => {
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+    }, 10);
   };
 
   const isActive = (path: string) => location.pathname === path;
@@ -85,10 +89,26 @@ const SidebarContentComponent = () => {
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('supabase.auth.refreshToken');
       
+      // First close sidebar
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
+      // Then navigate
       handleNavigationWithSidebarClose('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
       console.error('Logout error:', error);
+      
+      // Close sidebar even if there's an error
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
       handleNavigationWithSidebarClose('/');
       toast.error('Error during logout, but you have been redirected home.');
     }

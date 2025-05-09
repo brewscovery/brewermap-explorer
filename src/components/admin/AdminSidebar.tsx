@@ -15,8 +15,20 @@ import { toast } from 'sonner';
 const AdminSidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { state } = useSidebar();
+  const { state, toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   
+  const handleNavigationWithSidebarClose = (path: string) => {
+    // First close sidebar
+    if (isMobile) {
+      setOpenMobile(false);
+    } else {
+      toggleSidebar();
+    }
+    
+    // Then navigate
+    navigate(path);
+  };
+
   const handleLogout = async () => {
     try {
       // First, attempt to get the current session to check if it's valid
@@ -35,11 +47,26 @@ const AdminSidebar = () => {
       localStorage.removeItem('supabase.auth.token');
       localStorage.removeItem('supabase.auth.refreshToken');
       
+      // Close sidebar before navigating
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
       // Always navigate and show success regardless of session state
       navigate('/');
       toast.success('Logged out successfully');
     } catch (error: any) {
       console.error('Logout error:', error);
+      
+      // Close sidebar even if there's an error
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
       // Even if there's an error, force navigation to the login page
       navigate('/');
       toast.error('Error during logout, but you have been redirected home.');
@@ -62,7 +89,7 @@ const AdminSidebar = () => {
             <SidebarMenuItem>
               <SidebarMenuButton 
                 isActive={isActive('/admin')}
-                onClick={() => navigate('/admin')}
+                onClick={() => handleNavigationWithSidebarClose('/admin')}
               >
                 <LayoutDashboard />
                 <span>Dashboard</span>
@@ -72,7 +99,7 @@ const AdminSidebar = () => {
             <SidebarMenuItem>
               <SidebarMenuButton 
                 isActive={isActive('/admin/claims')}
-                onClick={() => navigate('/admin/claims')}
+                onClick={() => handleNavigationWithSidebarClose('/admin/claims')}
               >
                 <ClipboardCheck />
                 <span>Brewery Claims</span>
@@ -82,7 +109,7 @@ const AdminSidebar = () => {
             <SidebarMenuItem>
               <SidebarMenuButton 
                 isActive={isActive('/admin/breweries')}
-                onClick={() => navigate('/admin/breweries')}
+                onClick={() => handleNavigationWithSidebarClose('/admin/breweries')}
               >
                 <Beer />
                 <span>Breweries</span>
@@ -92,7 +119,7 @@ const AdminSidebar = () => {
             <SidebarMenuItem>
               <SidebarMenuButton 
                 isActive={isActive('/admin/users')}
-                onClick={() => navigate('/admin/users')}
+                onClick={() => handleNavigationWithSidebarClose('/admin/users')}
               >
                 <Users />
                 <span>Users</span>
@@ -104,14 +131,14 @@ const AdminSidebar = () => {
         <div className="p-4 mt-auto border-t">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => navigate('/')}>
+              <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/')}>
                 <Map size={18} />
                 <span>View Map</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => navigate('/profile')}>
+              <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/profile')}>
                 <User size={18} />
                 <span>Profile</span>
               </SidebarMenuButton>
