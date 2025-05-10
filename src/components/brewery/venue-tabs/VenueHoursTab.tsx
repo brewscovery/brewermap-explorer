@@ -8,11 +8,10 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { formatTimeForForm } from '@/components/brewery/hours/hoursUtils';
-import HoursRow from '@/components/brewery/hours/HoursRow';
-import VenueHoursColumnHeaders from '@/components/brewery/hours/VenueHoursColumnHeaders';
-import { Separator } from '@/components/ui/separator';
+import { generateHourOptions } from '@/components/brewery/hours/hoursUtils';
 import { Loader2 } from 'lucide-react';
-import VenueHoursDialog from '@/components/brewery/VenueHoursDialog';
+import VenueHoursSection from '@/components/brewery/hours/VenueHoursSection';
+import EmptyHoursState from '@/components/brewery/hours/EmptyHoursState';
 
 interface VenueHoursTabProps {
   venue: Venue;
@@ -28,7 +27,6 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
   } = useVenueHours(venue.id);
   
   const [hasKitchen, setHasKitchen] = useState(true);
-  const [showHoursDialog, setShowHoursDialog] = useState(false);
   
   // Check if any hours have kitchen hours set when hours are loaded
   React.useEffect(() => {
@@ -39,6 +37,20 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
       setHasKitchen(kitchenHoursExist);
     }
   }, [hours]);
+
+  const HOURS = generateHourOptions();
+  
+  const handleSave = async (hoursData: Partial<VenueHour>[]) => {
+    const formattedData = hoursData.map(day => ({
+      ...day,
+      venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
+      venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
+      kitchen_open_time: hasKitchen && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
+      kitchen_close_time: hasKitchen && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
+    }));
+    
+    return await updateVenueHours(formattedData);
+  };
   
   if (isLoading) {
     return (
@@ -80,52 +92,28 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
   }
 
   return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle>Venue & Kitchen Hours</CardTitle>
-          <CardDescription>
-            View your venue and kitchen opening and closing times
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="border rounded-md">
-            <VenueHoursColumnHeaders hasKitchen={hasKitchen} />
-            <Separator />
-            
-            <div className="divide-y">
-              {DAYS_OF_WEEK.map((day, index) => {
-                const hourForDay = hours?.find(h => h.day_of_week === index);
-                if (!hourForDay) return null;
-                
-                return (
-                  <HoursRow
-                    key={index}
-                    day={day}
-                    hourData={hourForDay}
-                    dayIndex={index}
-                  />
-                );
-              })}
-            </div>
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button 
-              onClick={() => setShowHoursDialog(true)} 
-              variant="outline"
-            >
-              Edit Hours
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-      
-      <VenueHoursDialog
-        open={showHoursDialog}
-        onOpenChange={setShowHoursDialog}
-        venue={venue}
-      />
-    </>
+    <Card>
+      <CardHeader>
+        <CardTitle>Venue & Kitchen Hours</CardTitle>
+        <CardDescription>
+          Set your venue's regular opening and closing times
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {hours.length === 0 ? (
+          <EmptyHoursState />
+        ) : (
+          <VenueHoursSection
+            venueId={venue.id}
+            hours={hours}
+            HOURS={HOURS}
+            hasKitchen={hasKitchen}
+            setHasKitchen={setHasKitchen}
+            onSave={handleSave}
+            isUpdating={isUpdating}
+          />
+        )}
+      </CardContent>
+    </Card>
   );
 };

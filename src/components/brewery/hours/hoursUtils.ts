@@ -1,21 +1,24 @@
 
-/**
- * Generate an array of hour options for the time selectors
- */
-export const generateHourOptions = () => {
-  return Array.from({ length: 24 }, (_, i) => {
-    const hour = i % 12 || 12;
-    const ampm = i < 12 ? 'AM' : 'PM';
-    return { value: `${i.toString().padStart(2, '0')}:00`, label: `${hour}:00 ${ampm}` };
-  });
+// Add generateHourOptions function if it doesn't exist already
+export const formatTimeForForm = (timeString: string | null): string | null => {
+  if (!timeString) return null;
+  
+  // Format time string from "HH:MM:SS" to "HH:MM" for form inputs
+  return timeString.slice(0, 5);
 };
 
-/**
- * Format a time string from database format for form display
- * @param time Time string (HH:MM:SS)
- * @returns Formatted time string (HH:MM)
- */
-export const formatTimeForForm = (time: string | null) => {
-  if (!time) return null;
-  return time.substring(0, 5); // Convert "HH:MM:SS" to "HH:MM"
+export const generateHourOptions = () => {
+  const hours = [];
+  for (let i = 0; i < 24; i++) {
+    for (let j = 0; j < 60; j += 30) {
+      const hour = i.toString().padStart(2, '0');
+      const minute = j.toString().padStart(2, '0');
+      const time = `${hour}:${minute}`;
+      hours.push({
+        value: time,
+        label: time
+      });
+    }
+  }
+  return hours;
 };

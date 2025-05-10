@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Clock } from 'lucide-react';
@@ -18,8 +17,6 @@ interface VenueHoursDialogProps {
   onOpenChange: (open: boolean) => void;
   venue: Venue | null;
 }
-
-const HOURS = generateHourOptions();
 
 const VenueHoursDialog = ({ 
   open, 
@@ -62,6 +59,8 @@ const VenueHoursDialog = ({
     }
   }, [hours]);
   
+  const HOURS = generateHourOptions();
+
   if (!venue) return null;
 
   return (
