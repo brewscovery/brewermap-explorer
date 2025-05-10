@@ -10,7 +10,7 @@ const AdminDashboard = () => {
   const { data: stats, isLoading, error } = useAdminStats();
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-4">
       <h1 className="text-2xl font-bold">Admin Dashboard</h1>
       
       {error && (

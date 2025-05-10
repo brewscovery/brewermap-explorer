@@ -1,13 +1,12 @@
 
 import React from 'react';
 import { Outlet } from 'react-router-dom';
+import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
 const AdminContentLayout = () => {
   return (
-    <div className="flex-1 flex flex-col">
-      <header className="p-4 border-b">
-        <h1 className="text-xl font-bold">Admin Control Panel</h1>
-      </header>
+    <div className="flex-1 flex flex-col pt-4">
+      <FloatingSidebarToggle position="top-left" />
       <main className="p-6 flex-1">
         <Outlet />
       </main>
