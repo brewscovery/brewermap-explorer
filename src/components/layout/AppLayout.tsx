@@ -11,6 +11,7 @@ const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
+  const isAdminRoute = location.pathname.includes('/admin');
   const isRootRoute = location.pathname === '/';
   
   const displayName = firstName || lastName 
@@ -34,6 +35,10 @@ const AppLayout = () => {
                 <Outlet />
               </main>
             </div>
+          ) : isAdminRoute ? (
+            <main className="flex-1 flex flex-col">
+              <Outlet />
+            </main>
           ) : isRootRoute ? (
             <main className="flex-1 flex flex-col h-full">
               <Outlet />
