@@ -1,10 +1,7 @@
 
 import { ScrollArea } from '@/components/ui/scroll-area';
-import VenueHoursHeader from './VenueHoursHeader';
-import VenueHoursColumnHeaders from './VenueHoursColumnHeaders';
-import VenueHoursDayItem from './VenueHoursDayItem';
-import VenueHoursLegend from './VenueHoursLegend';
-import { DAYS_OF_WEEK, VenueHour } from '@/types/venueHours';
+import type { VenueHour } from '@/types/venueHours';
+import VenueHoursSection from './VenueHoursSection';
 
 interface RegularHoursTabProps {
   hours: VenueHour[];
@@ -15,98 +12,45 @@ interface RegularHoursTabProps {
   kitchenClosedDays: Set<number>;
   setKitchenClosedDays: React.Dispatch<React.SetStateAction<Set<number>>>;
   HOURS: { value: string; label: string }[];
+  venueId: string;
+  isUpdating: boolean;
+  updateVenueHours: (hours: Partial<VenueHour>[]) => Promise<boolean>;
 }
 
 const RegularHoursTab = ({
-  formData,
-  setFormData,
+  hours,
   hasKitchen,
   setHasKitchen,
-  kitchenClosedDays,
-  setKitchenClosedDays,
-  HOURS
+  HOURS,
+  venueId,
+  isUpdating,
+  updateVenueHours
 }: RegularHoursTabProps) => {
-  const handleTimeChange = (dayIndex: number, field: string, value: string) => {
-    setFormData(prev => prev.map((day, idx) => 
-      idx === dayIndex ? { ...day, [field]: value } : day
-    ));
-  };
-
-  const handleClosedToggle = (dayIndex: number, value: boolean) => {
-    setFormData(prev => prev.map((day, idx) => 
-      idx === dayIndex ? { ...day, is_closed: value } : day
-    ));
+  
+  const handleSave = async (hoursData: Partial<VenueHour>[]) => {
+    const formattedData = hoursData.map(day => ({
+      ...day,
+      venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
+      venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
+      kitchen_open_time: hasKitchen && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
+      kitchen_close_time: hasKitchen && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
+    }));
     
-    // If venue is closed, also remove from kitchen closed days
-    if (value) {
-      setKitchenClosedDays(prev => {
-        const updated = new Set(prev);
-        updated.delete(dayIndex);
-        return updated;
-      });
-    }
-  };
-
-  const handleKitchenClosedToggle = (dayIndex: number, isClosed: boolean) => {
-    setKitchenClosedDays(prev => {
-      const updated = new Set(prev);
-      if (isClosed) {
-        updated.add(dayIndex);
-      } else {
-        updated.delete(dayIndex);
-      }
-      return updated;
-    });
-    
-    // If kitchen is marked as closed, clear kitchen hours
-    if (isClosed) {
-      setFormData(prev => prev.map((day, idx) => 
-        idx === dayIndex ? { 
-          ...day, 
-          kitchen_open_time: null, 
-          kitchen_close_time: null 
-        } : day
-      ));
-    } else {
-      // Set default kitchen hours when re-enabling kitchen
-      setFormData(prev => prev.map((day, idx) => 
-        idx === dayIndex ? { 
-          ...day, 
-          kitchen_open_time: '11:00', 
-          kitchen_close_time: '17:00' 
-        } : day
-      ));
-    }
+    return await updateVenueHours(formattedData);
   };
 
   return (
     <ScrollArea className="h-[calc(80vh-160px)] pr-4">
       <div className="px-1 py-4">
-        <div className="space-y-6">
-          <VenueHoursHeader 
-            hasKitchen={hasKitchen}
-            onHasKitchenToggle={setHasKitchen}
-          />
-          
-          <VenueHoursColumnHeaders hasKitchen={hasKitchen} />
-          
-          {formData.map((day, index) => (
-            <VenueHoursDayItem
-              key={index}
-              day={DAYS_OF_WEEK[index]}
-              dayIndex={index}
-              dayData={day}
-              hasKitchen={hasKitchen}
-              kitchenClosedDays={kitchenClosedDays}
-              HOURS={HOURS}
-              onClosedToggle={handleClosedToggle}
-              onTimeChange={handleTimeChange}
-              onKitchenClosedToggle={handleKitchenClosedToggle}
-            />
-          ))}
-
-          <VenueHoursLegend hasKitchen={hasKitchen} />
-        </div>
+        <VenueHoursSection
+          venueId={venueId}
+          hours={hours}
+          HOURS={HOURS}
+          hasKitchen={hasKitchen}
+          setHasKitchen={setHasKitchen}
+          onSave={handleSave}
+          isUpdating={isUpdating}
+        />
       </div>
     </ScrollArea>
   );

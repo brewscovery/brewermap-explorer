@@ -1,15 +1,12 @@
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Clock } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { useVenueDailySpecials } from '@/hooks/useVenueDailySpecials';
-import { DAYS_OF_WEEK } from '@/types/venueHours';
-import type { VenueHour } from '@/types/venueHours';
 import type { Venue } from '@/types/venue';
-import { formatTimeForForm, generateHourOptions } from './hoursUtils';
+import { generateHourOptions } from './hoursUtils';
 import HoursDialogTabs from './HoursDialogTabs';
 import RegularHoursTab from './RegularHoursTab';
 import HappyHoursTab from '../happy-hours/HappyHoursTab';
@@ -29,7 +26,7 @@ const VenueHoursDialog = ({
   onOpenChange,
   venue
 }: VenueHoursDialogProps) => {
-  const [formData, setFormData] = useState<Array<Partial<VenueHour>>>([]);
+  const [formData, setFormData] = useState<Array<any>>([]);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
   const [kitchenClosedDays, setKitchenClosedDays] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState<'regular' | 'happy' | 'daily'>('regular');
@@ -55,84 +52,21 @@ const VenueHoursDialog = ({
     updateDailySpecials
   } = useVenueDailySpecials(venue?.id || null);
 
-  // Initialize or reset form data when dialog opens or venue changes
+  // Check if venue has any kitchen hours set when hours are loaded
   useEffect(() => {
-    if (open && venue) {
-      console.log("Updating form with loaded hours:", hours);
-      
-      const initialData = DAYS_OF_WEEK.map((_, index) => {
-        const existingHour = hours.find(h => h.day_of_week === index);
-        
-        if (existingHour) {
-          return {
-            ...existingHour,
-            venue_open_time: formatTimeForForm(existingHour.venue_open_time),
-            venue_close_time: formatTimeForForm(existingHour.venue_close_time),
-            kitchen_open_time: formatTimeForForm(existingHour.kitchen_open_time),
-            kitchen_close_time: formatTimeForForm(existingHour.kitchen_close_time),
-          };
-        }
-
-        return {
-          venue_id: venue.id,
-          day_of_week: index,
-          venue_open_time: '09:00',
-          venue_close_time: '18:00',
-          kitchen_open_time: '11:00',
-          kitchen_close_time: '17:00',
-          is_closed: index === 0, // Default to closed on Sundays
-        };
-      });
-      
-      setFormData(initialData);
-      
-      // Check if venue has any kitchen hours set
+    if (hours) {
       const venueHasKitchen = hours.some(
         hour => hour.kitchen_open_time !== null || hour.kitchen_close_time !== null
       );
-      setHasKitchen(venueHasKitchen || hours.length === 0);
-      
-      // Initialize kitchen closed days
-      const closedKitchenDays = new Set<number>();
-      hours.forEach(hour => {
-        if (!hour.is_closed && hour.venue_open_time && hour.venue_close_time && 
-            (!hour.kitchen_open_time || !hour.kitchen_close_time)) {
-          closedKitchenDays.add(hour.day_of_week);
-        }
-      });
-      setKitchenClosedDays(closedKitchenDays);
+      setHasKitchen(venueHasKitchen);
     }
-  }, [open, venue, hours]);
-
-  const handleSave = async () => {
-    if (!venue) return;
-    
-    if (activeTab === 'regular') {
-      const formattedData = formData.map(day => {
-        const dayIndex = day.day_of_week as number;
-        const isKitchenClosed = kitchenClosedDays.has(dayIndex);
-        
-        return {
-          ...day,
-          venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
-          venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
-          kitchen_open_time: hasKitchen && !isKitchenClosed && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
-          kitchen_close_time: hasKitchen && !isKitchenClosed && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
-        };
-      });
-      
-      const success = await updateVenueHours(formattedData);
-      if (success) {
-        onOpenChange(false);
-      }
-    }
-  };
-
+  }, [hours]);
+  
   if (!venue) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -159,6 +93,9 @@ const VenueHoursDialog = ({
                 kitchenClosedDays={kitchenClosedDays}
                 setKitchenClosedDays={setKitchenClosedDays}
                 HOURS={HOURS}
+                venueId={venue.id}
+                isUpdating={isUpdating}
+                updateVenueHours={updateVenueHours}
               />
             )}
             
@@ -183,17 +120,6 @@ const VenueHoursDialog = ({
             )}
           </TabContentLoader>
         </div>
-        
-        <DialogFooter className="mt-6">
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          {activeTab === 'regular' && (
-            <Button onClick={handleSave} disabled={isUpdating}>
-              {isUpdating ? 'Saving...' : 'Save Hours'}
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
