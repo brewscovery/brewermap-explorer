@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Clock, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
 import type { VenueHour } from '@/types/venueHours';
 import { formatTimeForForm } from './hoursUtils';
 import VenueHourForm from './VenueHourForm';

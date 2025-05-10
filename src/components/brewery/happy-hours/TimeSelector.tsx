@@ -11,6 +11,7 @@ interface TimeSelectorProps {
   onChange: (value: string) => void;
   options: { value: string; label: string }[];
   className?: string;
+  disabled?: boolean; // Add the disabled prop
 }
 
 const TimeSelector = ({ 
@@ -19,7 +20,8 @@ const TimeSelector = ({
   value, 
   onChange, 
   options, 
-  className = "w-full"
+  className = "w-full",
+  disabled = false // Default to false
 }: TimeSelectorProps) => {
   return (
     <div className={`space-y-1 ${className}`}>
@@ -27,6 +29,7 @@ const TimeSelector = ({
       <Select
         value={value || ''}
         onValueChange={onChange}
+        disabled={disabled}
       >
         <SelectTrigger id={id}>
           <SelectValue placeholder="Select time" />
