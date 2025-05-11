@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -16,7 +15,6 @@ import type { Brewery } from '@/types/brewery';
 // Import the new component pieces
 import { 
   VenueSidebarHeader,
-  VenueSidebarActions,
   VenueSidebarContent
 } from './sidebar';
 
@@ -176,14 +174,10 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   return (
     <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
       <VenueSidebarHeader 
+        venue={venue}
         venueName={venue.name}
         breweryInfo={breweryInfo}
         onClose={handleClose}
-      />
-      
-      {/* Action buttons positioned at the bottom right of header */}
-      <VenueSidebarActions
-        venue={venue}
         displayMode={displayMode}
         onOpenCheckInDialog={handleOpenCheckInDialog}
         onOpenTodoListDialog={handleOpenTodoListDialog}

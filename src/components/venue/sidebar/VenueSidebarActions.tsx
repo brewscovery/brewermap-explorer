@@ -28,7 +28,7 @@ const VenueSidebarActions = ({
   const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
 
   return (
-    <div className="absolute bottom-4 right-6 flex gap-2">
+    <div className="flex items-center gap-2">
       {user && userType === 'regular' && (
         <>
           {displayMode === 'full' && (
