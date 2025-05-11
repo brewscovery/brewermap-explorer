@@ -70,24 +70,27 @@ const VenueSidebarContent = ({
   const overviewContent = (
     <div className="space-y-5 p-4">
       {displayMode === 'full' && (
-        <>
-          <AboutSection breweryInfo={breweryInfo} />
-          <div className="space-y-1">
-            <AddressSection venue={venue} />
-            {hasCoordinates && (
-              <Button
-                onClick={handleGetDirections}
-                variant="secondary"
-                size="sm"
-                className="mt-2"
-              >
-                <Navigation size={16} className="mr-1" />
-                Get Directions
-              </Button>
-            )}
-          </div>
-          <ContactSection venue={venue} breweryInfo={breweryInfo} />
-        </>
+        <AboutSection breweryInfo={breweryInfo} />
+      )}
+      
+      {/* Always show address section regardless of display mode */}
+      <div className="space-y-1">
+        <AddressSection venue={venue} />
+        {hasCoordinates && (
+          <Button
+            onClick={handleGetDirections}
+            variant="secondary"
+            size="sm"
+            className="mt-2"
+          >
+            <Navigation size={16} className="mr-1" />
+            Get Directions
+          </Button>
+        )}
+      </div>
+      
+      {displayMode === 'full' && (
+        <ContactSection venue={venue} breweryInfo={breweryInfo} />
       )}
       
       <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
