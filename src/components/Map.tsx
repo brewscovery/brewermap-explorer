@@ -27,7 +27,9 @@ const Map = ({
 }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
-  const [mapInstanceKey, setMapInstanceKey] = useState<string>(`map-${Date.now()}`);
+  
+  // Create a stable key for MapLayers that only changes when venue filtering changes
+  const mapLayersKey = `venues-${venues.length}-${activeFilters.join('-')}`;
   
   const { 
     selectedVenue,
@@ -69,7 +71,7 @@ const Map = ({
             venues={venues}
             visitedVenueIds={visitedVenueIds}
             onVenueSelect={handleVenueSelect}
-            key={`${mapInstanceKey}-layers-${venues.length}-${activeFilters.join('-')}`}
+            key={mapLayersKey}
           />
           <MapInteractions
             map={map.current}

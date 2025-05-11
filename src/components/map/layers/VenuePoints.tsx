@@ -34,6 +34,7 @@ const VenuePoints = ({
     isSourceReady 
   });
 
+  // Set up event handlers for map interactions
   useMapEvents({ map, onVenueSelect });
 
   // Initial layer setup - only adds layers if they don't exist
@@ -56,7 +57,8 @@ const VenuePoints = ({
     return () => clearTimeout(timer);
   }, [map, source, isSourceReady, addPointLayers, removeLayers]);
 
-  // Update colors whenever visited venues change
+  // Update colors whenever visited venues change,
+  // but don't recreate the layers
   useEffect(() => {
     if (isSourceReady && map.getLayer('unclustered-point')) {
       updatePointColors();
