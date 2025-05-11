@@ -21,7 +21,7 @@ export const useMapInitialization = () => {
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/streets-v12',//'mapbox://styles/mapbox/light-v11',
         center: [133.7751, -25.2744], // Center of Australia
         zoom: 4,
         preserveDrawingBuffer: true // Make the map more resilient to container changes
