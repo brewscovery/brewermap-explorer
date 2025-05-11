@@ -22,7 +22,8 @@ const Index = () => {
     selectedVenue,
     setSelectedVenue,
     activeFilters,
-    handleFilterChange
+    handleFilterChange,
+    lastFilterUpdateTime
   } = useVenueData();
 
   // Handle auth redirects for recovery/signup flows
@@ -109,6 +110,7 @@ const Index = () => {
         selectedVenue={selectedVenue}
         activeFilters={activeFilters}
         onFilterChange={handleFilterChange}
+        lastFilterUpdateTime={lastFilterUpdateTime}
       />
     </div>
   );

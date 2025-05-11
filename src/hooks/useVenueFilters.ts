@@ -22,16 +22,22 @@ export function useVenueFilters(
   breweries: Record<string, Brewery> = {}
 ) {
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const [lastFilterUpdateTime, setLastFilterUpdateTime] = useState<number>(0);
   const { user } = useAuth();
   const { todoListVenues } = useTodoLists();
   
   const handleFilterChange = useCallback((filters: string[]) => {
     console.log('Filter changed to:', filters);
     setActiveFilters(filters);
+    setLastFilterUpdateTime(Date.now());
   }, []);
   
+  // Use useMemo with dependencies that should trigger recalculation
   const filteredVenues = useMemo(() => {
-    console.log(`Filtering ${venues.length} venues with ${activeFilters.length} active filters`);
+    // Only log when filters actually change (not on every render)
+    if (activeFilters.length > 0) {
+      console.log(`Filtering ${venues.length} venues with ${activeFilters.length} active filters`);
+    }
     
     if (activeFilters.length === 0) {
       return venues;
@@ -179,6 +185,7 @@ export function useVenueFilters(
     activeFilters,
     setActiveFilters,
     handleFilterChange,
-    filteredVenues
+    filteredVenues,
+    lastFilterUpdateTime
   };
 }

@@ -150,7 +150,8 @@ export function useVenueData() {
   const {
     activeFilters,
     handleFilterChange,
-    filteredVenues
+    filteredVenues,
+    lastFilterUpdateTime
   } = useVenueFilters(
     venues, 
     venueHoursMap, 
@@ -164,11 +165,12 @@ export function useVenueData() {
     venues: filteredVenues,
     allVenues: venues,
     error,
+    isLoading,
     refetch,
     selectedVenue,
     setSelectedVenue,
     activeFilters,
     handleFilterChange,
-    breweries
+    lastFilterUpdateTime
   };
 }

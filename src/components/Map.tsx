@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback, useState, memo } from 'react';
+import React, { useEffect, useCallback, useState, memo, useMemo } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/layers/MapLayers';
@@ -16,6 +16,7 @@ interface MapProps {
   selectedVenue?: Venue | null;
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
+  lastFilterUpdateTime?: number;
 }
 
 // Create a memo-wrapped MapLayers component to prevent unnecessary rerenders
@@ -26,15 +27,22 @@ const Map = ({
   onVenueSelect, 
   selectedVenue: selectedVenueFromProps,
   activeFilters = [],
-  onFilterChange = () => {}
+  onFilterChange = () => {},
+  lastFilterUpdateTime = 0
 }: MapProps) => {
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
   
+  // Use a state variable to track if selection happened internally
+  const [isInternalSelection, setIsInternalSelection] = useState(false);
+  
   // Create a stable key for MapLayers that only changes when filter COMPOSITION changes
   // not when venues selection changes
   const filtersKey = activeFilters.join('-');
-  const mapLayersKey = `venues-${filtersKey}`;
+  const mapLayersKey = useMemo(() => 
+    `venues-${filtersKey}-${lastFilterUpdateTime}`, 
+    [filtersKey, lastFilterUpdateTime]
+  );
   
   const { 
     selectedVenue,
@@ -42,12 +50,18 @@ const Map = ({
     handleSidebarClose
   } = useVenueMapInteraction({ 
     map: map.current, 
-    onVenueSelect, 
+    onVenueSelect: (venue) => {
+      setIsInternalSelection(true);
+      onVenueSelect(venue);
+    }, 
     selectedVenueFromProps 
   });
   
-  console.log('Map: Render with selectedVenue:', selectedVenue?.name || 'null');
-  console.log(`Map: Rendering with ${venues.length} venues and ${activeFilters.length} active filters`);
+  // For debugging only
+  const venueName = selectedVenue?.name || 'null';
+  const filterCount = activeFilters.length;
+  console.log(`Map: Render with selectedVenue: ${venueName}`);
+  console.log(`Map: Rendering with ${venues.length} venues and ${filterCount} active filters`);
 
   // Force map resize when venues array changes
   useEffect(() => {
