@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import MapSource from './MapSource';
@@ -16,8 +16,12 @@ interface MapLayersProps {
 const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersProps) => {
   console.log(`MapLayers rendering with ${venues.length} venues and ${visitedVenueIds?.length || 0} visited venues`);
   
-  // Use a unique key based on venues length to force re-mounting when venue count changes
-  const sourceKey = `venues-source-${venues.length}`;
+  // Generate a unique key that changes when venues array or filters change
+  // This ensures proper remounting of components when necessary
+  const sourceKey = useMemo(() => 
+    `venues-source-${venues.length}-${Date.now()}`, 
+    [venues]
+  );
   
   return (
     <MapSource map={map} venues={venues} key={sourceKey}>

@@ -27,7 +27,20 @@ export const useMapEvents = ({ map, onVenueSelect }: UseMapEventsProps) => {
         const props = e.features[0].properties;
         if (props) {
           console.log('Point clicked:', props);
-          // TODO: Implement venue selection logic
+          
+          // Find the venue from the id and trigger the callback
+          const venueId = props.id;
+          if (venueId && onVenueSelect) {
+            // The parent component should handle finding the actual venue
+            // since we only have the ID here
+            onVenueSelect({
+              id: venueId,
+              name: props.name,
+              brewery_id: props.brewery_id,
+              // These are the minimal properties needed for the map interaction
+              // The parent component will provide the full venue object
+            } as Venue);
+          }
         }
       }
     };

@@ -54,8 +54,6 @@ const Map = ({
     }
   }, [map, isStyleLoaded, venues.length]);
 
-  // Removed the effect that was refreshing map layers on visibility/focus changes
-
   return (
     <div className="relative flex-1 w-full h-full">
       <div 
