@@ -20,7 +20,7 @@ export const useVenueMapInteraction = ({
   const selectedVenue = selectedVenueFromProps || localSelectedVenue;
   
   // Update local selected venue and zoom map when selectedVenueFromProps changes
-  useEffect(() => {
+  /*useEffect(() => {
     if (selectedVenueFromProps) {
       console.log('Map received selected venue from props:', selectedVenueFromProps.name);
       
@@ -66,7 +66,7 @@ export const useVenueMapInteraction = ({
       // Clear local state when props are null
       setLocalSelectedVenue(null);
     }
-  }, [selectedVenueFromProps, map]);
+  }, [selectedVenueFromProps, map]);*/
 
   const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map handleVenueSelect called with venue:', venue.name);
