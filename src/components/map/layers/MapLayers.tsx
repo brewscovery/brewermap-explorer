@@ -16,10 +16,10 @@ interface MapLayersProps {
 const MapLayers = ({ map, venues, visitedVenueIds, onVenueSelect }: MapLayersProps) => {
   console.log(`MapLayers rendering with ${venues.length} venues and ${visitedVenueIds?.length || 0} visited venues`);
   
-  // Generate a unique key that changes when venues array changes
-  // This ensures proper remounting of components when necessary
+  // Generate a unique key based on venues length only
+  // This will only change when the filtered venues list changes
   const sourceKey = useMemo(() => 
-    `venues-source-${venues.length}-${Date.now()}`, 
+    `venues-source-${venues.length}`, 
     [venues.length]
   );
   

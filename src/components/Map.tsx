@@ -28,8 +28,10 @@ const Map = ({
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
   
-  // Create a stable key for MapLayers that only changes when venue filtering changes
-  const mapLayersKey = `venues-${venues.length}-${activeFilters.join('-')}`;
+  // Create a stable key for MapLayers that only changes when filter COMPOSITION changes
+  // not when venues selection changes
+  const filtersKey = activeFilters.join('-');
+  const mapLayersKey = `venues-${filtersKey}`;
   
   const { 
     selectedVenue,

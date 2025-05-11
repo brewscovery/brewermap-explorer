@@ -42,20 +42,19 @@ const VenuePoints = ({
     if (!isSourceReady || !map.getStyle()) return;
 
     const timer = setTimeout(() => {
-      // First remove any existing layers to ensure clean state
-      removeLayers();
-      layersAddedRef.current = false;
-      
-      // Only try to add point layers if the source exists
-      if (map.getSource(source)) {
-        console.log('Source exists, adding point layers');
-        const success = addPointLayers();
-        layersAddedRef.current = success;
+      // First ensure we have a clean state
+      if (!layersAddedRef.current) {
+        // Only try to add point layers if the source exists
+        if (map.getSource(source)) {
+          console.log('Source exists, adding point layers');
+          const success = addPointLayers();
+          layersAddedRef.current = success;
+        }
       }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [map, source, isSourceReady, addPointLayers, removeLayers]);
+  }, [map, source, isSourceReady, addPointLayers]);
 
   // Update colors whenever visited venues change,
   // but don't recreate the layers

@@ -134,7 +134,50 @@ export const usePointLayers = ({
     }
   }, [map, source, isSourceReady, visitedVenueIds, updatePointColors]);
 
-  // Clean up on unmount
+  // Initial layer setup - only adds layers if they don't exist
+  useEffect(() => {
+    if (!isSourceReady || !map.getStyle()) return;
+
+    // Try to add point layers if not already added
+    // Use a small delay to ensure source is fully initialized
+    const timer = setTimeout(() => {
+      // Only try to add point layers if the source exists
+      if (map.getSource(source) && !layersAdded.current) {
+        console.log('Source exists, adding point layers');
+        addPointLayers();
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [map, source, isSourceReady, addPointLayers]);
+
+  // Update colors whenever visited venues change
+  useEffect(() => {
+    if (isSourceReady && map.getLayer('unclustered-point')) {
+      updatePointColors();
+    }
+  }, [map, visitedVenueIds, updatePointColors, isSourceReady]);
+
+  // Handle style changes
+  useEffect(() => {
+    const handleStyleChange = () => {
+      if (isSourceReady && map.getSource(source) && !map.getLayer('unclustered-point')) {
+        // Layers missing but source exists, try to re-add the layers
+        console.log('Style changed, layers missing. Re-adding point layers...');
+        setTimeout(() => {
+          addPointLayers();
+        }, 50);
+      }
+    };
+
+    map.on('styledata', handleStyleChange);
+    
+    return () => {
+      map.off('styledata', handleStyleChange);
+    };
+  }, [map, source, isSourceReady, addPointLayers]);
+
+  // Clean up when component unmounts or source changes
   useEffect(() => {
     return () => {
       layersAdded.current = false;
