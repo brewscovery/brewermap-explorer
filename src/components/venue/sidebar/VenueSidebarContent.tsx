@@ -69,31 +69,27 @@ const VenueSidebarContent = ({
 
   const overviewContent = (
     <div className="space-y-5 p-4">
-      {/* Always show About section when in full mode */}
       {displayMode === 'full' && (
-        <AboutSection breweryInfo={breweryInfo} />
+        <>
+          <AboutSection breweryInfo={breweryInfo} />
+          <div className="space-y-1">
+            <AddressSection venue={venue} />
+            {hasCoordinates && (
+              <Button
+                onClick={handleGetDirections}
+                variant="secondary"
+                size="sm"
+                className="mt-2"
+              >
+                <Navigation size={16} className="mr-1" />
+                Get Directions
+              </Button>
+            )}
+          </div>
+          <ContactSection venue={venue} breweryInfo={breweryInfo} />
+        </>
       )}
       
-      {/* Always show Address section regardless of display mode */}
-      <div className="space-y-1">
-        <AddressSection venue={venue} />
-        {hasCoordinates && (
-          <Button
-            onClick={handleGetDirections}
-            variant="secondary"
-            size="sm"
-            className="mt-2"
-          >
-            <Navigation size={16} className="mr-1" />
-            Get Directions
-          </Button>
-        )}
-      </div>
-      
-      {/* Always show Contact section regardless of display mode */}
-      <ContactSection venue={venue} breweryInfo={breweryInfo} />
-      
-      {/* Always show hours and specials sections */}
       <VenueHoursSection venueHours={venueHours} isLoadingHours={isLoadingHours} />
       <HappyHoursSection happyHours={happyHours} isLoading={isLoadingHappyHours} />
       <DailySpecialsSection dailySpecials={dailySpecials} isLoading={isLoadingDailySpecials} />
