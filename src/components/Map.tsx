@@ -1,5 +1,5 @@
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, memo } from 'react';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/layers/MapLayers';
@@ -17,6 +17,9 @@ interface MapProps {
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
 }
+
+// Create a memo-wrapped MapLayers component to prevent unnecessary rerenders
+const MemoizedMapLayers = memo(MapLayers);
 
 const Map = ({ 
   venues, 
@@ -68,7 +71,7 @@ const Map = ({
       {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
-          <MapLayers
+          <MemoizedMapLayers
             map={map.current}
             venues={venues}
             visitedVenueIds={visitedVenueIds}

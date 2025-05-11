@@ -23,7 +23,11 @@ export const useVenueMapInteraction = ({
   useEffect(() => {
     if (selectedVenueFromProps) {
       console.log('Map received selected venue from props:', selectedVenueFromProps.name);
-      setLocalSelectedVenue(selectedVenueFromProps);
+      
+      // Only update local state if it's different
+      if (!localSelectedVenue || localSelectedVenue.id !== selectedVenueFromProps.id) {
+        setLocalSelectedVenue(selectedVenueFromProps);
+      }
       
       // Zoom to venue location if map is ready
       if (map && selectedVenueFromProps.latitude && selectedVenueFromProps.longitude) {
@@ -67,6 +71,12 @@ export const useVenueMapInteraction = ({
   const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map handleVenueSelect called with venue:', venue.name);
     
+    // Prevent unnecessary updates if it's the same venue
+    if (selectedVenue && venue.id === selectedVenue.id) {
+      console.log('Skipping venue selection, already selected:', venue.name);
+      return;
+    }
+    
     if (map && venue.latitude && venue.longitude) {
       const headerHeight = 73;
       const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
@@ -90,7 +100,7 @@ export const useVenueMapInteraction = ({
     
     setLocalSelectedVenue(venue);
     onVenueSelect(venue);
-  }, [map, onVenueSelect]);
+  }, [map, onVenueSelect, selectedVenue]);
 
   const handleSidebarClose = useCallback(() => {
     console.log('Map: handleSidebarClose called');

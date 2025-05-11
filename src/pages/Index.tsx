@@ -81,8 +81,14 @@ const Index = () => {
     }
   }, [error]);
 
-  // Handle venue selection
-  const handleVenueSelect = (venue) => {
+  // Handle venue selection without triggering unnecessary refetching
+  const handleVenueSelect = (venue: Venue | null) => {
+    // Skip if it's the same venue to prevent unnecessary re-renders
+    if (selectedVenue && venue && selectedVenue.id === venue.id) {
+      console.log('Index page: Skipping venue selection, already selected:', venue.name);
+      return;
+    }
+    
     console.log('Index page: Setting selected venue:', venue?.name || 'none');
     // Update the selected venue in the global state
     setSelectedVenue(venue);

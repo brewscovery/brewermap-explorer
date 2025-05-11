@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +14,8 @@ interface MapInteractionsProps {
 const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const lastSelectedVenueIdRef = useRef<string | null>(null);
+  const lastClickTimeRef = useRef<number>(0);
 
   useEffect(() => {
     if (!map || !map.getStyle) return;
@@ -57,6 +59,19 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
       const venue = venues.find(v => v.id === properties.id);
       
       if (!venue || !features[0].geometry || features[0].geometry.type !== 'Point') return;
+      
+      // Prevent duplicate clicks within 500ms
+      const now = Date.now();
+      if (lastSelectedVenueIdRef.current === venue.id && 
+          now - lastClickTimeRef.current < 500) {
+        return;
+      }
+      
+      // Track the selection to prevent duplicates
+      lastSelectedVenueIdRef.current = venue.id;
+      lastClickTimeRef.current = now;
+      
+      console.log('Point clicked:', properties);
 
       const coordinates = features[0].geometry.coordinates as [number, number];
 
