@@ -18,33 +18,12 @@ export const useMapEvents = ({ map, onVenueSelect }: UseMapEventsProps) => {
     mouseEnter: null,
     mouseLeave: null
   });
-
+  
+  // We're not going to add click handlers here anymore, as they're already handled
+  // in MapInteractions.tsx, which would cause duplicate events
+  // Instead we'll just handle mouse cursor effects
+  
   useEffect(() => {
-    if (!onVenueSelect) return;
-
-    const handleClick = (e: mapboxgl.MapLayerMouseEvent) => {
-      if (e.features?.[0]) {
-        const props = e.features[0].properties;
-        if (props) {
-          console.log('Point clicked:', props);
-          
-          // Find the venue from the id and trigger the callback
-          const venueId = props.id;
-          if (venueId && onVenueSelect) {
-            // The parent component should handle finding the actual venue
-            // since we only have the ID here
-            onVenueSelect({
-              id: venueId,
-              name: props.name,
-              brewery_id: props.brewery_id,
-              // These are the minimal properties needed for the map interaction
-              // The parent component will provide the full venue object
-            } as Venue);
-          }
-        }
-      }
-    };
-
     const handleMouseEnter = () => {
       map.getCanvas().style.cursor = 'pointer';
     };
@@ -54,19 +33,16 @@ export const useMapEvents = ({ map, onVenueSelect }: UseMapEventsProps) => {
     };
 
     eventHandlers.current = {
-      click: handleClick,
+      click: null, // No click handlers here anymore
       mouseEnter: handleMouseEnter,
       mouseLeave: handleMouseLeave
     };
 
-    map.on('click', 'unclustered-point', handleClick);
+    // Only add mouse enter/leave events, not click events
     map.on('mouseenter', 'unclustered-point', handleMouseEnter);
     map.on('mouseleave', 'unclustered-point', handleMouseLeave);
 
     return () => {
-      if (eventHandlers.current.click) {
-        map.off('click', 'unclustered-point', eventHandlers.current.click);
-      }
       if (eventHandlers.current.mouseEnter) {
         map.off('mouseenter', 'unclustered-point', eventHandlers.current.mouseEnter);
       }
@@ -74,7 +50,7 @@ export const useMapEvents = ({ map, onVenueSelect }: UseMapEventsProps) => {
         map.off('mouseleave', 'unclustered-point', eventHandlers.current.mouseLeave);
       }
     };
-  }, [map, onVenueSelect]);
+  }, [map]);
 
   return eventHandlers.current;
 };

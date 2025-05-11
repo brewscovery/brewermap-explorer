@@ -64,6 +64,7 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
       const now = Date.now();
       if (lastSelectedVenueIdRef.current === venue.id && 
           now - lastClickTimeRef.current < 500) {
+        console.log('Ignoring duplicate map click on venue:', venue.name);
         return;
       }
       
@@ -73,13 +74,8 @@ const MapInteractions = ({ map, venues, onVenueSelect }: MapInteractionsProps) =
       
       console.log('Point clicked:', properties);
 
-      const coordinates = features[0].geometry.coordinates as [number, number];
-
-      // Center the map on the clicked venue
-      map.easeTo({
-        center: coordinates,
-        zoom: Math.max(map.getZoom(), 14)
-      });
+      // We no longer need to center the map here since handleVenueSelect will do it
+      // This removes one source of duplication
 
       // Call the onVenueSelect callback to show the sidebar
       onVenueSelect(venue);
