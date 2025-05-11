@@ -9,7 +9,7 @@ export function useVenueData() {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
   // Fetch venues
-  const { data: venues = [], error, refetch } = useQuery({
+  const { data: venues = [], error, isLoading, refetch } = useQuery({
     queryKey: ['venues'],
     queryFn: async () => {
       const { data, error } = await supabase
