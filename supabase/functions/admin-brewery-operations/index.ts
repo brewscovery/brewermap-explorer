@@ -161,6 +161,32 @@ Deno.serve(async (req) => {
           throw new Error(`Failed to create venue: ${createVenueError.message}`)
         }
         
+        // Create default venue hours for all days of the week
+        if (newVenue && newVenue.id) {
+          console.log(`Creating default venue hours for venue ${newVenue.id}`)
+          
+          const venueHoursData = Array.from({ length: 7 }, (_, index) => ({
+            venue_id: newVenue.id,
+            day_of_week: index,  // 0 = Monday, 6 = Sunday
+            venue_open_time: '12:00:00',
+            venue_close_time: '20:00:00',
+            kitchen_open_time: '13:00:00',
+            kitchen_close_time: '19:00:00',
+            is_closed: true // Default to closed, so user must actively enable each day
+          }))
+          
+          const { error: hoursError } = await supabase
+            .from('venue_hours')
+            .insert(venueHoursData)
+          
+          if (hoursError) {
+            console.error('Error creating default venue hours:', hoursError)
+            // Don't throw error, just log it - we want venue creation to succeed even if hours fail
+          } else {
+            console.log('Default venue hours created successfully')
+          }
+        }
+        
         result = { venue: newVenue }
         break
         

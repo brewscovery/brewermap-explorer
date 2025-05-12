@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { Venue } from '@/types/venue';
+import { useCreateVenueHours } from '@/hooks/useCreateVenueHours';
 
 export const useCreateVenue = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const { createDefaultVenueHours } = useCreateVenueHours();
 
   const createVenue = async (venueData: Partial<Venue>) => {
     if (!venueData.brewery_id) {
@@ -63,6 +65,11 @@ export const useCreateVenue = () => {
         .single();
 
       if (error) throw error;
+
+      // Create default venue hours for the new venue
+      if (data && data.id) {
+        await createDefaultVenueHours(data.id);
+      }
 
       toast.success('Venue created successfully');
       return data;

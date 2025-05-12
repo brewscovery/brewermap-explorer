@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { MapPin } from 'lucide-react';
@@ -6,12 +7,13 @@ import { toast } from 'sonner';
 import { useVenueForm } from '@/hooks/useVenueForm';
 import { VenueForm } from './venue-form/VenueForm';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCreateVenueHours } from '@/hooks/useCreateVenueHours';
 
 interface AddVenueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   breweryId: string;
-  breweryName: string; // Add breweryName prop
+  breweryName: string;
   onVenueAdded: () => void;
 }
 
@@ -19,10 +21,11 @@ const AddVenueDialog = ({
   open, 
   onOpenChange, 
   breweryId,
-  breweryName, // Use breweryName prop
+  breweryName,
   onVenueAdded 
 }: AddVenueDialogProps) => {
   const queryClient = useQueryClient();
+  const { createDefaultVenueHours } = useCreateVenueHours();
   
   const {
     formData,
@@ -91,9 +94,16 @@ const AddVenueDialog = ({
         throw error;
       }
 
+      // Create default venue hours for all days of the week
+      if (data && data[0]?.id) {
+        const venueId = data[0].id;
+        await createDefaultVenueHours(venueId);
+      }
+
       // Explicitly invalidate venue queries to ensure real-time updates
       queryClient.invalidateQueries({ queryKey: ['venues'] });
       queryClient.invalidateQueries({ queryKey: ['breweryVenues', breweryId] });
+      queryClient.invalidateQueries({ queryKey: ['venueHours'] });
       
       toast.success('Venue added successfully');
       onVenueAdded();
