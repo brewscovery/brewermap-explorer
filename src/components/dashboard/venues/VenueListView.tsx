@@ -49,6 +49,7 @@ export const VenueListView = ({ brewery, onVenueAdded }: VenueListViewProps) => 
           open={showAddVenueDialog}
           onOpenChange={handleAddVenueDialogClose}
           breweryId={brewery.id}
+          breweryName={brewery.name} // Pass brewery name to AddVenueDialog
           onVenueAdded={handleVenueAdded}
         />
       )}

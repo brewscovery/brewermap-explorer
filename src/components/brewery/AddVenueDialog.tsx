@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { MapPin } from 'lucide-react';
@@ -12,13 +11,15 @@ interface AddVenueDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   breweryId: string;
+  breweryName: string; // Add breweryName prop
   onVenueAdded: () => void;
 }
 
 const AddVenueDialog = ({ 
   open, 
   onOpenChange, 
-  breweryId, 
+  breweryId,
+  breweryName, // Use breweryName prop
   onVenueAdded 
 }: AddVenueDialogProps) => {
   const queryClient = useQueryClient();
@@ -43,8 +44,13 @@ const AddVenueDialog = ({
       // Ensure body is interactive when closed
       document.body.style.pointerEvents = '';
       document.body.style.overflow = '';
+    } else if (open && breweryName) {
+      // Prefill the venue name with the brewery name when dialog opens
+      handleChange({
+        target: { name: 'name', value: breweryName }
+      } as React.ChangeEvent<HTMLInputElement>);
     }
-  }, [open, resetForm]);
+  }, [open, resetForm, breweryName, handleChange]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

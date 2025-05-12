@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { Button } from '@/components/ui/button';
@@ -45,7 +46,8 @@ const AdminVenueManagement = ({
     resetForm
   } = useVenueForm({
     initialData: {
-      brewery_id: breweryId
+      brewery_id: breweryId,
+      name: breweryName // Set initial name to brewery name
     },
     resetOnSuccess: true
   });
@@ -68,6 +70,10 @@ const AdminVenueManagement = ({
   
   const handleAddVenue = () => {
     resetForm();
+    // Set initial form data with brewery name when adding a venue
+    handleChange({
+      target: { name: 'name', value: breweryName }
+    } as React.ChangeEvent<HTMLInputElement>);
     setIsAddingVenue(true);
   };
   

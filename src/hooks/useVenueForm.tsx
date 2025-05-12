@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +29,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
   const [isLoading, setIsLoading] = useState(false);
   const [addressInput, setAddressInput] = useState('');
   const [formData, setFormData] = useState<VenueFormData>({
-    name: '',
+    name: initialData?.name || '',
     street: '',
     city: '',
     state: '',
@@ -37,7 +38,7 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     phone: '',
     longitude: null,
     latitude: null,
-    ...initialData // Spread any initial data (including brewery_id)
+    ...initialData // Spread any initial data (including brewery_id and name)
   });
 
   // Initialize form with provided data
@@ -70,10 +71,10 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     }
   }, [initialData]);
 
-  // Reset form to initial values
+  // Reset form to initial values, but preserve initialData if provided
   const resetForm = () => {
     setFormData({
-      name: '',
+      name: initialData?.name || '',
       street: '',
       city: '',
       state: '',
