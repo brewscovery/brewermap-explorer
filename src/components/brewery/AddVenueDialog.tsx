@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+
+import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { MapPin } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +26,8 @@ const AddVenueDialog = ({
 }: AddVenueDialogProps) => {
   const queryClient = useQueryClient();
   const { createDefaultVenueHours } = useCreateVenueHours();
+  const initialRenderRef = useRef(true);
+  const nameSetRef = useRef(false);
   
   const {
     formData,
@@ -43,15 +46,25 @@ const AddVenueDialog = ({
   useEffect(() => {
     if (!open) {
       resetForm();
+      nameSetRef.current = false; // Reset the flag when dialog closes
       // Ensure body is interactive when closed
       document.body.style.pointerEvents = '';
       document.body.style.overflow = '';
-    } else if (open && breweryName && !formData.name) {
-      // Only prefill name if the dialog is opening AND the name field is empty
-      // This prevents overriding any user edits when they type in the field
-      handleChange({
-        target: { name: 'name', value: breweryName }
-      } as React.ChangeEvent<HTMLInputElement>);
+    } else if (open && breweryName && !nameSetRef.current) {
+      // Only prefill name if dialog is opening AND name hasn't been set yet
+      nameSetRef.current = true; // Mark that we've set the name
+      
+      // Skip the prefill on the first render to avoid overwriting the value
+      if (!initialRenderRef.current) {
+        handleChange({
+          target: { name: 'name', value: breweryName }
+        } as React.ChangeEvent<HTMLInputElement>);
+      }
+    }
+    
+    // After first render, set initialRender to false
+    if (initialRenderRef.current) {
+      initialRenderRef.current = false;
     }
   }, [open, resetForm, breweryName, handleChange, formData.name]);
 

@@ -41,22 +41,25 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
     ...initialData // Spread any initial data (including brewery_id and name)
   });
 
-  // Initialize form with provided data
+  // Initialize form with provided data - but only on initial mount, not on subsequent re-renders
   useEffect(() => {
     if (initialData) {
-      setFormData(prevData => ({
-        ...prevData,
-        name: initialData.name || prevData.name,
-        street: initialData.street || prevData.street,
-        city: initialData.city || prevData.city,
-        state: initialData.state || prevData.state,
-        postal_code: initialData.postal_code || prevData.postal_code,
+      // This code runs only once when the component mounts
+      const initialFormData = {
+        ...formData,
+        name: initialData.name || formData.name,
+        street: initialData.street || formData.street,
+        city: initialData.city || formData.city,
+        state: initialData.state || formData.state,
+        postal_code: initialData.postal_code || formData.postal_code,
         country: initialData.country || DEFAULT_COUNTRY,
-        phone: initialData.phone || prevData.phone,
-        longitude: initialData.longitude !== undefined ? initialData.longitude : prevData.longitude,
-        latitude: initialData.latitude !== undefined ? initialData.latitude : prevData.latitude,
+        phone: initialData.phone || formData.phone,
+        longitude: initialData.longitude !== undefined ? initialData.longitude : formData.longitude,
+        latitude: initialData.latitude !== undefined ? initialData.latitude : formData.latitude,
         ...(initialData.brewery_id ? { brewery_id: initialData.brewery_id } : {})
-      }));
+      };
+      
+      setFormData(initialFormData);
 
       // Set address input to show the full address if available
       if (initialData.street && initialData.city && initialData.state) {
@@ -69,7 +72,8 @@ export const useVenueForm = ({ initialData, onSuccess, resetOnSuccess = false }:
         setAddressInput(fullAddress);
       }
     }
-  }, [initialData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array means this runs once on mount
 
   // Reset form to initial values, but preserve initialData if provided
   const resetForm = () => {
