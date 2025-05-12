@@ -1,12 +1,13 @@
 
 import { useState, useEffect, useRef } from 'react';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useVenueSearch } from '@/hooks/useVenueSearch';
 import type { Venue } from '@/types/venue';
+import { Button } from '@/components/ui/button';
 
 interface EnhancedSearchBarProps {
-  onVenueSelect: (venue: Venue) => void;
+  onVenueSelect: (venue: Venue | null) => void;
   className?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
@@ -82,6 +83,21 @@ const EnhancedSearchBar = ({
     setManualInputChange(true);
     setInputValue(e.target.value);
   };
+  
+  // Clear the search input and deselect venue
+  const handleClear = () => {
+    setManualInputChange(false);
+    setInputValue('');
+    onVenueSelect(null); // Deselect venue
+    
+    // Focus on the input after clearing
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  // Determine if we should show the clear button (when input has value)
+  const showClearButton = inputValue.length > 0;
 
   return (
     <div className={`relative ${className}`}>
@@ -97,6 +113,20 @@ const EnhancedSearchBar = ({
           onFocus={() => manualInputChange && inputValue.length > 0 && setIsDropdownOpen(true)}
           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full"
         />
+        {showClearButton && (
+          <div className="pr-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 rounded-full hover:bg-gray-100" 
+              onClick={handleClear}
+              type="button"
+            >
+              <X size={18} className="text-gray-400" />
+              <span className="sr-only">Clear search</span>
+            </Button>
+          </div>
+        )}
         {isLoading ? (
           <div className="pr-4">
             <Loader2 size={20} className="animate-spin text-gray-400" />

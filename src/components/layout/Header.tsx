@@ -1,4 +1,3 @@
-
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, LogOut, Map, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
@@ -16,6 +15,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { Venue } from '@/types/venue';
 
 const Header = () => {
   const navigate = useNavigate();
@@ -78,16 +78,16 @@ const Header = () => {
   
   const { toggleSidebar } = useSidebar();
 
-  const handleVenueSelect = (venue) => {
-    if (!venue) return;
-    
-    console.log('Venue selected from search:', venue);
-    // Set the selected venue first
-    setSelectedVenue(venue);
-    
-    // If we're not already on the homepage, navigate there
-    if (location.pathname !== '/') {
-      navigate('/');
+  const handleVenueSelect = (venue: Venue | null) => {
+    if (venue) {
+      console.log('Venue selected from search:', venue);
+      // Set the selected venue first
+      setSelectedVenue(venue);
+      
+      // If we're not already on the homepage, navigate there
+      if (location.pathname !== '/') {
+        navigate('/');
+      }
     }
   };
   

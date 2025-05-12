@@ -11,9 +11,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Venue } from '@/types/venue';
 
 interface FloatingSearchBarProps {
-  onVenueSelect: (venue: any) => void;
+  onVenueSelect: (venue: Venue | null) => void;
   className?: string;
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
@@ -31,7 +32,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   const [loginOpen, setLoginOpen] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(true);
   
-  const handleVenueSelect = (venue) => {
+  const handleVenueSelect = (venue: Venue | null) => {
     console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
     onVenueSelect(venue);
   };
