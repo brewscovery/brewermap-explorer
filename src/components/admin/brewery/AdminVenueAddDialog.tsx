@@ -1,4 +1,5 @@
 
+import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog-fixed';
 import { VenueForm } from '@/components/brewery/venue-form/VenueForm';
 import type { AddressSuggestion } from '@/types/address';

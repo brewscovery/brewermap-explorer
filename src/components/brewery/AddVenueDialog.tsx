@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { MapPin } from 'lucide-react';
@@ -40,20 +39,21 @@ const AddVenueDialog = ({
     resetForm
   } = useVenueForm();
 
-  // Reset form when dialog opens/closes
+  // Reset form when dialog opens/closes and prefill name only ONCE when opened
   useEffect(() => {
     if (!open) {
       resetForm();
       // Ensure body is interactive when closed
       document.body.style.pointerEvents = '';
       document.body.style.overflow = '';
-    } else if (open && breweryName) {
-      // Prefill the venue name with the brewery name when dialog opens
+    } else if (open && breweryName && !formData.name) {
+      // Only prefill name if the dialog is opening AND the name field is empty
+      // This prevents overriding any user edits when they type in the field
       handleChange({
         target: { name: 'name', value: breweryName }
       } as React.ChangeEvent<HTMLInputElement>);
     }
-  }, [open, resetForm, breweryName, handleChange]);
+  }, [open, resetForm, breweryName, handleChange, formData.name]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
