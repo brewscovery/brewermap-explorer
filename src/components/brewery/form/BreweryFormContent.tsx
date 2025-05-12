@@ -82,11 +82,11 @@ const BreweryFormContent = ({
         
         {/* Show verification toggle only for admin users */}
         {isAdminMode && (
-          <>
-            <BreweryVerificationField form={form} />
-            <BreweryIndependentField form={form} />
-          </>
+          <BreweryVerificationField form={form} />
         )}
+        
+        {/* Show independent brewery checkbox for all users */}
+        <BreweryIndependentField form={form} />
         
         {/* Show logo upload for everyone */}
         <LogoUploadSection form={form} breweryId={breweryId} />

@@ -25,7 +25,7 @@ const BreweryIndependentField = ({ form }: BreweryIndependentFieldProps) => {
           <div className="space-y-1 leading-none">
             <FormLabel>Certified Independent</FormLabel>
             <FormDescription>
-              Mark this brewery as an independently owned and operated brewery.
+              Mark this brewery as an independently owned and operated brewery. Independent breweries are not owned by or controlled by a large commercial brewery.
             </FormDescription>
           </div>
         </FormItem>
