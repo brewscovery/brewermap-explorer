@@ -1,24 +1,28 @@
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { VenueEvent } from './useVenueEvents';
+import type { VenueEvent } from '@/types/venue';
 
-export const useEventInterest = (event: VenueEvent) => {
+export const useEventInterest = (eventOrId: VenueEvent | string) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  
+  // Get the event ID whether we're passed the event object or just the ID
+  const eventId = typeof eventOrId === 'string' ? eventOrId : eventOrId.id;
 
   // Query to check if the user is interested in this event
   const { data: isInterested, isLoading: isInterestLoading } = useQuery({
-    queryKey: ['eventInterest', event.id, user?.id],
+    queryKey: ['eventInterest', eventId, user?.id],
     queryFn: async () => {
       if (!user) return false;
       
       const { data, error } = await supabase
         .from('event_interests')
         .select('id')
-        .eq('event_id', event.id)
+        .eq('event_id', eventId)
         .eq('user_id', user.id)
         .maybeSingle();
       
@@ -31,12 +35,12 @@ export const useEventInterest = (event: VenueEvent) => {
 
   // New query to count interested users
   const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useQuery({
-    queryKey: ['eventInterestedUsersCount', event.id],
+    queryKey: ['eventInterestedUsersCount', eventId],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('event_interests')
         .select('user_id', { count: 'exact' })
-        .eq('event_id', event.id);
+        .eq('event_id', eventId);
       
       if (error) throw error;
       
@@ -46,7 +50,7 @@ export const useEventInterest = (event: VenueEvent) => {
 
   // Mutation to toggle event interest
   const toggleInterestMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (id = eventId) => {
       if (!user) {
         throw new Error('User must be logged in');
       }
@@ -56,7 +60,7 @@ export const useEventInterest = (event: VenueEvent) => {
         const { error } = await supabase
           .from('event_interests')
           .delete()
-          .eq('event_id', event.id)
+          .eq('event_id', id)
           .eq('user_id', user.id);
         
         if (error) throw error;
@@ -66,7 +70,7 @@ export const useEventInterest = (event: VenueEvent) => {
         const { error } = await supabase
           .from('event_interests')
           .insert({
-            event_id: event.id,
+            event_id: id,
             user_id: user.id
           });
         
@@ -77,24 +81,24 @@ export const useEventInterest = (event: VenueEvent) => {
     onSuccess: (newInterestState) => {
       // Update isInterested state optimistically
       queryClient.setQueryData(
-        ['eventInterest', event.id, user?.id], 
+        ['eventInterest', eventId, user?.id], 
         newInterestState
       );
 
       // Update the count optimistically
-      const currentCount = queryClient.getQueryData(['eventInterestedUsersCount', event.id]) as number || 0;
+      const currentCount = queryClient.getQueryData(['eventInterestedUsersCount', eventId]) as number || 0;
       queryClient.setQueryData(
-        ['eventInterestedUsersCount', event.id],
+        ['eventInterestedUsersCount', eventId],
         newInterestState ? currentCount + 1 : Math.max(currentCount - 1, 0)
       );
 
       // Invalidate both queries separately and force refetch
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterest', event.id, user?.id]
+        queryKey: ['eventInterest', eventId, user?.id]
       });
       
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterestedUsersCount', event.id],
+        queryKey: ['eventInterestedUsersCount', eventId],
         refetchType: 'active'
       });
 

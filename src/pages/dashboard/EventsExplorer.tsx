@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
+import { useMultipleVenueEvents } from "@/hooks/useVenueEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, MapPin } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -13,7 +13,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { Venue } from "@/types/venue";
+import { Venue, VenueEvent } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
 
@@ -235,6 +235,7 @@ const EventsExplorer = () => {
                 <UserEventCard 
                   key={event.id} 
                   event={event} 
+                  showVenueName={true}
                   venue={event.venue}
                   isInterested={userInterests.includes(event.id)}
                 />
@@ -256,6 +257,7 @@ const EventsExplorer = () => {
                 <UserEventCard 
                   key={event.id} 
                   event={event} 
+                  showVenueName={true}
                   venue={event.venue}
                   isInterested={true}
                 />
