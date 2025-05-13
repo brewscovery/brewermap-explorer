@@ -1,168 +1,357 @@
-
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import {
-  Home,
-  Users,
-  Settings,
-  LogOut,
-  Coffee,
-  Calendar,
-  Heart,
-  CheckSquare,
-  Lightbulb,
-  CreditCard,
-  MapPin,
+import { useNavigate, useLocation } from 'react-router-dom';
+import { 
+  Sidebar, 
+  SidebarContent as UISidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
+  useSidebar
+} from '@/components/ui/sidebar';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { 
+  LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
+  Beer, ClipboardCheck, Users, LogOut, Star, History, 
+  CreditCard, Calendar, ListTodo
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useBreweryFetching } from '@/hooks/useBreweryFetching';
+import { useBreweryVenues } from '@/hooks/useBreweryVenues';
+import { BrewerySidebarHeader } from '@/components/dashboard/sidebar/BrewerySidebarHeader';
+import { SidebarFooterMenu } from '@/components/dashboard/sidebar/SidebarFooterMenu';
+import { Brewery } from '@/types/brewery';
+import { Venue } from '@/types/venue';
 
-const UnifiedSidebar = () => {
-  const { userType, logout } = useAuth(); // Change from signOut to logout to match AuthContextType
+const SidebarContentComponent = () => {
+  const navigate = useNavigate();
   const location = useLocation();
+  const { user, userType } = useAuth();
+  const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
+  
+  const { 
+    breweries, 
+    selectedBrewery, 
+    isLoading: breweriesLoading,
+    setSelectedBrewery
+  } = useBreweryFetching(userType === 'business' ? user?.id : null);
+  
+  const { venues: venuesForSelectedBrewery, isLoading: venuesLoading } = useBreweryVenues(
+    userType === 'business' && selectedBrewery ? selectedBrewery.id : null
+  );
 
-  const isActive = (path: string) => {
-    return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  const handleNavigationWithSidebarClose = (path: string) => {
+    // First navigate to maintain the app's flow
+    navigate(path);
+    
+    // Then close sidebar after a very slight delay to ensure smooth transition
+    setTimeout(() => {
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+    }, 10);
   };
 
-  const renderAdminLinks = () => (
-    <>
-      <NavLink
-        to="/admin"
-        className={`flex items-center p-2 rounded-md ${isActive('/admin') && !isActive('/admin/breweries') && !isActive('/admin/users') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Home className="mr-2 h-5 w-5" />
-        <span>Dashboard</span>
-      </NavLink>
-      <NavLink
-        to="/admin/breweries"
-        className={`flex items-center p-2 rounded-md ${isActive('/admin/breweries') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Coffee className="mr-2 h-5 w-5" />
-        <span>Breweries</span>
-      </NavLink>
-      <NavLink
-        to="/admin/users"
-        className={`flex items-center p-2 rounded-md ${isActive('/admin/users') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Users className="mr-2 h-5 w-5" />
-        <span>Users</span>
-      </NavLink>
-    </>
-  );
+  const isActive = (path: string) => location.pathname === path;
+  const isVenueActive = (path: string, venueId: string) => {
+    return location.pathname === path && location.search.includes(`venueId=${venueId}`);
+  };
 
-  const renderBusinessLinks = () => (
-    <>
-      <NavLink
-        to="/dashboard"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard') && location.pathname === '/dashboard' ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Home className="mr-2 h-5 w-5" />
-        <span>Dashboard</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/venues"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/venues') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <MapPin className="mr-2 h-5 w-5" />
-        <span>Venues</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/events"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/events') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Calendar className="mr-2 h-5 w-5" />
-        <span>Events</span>
-      </NavLink>
-    </>
-  );
+  const handleBrewerySelect = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    handleNavigationWithSidebarClose('/dashboard');
+  };
 
-  const renderUserLinks = () => (
-    <>
-      <NavLink
-        to="/dashboard"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard') && location.pathname === '/dashboard' ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Home className="mr-2 h-5 w-5" />
-        <span>Dashboard</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/favorites"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/favorites') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Heart className="mr-2 h-5 w-5" />
-        <span>Favorites</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/check-ins"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/check-ins') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <CheckSquare className="mr-2 h-5 w-5" />
-        <span>Check-ins</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/todo-lists"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/todo-lists') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <CheckSquare className="mr-2 h-5 w-5" />
-        <span>Todo Lists</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/events"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/events') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Calendar className="mr-2 h-5 w-5" />
-        <span>Events</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/discoveries"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/discoveries') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Lightbulb className="mr-2 h-5 w-5" />
-        <span>Discoveries</span>
-      </NavLink>
-    </>
-  );
+  const handleAddVenue = (brewery: Brewery) => {
+    setSelectedBrewery(brewery);
+    handleNavigationWithSidebarClose('/dashboard/venues?action=add');
+  };
+  
+  const handleVenueClick = (venue: Venue) => {
+    handleNavigationWithSidebarClose(`/dashboard/venues?venueId=${venue.id}`);
+  };
 
-  const renderCommonFooterLinks = () => (
-    <>
-      <NavLink
-        to="/dashboard/settings"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/settings') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <Settings className="mr-2 h-5 w-5" />
-        <span>Settings</span>
-      </NavLink>
-      <NavLink
-        to="/dashboard/subscription"
-        className={`flex items-center p-2 rounded-md ${isActive('/dashboard/subscription') ? 'bg-primary/10 text-primary' : 'hover:bg-primary/5'}`}
-      >
-        <CreditCard className="mr-2 h-5 w-5" />
-        <span>Subscription</span>
-      </NavLink>
-      <button
-        onClick={() => logout()} // Changed from signOut to logout
-        className="flex items-center p-2 rounded-md hover:bg-primary/5 w-full text-left"
-      >
-        <LogOut className="mr-2 h-5 w-5" />
-        <span>Sign Out</span>
-      </button>
-    </>
-  );
+  const handleLogout = async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (sessionData.session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
+      
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('supabase.auth.refreshToken');
+      
+      // First close sidebar
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
+      // Then navigate
+      handleNavigationWithSidebarClose('/');
+      toast.success('Logged out successfully');
+    } catch (error: any) {
+      console.error('Logout error:', error);
+      
+      // Close sidebar even if there's an error
+      if (isMobile) {
+        setOpenMobile(false);
+      } else {
+        toggleSidebar();
+      }
+      
+      handleNavigationWithSidebarClose('/');
+      toast.error('Error during logout, but you have been redirected home.');
+    }
+  };
 
   return (
-    <aside className="w-64 bg-background border-r min-h-screen flex flex-col">
-      <div className="p-4 border-b">
-        <h1 className="text-xl font-bold">Brewery App</h1>
-      </div>
-      <nav className="flex-1 p-4 space-y-2">
-        {userType === 'admin' && renderAdminLinks()}
-        {userType === 'business' && renderBusinessLinks()}
-        {userType === 'regular' && renderUserLinks()}
-      </nav>
-      <div className="p-4 space-y-2 border-t">
-        {renderCommonFooterLinks()}
-      </div>
-    </aside>
+    <div className="flex flex-col h-full overflow-auto">
+      {userType === 'business' && (
+        <BrewerySidebarHeader 
+          selectedBrewery={selectedBrewery} 
+          breweries={breweries}
+          isLoading={breweriesLoading} 
+          onBrewerySelect={handleBrewerySelect}
+        />
+      )}
+      
+      {userType === 'regular' && user && (
+        <div className="flex flex-col p-4 border-b">
+          <h2 className="text-lg font-semibold">Hello, {user.email?.split('@')[0] || 'User'}</h2>
+          <p className="text-sm text-muted-foreground">{user?.email}</p>
+        </div>
+      )}
+      
+      <UISidebarContent>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton 
+              onClick={() => handleNavigationWithSidebarClose('/')}
+              isActive={isActive('/')}
+            >
+              <Map size={18} />
+              <span>View Map</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          {!user ? (
+            <SidebarMenuItem>
+              <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/auth')}>
+                <LogIn size={18} />
+                <span>Login / Sign Up</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ) : (
+            <>
+              {userType === 'admin' && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/admin')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin')}
+                    >
+                      <LayoutDashboard size={18} />
+                      <span>Admin Dashboard</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/admin/claims')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/claims')}
+                    >
+                      <ClipboardCheck size={18} />
+                      <span>Brewery Claims</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/admin/breweries')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/breweries')}
+                    >
+                      <Beer size={18} />
+                      <span>Breweries</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/admin/users')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/users')}
+                    >
+                      <Users size={18} />
+                      <span>Users</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+
+              {userType === 'business' && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard')}
+                    >
+                      <LayoutDashboard size={18} />
+                      <span>Overview</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={isActive('/dashboard/events')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/events')}
+                    >
+                      <Calendar size={18} />
+                      <span>Events</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  
+                  {selectedBrewery && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        onClick={() => handleNavigationWithSidebarClose('/dashboard/venues')}
+                        isActive={isActive('/dashboard/venues')}
+                      >
+                        <Store size={18} />
+                        <span>Venues</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                  
+                  {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
+                    <SidebarMenuSub>
+                      {venuesForSelectedBrewery.map((venue) => (
+                        <SidebarMenuSubItem key={venue.id}>
+                          <SidebarMenuSubButton
+                            onClick={() => handleVenueClick(venue)}
+                            isActive={isVenueActive('/dashboard/venues', venue.id)}
+                            className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
+                          >
+                            <Store size={14} />
+                            <span className="truncate">{venue.name}</span>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
+                  
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/settings')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
+                    >
+                      <Settings size={18} />
+                      <span>Settings</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+
+              {userType === 'regular' && (
+                <>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard')}
+                    >
+                      <LayoutDashboard size={18} />
+                      <span>Dashboard</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/favorites')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/favorites')}
+                    >
+                      <Star size={18} />
+                      <span>My Favorites</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/todoLists')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/todoLists')}
+                    >
+                      <ListTodo size={18} />
+                      <span>ToDo Lists</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/history')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/history')}
+                    >
+                      <History size={18} />
+                      <span>Check-in History</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/discoveries')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/discoveries')}
+                    >
+                      <Map size={18} />
+                      <span>Brewery Discoveries</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/settings')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
+                    >
+                      <Settings size={18} />
+                      <span>Account Settings</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/subscription')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/subscription')}
+                    >
+                      <CreditCard size={18} />
+                      <span>Subscription</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </>
+              )}
+
+            </>
+          )}
+        </SidebarMenu>
+      </UISidebarContent>
+      
+      {user && <SidebarFooterMenu />}
+    </div>
+  );
+};
+
+const UnifiedSidebar = () => {
+  const { state, isMobile, openMobile, setOpenMobile } = useSidebar();
+  
+  if (isMobile) {
+    return (
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem]">
+          <SidebarContentComponent />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  return (
+    <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
+      <SidebarContentComponent />
+    </div>
   );
 };
 

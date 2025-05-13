@@ -602,24 +602,6 @@ export type Database = {
         Args: { lat1: number; lon1: number; lat2: number; lon2: number }
         Returns: number
       }
-      calculate_venues_in_radius: {
-        Args: { ref_lat: number; ref_lon: number; radius_km: number }
-        Returns: {
-          brewery_id: string
-          city: string
-          country: string | null
-          created_at: string
-          id: string
-          latitude: string | null
-          longitude: string | null
-          name: string
-          phone: string | null
-          postal_code: string | null
-          state: string
-          street: string | null
-          updated_at: string
-        }[]
-      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {

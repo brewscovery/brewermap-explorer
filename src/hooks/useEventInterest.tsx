@@ -1,28 +1,24 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
-import type { VenueEvent } from '@/types/venue';
+import type { VenueEvent } from './useVenueEvents';
 
-export const useEventInterest = (eventOrId: VenueEvent | string) => {
+export const useEventInterest = (event: VenueEvent) => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
-  
-  // Get the event ID whether we're passed the event object or just the ID
-  const eventId = typeof eventOrId === 'string' ? eventOrId : eventOrId.id;
 
   // Query to check if the user is interested in this event
   const { data: isInterested, isLoading: isInterestLoading } = useQuery({
-    queryKey: ['eventInterest', eventId, user?.id],
+    queryKey: ['eventInterest', event.id, user?.id],
     queryFn: async () => {
       if (!user) return false;
       
       const { data, error } = await supabase
         .from('event_interests')
         .select('id')
-        .eq('event_id', eventId)
+        .eq('event_id', event.id)
         .eq('user_id', user.id)
         .maybeSingle();
       
@@ -35,12 +31,12 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
 
   // New query to count interested users
   const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useQuery({
-    queryKey: ['eventInterestedUsersCount', eventId],
+    queryKey: ['eventInterestedUsersCount', event.id],
     queryFn: async () => {
       const { count, error } = await supabase
         .from('event_interests')
         .select('user_id', { count: 'exact' })
-        .eq('event_id', eventId);
+        .eq('event_id', event.id);
       
       if (error) throw error;
       
@@ -50,7 +46,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
 
   // Mutation to toggle event interest
   const toggleInterestMutation = useMutation({
-    mutationFn: async () => { // Removed the id parameter
+    mutationFn: async () => {
       if (!user) {
         throw new Error('User must be logged in');
       }
@@ -60,7 +56,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
         const { error } = await supabase
           .from('event_interests')
           .delete()
-          .eq('event_id', eventId) // Use the eventId from closure
+          .eq('event_id', event.id)
           .eq('user_id', user.id);
         
         if (error) throw error;
@@ -70,7 +66,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
         const { error } = await supabase
           .from('event_interests')
           .insert({
-            event_id: eventId, // Use the eventId from closure
+            event_id: event.id,
             user_id: user.id
           });
         
@@ -81,24 +77,24 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
     onSuccess: (newInterestState) => {
       // Update isInterested state optimistically
       queryClient.setQueryData(
-        ['eventInterest', eventId, user?.id], 
+        ['eventInterest', event.id, user?.id], 
         newInterestState
       );
 
       // Update the count optimistically
-      const currentCount = queryClient.getQueryData(['eventInterestedUsersCount', eventId]) as number || 0;
+      const currentCount = queryClient.getQueryData(['eventInterestedUsersCount', event.id]) as number || 0;
       queryClient.setQueryData(
-        ['eventInterestedUsersCount', eventId],
+        ['eventInterestedUsersCount', event.id],
         newInterestState ? currentCount + 1 : Math.max(currentCount - 1, 0)
       );
 
       // Invalidate both queries separately and force refetch
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterest', eventId, user?.id]
+        queryKey: ['eventInterest', event.id, user?.id]
       });
       
       queryClient.invalidateQueries({ 
-        queryKey: ['eventInterestedUsersCount', eventId],
+        queryKey: ['eventInterestedUsersCount', event.id],
         refetchType: 'active'
       });
 
