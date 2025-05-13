@@ -1,146 +1,83 @@
 
-import React, { useState } from 'react';
+import React from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { format } from 'date-fns';
-import { Calendar, Clock, Heart, MapPin, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { useEventInterest } from '@/hooks/useEventInterest';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { toast } from '@/components/ui/use-toast';
-import type { VenueEvent } from '@/hooks/useVenueEvents';
-import type { Venue } from '@/types/venue';
+import { VenueEvent } from '@/types/venue';
+import { Badge } from '@/components/ui/badge';
 
 interface UserEventCardProps {
   event: VenueEvent;
-  venue?: Venue;
-  isInterested?: boolean;
+  showVenueName?: boolean;
 }
 
-const UserEventCard = ({ event, venue, isInterested: initialInterest = false }: UserEventCardProps) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [isExpanded, setIsExpanded] = useState(false);
-  
-  const { 
-    isInterested,
-    interestedUsersCount,
-    toggleInterest,
-    isLoading
-  } = useEventInterest(event, initialInterest);
-  
-  const handleToggleInterest = async () => {
-    if (!user) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to mark events as interested",
-        variant: "destructive"
-      });
-      navigate('/auth');
-      return;
-    }
-    
-    await toggleInterest();
-  };
-  
-  const handleToggleDescription = () => {
-    setIsExpanded(!isExpanded);
+const UserEventCard = ({ event, showVenueName = false }: UserEventCardProps) => {
+  const { isInterested, toggleInterest, isLoading } = useEventInterest(event.id);
+
+  const formatEventTime = (date: string) => {
+    return format(new Date(date), 'h:mm a');
   };
 
-  const eventDate = new Date(event.start_time);
-  const isPastEvent = eventDate < new Date();
-  
-  const shouldTruncate = event.description && event.description.length > 120;
-  const displayDescription = shouldTruncate && !isExpanded 
-    ? `${event.description.slice(0, 120)}...`
-    : event.description;
+  const formatEventDate = (date: string) => {
+    return format(new Date(date), 'EEEE, MMMM d, yyyy');
+  };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg">{event.title}</CardTitle>
-        {venue && (
-          <div className="flex items-center gap-1 text-sm text-muted-foreground">
-            <MapPin size={14} className="flex-shrink-0" />
-            <span className="truncate">{venue.name}</span>
+    <Card className="overflow-hidden">
+      <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-4">
+        <h3 className="text-lg font-semibold line-clamp-2">{event.title}</h3>
+        {showVenueName && event.venue_name && (
+          <div className="flex items-center text-sm text-muted-foreground mt-1">
+            <MapPin size={14} className="mr-1" />
+            {event.venue_name}
           </div>
         )}
-      </CardHeader>
-      
-      <CardContent className="flex-grow pb-2">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
-          <Calendar size={14} className="flex-shrink-0" />
-          <span>{format(new Date(event.start_time), "EEE, MMM d, yyyy")}</span>
-        </div>
-        
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
-          <Clock size={14} className="flex-shrink-0" />
-          <span>{format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}</span>
-        </div>
-        
-        {event.description && (
-          <div className="mt-3 text-sm">
-            <p>{displayDescription}</p>
-            {shouldTruncate && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleToggleDescription}
-                className="mt-1 h-6 px-2 py-1 text-xs"
-              >
-                {isExpanded ? (
-                  <>
-                    Show less <ChevronUp className="ml-1 h-3 w-3" />
-                  </>
-                ) : (
-                  <>
-                    Read more <ChevronDown className="ml-1 h-3 w-3" />
-                  </>
-                )}
-              </Button>
-            )}
+      </div>
+      <CardContent className="p-4 pt-4">
+        <div className="space-y-2">
+          <div className="flex items-center text-sm">
+            <CalendarDays size={16} className="mr-2 text-primary" />
+            {formatEventDate(event.start_date)}
           </div>
-        )}
+          <div className="flex items-center text-sm">
+            <Clock size={16} className="mr-2 text-primary" />
+            {formatEventTime(event.start_date)} - {formatEventTime(event.end_date)}
+          </div>
+          {event.max_attendees > 0 && (
+            <div className="flex items-center text-sm">
+              <Users size={16} className="mr-2 text-primary" />
+              {event.max_attendees} max attendees
+            </div>
+          )}
+          {event.categories && event.categories.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {event.categories.map((category) => (
+                <Badge key={category} variant="secondary" className="text-xs">
+                  {category}
+                </Badge>
+              ))}
+            </div>
+          )}
+        </div>
       </CardContent>
-      
-      <CardFooter className="flex flex-col pt-0">
-        <div className="flex w-full justify-between items-center mb-3">
-          {event.ticket_price === null || event.ticket_price === 0 ? (
-            <Badge variant="secondary">Free entry</Badge>
+      <CardFooter className="p-4 pt-0 flex justify-between items-center">
+        <div className="text-sm">
+          {event.ticket_price > 0 ? (
+            <span className="font-medium">${event.ticket_price.toFixed(2)}</span>
           ) : (
-            <Badge variant="secondary">Price: ${event.ticket_price?.toFixed(2) || '0.00'}</Badge>
-          )}
-          
-          {event.ticket_url && (
-            <Button 
-              variant="outline"
-              size="sm"
-              className="h-8"
-              onClick={() => window.open(event.ticket_url, '_blank')}
-            >
-              Tickets <ExternalLink className="ml-1 h-3 w-3" />
-            </Button>
+            <span className="text-emerald-600 font-medium">Free</span>
           )}
         </div>
-        
-        {!isPastEvent && (
-          <Button 
-            variant={isInterested ? "default" : "outline"}
-            size="sm"
-            className="w-full flex items-center gap-2"
-            onClick={handleToggleInterest}
-            disabled={isLoading}
-          >
-            {isInterested ? <Heart className="mr-2" fill="#f43f5e" stroke="#f43f5e" /> : <Heart className="mr-2" />}
-            {isInterested ? "Interested" : "Mark as interested"}
-            {interestedUsersCount > 0 && (
-              <Badge variant="secondary" className="ml-auto">
-                {interestedUsersCount}
-              </Badge>
-            )}
-          </Button>
-        )}
+        <Button 
+          size="sm"
+          onClick={() => toggleInterest(event.id)}
+          variant={isInterested ? "default" : "outline"}
+          disabled={isLoading}
+        >
+          {isInterested ? "Interested" : "Mark Interest"}
+        </Button>
       </CardFooter>
     </Card>
   );

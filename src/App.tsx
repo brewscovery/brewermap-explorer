@@ -54,15 +54,35 @@ function AppContent() {
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+      <Route path="/" element={
+        <AppLayout>
+          <Index />
+        </AppLayout>
+      } />
       
       {/* Admin routes */}
-      <Route path="/admin" element={<AdminLayout><Admin /></AdminLayout>} />
-      <Route path="/admin/breweries" element={<AdminLayout><BreweriesAdmin /></AdminLayout>} />
-      <Route path="/admin/users" element={<AdminLayout><UsersAdmin /></AdminLayout>} />
+      <Route path="/admin" element={
+        <AdminLayout>
+          <Admin />
+        </AdminLayout>
+      } />
+      <Route path="/admin/breweries" element={
+        <AdminLayout>
+          <BreweriesAdmin />
+        </AdminLayout>
+      } />
+      <Route path="/admin/users" element={
+        <AdminLayout>
+          <UsersAdmin />
+        </AdminLayout>
+      } />
 
       {/* Dashboard routes */}
-      <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>}>
+      <Route path="/dashboard" element={
+        <AppLayout>
+          <Dashboard />
+        </AppLayout>
+      }>
         <Route index element={<RegularDashboard />} />
         <Route path="favorites" element={<FavoritesPage />} />
         <Route path="check-ins" element={<CheckInHistoryPage />} />
