@@ -25,6 +25,7 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
   // Fetch brewery logo if available
   const [breweryLogo, setBreweryLogo] = React.useState<string | null>(null);
   const [breweryName, setBreweryName] = React.useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
   
   React.useEffect(() => {
     if (venue) {
@@ -59,6 +60,15 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
       navigate(`/?venueId=${venue.id}`);
     }
   };
+
+  const handleToggleDescription = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const shouldTruncate = event.description && event.description.length > 100;
+  const displayDescription = shouldTruncate && !isExpanded 
+    ? `${event.description.slice(0, 100)}...`
+    : event.description;
 
   return (
     <Card className="p-4 overflow-hidden hover:shadow-md transition-shadow">
@@ -97,9 +107,27 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
         
         {/* Event description */}
         {event.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {event.description}
-          </p>
+          <div className="text-sm text-muted-foreground">
+            <p>{displayDescription}</p>
+            {shouldTruncate && (
+                <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleToggleDescription}
+                className="mt-1 h-6 px-2 text-xs"
+                >
+                {isExpanded ? (
+                    <>
+                    Show less <ChevronUp className="ml-1 h-3 w-3" />
+                    </>
+                ) : (
+                    <>
+                    Read more <ChevronDown className="ml-1 h-3 w-3" />
+                    </>
+                )}
+                </Button>
+            )}
+        </div>
         )}
       </div>
       

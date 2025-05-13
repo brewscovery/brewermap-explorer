@@ -215,13 +215,13 @@ const EventsExplorer = () => {
       
       <Tabs defaultValue="all">
         <TabsList className="mb-4">
-          <TabsTrigger value="all" className="flex items-center">
-            <Calendar className="mr-2 h-4 w-4" />
-            All Upcoming Events
-          </TabsTrigger>
           <TabsTrigger value="interested" className="flex items-center">
             <Calendar className="mr-2 h-4 w-4" />
-            Events I'm Interested In
+                My Events
+          </TabsTrigger>
+          <TabsTrigger value="all" className="flex items-center">
+            <Calendar className="mr-2 h-4 w-4" />
+                All Events
           </TabsTrigger>
         </TabsList>
         
