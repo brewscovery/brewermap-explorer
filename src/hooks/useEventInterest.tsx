@@ -50,7 +50,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
 
   // Mutation to toggle event interest
   const toggleInterestMutation = useMutation({
-    mutationFn: async (id = eventId) => {
+    mutationFn: async () => { // Removed the id parameter
       if (!user) {
         throw new Error('User must be logged in');
       }
@@ -60,7 +60,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
         const { error } = await supabase
           .from('event_interests')
           .delete()
-          .eq('event_id', id)
+          .eq('event_id', eventId) // Use the eventId from closure
           .eq('user_id', user.id);
         
         if (error) throw error;
@@ -70,7 +70,7 @@ export const useEventInterest = (eventOrId: VenueEvent | string) => {
         const { error } = await supabase
           .from('event_interests')
           .insert({
-            event_id: id,
+            event_id: eventId, // Use the eventId from closure
             user_id: user.id
           });
         

@@ -1,17 +1,15 @@
+import React from 'react';
+import { Outlet } from 'react-router-dom';
 
-import React, { ReactNode } from 'react';
-import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
-
-interface AdminLayoutProps {
-  children: ReactNode;
-}
-
-const AdminLayout = ({ children }: AdminLayoutProps) => {
+const AdminLayout = () => {
   return (
-    <div className="flex min-h-screen">
-      <UnifiedSidebar />
-      <div className="flex-1 p-6">
-        {children}
+    <div className="flex h-screen bg-gray-50">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Main content */}
+        <main className="flex-1 p-4">
+          <Outlet />
+        </main>
       </div>
     </div>
   );

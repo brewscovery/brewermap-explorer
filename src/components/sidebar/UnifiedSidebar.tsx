@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 
 const UnifiedSidebar = () => {
-  const { userType, signOut } = useAuth();
+  const { userType, logout } = useAuth(); // Change from signOut to logout to match AuthContextType
   const location = useLocation();
 
   const isActive = (path: string) => {
@@ -140,7 +140,7 @@ const UnifiedSidebar = () => {
         <span>Subscription</span>
       </NavLink>
       <button
-        onClick={() => signOut()}
+        onClick={() => logout()} // Changed from signOut to logout
         className="flex items-center p-2 rounded-md hover:bg-primary/5 w-full text-left"
       >
         <LogOut className="mr-2 h-5 w-5" />

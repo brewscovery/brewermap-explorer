@@ -5,8 +5,8 @@ import { format } from 'date-fns';
 import { CalendarDays, Clock, MapPin, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useEventInterest } from '@/hooks/useEventInterest';
-import { VenueEvent, Venue } from '@/types/venue';
 import { Badge } from '@/components/ui/badge';
+import type { VenueEvent, Venue } from '@/types/venue';
 
 interface UserEventCardProps {
   event: VenueEvent;
@@ -77,7 +77,7 @@ const UserEventCard = ({ event, showVenueName = false, venue, isInterested: init
         </div>
         <Button 
           size="sm"
-          onClick={() => toggleInterest(event.id)}
+          onClick={() => toggleInterest()} // Fixed: removed event.id argument
           variant={isInterested ? "default" : "outline"}
           disabled={isLoading}
         >
