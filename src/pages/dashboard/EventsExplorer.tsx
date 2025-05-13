@@ -1,0 +1,274 @@
+import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
+import { supabase } from "@/integrations/supabase/client";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Search, Calendar, MapPin } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+import { Venue } from "@/types/venue";
+import { Button } from "@/components/ui/button";
+import UserEventCard from "@/components/events/UserEventCard";
+
+const EventsExplorer = () => {
+  const { user } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchType, setSearchType] = useState<"venue" | "city">("venue");
+  const [loading, setLoading] = useState(false);
+  const [allVenues, setAllVenues] = useState<Venue[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
+  const [userInterests, setUserInterests] = useState<string[]>([]);
+  
+  // Fetch all venues for reference
+  useEffect(() => {
+    const fetchVenues = async () => {
+      const { data, error } = await supabase
+        .from('venues')
+        .select('*');
+      
+      if (error) {
+        console.error("Error fetching venues:", error);
+        return;
+      }
+      
+      setAllVenues(data as Venue[]);
+    };
+    
+    fetchVenues();
+  }, []);
+  
+  // Fetch all events 
+  const { data: allEvents = [], isLoading: eventsLoading } = useMultipleVenueEvents(
+    allVenues.map(v => v.id)
+  );
+  
+  // Fetch user's interested events
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchUserInterests = async () => {
+      const { data, error } = await supabase
+        .from('event_interests')
+        .select('event_id')
+        .eq('user_id', user.id);
+        
+      if (error) {
+        console.error("Error fetching user interests:", error);
+        return;
+      }
+      
+      setUserInterests(data.map(item => item.event_id));
+    };
+    
+    fetchUserInterests();
+  }, [user]);
+  
+  // Process events with venue information
+  useEffect(() => {
+    const processEvents = () => {
+      const enrichedEvents = allEvents.map(event => {
+        const venue = allVenues.find(v => v.id === event.venue_id);
+        return { ...event, venue };
+      });
+      
+      // Filter out past events
+      const upcomingEvents = enrichedEvents.filter(event => {
+        return new Date(event.start_time) >= new Date();
+      });
+      
+      // Sort by date
+      return upcomingEvents.sort((a, b) => 
+        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+      );
+    };
+    
+    if (!eventsLoading && allEvents.length > 0 && allVenues.length > 0) {
+      const processed = processEvents();
+      setFilteredEvents(processed);
+    }
+  }, [allEvents, allVenues, eventsLoading]);
+  
+  // Handle search
+  const handleSearch = async () => {
+    if (!searchTerm.trim()) {
+      // Reset to show all upcoming events
+      const processed = allEvents.map(event => {
+        const venue = allVenues.find(v => v.id === event.venue_id);
+        return { ...event, venue };
+      }).filter(event => new Date(event.start_time) >= new Date())
+        .sort((a, b) => 
+          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+        );
+      
+      setFilteredEvents(processed);
+      return;
+    }
+    
+    setLoading(true);
+    
+    try {
+      if (searchType === "venue") {
+        // Search by venue name
+        const filteredVenues = allVenues.filter(
+          venue => venue.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        
+        const venueIds = filteredVenues.map(v => v.id);
+        
+        const filtered = allEvents
+          .filter(event => venueIds.includes(event.venue_id))
+          .map(event => {
+            const venue = allVenues.find(v => v.id === event.venue_id);
+            return { ...event, venue };
+          })
+          .filter(event => new Date(event.start_time) >= new Date())
+          .sort((a, b) => 
+            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+          );
+          
+        setFilteredEvents(filtered);
+      } else {
+        // Search by city with geocoding - 50km radius
+        const { data, error } = await supabase.functions.invoke('geocode-city', {
+          body: { city: searchTerm }
+        });
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Filter events based on venues in the returned data
+          const cityVenueIds = data.map((venue: Venue) => venue.id);
+          
+          const filtered = allEvents
+            .filter(event => cityVenueIds.includes(event.venue_id))
+            .map(event => {
+              // Find the venue from either the geocode results or our local venues
+              const venueFromGeocode = data.find((v: Venue) => v.id === event.venue_id);
+              const venue = venueFromGeocode || allVenues.find(v => v.id === event.venue_id);
+              return { ...event, venue };
+            })
+            .filter(event => new Date(event.start_time) >= new Date())
+            .sort((a, b) => 
+              new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
+            );
+            
+          setFilteredEvents(filtered);
+        } else {
+          // No results found for this city
+          setFilteredEvents([]);
+        }
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const getInterestedEvents = () => {
+    return filteredEvents.filter(event => userInterests.includes(event.id));
+  };
+
+  return (
+    <div className="container mx-auto py-6">
+      <h1 className="text-2xl font-bold mb-6">Explore Events</h1>
+      
+      <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 mb-6">
+        <div className="flex-1 relative">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            <Search size={18} />
+          </div>
+          <Input
+            placeholder={`Search events by ${searchType === "venue" ? "venue name" : "city"}`}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+        </div>
+        
+        <div className="flex space-x-3">
+          <Select
+            value={searchType}
+            onValueChange={(value) => setSearchType(value as "venue" | "city")}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="Search by" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="venue">Venue Name</SelectItem>
+              <SelectItem value="city">City (50km radius)</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button onClick={handleSearch} disabled={loading}>
+            {loading ? "Searching..." : "Search"}
+          </Button>
+        </div>
+      </div>
+      
+      <Tabs defaultValue="all">
+        <TabsList className="mb-4">
+          <TabsTrigger value="all" className="flex items-center">
+            <Calendar className="mr-2 h-4 w-4" />
+            All Upcoming Events
+          </TabsTrigger>
+          <TabsTrigger value="interested" className="flex items-center">
+            <Calendar className="mr-2 h-4 w-4" />
+            Events I'm Interested In
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all">
+          {eventsLoading ? (
+            <div className="text-center py-8">Loading events...</div>
+          ) : filteredEvents.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredEvents.map(event => (
+                <UserEventCard 
+                  key={event.id} 
+                  event={event} 
+                  venue={event.venue}
+                  isInterested={userInterests.includes(event.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              No upcoming events found. Try adjusting your search criteria.
+            </div>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="interested">
+          {eventsLoading ? (
+            <div className="text-center py-8">Loading events...</div>
+          ) : getInterestedEvents().length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {getInterestedEvents().map(event => (
+                <UserEventCard 
+                  key={event.id} 
+                  event={event} 
+                  venue={event.venue}
+                  isInterested={true}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              You haven't marked any upcoming events as interested.
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default EventsExplorer;

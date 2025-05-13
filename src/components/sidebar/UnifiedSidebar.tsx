@@ -287,6 +287,15 @@ const SidebarContentComponent = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
+                    <SidebarMenuButton
+                      isActive={isActive('/dashboard/eventsExplorer')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/eventsExplorer')}
+                    >
+                      <Calendar size={18} />
+                      <span>Events</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/history')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/history')}
