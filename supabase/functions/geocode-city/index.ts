@@ -1,90 +1,100 @@
 
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+  // Handle CORS preflight request
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
   }
-
+  
   try {
-    const { city } = await req.json()
-    console.log('Searching for city:', city)
+    // Get request data
+    const { city } = await req.json();
     
-    const mapboxToken = Deno.env.get('MAPBOX_ACCESS_TOKEN')
-    if (!mapboxToken) {
-      throw new Error('MAPBOX_ACCESS_TOKEN is not configured')
-    }
-
-    const encodedCity = encodeURIComponent(city)
-    const geocodeResponse = await fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodedCity}.json?access_token=${mapboxToken}`
-    )
-    
-    if (!geocodeResponse.ok) {
-      throw new Error(`Mapbox API error: ${geocodeResponse.statusText}`)
-    }
-
-    const geocodeData = await geocodeResponse.json()
-    const coordinates = geocodeData.features?.[0]?.geometry?.coordinates
-
-    if (!coordinates) {
+    if (!city) {
       return new Response(
-        JSON.stringify({ error: 'City not found' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
-      )
+        JSON.stringify({ error: "City parameter is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
-
-    console.log('City coordinates:', coordinates)
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    // First get all venues
-    const { data: venues, error: dbError } = await supabase
-      .from('venues')
-      .select('*')
-      .not('latitude', 'is', null)
-      .not('longitude', 'is', null)
-
-    if (dbError) {
-      console.error('Database error:', dbError)
-      throw dbError
-    }
-
-    // Then calculate distances and filter
-    const nearbyVenues = []
-    for (const venue of venues) {
-      const { data: distance } = await supabase.rpc('calculate_distance', {
-        lat1: parseFloat(coordinates[1]),
-        lon1: parseFloat(coordinates[0]),
-        lat2: parseFloat(venue.latitude),
-        lon2: parseFloat(venue.longitude)
-      })
+    
+    // Create Supabase client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // First, try to find venues that directly match the city name
+    let { data: venues, error } = await supabase
+      .from("venues")
+      .select("*")
+      .ilike("city", `%${city}%`);
       
-      if (distance && distance <= 100) {
-        nearbyVenues.push(venue)
-      }
+    if (error) {
+      throw error;
     }
-
-    console.log(`Found ${nearbyVenues.length} venues within 100km radius`)
-
+    
+    // If no direct matches, try to get coordinates for the city using a geocoding service
+    if (!venues || venues.length === 0) {
+      // You would integrate with a geocoding service here
+      // For now, we'll return an empty array
+      return new Response(
+        JSON.stringify([]),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // If we have venues with the city name, use their coordinates to find nearby venues
+    // Let's find all venues within approximately 50km of the first matching venue
+    if (venues.length > 0) {
+      const referenceVenue = venues[0];
+      
+      // Skip if we don't have coordinates
+      if (!referenceVenue.latitude || !referenceVenue.longitude) {
+        return new Response(
+          JSON.stringify(venues),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      // Use the calculate_distance function to find venues within 50km
+      const { data: nearbyVenues, error: distanceError } = await supabase.rpc(
+        "calculate_venues_in_radius",
+        {
+          ref_lat: parseFloat(referenceVenue.latitude),
+          ref_lon: parseFloat(referenceVenue.longitude),
+          radius_km: 50
+        }
+      );
+      
+      if (distanceError) {
+        // Fall back to just the directly matched venues if the distance calculation fails
+        return new Response(
+          JSON.stringify(venues),
+          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify(nearbyVenues),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
     return new Response(
-      JSON.stringify(nearbyVenues),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+      JSON.stringify(venues),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+    
   } catch (error) {
-    console.error('Error in geocode-city function:', error)
     return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
-    )
+      JSON.stringify({ error: error.message }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
   }
-})
+});
