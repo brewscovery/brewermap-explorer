@@ -25,7 +25,7 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
   // Fetch brewery logo if available
   const [breweryLogo, setBreweryLogo] = React.useState<string | null>(null);
   const [breweryName, setBreweryName] = React.useState<string | null>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = React.useState(false);
   
   React.useEffect(() => {
     if (venue) {
