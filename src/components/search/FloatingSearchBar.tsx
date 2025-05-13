@@ -30,7 +30,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
-  const [filtersVisible, setFiltersVisible] = useState(true);
+  const [filtersVisible, setFiltersVisible] = useState(false);
   
   const handleVenueSelect = (venue: Venue | null) => {
     console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
