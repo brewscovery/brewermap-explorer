@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UseVenueMapInteractionProps {
   map: mapboxgl.Map | null;
@@ -17,6 +18,7 @@ export const useVenueMapInteraction = ({
   const [localSelectedVenue, setLocalSelectedVenue] = useState<Venue | null>(null);
   const lastSelectionTimeRef = useRef<number>(0);
   const selectionSourceRef = useRef<'props' | 'click' | null>(null);
+  const isMobile = useIsMobile();
   
   // Use either the prop value or local state
   const selectedVenue = selectedVenueFromProps || localSelectedVenue;
@@ -47,15 +49,26 @@ export const useVenueMapInteraction = ({
             lat: selectedVenueFromProps.latitude
           });
           
-          const headerHeight = 73;
-          const drawerHeight = window.innerHeight * 0.5; // 50% of viewport
+          // Different offset calculation based on device type
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (isMobile) {
+            // Mobile: Account for bottom drawer that takes up roughly 50% of the viewport
+            const drawerHeight = window.innerHeight * 0.5;
+            offsetY = -(drawerHeight / 2);
+          } else {
+            // Desktop: Account for sidebar that takes up width on the left (~400px)
+            const sidebarWidth = 400; // Approximate width of the sidebar
+            offsetX = sidebarWidth / 2;
+          }
           
           map.flyTo({
             center: [
               parseFloat(selectedVenueFromProps.longitude), 
               parseFloat(selectedVenueFromProps.latitude)
             ],
-            offset: [0, -(drawerHeight / 2)], // Offset for drawer
+            offset: [offsetX, offsetY],
             zoom: 15,
             duration: 1500
           });
@@ -77,7 +90,7 @@ export const useVenueMapInteraction = ({
       setLocalSelectedVenue(null);
       selectionSourceRef.current = null;
     }
-  }, [selectedVenueFromProps, map, localSelectedVenue]);
+  }, [selectedVenueFromProps, map, localSelectedVenue, isMobile]);
 
   const handleVenueSelect = useCallback((venue: Venue) => {
     console.log('Map handleVenueSelect called with venue:', venue.name);
@@ -99,18 +112,32 @@ export const useVenueMapInteraction = ({
     }
     
     if (map && venue.latitude && venue.longitude) {
-      const headerHeight = 73;
-      const drawerHeight = window.innerHeight * 0.5; // 50% of the viewport height
+      // Different offset calculation based on device type
+      let offsetX = 0;
+      let offsetY = 0;
+      
+      if (isMobile) {
+        // Mobile: Account for bottom drawer that takes up roughly 50% of the viewport
+        const drawerHeight = window.innerHeight * 0.5; 
+        offsetY = -(drawerHeight / 2);
+      } else {
+        // Desktop: Account for sidebar that takes up width on the left (~400px)
+        const sidebarWidth = 400; // Approximate width of the sidebar
+        offsetX = sidebarWidth / 2;
+      }
       
       try {
         console.log('Zooming map to venue coordinates:', {
           lng: venue.longitude,
-          lat: venue.latitude
+          lat: venue.latitude,
+          isMobile,
+          offsetX,
+          offsetY
         });
         
         map.flyTo({
           center: [parseFloat(venue.longitude), parseFloat(venue.latitude)],
-          offset: [0, -(drawerHeight / 2)], // Offset to account for the drawer
+          offset: [offsetX, offsetY],
           zoom: 15,
           duration: 1500
         });
@@ -121,7 +148,7 @@ export const useVenueMapInteraction = ({
     
     setLocalSelectedVenue(venue);
     onVenueSelect(venue);
-  }, [map, onVenueSelect, selectedVenue]);
+  }, [map, onVenueSelect, selectedVenue, isMobile]);
 
   const handleSidebarClose = useCallback(() => {
     console.log('Map: handleSidebarClose called');
