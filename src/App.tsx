@@ -27,6 +27,7 @@ import AppLayout from './components/layout/AppLayout';
 import { useAuth } from './contexts/AuthContext';
 import { Toaster } from '@/components/ui/toaster';
 import EventsExplorer from '@/pages/dashboard/EventsExplorer';
+import AdminRoute from './components/protected/AdminRoute';
 
 function AppRouter() {
   return (
@@ -60,15 +61,17 @@ function AppContent() {
       </Route>
       
       {/* Admin routes */}
-      <Route path="/admin" element={<AdminLayout />}>
-        <Route index element={<Admin />} />
-        <Route path="breweries" element={<BreweriesAdmin />} />
-        <Route path="users" element={<UsersAdmin />} />
+      <Route element={<AdminRoute />}>
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Admin />} />
+          <Route path="breweries" element={<BreweriesAdmin />} />
+          <Route path="users" element={<UsersAdmin />} />
+        </Route>
       </Route>
 
       {/* Dashboard routes */}
       <Route path="/dashboard" element={<AppLayout />}>
-        <Route index element={<Dashboard />}>
+        <Route element={<Dashboard />}>
           <Route index element={<RegularDashboard />} />
           <Route path="favorites" element={<FavoritesPage />} />
           <Route path="check-ins" element={<CheckInHistoryPage />} />

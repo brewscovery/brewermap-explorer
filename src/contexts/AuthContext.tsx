@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
@@ -7,6 +8,7 @@ export interface AuthContextType {
   userType: string;
   firstName: string | null;
   lastName: string | null;
+  loading: boolean; // Added loading property
   logout: () => void;
   // Other properties that might exist in your AuthContext
 }
@@ -65,10 +67,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const fetchUserProfile = async (userId: string) => {
     try {
+      // Changed from 'user_profiles' to 'profiles' to match the actual table name
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('user_type, first_name, last_name')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error) {
@@ -106,12 +109,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     firstName,
     lastName,
     logout,
+    loading, // Added loading property to the context value
     // Include other properties and methods that might be in your AuthContext
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
