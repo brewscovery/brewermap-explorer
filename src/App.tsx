@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
@@ -8,11 +9,9 @@ import {
 } from 'react-router-dom';
 import Index from './pages/Index';
 import Auth from './pages/Auth';
-import Profile from './pages/Profile';
 import Admin from './pages/Admin';
 import Dashboard from './pages/Dashboard';
 import RegularDashboard from './pages/dashboard/RegularDashboard';
-import BusinessDashboard from './pages/dashboard/BusinessDashboard';
 import FavoritesPage from './pages/dashboard/FavoritesPage';
 import CheckInHistoryPage from './pages/dashboard/CheckInHistoryPage';
 import TodoListsPage from './pages/dashboard/TodoListsPage';
@@ -56,14 +55,11 @@ function AppContent() {
     <Routes>
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<AppLayout><Index /></AppLayout>} />
-      <Route path="/profile" element={<AppLayout><Profile /></AppLayout>} />
-
+      
       {/* Admin routes */}
-      <Route path="/admin" element={<AdminLayout><Admin /></AdminLayout>}>
-        <Route index element={<BreweriesAdmin />} />
-        <Route path="breweries" element={<BreweriesAdmin />} />
-        <Route path="users" element={<UsersAdmin />} />
-      </Route>
+      <Route path="/admin" element={<AdminLayout><Admin /></AdminLayout>} />
+      <Route path="/admin/breweries" element={<AdminLayout><BreweriesAdmin /></AdminLayout>} />
+      <Route path="/admin/users" element={<AdminLayout><UsersAdmin /></AdminLayout>} />
 
       {/* Dashboard routes */}
       <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>}>
@@ -77,9 +73,6 @@ function AppContent() {
         <Route path="subscription" element={<SubscriptionPage />} />
         <Route path="venues" element={<VenuesPage />} />
       </Route>
-
-      {/* Business Dashboard route */}
-      <Route path="/business/dashboard" element={<AppLayout><BusinessDashboard /></AppLayout>} />
     </Routes>
   );
 }

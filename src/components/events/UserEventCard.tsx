@@ -1,168 +1,147 @@
 
-import React from "react";
-import { format } from "date-fns";
-import { Calendar, Clock, Heart, MapPin, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { VenueEvent } from "@/hooks/useVenueEvents";
-import { Venue } from "@/types/venue";
-import { useEventInterest } from "@/hooks/useEventInterest";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { supabase } from "@/integrations/supabase/client";
+import React, { useState } from 'react';
+import { format } from 'date-fns';
+import { Calendar, Clock, Heart, MapPin, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { useEventInterest } from '@/hooks/useEventInterest';
+import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { toast } from '@/components/ui/use-toast';
+import type { VenueEvent } from '@/hooks/useVenueEvents';
+import type { Venue } from '@/types/venue';
 
 interface UserEventCardProps {
   event: VenueEvent;
   venue?: Venue;
-  isInterested: boolean;
+  isInterested?: boolean;
 }
 
-const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: UserEventCardProps) => {
+const UserEventCard = ({ event, venue, isInterested: initialInterest = false }: UserEventCardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { toggleInterest, interestedUsersCount, isLoading } = useEventInterest(event);
+  const [isExpanded, setIsExpanded] = useState(false);
   
-  // Fetch brewery logo if available
-  const [breweryLogo, setBreweryLogo] = React.useState<string | null>(null);
-  const [breweryName, setBreweryName] = React.useState<string | null>(null);
+  const { 
+    isInterested,
+    interestedUsersCount,
+    toggleInterest,
+    isLoading
+  } = useEventInterest(event, initialInterest);
   
-  React.useEffect(() => {
-    if (venue) {
-      const fetchBreweryDetails = async () => {
-        const { data, error } = await supabase
-          .from('breweries')
-          .select('name, logo_url')
-          .eq('id', venue.brewery_id)
-          .single();
-          
-        if (!error && data) {
-          setBreweryLogo(data.logo_url);
-          setBreweryName(data.name);
-        }
-      };
-      
-      fetchBreweryDetails();
-    }
-  }, [venue]);
-  
-  const handleToggleInterest = () => {
-    if (user) {
-      toggleInterest();
-    } else {
-      localStorage.setItem('pendingEventInterest', event.id);
+  const handleToggleInterest = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to mark events as interested",
+        variant: "destructive"
+      });
       navigate('/auth');
+      return;
     }
+    
+    await toggleInterest();
   };
   
-  const handleVenueClick = () => {
-    if (venue) {
-      navigate(`/?venueId=${venue.id}`);
-    }
+  const handleToggleDescription = () => {
+    setIsExpanded(!isExpanded);
   };
 
+  const eventDate = new Date(event.start_time);
+  const isPastEvent = eventDate < new Date();
+  
+  const shouldTruncate = event.description && event.description.length > 120;
+  const displayDescription = shouldTruncate && !isExpanded 
+    ? `${event.description.slice(0, 120)}...`
+    : event.description;
+
   return (
-    <Card className="p-4 overflow-hidden hover:shadow-md transition-shadow">
-      <div className="mb-3">
-        <h3 className="font-medium text-lg">{event.title}</h3>
-        
-        {/* Venue and brewery info */}
-        <div className="flex items-center gap-2 mt-2 mb-3">
-          {breweryLogo ? (
-            <img 
-              src={breweryLogo} 
-              alt={breweryName || ""} 
-              className="w-8 h-8 rounded-full object-cover border"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-              <span className="text-muted-foreground text-sm font-bold">
-                {breweryName?.charAt(0) || 'B'}
-              </span>
-            </div>
-          )}
-          
-          <div>
-            <Button 
-              variant="link" 
-              className="h-auto p-0 text-foreground font-medium" 
-              onClick={handleVenueClick}
-            >
-              {venue?.name || "Unknown Venue"}
-            </Button>
-            <div className="text-xs text-muted-foreground">
-              {breweryName || ""}
-            </div>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg">{event.title}</CardTitle>
+        {venue && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <MapPin size={14} className="flex-shrink-0" />
+            <span className="truncate">{venue.name}</span>
           </div>
-        </div>
-        
-        {/* Event description */}
-        {event.description && (
-          <p className="text-sm text-muted-foreground mb-3 line-clamp-2">
-            {event.description}
-          </p>
         )}
-      </div>
+      </CardHeader>
       
-      {/* Date and time */}
-      <div className="space-y-1 mb-3">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Calendar size={14} />
+      <CardContent className="flex-grow pb-2">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+          <Calendar size={14} className="flex-shrink-0" />
           <span>{format(new Date(event.start_time), "EEE, MMM d, yyyy")}</span>
         </div>
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Clock size={14} />
-          <span>
-            {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
-          </span>
+        
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground mb-2">
+          <Clock size={14} className="flex-shrink-0" />
+          <span>{format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}</span>
         </div>
-        {venue && (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <MapPin size={14} />
-            <span>
-              {venue.city}, {venue.state}
-            </span>
+        
+        {event.description && (
+          <div className="mt-3 text-sm">
+            <p>{displayDescription}</p>
+            {shouldTruncate && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleToggleDescription}
+                className="mt-1 h-6 px-2 py-1 text-xs"
+              >
+                {isExpanded ? (
+                  <>
+                    Show less <ChevronUp className="ml-1 h-3 w-3" />
+                  </>
+                ) : (
+                  <>
+                    Read more <ChevronDown className="ml-1 h-3 w-3" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
         )}
-      </div>
+      </CardContent>
       
-      {/* Price and tickets */}
-      <div className="text-sm mb-3">
-        {(event.ticket_price === null || event.ticket_price === 0) ? (
-          <Badge variant="secondary">Free entry</Badge>
-        ) : (
-          <Badge variant="secondary">Price: ${event.ticket_price?.toFixed(2) || '0.00'}</Badge>
-        )}
-        {event.ticket_url && (
+      <CardFooter className="flex flex-col pt-0">
+        <div className="flex w-full justify-between items-center mb-3">
+          {event.ticket_price === null || event.ticket_price === 0 ? (
+            <Badge variant="secondary">Free entry</Badge>
+          ) : (
+            <Badge variant="secondary">Price: ${event.ticket_price?.toFixed(2) || '0.00'}</Badge>
+          )}
+          
+          {event.ticket_url && (
+            <Button 
+              variant="outline"
+              size="sm"
+              className="h-8"
+              onClick={() => window.open(event.ticket_url, '_blank')}
+            >
+              Tickets <ExternalLink className="ml-1 h-3 w-3" />
+            </Button>
+          )}
+        </div>
+        
+        {!isPastEvent && (
           <Button 
-            variant="link" 
-            className="ml-2 h-6 px-2 text-xs"
-            onClick={() => window.open(event.ticket_url, '_blank')}
+            variant={isInterested ? "default" : "outline"}
+            size="sm"
+            className="w-full flex items-center gap-2"
+            onClick={handleToggleInterest}
+            disabled={isLoading}
           >
-            Buy tickets <ExternalLink className="ml-1 h-3 w-3" />
+            {isInterested ? <Heart className="mr-2" fill="#f43f5e" stroke="#f43f5e" /> : <Heart className="mr-2" />}
+            {isInterested ? "Interested" : "Mark as interested"}
+            {interestedUsersCount > 0 && (
+              <Badge variant="secondary" className="ml-auto">
+                {interestedUsersCount}
+              </Badge>
+            )}
           </Button>
         )}
-      </div>
-      
-      {/* Interested button */}
-      <Button 
-        variant={initialIsInterested ? "default" : "outline"} 
-        size="sm" 
-        className="w-full flex items-center gap-2"
-        onClick={handleToggleInterest}
-        disabled={isLoading}
-      >
-        {initialIsInterested ? (
-          <Heart className="mr-2" />
-        ) : (
-          <Heart className="mr-2 text-muted-foreground" />
-        )}
-        Interested {interestedUsersCount > 0 && (
-          <Badge variant="secondary" className="ml-2">
-            {interestedUsersCount}
-          </Badge>
-        )}
-      </Button>
+      </CardFooter>
     </Card>
   );
 };

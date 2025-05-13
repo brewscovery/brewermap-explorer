@@ -1,100 +1,91 @@
 
-import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.21.0";
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.43.5';
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
+const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || "";
+const MAPBOX_ACCESS_TOKEN = Deno.env.get("MAPBOX_ACCESS_TOKEN") || "";
+
+/**
+ * This function geocodes a city name and finds venues within a radius (defaults to 50km)
+ */
 serve(async (req) => {
-  // Handle CORS preflight request
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders, status: 204 });
   }
-  
+
   try {
-    // Get request data
-    const { city } = await req.json();
-    
+    // Create Supabase client
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Parse request body
+    const { city, radius = 50 } = await req.json();
+
     if (!city) {
       return new Response(
-        JSON.stringify({ error: "City parameter is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'City name is required' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    if (!MAPBOX_ACCESS_TOKEN) {
+      return new Response(
+        JSON.stringify({ error: 'Mapbox access token not configured' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      );
+    }
+
+    // Geocode the city name using Mapbox API
+    console.log(`Geocoding city: ${city}`);
+    const geocodeUrl = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(city)}.json?access_token=${MAPBOX_ACCESS_TOKEN}&types=place`;
     
-    // Create Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const geocodeResponse = await fetch(geocodeUrl);
+    const geocodeData = await geocodeResponse.json();
+
+    if (!geocodeData.features || geocodeData.features.length === 0) {
+      console.log(`No geocode results found for city: ${city}`);
+      return new Response(
+        JSON.stringify({ data: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      );
+    }
+
+    // Extract coordinates from the first result
+    const [longitude, latitude] = geocodeData.features[0].center;
+    console.log(`City coordinates: ${latitude}, ${longitude}`);
     
-    // First, try to find venues that directly match the city name
-    let { data: venues, error } = await supabase
-      .from("venues")
-      .select("*")
-      .ilike("city", `%${city}%`);
-      
+    // Find venues within the specified radius using our SQL function
+    const { data: venues, error } = await supabase.rpc(
+      'calculate_venues_in_radius', 
+      { ref_lat: latitude, ref_lon: longitude, radius_km: radius }
+    );
+
     if (error) {
-      throw error;
-    }
-    
-    // If no direct matches, try to get coordinates for the city using a geocoding service
-    if (!venues || venues.length === 0) {
-      // You would integrate with a geocoding service here
-      // For now, we'll return an empty array
+      console.error('Error querying venues within radius:', error);
       return new Response(
-        JSON.stringify([]),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Failed to find venues in radius' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
-    
-    // If we have venues with the city name, use their coordinates to find nearby venues
-    // Let's find all venues within approximately 50km of the first matching venue
-    if (venues.length > 0) {
-      const referenceVenue = venues[0];
-      
-      // Skip if we don't have coordinates
-      if (!referenceVenue.latitude || !referenceVenue.longitude) {
-        return new Response(
-          JSON.stringify(venues),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      // Use the calculate_distance function to find venues within 50km
-      const { data: nearbyVenues, error: distanceError } = await supabase.rpc(
-        "calculate_venues_in_radius",
-        {
-          ref_lat: parseFloat(referenceVenue.latitude),
-          ref_lon: parseFloat(referenceVenue.longitude),
-          radius_km: 50
-        }
-      );
-      
-      if (distanceError) {
-        // Fall back to just the directly matched venues if the distance calculation fails
-        return new Response(
-          JSON.stringify(venues),
-          { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      
-      return new Response(
-        JSON.stringify(nearbyVenues),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    
+
+    console.log(`Found ${venues?.length || 0} venues within ${radius}km of ${city}`);
+
     return new Response(
-      JSON.stringify(venues),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ data: venues || [] }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
     
   } catch (error) {
+    console.error('Unexpected error:', error);
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: 'Internal server error' }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     );
   }
 });

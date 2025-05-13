@@ -1,3 +1,4 @@
+
 import React from 'react';
 import {
   Home,
@@ -6,28 +7,29 @@ import {
   Settings,
   User,
   Building2,
-  Plus,
   Star,
   CheckCircle,
   Calendar,
+  Menu,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Sidebar, SidebarTrigger, SidebarContent, SidebarItem, SidebarGroup, } from '@/components/ui/sidebar';
+import { Sidebar, SidebarTrigger, SidebarContent, SidebarGroup } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useSidebar } from '@/components/ui/sidebar';
 
 const UnifiedSidebar = () => {
-  const { user, userType, signOut } = useAuth();
+  const { user, userType, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isOpen, onOpen, onClose } = useSidebar();
+  const { isExpanded, toggleSidebar } = useSidebar();
 
   const isAdminRoute = location.pathname.includes('/admin');
   const isDashboardRoute = location.pathname.includes('/dashboard');
 
   const handleSignOut = async () => {
-    await signOut();
+    await logout();
     navigate('/auth');
   };
 
@@ -128,7 +130,7 @@ const UnifiedSidebar = () => {
     navigationItems = adminItems;
   } else if (userType === 'business' && isDashboardRoute) {
     navigationItems = businessUserItems;
-  } else if (userType === 'user' && isDashboardRoute) {
+  } else if (userType === 'regular' && isDashboardRoute) {
     navigationItems = regularUserItems;
   } else {
     navigationItems = [];
@@ -142,18 +144,20 @@ const UnifiedSidebar = () => {
     <Sidebar className="md:block hidden">
       <SidebarTrigger asChild>
         <Button variant="ghost" size="sm" className="w-9 p-0">
-          <MenuIcon className="h-5 w-5" />
+          <Menu className="h-5 w-5" />
         </Button>
       </SidebarTrigger>
       <SidebarContent className="overflow-y-auto">
         <SidebarGroup>
           {navigationItems.map((item, index) => (
-            <SidebarItem
+            <Link
               key={index}
-              title={item.title}
-              href={item.href}
-              icon={item.icon}
-            />
+              to={item.href}
+              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
+            >
+              {item.icon}
+              <span>{item.title}</span>
+            </Link>
           ))}
         </SidebarGroup>
         <Button
@@ -161,6 +165,7 @@ const UnifiedSidebar = () => {
           className="w-full mt-2"
           onClick={handleSignOut}
         >
+          <LogOut className="mr-2 h-4 w-4" />
           Sign Out
         </Button>
       </SidebarContent>
@@ -169,4 +174,3 @@ const UnifiedSidebar = () => {
 };
 
 export default UnifiedSidebar;
-
