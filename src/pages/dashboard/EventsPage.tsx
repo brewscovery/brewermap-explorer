@@ -24,7 +24,7 @@ const EventsPage = () => {
   const isLoading = venuesLoading || eventsLoading;
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto pt-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Events</h1>
         <Button onClick={() => setShowCreateDialog(true)}>

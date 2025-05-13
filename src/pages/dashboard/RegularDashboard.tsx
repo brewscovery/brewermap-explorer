@@ -6,8 +6,6 @@ import { useUserAnalytics } from '@/hooks/useUserAnalytics';
 import { CountryBreakdownChart } from '@/components/dashboard/analytics/CountryBreakdownChart';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
-import { PanelLeft } from 'lucide-react';
 
 const RegularDashboard = () => {
   const { user, firstName, lastName } = useAuth();

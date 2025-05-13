@@ -6,6 +6,7 @@ import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
+import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -13,6 +14,7 @@ const AppLayout = () => {
   const isDashboardRoute = location.pathname.includes('/dashboard');
   const isAdminRoute = location.pathname.includes('/admin');
   const isRootRoute = location.pathname === '/';
+  const isBusinessUserDashboard = isDashboardRoute && userType === 'business';
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -28,9 +30,16 @@ const AppLayout = () => {
         <UnifiedSidebar />
         
         <div className="h-screen overflow-auto flex-1">
-          {isDashboardRoute && user ? (
+          {isDashboardRoute && user && !isBusinessUserDashboard ? (
             <div className="flex-1 flex flex-col">
               <DashboardHeader displayName={displayName} />
+              <main className="p-6 pt-4 flex-1">
+                <Outlet />
+              </main>
+            </div>
+          ) : isBusinessUserDashboard ? (
+            <div className="flex-1 flex flex-col">
+              <FloatingSidebarToggle position="top-left" />
               <main className="p-6 pt-4 flex-1">
                 <Outlet />
               </main>

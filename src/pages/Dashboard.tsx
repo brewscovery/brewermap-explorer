@@ -54,7 +54,7 @@ const Dashboard = () => {
 
   if (!selectedBrewery) {
     return (
-      <div className="p-6">
+      <div className="pt-6">
         <Card>
           <CardHeader>
             <CardTitle>No Brewery Selected</CardTitle>
@@ -68,7 +68,7 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto pt-6">
       <Card>
         <CardHeader>
           <CardTitle>Brewery Details</CardTitle>
