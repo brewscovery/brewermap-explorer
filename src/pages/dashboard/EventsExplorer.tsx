@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
@@ -17,7 +16,7 @@ import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
 import { useCitySearch, CityResult } from "@/hooks/useCitySearch";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const EventsExplorer = () => {
@@ -179,8 +178,11 @@ const EventsExplorer = () => {
   };
   
   const handleCitySelect = (city: string) => {
+    // Close the popover immediately
+    setOpenCityPopover(false);
+    
+    // Set the search term
     setSearchTerm(city);
-    setOpenCityPopover(false); // Close the popover
     
     // Focus on input after selection
     if (inputRef.current) {
@@ -188,9 +190,7 @@ const EventsExplorer = () => {
     }
     
     // Trigger search immediately after selection
-    setTimeout(() => {
-      handleSearch();
-    }, 100);
+    handleSearch();
   };
   
   const handleClearSearch = () => {
@@ -265,7 +265,6 @@ const EventsExplorer = () => {
               </PopoverTrigger>
               <PopoverContent className="p-0 w-[300px]" align="start">
                 <Command>
-                  <CommandInput placeholder="Search cities..." value={searchTerm} onValueChange={setSearchTerm} />
                   <CommandList>
                     {citiesLoading && (
                       <div className="flex items-center justify-center py-6">
