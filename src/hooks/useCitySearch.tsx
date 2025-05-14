@@ -31,8 +31,16 @@ export const useCitySearch = (searchTerm: string) => {
         
         if (error) throw error;
         
+        // Type assertion to help TypeScript understand the structure
+        const cityData = data as Array<{
+          city: string;
+          state: string;
+          country: string;
+          venue_count: number;
+        }>;
+        
         // Format the results
-        const formattedResults = data.map((item: any) => ({
+        const formattedResults = cityData.map(item => ({
           city: item.city,
           state: item.state,
           country: item.country,

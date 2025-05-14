@@ -658,6 +658,15 @@ export type Database = {
           has_owner: boolean
         }[]
       }
+      search_cities_with_venues: {
+        Args: { search_term: string }
+        Returns: {
+          city: string
+          state: string
+          country: string
+          venue_count: number
+        }[]
+      }
       update_brewery_about: {
         Args: { brewery_id: string; new_about: string }
         Returns: undefined
