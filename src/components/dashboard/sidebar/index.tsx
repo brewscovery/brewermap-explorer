@@ -55,7 +55,7 @@ const DashboardSidebar = () => {
   };
 
   return (
-    <div className={`fixed left-0 top-[73px] z-30 h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
+    <div className={`fixed left-0 top-[73px] z-[30] h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
       <div className="flex flex-col h-full overflow-auto">
         <BrewerySidebarHeader 
           selectedBrewery={selectedBrewery} 
