@@ -172,7 +172,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   }
 
   return (
-    <div className="fixed left-0 top-[73px] z-30 flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
+    <div className="fixed left-0 top-[73px] z-[50] flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
       <VenueSidebarHeader 
         venue={venue}
         venueName={venue.name}

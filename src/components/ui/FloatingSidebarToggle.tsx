@@ -11,6 +11,9 @@ interface FloatingSidebarToggleProps {
 export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSidebarToggleProps) {
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   
+  // If sidebar is open on desktop or mobile, we don't need to show the toggle
+  const isHidden = (!isMobile && state === "expanded") || (isMobile && openMobile);
+  
   const handleClick = () => {
     console.log("FloatingSidebarToggle: handleClick called");
     if (isMobile) {
@@ -20,12 +23,16 @@ export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSide
     }
   };
   
+  if (isHidden) {
+    return null;
+  }
+  
   return (
     <Button
       variant="outline"
       size="icon"
       className={cn(
-        "fixed z-[100] rounded-full shadow-md hover:shadow-lg transition-all duration-200",
+        "fixed z-[45] rounded-full shadow-md hover:shadow-lg transition-all duration-200",
         "bg-white/80 backdrop-blur-sm",
         position === "top-left" 
           ? "left-4 top-4"
