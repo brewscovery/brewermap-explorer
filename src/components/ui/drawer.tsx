@@ -33,14 +33,17 @@ const DrawerOverlay = React.forwardRef<
 ))
 DrawerOverlay.displayName = "DrawerOverlay"
 
-// Define the drag handle as a separate component for better control
-const DrawerDragHandle = () => (
+const DrawerDragHandle = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div 
-    className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted"
-    data-drawer-handle
+    className={cn("flex h-10 w-full cursor-grab active:cursor-grabbing touch-action-none", className)}
+    data-vaul-drag-handle=""
     aria-hidden="true"
-  />
+    {...props}
+  >
+    <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+  </div>
 );
+DrawerDragHandle.displayName = "DrawerDragHandle";
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
@@ -56,19 +59,7 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div 
-        className="absolute top-0 inset-x-0 h-10 cursor-grab active:cursor-grabbing touch-action-none"
-        data-vaul-drag-handle
-        aria-hidden="true"
-      >
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      </div>
-      <div 
-        className="flex-1 overflow-auto overscroll-contain px-4 pt-8"
-        data-vaul-no-drag
-      >
-        {children}
-      </div>
+      {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ))
@@ -79,7 +70,7 @@ const DrawerHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    className={cn("grid gap-1.5 p-4 text-center sm:text-left sticky top-0 z-10 bg-background border-b", className)}
     {...props}
     data-drawer-header
   />
@@ -124,6 +115,18 @@ const DrawerDescription = React.forwardRef<
 ))
 DrawerDescription.displayName = "DrawerDescription"
 
+const DrawerBody = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn("flex-1 overflow-auto overscroll-contain p-4", className)}
+    data-vaul-no-drag=""
+    {...props}
+  />
+)
+DrawerBody.displayName = "DrawerBody"
+
 export {
   Drawer,
   DrawerPortal,
@@ -136,4 +139,5 @@ export {
   DrawerTitle,
   DrawerDescription,
   DrawerDragHandle,
+  DrawerBody,
 }

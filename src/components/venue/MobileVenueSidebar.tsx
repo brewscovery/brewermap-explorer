@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { 
   Drawer, 
   DrawerContent,
   DrawerTitle,
   DrawerDescription,
+  DrawerDragHandle,
+  DrawerHeader,
+  DrawerBody,
 } from '@/components/ui/drawer';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import type { Venue } from '@/types/venue';
@@ -101,107 +103,114 @@ const MobileVenueSidebar = ({
           <DrawerTitle>{venue.name} Details</DrawerTitle>
           <DrawerDescription>Information about {venue.name}</DrawerDescription>
         </VisuallyHidden>
+        
+        {/* Fixed header with drawer drag handle */}
+        <DrawerHeader className="relative p-0">
+          <DrawerDragHandle className="mb-1" />
           
-        {/* Header - outside of the scrollable area */}
-        <div className="flex flex-col p-4 border-b relative">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex items-start gap-4">
-              {breweryInfo?.logo_url && (
-                <div className="flex flex-col items-center gap-2">
-                  <img 
-                    src={breweryInfo.logo_url} 
-                    alt={breweryInfo.name} 
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <div className="flex flex-col gap-1 items-center">
-                    {breweryInfo?.is_verified ? (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <ShieldCheck size={14} />
-                        <span>Verified</span>
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        Unverified
-                      </Badge>
-                    )}
-                    
-                    {breweryInfo?.is_independent && (
-                      <div className="mt-1">
-                        <img 
-                          src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                          alt="Certified Independent Brewery" 
-                          className="h-6" 
-                        />
-                      </div>
-                    )}
+          <div className="flex flex-col p-4 border-b relative">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-4">
+                {breweryInfo?.logo_url && (
+                  <div className="flex flex-col items-center gap-2">
+                    <img 
+                      src={breweryInfo.logo_url} 
+                      alt={breweryInfo.name} 
+                      className="w-12 h-12 rounded-full"
+                    />
+                    <div className="flex flex-col gap-1 items-center">
+                      {breweryInfo?.is_verified ? (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <ShieldCheck size={14} />
+                          <span>Verified</span>
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          Unverified
+                        </Badge>
+                      )}
+                      
+                      {breweryInfo?.is_independent && (
+                        <div className="mt-1">
+                          <img 
+                            src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                            alt="Certified Independent Brewery" 
+                            className="h-6" 
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              <div className="min-w-0">
-                <h2 className="text-xl font-bold truncate">{venue.name}</h2>
-                {breweryInfo?.name && (
-                  <p className="text-sm text-muted-foreground truncate">
-                    {breweryInfo.name}
-                  </p>
                 )}
+                <div className="min-w-0">
+                  <h2 className="text-xl font-bold truncate">{venue.name}</h2>
+                  {breweryInfo?.name && (
+                    <p className="text-sm text-muted-foreground truncate">
+                      {breweryInfo.name}
+                    </p>
+                  )}
+                </div>
               </div>
+              <Button variant="ghost" size="icon" onClick={onClose}>
+                <X size={20} />
+              </Button>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X size={20} />
-            </Button>
-          </div>
-          
-          {/* Action buttons positioned at the bottom right of header */}
-          <div className="absolute bottom-3 right-4 flex gap-2">
-          {user && userType === 'regular' && (
-              <>
-                {displayMode === 'full' && (
+            
+            {/* Action buttons positioned at the bottom right of header */}
+            <div className="absolute bottom-3 right-4 flex gap-2">
+              {user && userType === 'regular' && (
+                <>
+                  {displayMode === 'full' && (
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={handleCheckInClick}
+                      className="flex items-center gap-1"
+                    >
+                      <UserCheck size={16} />
+                      <span>Check In</span>
+                    </Button>
+                  )}
                   <Button 
                     size="sm" 
-                    variant="outline"
-                    onClick={handleCheckInClick}
+                    variant={venueInTodoList ? "secondary" : "outline"}
+                    onClick={handleTodoListClick}
                     className="flex items-center gap-1"
+                    title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
                   >
-                    <UserCheck size={16} />
-                    <span>Check In</span>
+                    <ListTodo size={16} />
                   </Button>
-                )}
-                <Button 
-                  size="sm" 
-                  variant={venueInTodoList ? "secondary" : "outline"}
-                  onClick={handleTodoListClick}
-                  className="flex items-center gap-1"
-                  title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
-                >
-                  <ListTodo size={16} />
-                </Button>
-              </>
-            )}
-            {venue.id && <VenueFollowButton venueId={venue.id} />}
+                </>
+              )}
+              {venue.id && <VenueFollowButton venueId={venue.id} />}
+            </div>
           </div>
-        </div>
+        </DrawerHeader>
 
-        {/* The children element with content is directly inside DrawerContent, properly isolated for scrolling */}
-        {children}
+        {/* Scrollable body content */}
+        <DrawerBody className="px-0 pt-0">
+          {children}
+        </DrawerBody>
 
         {/* Add CheckInDialog component to handle check-in functionality */}
         {venue && user && (
           <>
-          <CheckInDialog
-            venue={venue}
-            isOpen={isCheckInDialogOpen}
-            onClose={() => setIsCheckInDialogOpen(false)}
-            onSuccess={handleCheckInSuccess}
-          />
-          <TodoListDialog
-            venue={venue}
-            isOpen={isTodoListDialogOpen}
-            onClose={() => setIsTodoListDialogOpen(false)}
-          />
-        </>
+            <CheckInDialog
+              venue={venue}
+              isOpen={isCheckInDialogOpen}
+              onClose={() => setIsCheckInDialogOpen(false)}
+              onSuccess={handleCheckInSuccess}
+            />
+            <TodoListDialog
+              venue={venue}
+              isOpen={isTodoListDialogOpen}
+              onClose={() => setIsTodoListDialogOpen(false)}
+            />
+          </>
         )}
       </DrawerContent>
     </Drawer>
   );
 };
+
 export default MobileVenueSidebar;
