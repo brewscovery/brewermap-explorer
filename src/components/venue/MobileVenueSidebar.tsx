@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+
+import React, { useState } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -54,6 +55,16 @@ const MobileVenueSidebar = ({
   const venueInTodoList = user && venue ? isVenueInAnyTodoList(venue.id) : false;
   const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
 
+  // Add a handler function to convert snapPoint to the right type for our state setter
+  const handleSnapPointChange = (snapPoint: string | number) => {
+    if (typeof snapPoint === 'number') {
+      setPosition(snapPoint);
+    } else {
+      // Convert string to number if needed
+      setPosition(parseFloat(snapPoint));
+    }
+  };
+
   // Handle check-in dialog
   const handleCheckInClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -82,7 +93,7 @@ const MobileVenueSidebar = ({
       }}
       snapPoints={[0.5, 0.95]} 
       activeSnapPoint={position}
-      setActiveSnapPoint={setPosition}
+      setActiveSnapPoint={handleSnapPointChange}
       dismissible={true}
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
