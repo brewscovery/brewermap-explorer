@@ -351,7 +351,7 @@ const UnifiedSidebar = () => {
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[50]">
+        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[60]">
           <SidebarContentComponent />
         </SheetContent>
       </Sheet>
@@ -359,7 +359,7 @@ const UnifiedSidebar = () => {
   }
 
   return (
-    <div className={`fixed left-0 top-[73px] z-[50] h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
+    <div className={`fixed left-0 top-[73px] z-[30] h-[calc(100vh-73px)] max-w-[16rem] transition-transform duration-300 ease-in-out ${state === "collapsed" ? "-translate-x-full" : "translate-x-0"} shadow-lg bg-white`}>
       <SidebarContentComponent />
     </div>
   );
