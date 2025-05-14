@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,6 @@ import {
   DrawerContent,
   DrawerTitle,
   DrawerDescription,
-  DrawerDragHandle,
 } from '@/components/ui/drawer';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import type { Venue } from '@/types/venue';
@@ -46,8 +44,6 @@ const MobileVenueSidebar = ({
   onOpenTodoListDialog
 }: MobileVenueSidebarProps) => {
   const [position, setPosition] = useState(0.5);
-  const contentRef = useRef<HTMLDivElement>(null);
-  const headerRef = useRef<HTMLDivElement>(null);
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
@@ -57,22 +53,6 @@ const MobileVenueSidebar = ({
   // Get todo list status for this venue if user is logged in
   const venueInTodoList = user && venue ? isVenueInAnyTodoList(venue.id) : false;
   const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
-
-  // Handle snap point changes
-  const handleSnapPointChange = (snapPoint: string | number) => {
-    if (typeof snapPoint === 'string') {
-      setPosition(parseFloat(snapPoint));
-    } else {
-      setPosition(snapPoint);
-    }
-  };
-  
-  useEffect(() => {
-    if (open) {
-      // Reset to default position when opening
-      setPosition(0.5); // Set to middle snap point by default
-    }
-  }, [open]);
 
   // Handle check-in dialog
   const handleCheckInClick = (e: React.MouseEvent) => {
@@ -102,23 +82,17 @@ const MobileVenueSidebar = ({
       }}
       snapPoints={[0.5, 0.95]} 
       activeSnapPoint={position}
-      setActiveSnapPoint={handleSnapPointChange}
-      modal={false}
+      setActiveSnapPoint={setPosition}
       dismissible={true}
-      scrollLockTimeout={100}
     >
-      <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background">
+      <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
         <VisuallyHidden>
           <DrawerTitle>{venue.name} Details</DrawerTitle>
           <DrawerDescription>Information about {venue.name}</DrawerDescription>
         </VisuallyHidden>
           
-        {/* Header - allows snap point changes */}
-        <div 
-          ref={headerRef}
-          className="flex flex-col p-4 border-b relative"
-          data-vaul-no-drag-propagation={false}
-        >
+        {/* Header - outside of the scrollable area */}
+        <div className="flex flex-col p-4 border-b relative">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               {breweryInfo?.logo_url && (
@@ -196,15 +170,8 @@ const MobileVenueSidebar = ({
           </div>
         </div>
 
-        {/* Content with Tabs - The scrollable area needs proper touch handling */}
-        <div 
-          ref={contentRef} 
-          className="flex-1 overflow-y-auto overscroll-contain"
-          data-vaul-no-drag-propagation={true} 
-          data-drawer-content
-        >
-          {children}
-        </div>
+        {/* The children element with content is directly inside DrawerContent, properly isolated for scrolling */}
+        {children}
 
         {/* Add CheckInDialog component to handle check-in functionality */}
         {venue && user && (

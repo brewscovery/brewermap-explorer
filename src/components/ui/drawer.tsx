@@ -27,7 +27,7 @@ const DrawerOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Overlay
     ref={ref}
-    className={cn("fixed inset-0 z-50 bg-black/80 pointer-events-none", className)}
+    className={cn("fixed inset-0 z-50 bg-black/80", className)}
     {...props}
   />
 ))
@@ -36,7 +36,7 @@ DrawerOverlay.displayName = "DrawerOverlay"
 // Define the drag handle as a separate component for better control
 const DrawerDragHandle = () => (
   <div 
-    className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-grab active:cursor-grabbing touch-action-none" 
+    className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted"
     data-drawer-handle
     aria-hidden="true"
   />
@@ -56,8 +56,19 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <DrawerDragHandle />
-      {children}
+      <div 
+        className="absolute top-0 inset-x-0 h-10 cursor-grab active:cursor-grabbing touch-action-none"
+        data-vaul-drag-handle
+        aria-hidden="true"
+      >
+        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+      </div>
+      <div 
+        className="flex-1 overflow-auto overscroll-contain px-4 pt-8"
+        data-vaul-no-drag
+      >
+        {children}
+      </div>
     </DrawerPrimitive.Content>
   </DrawerPortal>
 ))
