@@ -36,9 +36,9 @@ const VenueSidebarActions = ({
               size="sm" 
               variant="outline"
               onClick={onOpenCheckInDialog}
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 h-9 px-3"
             >
-              <UserCheck size={16} />
+              <UserCheck size={18} />
               <span>Check In</span>
             </Button>
           )}
@@ -46,10 +46,10 @@ const VenueSidebarActions = ({
             size="sm" 
             variant={venueInTodoList ? "secondary" : "outline"}
             onClick={onOpenTodoListDialog}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 h-9 px-3"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
-            <ListTodo size={16} />
+            <ListTodo size={18} />
           </Button>
         </>
       )}
