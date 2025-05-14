@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
@@ -184,11 +185,6 @@ const EventsExplorer = () => {
     // Set the search term
     setSearchTerm(city);
     
-    // Focus on input after selection
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-    
     // Trigger search immediately after selection
     handleSearch();
   };
@@ -196,6 +192,19 @@ const EventsExplorer = () => {
   const handleClearSearch = () => {
     setSearchTerm("");
     setOpenCityPopover(false);
+  };
+  
+  // Handle input change for city search
+  const handleCityInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    // Only open dropdown if there's text in the input
+    if (value.length > 1) {
+      setOpenCityPopover(true);
+    } else {
+      setOpenCityPopover(false);
+    }
   };
   
   const getInterestedEvents = () => {
@@ -241,16 +250,8 @@ const EventsExplorer = () => {
                     ref={inputRef}
                     placeholder="Search events by city"
                     value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      if (e.target.value.length > 1) {
-                        setOpenCityPopover(true);
-                      } else {
-                        setOpenCityPopover(false);
-                      }
-                    }}
+                    onChange={handleCityInputChange}
                     className="pl-10 pr-10"
-                    onFocus={() => searchTerm.length > 1 && setOpenCityPopover(true)}
                     onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                   />
                   {searchTerm && (
@@ -305,6 +306,7 @@ const EventsExplorer = () => {
             onValueChange={(value) => {
               setSearchType(value as "venue" | "city");
               setSearchTerm(""); // Reset search term when changing search type
+              setOpenCityPopover(false); // Close popover when changing search type
             }}
           >
             <SelectTrigger className="w-[160px]">
