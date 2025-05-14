@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -65,7 +66,20 @@ const MobileVenueSidebar = ({
   
   useEffect(() => {
     if (open) {
-      setPosition(0); // Will snap to 50% as default position
+      // Reset to default position when opening
+      setPosition(0); 
+      
+      // Small timeout to ensure the drawer is fully rendered before any interactions
+      const timer = setTimeout(() => {
+        // This forces a reflow which can help with interaction issues
+        const drawerContent = document.querySelector('[data-vaul-drawer-content]');
+        if (drawerContent) {
+          // Force a reflow without changing visual appearance
+          drawerContent.getBoundingClientRect();
+        }
+      }, 10);
+      
+      return () => clearTimeout(timer);
     }
   }, [open]);
 
@@ -100,6 +114,7 @@ const MobileVenueSidebar = ({
       activeSnapPoint={position}
       setActiveSnapPoint={handleSnapPointChange}
       modal={false}
+      dismissible={false} // Make the drawer non-dismissible to improve interaction
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background">
         <VisuallyHidden>
@@ -107,7 +122,11 @@ const MobileVenueSidebar = ({
           <DrawerDescription>Information about {venue.name}</DrawerDescription>
         </VisuallyHidden>
           
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+        <div 
+          className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted"
+          // Add pointer-events-auto to ensure the handle receives interactions
+          style={{ pointerEvents: 'auto' }}  
+        />
           
         {/* Header */}
         <div className="flex flex-col p-4 border-b relative">
