@@ -1,3 +1,4 @@
+
 import { PanelLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
@@ -10,8 +11,7 @@ interface FloatingSidebarToggleProps {
 export function FloatingSidebarToggle({ position = "bottom-left" }: FloatingSidebarToggleProps) {
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   
-  // Only hide the toggle on mobile when the mobile sidebar is open
-  // On desktop, we keep the original behavior
+  // Hide the toggle on mobile when the mobile sidebar is open
   const isHidden = isMobile && openMobile;
   
   const handleClick = () => {

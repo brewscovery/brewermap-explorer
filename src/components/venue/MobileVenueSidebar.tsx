@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -102,7 +101,7 @@ const MobileVenueSidebar = ({
       setActiveSnapPoint={handleSnapPointChange}
       modal={false}
     >
-      <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-[60] rounded-t-[10px] border bg-background">
+      <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background">
         <VisuallyHidden>
           <DrawerTitle>{venue.name} Details</DrawerTitle>
           <DrawerDescription>Information about {venue.name}</DrawerDescription>

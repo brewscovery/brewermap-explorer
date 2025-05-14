@@ -351,7 +351,7 @@ const UnifiedSidebar = () => {
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[60]">
+        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[110]">
           <SidebarContentComponent />
         </SheetContent>
       </Sheet>

@@ -116,6 +116,8 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     <div className={cn(
       "fixed z-[100] top-4 left-4 right-4 flex flex-col",
       "animate-fade-in duration-300",
+      // Hide the floating search bar on mobile when the sidebar is open
+      isMobile && openMobile ? "opacity-0 pointer-events-none" : "opacity-100",
       className
     )}>
       <div className="flex w-full items-center">
