@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,8 @@ import {
   Drawer, 
   DrawerContent,
   DrawerTitle,
-  DrawerDescription
+  DrawerDescription,
+  DrawerDragHandle,
 } from '@/components/ui/drawer';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import type { Venue } from '@/types/venue';
@@ -44,7 +45,9 @@ const MobileVenueSidebar = ({
   onOpenCheckInDialog,
   onOpenTodoListDialog
 }: MobileVenueSidebarProps) => {
-  const [position, setPosition] = useState(0);
+  const [position, setPosition] = useState(0.5);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   const { user, userType } = useAuth();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
@@ -54,8 +57,8 @@ const MobileVenueSidebar = ({
   // Get todo list status for this venue if user is logged in
   const venueInTodoList = user && venue ? isVenueInAnyTodoList(venue.id) : false;
   const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
-  
-  // Create a handler function that converts string to number if needed
+
+  // Handle snap point changes
   const handleSnapPointChange = (snapPoint: string | number) => {
     if (typeof snapPoint === 'string') {
       setPosition(parseFloat(snapPoint));
@@ -71,9 +74,8 @@ const MobileVenueSidebar = ({
     }
   }, [open]);
 
-  // Handle check-in dialog directly in this component
+  // Handle check-in dialog
   const handleCheckInClick = (e: React.MouseEvent) => {
-    // Prevent event bubbling which might be interfering with the drawer
     e.stopPropagation();
     setIsCheckInDialogOpen(true);
   };
@@ -91,29 +93,32 @@ const MobileVenueSidebar = ({
     // Also invalidate todo lists to update completion status
     queryClient.invalidateQueries({ queryKey: ['todoListVenues', user?.id] });
   };
-
+  
   return (
     <Drawer
       open={open}
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
-      snapPoints={[0.5, 0.99]} 
+      snapPoints={[0.5, 0.95]} 
       activeSnapPoint={position}
       setActiveSnapPoint={handleSnapPointChange}
       modal={false}
-      dismissible={true} // Allow dismissing by dragging down
+      dismissible={true}
+      scrollLockTimeout={100}
     >
-      <DrawerContent className="h-[85vh] max-h-[85vh] overflow-hidden fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background">
+      <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background">
         <VisuallyHidden>
           <DrawerTitle>{venue.name} Details</DrawerTitle>
           <DrawerDescription>Information about {venue.name}</DrawerDescription>
         </VisuallyHidden>
           
-        <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-grab active:cursor-grabbing" />
-          
-        {/* Header */}
-        <div className="flex flex-col p-4 border-b relative">
+        {/* Header - allows snap point changes */}
+        <div 
+          ref={headerRef}
+          className="flex flex-col p-4 border-b relative"
+          data-vaul-no-drag-propagation={false}
+        >
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-4">
               {breweryInfo?.logo_url && (
@@ -191,8 +196,13 @@ const MobileVenueSidebar = ({
           </div>
         </div>
 
-        {/* Content with Tabs - The fix is here: We directly use the Tabs from the parent */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Content with Tabs - The scrollable area needs proper touch handling */}
+        <div 
+          ref={contentRef} 
+          className="flex-1 overflow-y-auto overscroll-contain"
+          data-vaul-no-drag-propagation={true} 
+          data-drawer-content
+        >
           {children}
         </div>
 

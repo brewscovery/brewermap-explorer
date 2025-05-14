@@ -33,6 +33,15 @@ const DrawerOverlay = React.forwardRef<
 ))
 DrawerOverlay.displayName = "DrawerOverlay"
 
+// Define the drag handle as a separate component for better control
+const DrawerDragHandle = () => (
+  <div 
+    className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-grab active:cursor-grabbing touch-action-none" 
+    data-drawer-handle
+    aria-hidden="true"
+  />
+);
+
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
@@ -47,10 +56,7 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div 
-        className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted cursor-grab active:cursor-grabbing" 
-        aria-hidden="true"
-      />
+      <DrawerDragHandle />
       {children}
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -64,6 +70,7 @@ const DrawerHeader = ({
   <div
     className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
     {...props}
+    data-drawer-header
   />
 )
 DrawerHeader.displayName = "DrawerHeader"
@@ -117,4 +124,5 @@ export {
   DrawerFooter,
   DrawerTitle,
   DrawerDescription,
+  DrawerDragHandle,
 }
