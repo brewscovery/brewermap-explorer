@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
@@ -179,11 +180,17 @@ const EventsExplorer = () => {
   
   const handleCitySelect = (city: string) => {
     setSearchTerm(city);
-    setOpenCityPopover(false);
+    setOpenCityPopover(false); // Close the popover
+    
     // Focus on input after selection
     if (inputRef.current) {
       inputRef.current.focus();
     }
+    
+    // Trigger search immediately after selection
+    setTimeout(() => {
+      handleSearch();
+    }, 100);
   };
   
   const handleClearSearch = () => {
