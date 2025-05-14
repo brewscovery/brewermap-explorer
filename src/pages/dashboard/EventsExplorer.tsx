@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, MapPin } from "lucide-react";
+import { Search, Calendar, MapPin, X, Loader2 } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -15,6 +15,9 @@ import {
 import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
+import { useCitySearch, CityResult } from "@/hooks/useCitySearch";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 const EventsExplorer = () => {
   const { user } = useAuth();
@@ -24,6 +27,9 @@ const EventsExplorer = () => {
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
+  const [openCityPopover, setOpenCityPopover] = useState(false);
+  const { cities, isLoading: citiesLoading } = useCitySearch(searchType === "city" ? searchTerm : "");
+  const inputRef = useRef<HTMLInputElement>(null);
   
   // Fetch all venues for reference
   useEffect(() => {
@@ -171,6 +177,20 @@ const EventsExplorer = () => {
     }
   };
   
+  const handleCitySelect = (city: string) => {
+    setSearchTerm(city);
+    setOpenCityPopover(false);
+    // Focus on input after selection
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+  
+  const handleClearSearch = () => {
+    setSearchTerm("");
+    setOpenCityPopover(false);
+  };
+  
   const getInterestedEvents = () => {
     return filteredEvents.filter(event => userInterests.includes(event.id));
   };
@@ -181,22 +201,105 @@ const EventsExplorer = () => {
       
       <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 mb-6">
         <div className="flex-1 relative">
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-            <Search size={18} />
-          </div>
-          <Input
-            placeholder={`Search events by ${searchType === "venue" ? "venue name" : "city"}`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
+          {searchType === "venue" ? (
+            <>
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                <Search size={18} />
+              </div>
+              <Input
+                ref={inputRef}
+                placeholder="Search events by venue name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-10"
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              />
+              {searchTerm && (
+                <button 
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </>
+          ) : (
+            <Popover open={openCityPopover} onOpenChange={setOpenCityPopover}>
+              <PopoverTrigger asChild>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+                    <MapPin size={18} />
+                  </div>
+                  <Input
+                    ref={inputRef}
+                    placeholder="Search events by city"
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      if (e.target.value.length > 1) {
+                        setOpenCityPopover(true);
+                      } else {
+                        setOpenCityPopover(false);
+                      }
+                    }}
+                    className="pl-10 pr-10"
+                    onFocus={() => searchTerm.length > 1 && setOpenCityPopover(true)}
+                    onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  />
+                  {searchTerm && (
+                    <button 
+                      onClick={handleClearSearch}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    >
+                      <X size={16} />
+                    </button>
+                  )}
+                </div>
+              </PopoverTrigger>
+              <PopoverContent className="p-0 w-[300px]" align="start">
+                <Command>
+                  <CommandInput placeholder="Search cities..." value={searchTerm} onValueChange={setSearchTerm} />
+                  <CommandList>
+                    {citiesLoading && (
+                      <div className="flex items-center justify-center py-6">
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <p className="text-sm text-muted-foreground">Searching cities...</p>
+                      </div>
+                    )}
+                    <CommandEmpty>No cities found</CommandEmpty>
+                    <CommandGroup>
+                      {cities.map((city, index) => (
+                        <CommandItem 
+                          key={index} 
+                          value={city.city}
+                          onSelect={() => handleCitySelect(city.city)}
+                          className="cursor-pointer"
+                        >
+                          <MapPin className="mr-2 h-4 w-4" />
+                          <div className="flex flex-col">
+                            <span>{city.city}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {[city.state, city.country].filter(Boolean).join(", ")}
+                              {city.count > 0 && ` • ${city.count} venue${city.count !== 1 ? 's' : ''}`}
+                            </span>
+                          </div>
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
         
         <div className="flex space-x-3">
           <Select
             value={searchType}
-            onValueChange={(value) => setSearchType(value as "venue" | "city")}
+            onValueChange={(value) => {
+              setSearchType(value as "venue" | "city");
+              setSearchTerm(""); // Reset search term when changing search type
+            }}
           >
             <SelectTrigger className="w-[160px]">
               <SelectValue placeholder="Search by" />
@@ -208,7 +311,17 @@ const EventsExplorer = () => {
           </Select>
           
           <Button onClick={handleSearch} disabled={loading}>
-            {loading ? "Searching..." : "Search"}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Searching...
+              </>
+            ) : (
+              <>
+                <Search className="mr-2 h-4 w-4" />
+                Search
+              </>
+            )}
           </Button>
         </div>
       </div>
