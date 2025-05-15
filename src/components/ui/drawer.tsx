@@ -45,14 +45,18 @@ const DrawerDragHandle = ({ className, ...props }: React.HTMLAttributes<HTMLDivE
 );
 DrawerDragHandle.displayName = "DrawerDragHandle";
 
+// Define a custom type for the DrawerContent component that includes the modal property
+interface DrawerContentProps extends React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> {
+  overlayProps?: React.ComponentPropsWithoutRef<typeof DrawerOverlay>;
+  modal?: boolean; // Add the modal property explicitly
+}
+
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
-    overlayProps?: React.ComponentPropsWithoutRef<typeof DrawerOverlay>;
-  }
->(({ className, children, overlayProps, ...props }, ref) => {
-  // Fix: Access the props directly from props object instead of using Context
-  const showOverlay = props.modal !== false;
+  DrawerContentProps
+>(({ className, children, overlayProps, modal, ...props }, ref) => {
+  // Use the modal prop directly since it's now properly typed
+  const showOverlay = modal !== false;
   
   return (
     <DrawerPortal>
