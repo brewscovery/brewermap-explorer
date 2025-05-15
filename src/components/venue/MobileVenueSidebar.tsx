@@ -103,7 +103,7 @@ const MobileVenueSidebar = ({
       setActiveSnapPoint={handleSnapPointChange}
       dismissible={false} // This prevents automatic closing when clicking outside
       modal={false} // This ensures the overlay doesn't trap interactions
-      shouldScaleBackground={false}
+      handleOnly={true}
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
         <VisuallyHidden>
