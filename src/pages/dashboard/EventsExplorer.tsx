@@ -17,13 +17,7 @@ import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
 import { toast } from "@/components/ui/use-toast";
-
-interface CityResult {
-  city: string;
-  state?: string;
-  country?: string;
-  count: number;
-}
+import { useCitySearch, CityResult } from "@/hooks/useCitySearch";
 
 const EventsExplorer = () => {
   const { user } = useAuth();
@@ -34,10 +28,14 @@ const EventsExplorer = () => {
   const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [cityResults, setCityResults] = useState<CityResult[]>([]);
-  const [citySearchLoading, setCitySearchLoading] = useState(false);
+  const [manualInputChange, setManualInputChange] = useState(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Use the custom hook for city search
+  const { cities: cityResults, isLoading: citySearchLoading } = useCitySearch(
+    searchType === "city" && manualInputChange ? searchTerm : ""
+  );
   
   // Fetch all venues for reference
   useEffect(() => {
@@ -108,56 +106,13 @@ const EventsExplorer = () => {
     }
   }, [allEvents, allVenues, eventsLoading]);
   
-  // Search cities when input changes
+  // Update dropdown visibility based on search results
   useEffect(() => {
-    const searchCities = async () => {
-      if (searchType !== "city" || !searchTerm || searchTerm.length < 2) {
-        setCityResults([]);
-        return;
-      }
-      
-      setCitySearchLoading(true);
-      
-      try {
-        const { data, error } = await supabase
-          .rpc('search_cities_with_venues', {
-            search_term: searchTerm.toLowerCase()
-          });
-        
-        if (error) throw error;
-        
-        // Format the results
-        const formattedResults = data.map((item: any) => ({
-          city: item.city,
-          state: item.state,
-          country: item.country,
-          count: item.venue_count
-        }));
-        
-        setCityResults(formattedResults);
-        if (formattedResults.length > 0) {
-          setIsDropdownOpen(true);
-        }
-      } catch (error) {
-        console.error('Error fetching cities:', error);
-        toast({
-          title: "Failed to load cities",
-          description: "There was an error fetching city suggestions",
-          variant: "destructive",
-        });
-        setCityResults([]);
-      } finally {
-        setCitySearchLoading(false);
-      }
-    };
-    
-    // Use debounce to prevent too many requests
-    const handler = setTimeout(() => {
-      searchCities();
-    }, 300);
-    
-    return () => clearTimeout(handler);
-  }, [searchTerm, searchType]);
+    // Only show dropdown if it's a manual input change and we have results
+    if (searchType === "city" && manualInputChange && cityResults.length > 0) {
+      setIsDropdownOpen(true);
+    }
+  }, [cityResults, searchType, manualInputChange]);
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -255,23 +210,43 @@ const EventsExplorer = () => {
   };
   
   const handleCitySelect = (city: string) => {
+    // Flag this as a programmatic change (not manual input)
+    setManualInputChange(false);
+    
+    // Update search term with selected city
     setSearchTerm(city);
+    
+    // Close dropdown
     setIsDropdownOpen(false);
-    handleSearch();
+    
+    // Trigger search
+    setTimeout(() => {
+      handleSearch();
+    }, 0);
   };
   
   const handleClearSearch = () => {
+    // Flag as programmatic change
+    setManualInputChange(false);
+    
     setSearchTerm("");
-    setCityResults([]);
     setIsDropdownOpen(false);
+    
+    // Reset to default state if needed
+    handleSearch();
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    
+    // Flag this as a manual input change
+    setManualInputChange(true);
+    
     setSearchTerm(value);
     
     if (searchType === "city" && value.length > 1) {
-      // City search will be triggered by the useEffect
+      // City search will be triggered by the useCitySearch hook
+      // Dropdown visibility is managed by the useEffect that watches cityResults
     } else {
       setIsDropdownOpen(false);
     }
@@ -295,7 +270,7 @@ const EventsExplorer = () => {
             placeholder={`Search events by ${searchType === "venue" ? "venue name" : "city"}`}
             value={searchTerm}
             onChange={handleInputChange}
-            onFocus={() => searchTerm.length > 1 && setIsDropdownOpen(true)}
+            onFocus={() => searchType === "city" && manualInputChange && searchTerm.length > 1 && setIsDropdownOpen(true)}
             className="pl-10 pr-10"
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
@@ -354,6 +329,8 @@ const EventsExplorer = () => {
             value={searchType}
             onValueChange={(value) => {
               setSearchType(value as "venue" | "city");
+              // Flag as programmatic change when search type changes
+              setManualInputChange(false);
               setSearchTerm(""); // Reset search term when changing search type
               setIsDropdownOpen(false);
             }}
