@@ -29,6 +29,7 @@ import AdminContentLayout from "./components/admin/AdminContentLayout";
 import EventsPage from "./pages/dashboard/EventsPage";
 import TodoListsPage from "./pages/dashboard/TodoListsPage";
 import EventsExplorer from "./pages/dashboard/EventsExplorer";
+import ProtectedRoute from "./components/protected/ProtectedRoute";
 
 const UserTypeRoute = ({ 
   element, 
@@ -91,29 +92,33 @@ const App = () => {
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
                 
-                <Route path="/dashboard">
-                  <Route index element={
-                    <UserTypeRoute 
-                      element={<Navigate to="/" />}
-                      businessElement={<Dashboard />}
-                      regularElement={<RegularDashboard />}
-                    />
-                  } />
-                  
-                  <Route path="breweries" element={<Dashboard />} />
-                  <Route path="venues" element={<VenuesPage />} />
-                  <Route path="events" element={<EventsPage />} />
-                  
-                  <Route path="favorites" element={<FavoritesPage />} />
-                  <Route path="eventsExplorer" element={<EventsExplorer />} />
-                  <Route path="todoLists" element={<TodoListsPage />} />
-                  <Route path="history" element={<CheckInHistoryPage />} />
-                  <Route path="discoveries" element={<DiscoveriesPage />} />
-                  <Route path="subscription" element={<SubscriptionPage />} />
-                  
-                  <Route path="settings" element={<SettingsPage />} />
+                {/* Protected Dashboard Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard">
+                    <Route index element={
+                      <UserTypeRoute 
+                        element={<Navigate to="/" />}
+                        businessElement={<Dashboard />}
+                        regularElement={<RegularDashboard />}
+                      />
+                    } />
+                    
+                    <Route path="breweries" element={<Dashboard />} />
+                    <Route path="venues" element={<VenuesPage />} />
+                    <Route path="events" element={<EventsPage />} />
+                    
+                    <Route path="favorites" element={<FavoritesPage />} />
+                    <Route path="eventsExplorer" element={<EventsExplorer />} />
+                    <Route path="todoLists" element={<TodoListsPage />} />
+                    <Route path="history" element={<CheckInHistoryPage />} />
+                    <Route path="discoveries" element={<DiscoveriesPage />} />
+                    <Route path="subscription" element={<SubscriptionPage />} />
+                    
+                    <Route path="settings" element={<SettingsPage />} />
+                  </Route>
                 </Route>
                 
+                {/* Admin Routes (already protected by AdminRoute component) */}
                 <Route path="/admin" element={<AdminRoute />}>
                   <Route element={<AdminContentLayout />}>
                     <Route index element={<AdminDashboard />} />

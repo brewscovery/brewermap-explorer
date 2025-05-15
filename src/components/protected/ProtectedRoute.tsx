@@ -3,8 +3,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const AdminRoute = () => {
-  const { user, userType, loading } = useAuth();
+const ProtectedRoute = () => {
+  const { user, loading } = useAuth();
   
   // Show loading state while authentication is being checked
   if (loading) {
@@ -19,15 +19,14 @@ const AdminRoute = () => {
     );
   }
   
-  console.log('AdminRoute check:', { user, userType, loading });
-  
-  // Redirect to home page if not authenticated or not an admin
-  if (!user || userType !== 'admin') {
+  // Redirect to map page if not authenticated
+  if (!user) {
+    console.log('User not authenticated, redirecting to map page');
     return <Navigate to="/" replace />;
   }
   
-  // Render the protected content if user is admin
+  // Render the protected content if authenticated
   return <Outlet />;
 };
 
-export default AdminRoute;
+export default ProtectedRoute;
