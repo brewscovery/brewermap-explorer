@@ -5,7 +5,7 @@ import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, X, Loader2 } from "lucide-react";
+import { Search, Calendar, X, Loader2, MapPin } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -16,7 +16,14 @@ import {
 import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
-import CitySearchPopover from "@/components/search/CitySearchPopover";
+import { toast } from "@/components/ui/use-toast";
+
+interface CityResult {
+  city: string;
+  state?: string;
+  country?: string;
+  count: number;
+}
 
 const EventsExplorer = () => {
   const { user } = useAuth();
@@ -26,7 +33,11 @@ const EventsExplorer = () => {
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [cityResults, setCityResults] = useState<CityResult[]>([]);
+  const [citySearchLoading, setCitySearchLoading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   
   // Fetch all venues for reference
   useEffect(() => {
@@ -96,6 +107,74 @@ const EventsExplorer = () => {
       setFilteredEvents(processed);
     }
   }, [allEvents, allVenues, eventsLoading]);
+  
+  // Search cities when input changes
+  useEffect(() => {
+    const searchCities = async () => {
+      if (searchType !== "city" || !searchTerm || searchTerm.length < 2) {
+        setCityResults([]);
+        return;
+      }
+      
+      setCitySearchLoading(true);
+      
+      try {
+        const { data, error } = await supabase
+          .rpc('search_cities_with_venues', {
+            search_term: searchTerm.toLowerCase()
+          });
+        
+        if (error) throw error;
+        
+        // Format the results
+        const formattedResults = data.map((item: any) => ({
+          city: item.city,
+          state: item.state,
+          country: item.country,
+          count: item.venue_count
+        }));
+        
+        setCityResults(formattedResults);
+        if (formattedResults.length > 0) {
+          setIsDropdownOpen(true);
+        }
+      } catch (error) {
+        console.error('Error fetching cities:', error);
+        toast({
+          title: "Failed to load cities",
+          description: "There was an error fetching city suggestions",
+          variant: "destructive",
+        });
+        setCityResults([]);
+      } finally {
+        setCitySearchLoading(false);
+      }
+    };
+    
+    // Use debounce to prevent too many requests
+    const handler = setTimeout(() => {
+      searchCities();
+    }, 300);
+    
+    return () => clearTimeout(handler);
+  }, [searchTerm, searchType]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current && 
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   // Handle search
   const handleSearch = async () => {
@@ -171,16 +250,31 @@ const EventsExplorer = () => {
       console.error("Search error:", error);
     } finally {
       setLoading(false);
+      setIsDropdownOpen(false);
     }
   };
   
   const handleCitySelect = (city: string) => {
     setSearchTerm(city);
+    setIsDropdownOpen(false);
     handleSearch();
   };
   
   const handleClearSearch = () => {
     setSearchTerm("");
+    setCityResults([]);
+    setIsDropdownOpen(false);
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+    
+    if (searchType === "city" && value.length > 1) {
+      // City search will be triggered by the useEffect
+    } else {
+      setIsDropdownOpen(false);
+    }
   };
   
   const getInterestedEvents = () => {
@@ -193,35 +287,65 @@ const EventsExplorer = () => {
       
       <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 mb-6">
         <div className="flex-1 relative">
-          {searchType === "venue" ? (
-            <>
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-                <Search size={18} />
-              </div>
-              <Input
-                ref={inputRef}
-                placeholder="Search events by venue name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-10"
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              />
-              {searchTerm && (
-                <button 
-                  onClick={handleClearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </>
-          ) : (
-            <CitySearchPopover
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
-              onCitySelect={handleCitySelect}
-              onSearch={handleSearch}
-            />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
+            {searchType === "venue" ? <Search size={18} /> : <MapPin size={18} />}
+          </div>
+          <Input
+            ref={inputRef}
+            placeholder={`Search events by ${searchType === "venue" ? "venue name" : "city"}`}
+            value={searchTerm}
+            onChange={handleInputChange}
+            onFocus={() => searchTerm.length > 1 && setIsDropdownOpen(true)}
+            className="pl-10 pr-10"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          />
+          {searchTerm && (
+            <button 
+              onClick={handleClearSearch}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            >
+              <X size={16} />
+            </button>
+          )}
+          
+          {/* Dropdown for city results */}
+          {isDropdownOpen && searchType === "city" && (
+            <div 
+              ref={dropdownRef}
+              className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white rounded-md shadow-lg z-50"
+            >
+              {citySearchLoading ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <p className="text-sm text-muted-foreground">Searching cities...</p>
+                </div>
+              ) : cityResults.length > 0 ? (
+                <div className="py-1">
+                  {cityResults.map((city, index) => (
+                    <div
+                      key={index}
+                      className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                      onClick={() => handleCitySelect(city.city)}
+                    >
+                      <div className="flex items-start">
+                        <MapPin className="mr-2 h-4 w-4 mt-0.5" />
+                        <div>
+                          <div className="font-medium">{city.city}</div>
+                          <div className="text-xs text-gray-500">
+                            {[city.state, city.country].filter(Boolean).join(", ")}
+                            {city.count > 0 && ` • ${city.count} venue${city.count !== 1 ? 's' : ''}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : searchTerm.length > 1 ? (
+                <div className="px-4 py-3 text-sm text-gray-500">
+                  No cities found matching "{searchTerm}"
+                </div>
+              ) : null}
+            </div>
           )}
         </div>
         
@@ -231,6 +355,7 @@ const EventsExplorer = () => {
             onValueChange={(value) => {
               setSearchType(value as "venue" | "city");
               setSearchTerm(""); // Reset search term when changing search type
+              setIsDropdownOpen(false);
             }}
           >
             <SelectTrigger className="w-[160px]">
