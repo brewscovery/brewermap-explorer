@@ -86,18 +86,24 @@ const MobileVenueSidebar = ({
     // Also invalidate todo lists to update completion status
     queryClient.invalidateQueries({ queryKey: ['todoListVenues', user?.id] });
   };
+
+  // Handle when drawer position drops below threshold, which means user dragged down
+  const handleOpenChange = (isOpen: boolean) => {
+    if (!isOpen) {
+      onClose();
+    }
+  };
   
   return (
     <Drawer
       open={open}
-      onOpenChange={(isOpen) => {
-        if (!isOpen) onClose();
-      }}
+      onOpenChange={handleOpenChange}
       snapPoints={[0.5, 0.95]} 
       activeSnapPoint={position}
       setActiveSnapPoint={handleSnapPointChange}
-      dismissible={false} // Set dismissible to false to prevent auto-closing when clicking outside
-      modal={false} // Set modal to false so the overlay doesn't trap interactions
+      dismissible={false} // This prevents automatic closing when clicking outside
+      modal={false} // This ensures the overlay doesn't trap interactions
+      closeThreshold={0.2} // This enables drag-to-close functionality - when dragged below 20% of screen height it will close
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
         <VisuallyHidden>
