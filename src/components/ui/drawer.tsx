@@ -51,9 +51,8 @@ const DrawerContent = React.forwardRef<
     overlayProps?: React.ComponentPropsWithoutRef<typeof DrawerOverlay>;
   }
 >(({ className, children, overlayProps, ...props }, ref) => {
-  // Get the dismissible and modal props from parent context if they exist
-  const parentProps = React.useContext(DrawerPrimitive.Context);
-  const showOverlay = parentProps?.modal !== false;
+  // Fix: Access the props directly from props object instead of using Context
+  const showOverlay = props.modal !== false;
   
   return (
     <DrawerPortal>
