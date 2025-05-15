@@ -96,7 +96,8 @@ const MobileVenueSidebar = ({
       snapPoints={[0.5, 0.95]} 
       activeSnapPoint={position}
       setActiveSnapPoint={handleSnapPointChange}
-      dismissible={true}
+      dismissible={false} // Set dismissible to false to prevent auto-closing when clicking outside
+      modal={false} // Set modal to false so the overlay doesn't trap interactions
     >
       <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
         <VisuallyHidden>

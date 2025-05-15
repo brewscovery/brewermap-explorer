@@ -47,22 +47,30 @@ DrawerDragHandle.displayName = "DrawerDragHandle";
 
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DrawerPortal>
-    <DrawerOverlay />
-    <DrawerPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </DrawerPrimitive.Content>
-  </DrawerPortal>
-))
+  React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & {
+    overlayProps?: React.ComponentPropsWithoutRef<typeof DrawerOverlay>;
+  }
+>(({ className, children, overlayProps, ...props }, ref) => {
+  // Get the dismissible and modal props from parent context if they exist
+  const parentProps = React.useContext(DrawerPrimitive.Context);
+  const showOverlay = parentProps?.modal !== false;
+  
+  return (
+    <DrawerPortal>
+      {showOverlay && <DrawerOverlay {...overlayProps} />}
+      <DrawerPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+          className
+        )}
+        {...props}
+      >
+        {children}
+      </DrawerPrimitive.Content>
+    </DrawerPortal>
+  );
+})
 DrawerContent.displayName = "DrawerContent"
 
 const DrawerHeader = ({

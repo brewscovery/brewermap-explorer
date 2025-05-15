@@ -131,7 +131,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   };
 
   const handleClose = () => {
-    console.log("VenueSidebar: handleClose called");
+    console.log("VenueSidebar: handleClose called explicitly");
     if (onClose) {
       onClose();
     }

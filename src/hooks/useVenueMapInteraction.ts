@@ -150,8 +150,9 @@ export const useVenueMapInteraction = ({
     onVenueSelect(venue);
   }, [map, onVenueSelect, selectedVenue, isMobile]);
 
+  // We only want this to be triggered explicitly, not automatically
   const handleSidebarClose = useCallback(() => {
-    console.log('Map: handleSidebarClose called');
+    console.log('Map: handleSidebarClose called explicitly');
     setLocalSelectedVenue(null);
     selectionSourceRef.current = null;
     // Also notify parent component

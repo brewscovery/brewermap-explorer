@@ -75,6 +75,12 @@ const Map = ({
     }
   }, [map, isStyleLoaded, venues.length]);
 
+  // Custom sidebar close handler to ensure it's only closed explicitly
+  const handleVenueSidebarClose = () => {
+    console.log("Map: Explicitly closing venue sidebar");
+    handleSidebarClose();
+  };
+
   return (
     <div className="relative flex-1 w-full h-full">
       <div 
@@ -103,7 +109,7 @@ const Map = ({
       {selectedVenue && (
         <VenueSidebar 
           venue={selectedVenue} 
-          onClose={handleSidebarClose}
+          onClose={handleVenueSidebarClose} 
         />
       )}
     </div>
