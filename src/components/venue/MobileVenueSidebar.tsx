@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -116,9 +115,9 @@ const MobileVenueSidebar = ({
           
           <div className="flex flex-col p-4 border-b relative">
             <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 flex-1 min-w-0">
                 {breweryInfo?.logo_url && (
-                  <div className="flex flex-col items-center gap-2">
+                  <div className="flex flex-col items-center gap-2 shrink-0">
                     <img 
                       src={breweryInfo.logo_url} 
                       alt={breweryInfo.name} 
@@ -148,8 +147,8 @@ const MobileVenueSidebar = ({
                     </div>
                   </div>
                 )}
-                <div className="min-w-0">
-                  <h2 className="text-xl font-bold truncate">{venue.name}</h2>
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-bold break-words pr-8">{venue.name}</h2>
                   {breweryInfo?.name && (
                     <p className="text-sm text-muted-foreground truncate">
                       {breweryInfo.name}
@@ -157,7 +156,7 @@ const MobileVenueSidebar = ({
                   )}
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose}>
+              <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
                 <X size={20} />
               </Button>
             </div>

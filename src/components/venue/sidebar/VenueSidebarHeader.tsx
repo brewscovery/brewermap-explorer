@@ -30,7 +30,7 @@ const VenueSidebarHeader = ({
   return (
     <div className="flex flex-col p-6 border-b relative">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+        <div className="flex items-start gap-4 flex-1 min-w-0">
           <div className="flex flex-col items-center gap-2">
             <BreweryLogo 
               logoUrl={breweryInfo?.logo_url}
@@ -38,8 +38,8 @@ const VenueSidebarHeader = ({
               size="medium"
             />
           </div>
-          <div className="min-w-0">
-            <h2 className="text-xl font-bold truncate">{venueName}</h2>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl font-bold truncate break-words pr-6">{venueName}</h2>
             {breweryInfo?.name && (
               <p className="text-sm text-muted-foreground truncate">
                 {breweryInfo.name}
@@ -51,7 +51,7 @@ const VenueSidebarHeader = ({
           variant="ghost" 
           size="icon" 
           onClick={onClose}
-          className="hover:bg-gray-100"
+          className="hover:bg-gray-100 shrink-0"
         >
           <X size={20} />
           <span className="sr-only">Close</span>
