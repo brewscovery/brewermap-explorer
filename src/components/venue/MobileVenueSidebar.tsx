@@ -54,15 +54,13 @@ const MobileVenueSidebar = ({
     }
   };
 
-  // Handle check-in dialog
-  const handleCheckInClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Handle check-in dialog - fixed to no longer require event parameter
+  const handleCheckInClick = () => {
     setIsCheckInDialogOpen(true);
   };
 
-  // Handle todo list dialog 
-  const handleTodoListClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Handle todo list dialog - fixed to no longer require event parameter
+  const handleTodoListClick = () => {
     setIsTodoListDialogOpen(true);
   };
 
