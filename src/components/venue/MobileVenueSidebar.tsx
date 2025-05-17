@@ -114,39 +114,19 @@ const MobileVenueSidebar = ({
           <DrawerDragHandle className="mb-1" />
           
           <div className="flex flex-col p-4 border-b relative">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-4 flex-1 min-w-0">
-                {breweryInfo?.logo_url && (
-                  <div className="flex flex-col items-center gap-2 shrink-0">
-                    <img 
-                      src={breweryInfo.logo_url} 
-                      alt={breweryInfo.name} 
-                      className="w-12 h-12 rounded-full"
-                    />
-                    <div className="flex flex-col gap-1 items-center">
-                      {breweryInfo?.is_verified ? (
-                        <Badge variant="secondary" className="flex items-center gap-1">
-                          <ShieldCheck size={14} />
-                          <span>Verified</span>
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-muted-foreground">
-                          Unverified
-                        </Badge>
-                      )}
-                      
-                      {breweryInfo?.is_independent && (
-                        <div className="mt-1">
-                          <img 
-                            src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                            alt="Certified Independent Brewery" 
-                            className="h-6" 
-                          />
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              {/* Large brewery logo centered */}
+              {breweryInfo?.logo_url && (
+                <div className="flex-shrink-0 flex justify-center w-full mb-3">
+                  <img 
+                    src={breweryInfo.logo_url} 
+                    alt={breweryInfo.name} 
+                    className="w-32 h-32 rounded-lg border object-contain p-2 bg-white"
+                  />
+                </div>
+              )}
+              
+              <div className="flex items-start justify-between w-full gap-4">
                 <div className="min-w-0 flex-1">
                   <h2 className="text-xl font-bold break-words pr-8">{venue.name}</h2>
                   {breweryInfo?.name && (
@@ -154,11 +134,33 @@ const MobileVenueSidebar = ({
                       {breweryInfo.name}
                     </p>
                   )}
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {breweryInfo?.is_verified ? (
+                      <Badge variant="secondary" className="flex items-center gap-1">
+                        <ShieldCheck size={14} />
+                        <span>Verified</span>
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-muted-foreground">
+                        Unverified
+                      </Badge>
+                    )}
+                    
+                    {breweryInfo?.is_independent && (
+                      <div>
+                        <img 
+                          src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                          alt="Certified Independent Brewery" 
+                          className="h-6" 
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
+                <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
+                  <X size={20} />
+                </Button>
               </div>
-              <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
-                <X size={20} />
-              </Button>
             </div>
             
             {/* Action buttons positioned at the bottom right of header */}

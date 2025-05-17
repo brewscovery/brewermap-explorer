@@ -4,7 +4,7 @@ import React from 'react';
 interface BreweryLogoProps {
   logoUrl?: string | null;
   name?: string | null;
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | 'xlarge';
 }
 
 const BreweryLogo = ({ 
@@ -15,7 +15,8 @@ const BreweryLogo = ({
   const sizeClasses = {
     small: 'h-12 w-12',
     medium: 'h-20 w-20',
-    large: 'h-32 w-32'
+    large: 'h-32 w-32',
+    xlarge: 'h-40 w-40'
   };
 
   if (!logoUrl) {

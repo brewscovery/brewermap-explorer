@@ -29,63 +29,65 @@ const VenueSidebarHeader = ({
 }: VenueSidebarHeaderProps) => {
   return (
     <div className="flex flex-col p-6 border-b relative">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4 flex-1 min-w-0">
-          <div className="flex flex-col items-center gap-2">
-            <BreweryLogo 
-              logoUrl={breweryInfo?.logo_url}
-              name={breweryInfo?.name}
-              size="medium"
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-xl font-bold truncate break-words pr-6">{venueName}</h2>
-            {breweryInfo?.name && (
-              <p className="text-sm text-muted-foreground truncate">
-                {breweryInfo.name}
-              </p>
-            )}
-          </div>
-        </div>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onClose}
-          className="hover:bg-gray-100 shrink-0"
-        >
-          <X size={20} />
-          <span className="sr-only">Close</span>
-        </Button>
-      </div>
-      
-      {/* Action buttons and badges row */}
-      <div className="flex items-center mt-4 justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          {breweryInfo?.is_verified && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <ShieldCheck size={14} />
-              <span>Verified</span>
-            </Badge>
-          )}
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <VenueSidebarActions
-            venue={venue}
-            displayMode={displayMode}
-            onOpenCheckInDialog={onOpenCheckInDialog}
-            onOpenTodoListDialog={onOpenTodoListDialog}
+      <div className="flex items-start gap-4">
+        <div className="flex-shrink-0 flex items-center justify-center">
+          <BreweryLogo 
+            logoUrl={breweryInfo?.logo_url}
+            name={breweryInfo?.name}
+            size="xlarge"
           />
-          
-          {breweryInfo?.is_independent && (
-            <div>
-              <img 
-                src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                alt="Certified Independent Brewery" 
-                className="h-8" 
-              />
+        </div>
+        <div className="flex flex-col flex-1 min-w-0">
+          <div className="flex justify-between items-start">
+            <div className="min-w-0 flex-1 pr-2">
+              <h2 className="text-xl font-bold truncate break-words">{venueName}</h2>
+              {breweryInfo?.name && (
+                <p className="text-sm text-muted-foreground truncate">
+                  {breweryInfo.name}
+                </p>
+              )}
             </div>
-          )}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={onClose}
+              className="hover:bg-gray-100 shrink-0"
+            >
+              <X size={20} />
+              <span className="sr-only">Close</span>
+            </Button>
+          </div>
+          
+          {/* Action buttons and badges row */}
+          <div className="flex items-center mt-4 justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              {breweryInfo?.is_verified && (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                  <ShieldCheck size={14} />
+                  <span>Verified</span>
+                </Badge>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <VenueSidebarActions
+                venue={venue}
+                displayMode={displayMode}
+                onOpenCheckInDialog={onOpenCheckInDialog}
+                onOpenTodoListDialog={onOpenTodoListDialog}
+              />
+              
+              {breweryInfo?.is_independent && (
+                <div>
+                  <img 
+                    src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                    alt="Certified Independent Brewery" 
+                    className="h-8" 
+                  />
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
