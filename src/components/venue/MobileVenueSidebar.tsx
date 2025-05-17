@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, ShieldCheck, UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useQueryClient } from '@tanstack/react-query';
 import { TodoListDialog } from './TodoListDialog';
 import { useTodoLists } from '@/hooks/useTodoLists';
+import BreweryLogo from '@/components/brewery/BreweryLogo';
 
 interface MobileVenueSidebarProps {
   venue: Venue;
@@ -114,57 +116,60 @@ const MobileVenueSidebar = ({
           <DrawerDragHandle className="mb-1" />
           
           <div className="flex flex-col p-4 border-b relative">
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              {/* Large brewery logo centered */}
-              {breweryInfo?.logo_url && (
-                <div className="flex-shrink-0 flex justify-center w-full mb-3">
-                  <img 
-                    src={breweryInfo.logo_url} 
-                    alt={breweryInfo.name} 
-                    className="w-32 h-32 rounded-lg border object-contain p-2 bg-white"
-                  />
-                </div>
-              )}
+            <div className="flex items-start gap-4">
+              {/* Brewery logo on the left - matching desktop layout */}
+              <div className="flex-shrink-0 flex items-center justify-center">
+                <BreweryLogo 
+                  logoUrl={breweryInfo?.logo_url}
+                  name={breweryInfo?.name}
+                  size="xlarge"
+                />
+              </div>
               
-              <div className="flex items-start justify-between w-full gap-4">
-                <div className="min-w-0 flex-1">
-                  <h2 className="text-xl font-bold break-words pr-8">{venue.name}</h2>
-                  {breweryInfo?.name && (
-                    <p className="text-sm text-muted-foreground truncate">
-                      {breweryInfo.name}
-                    </p>
-                  )}
-                  <div className="flex flex-wrap items-center gap-2 mt-2">
-                    {breweryInfo?.is_verified ? (
-                      <Badge variant="secondary" className="flex items-center gap-1">
-                        <ShieldCheck size={14} />
-                        <span>Verified</span>
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline" className="text-muted-foreground">
-                        Unverified
-                      </Badge>
-                    )}
-                    
-                    {breweryInfo?.is_independent && (
-                      <div>
-                        <img 
-                          src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                          alt="Certified Independent Brewery" 
-                          className="h-6" 
-                        />
-                      </div>
+              <div className="flex flex-col flex-1 min-w-0">
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1 pr-2">
+                    <h2 className="text-xl font-bold truncate break-words">{venue.name}</h2>
+                    {breweryInfo?.name && (
+                      <p className="text-sm text-muted-foreground truncate">
+                        {breweryInfo.name}
+                      </p>
                     )}
                   </div>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    onClick={onClose}
+                    className="hover:bg-gray-100 shrink-0"
+                  >
+                    <X size={20} />
+                    <span className="sr-only">Close</span>
+                  </Button>
                 </div>
-                <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
-                  <X size={20} />
-                </Button>
+                
+                <div className="flex items-center gap-2 mt-2">
+                  {breweryInfo?.is_verified && (
+                    <Badge variant="secondary" className="flex items-center gap-1">
+                      <ShieldCheck size={14} />
+                      <span>Verified</span>
+                    </Badge>
+                  )}
+                  
+                  {breweryInfo?.is_independent && (
+                    <div>
+                      <img 
+                        src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                        alt="Certified Independent Brewery" 
+                        className="h-6" 
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
             {/* Action buttons positioned at the bottom right of header */}
-            <div className="absolute bottom-3 right-4 flex gap-2">
+            <div className="flex gap-2 mt-2 justify-end">
               {user && userType === 'regular' && (
                 <>
                   {displayMode === 'full' && (
