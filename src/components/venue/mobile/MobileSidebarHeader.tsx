@@ -7,6 +7,8 @@ import BreweryLogo from '@/components/brewery/BreweryLogo';
 import type { Venue } from '@/types/venue';
 import type { Brewery } from '@/types/brewery';
 import { MobileSidebarActions } from './MobileSidebarActions';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 interface MobileSidebarHeaderProps {
   venue: Venue;
@@ -25,47 +27,93 @@ export const MobileSidebarHeader = ({
   onOpenCheckInDialog,
   onOpenTodoListDialog
 }: MobileSidebarHeaderProps) => {
+  // Query to get venue check-in data
+  const { data: checkInStats } = useQuery({
+    queryKey: ['venueCheckInStats', venue.id],
+    queryFn: async () => {
+      const { data: checkinsCount, error: countError } = await supabase
+        .from('checkins')
+        .select('count')
+        .eq('venue_id', venue.id);
+        
+      const { data: avgRating, error: avgError } = await supabase
+        .from('checkins')
+        .select('rating')
+        .eq('venue_id', venue.id)
+        .not('rating', 'is', null);
+      
+      if (countError || avgError) {
+        console.error('Error fetching checkin stats:', countError || avgError);
+        return { count: 0, avgRating: 0 };
+      }
+      
+      const count = checkinsCount?.[0]?.count || 0;
+      
+      // Calculate average rating if we have ratings
+      let avg = 0;
+      if (avgRating && avgRating.length > 0) {
+        const sum = avgRating.reduce((acc, curr) => acc + (curr.rating || 0), 0);
+        avg = Math.round((sum / avgRating.length) * 10) / 10; // Round to 1 decimal
+      }
+      
+      return { count, avgRating: avg };
+    }
+  });
+
   return (
     <div className="flex flex-col p-4 border-b relative">
-      <div className="flex items-start gap-4">
-        {/* Brewery logo on the left - matching desktop layout */}
-        <div className="flex-shrink-0 flex items-center justify-center">
+      {/* Top row: venue name and close button */}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-xl font-bold truncate pr-8">{venue.name}</h2>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={onClose}
+          className="hover:bg-gray-100 absolute right-2 top-3"
+        >
+          <X size={20} />
+          <span className="sr-only">Close</span>
+        </Button>
+      </div>
+      
+      {/* Main content area */}
+      <div className="flex items-start">
+        {/* Logo column */}
+        <div className="flex-shrink-0 mr-3">
           <BreweryLogo 
             logoUrl={breweryInfo?.logo_url}
             name={breweryInfo?.name}
-            size="xlarge"
+            size="large"
           />
         </div>
         
+        {/* Center column: stats and verification */}
         <div className="flex flex-col flex-1 min-w-0">
-          <div className="flex justify-between items-start">
-            <div className="min-w-0 flex-1 pr-2">
-              <h2 className="text-xl font-bold truncate break-words">{venue.name}</h2>
-              {breweryInfo?.name && (
-                <p className="text-sm text-muted-foreground truncate">
-                  {breweryInfo.name}
-                </p>
+          {/* Check-in stats */}
+          <div className="mb-2">
+            <span className="text-sm font-medium">
+              {checkInStats?.count || 0} check-ins
+              {checkInStats?.avgRating > 0 && (
+                <span className="ml-1">• {checkInStats.avgRating} avg</span>
               )}
-            </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={onClose}
-              className="hover:bg-gray-100 shrink-0"
-            >
-              <X size={20} />
-              <span className="sr-only">Close</span>
-            </Button>
+            </span>
           </div>
           
-          <div className="flex items-center gap-2 mt-2">
-            {breweryInfo?.is_verified && (
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <ShieldCheck size={14} />
+          {/* Verification status */}
+          <div className="flex flex-wrap gap-2 items-center">
+            {breweryInfo?.is_verified ? (
+              <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300">
+                <ShieldCheck size={14} className="text-amber-500" />
                 <span>Verified</span>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+                <ShieldCheck size={14} />
+                <span>Unverified</span>
               </Badge>
             )}
             
+            {/* Independent brewery badge */}
             {breweryInfo?.is_independent && (
               <div>
                 <img 
@@ -79,8 +127,8 @@ export const MobileSidebarHeader = ({
         </div>
       </div>
       
-      {/* Action buttons positioned at the bottom right of header */}
-      <div className="flex gap-2 mt-2 justify-end">
+      {/* Action buttons in a row below */}
+      <div className="flex justify-end mt-3">
         <MobileSidebarActions
           venue={venue}
           displayMode={displayMode}

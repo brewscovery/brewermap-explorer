@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserCheck, ListTodo } from 'lucide-react';
+import { UserCheck, ListTodo, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VenueFollowButton } from '../VenueFollowButton';
 import { useTodoLists } from '@/hooks/useTodoLists';
@@ -36,24 +36,34 @@ const VenueSidebarActions = ({
               size="sm" 
               variant="outline"
               onClick={onOpenCheckInDialog}
-              className="flex items-center gap-1 h-9 px-3"
+              className="h-9 px-3"
             >
               <UserCheck size={18} />
-              <span>Check In</span>
+              <span className="sr-only">Check In</span>
             </Button>
           )}
           <Button 
             size="sm" 
             variant={venueInTodoList ? "secondary" : "outline"}
             onClick={onOpenTodoListDialog}
-            className="flex items-center gap-1 h-9 px-3"
+            className="h-9 px-3"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
             <ListTodo size={18} />
+            <span className="sr-only">ToDo List</span>
           </Button>
         </>
       )}
-      {venue.id && <VenueFollowButton venueId={venue.id} />}
+      {venue.id && (
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-9 px-3"
+          asChild
+        >
+          <VenueFollowButton venueId={venue.id} />
+        </Button>
+      )}
     </div>
   );
 };
