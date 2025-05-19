@@ -80,52 +80,54 @@ const MobileVenueSidebar = ({
   };
   
   return (
-    <Drawer
-      open={open}
-      onOpenChange={handleOpenChange}
-      snapPoints={[0.5, 0.95]} 
-      activeSnapPoint={position}
-      setActiveSnapPoint={handleSnapPointChange}
-      dismissible={false}
-      modal={false}
-    >
-      <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
-        <VisuallyHidden>
-          <DrawerTitle>{venue.name} Details</DrawerTitle>
-          <DrawerDescription>Information about {venue.name}</DrawerDescription>
-        </VisuallyHidden>
-        
-        {/* Fixed header with drawer drag handle */}
-        <DrawerHeader className="relative p-0">
-          <DrawerDragHandle className="mb-1" />
+    <>
+      <Drawer
+        open={open}
+        onOpenChange={handleOpenChange}
+        snapPoints={[0.5, 0.95]} 
+        activeSnapPoint={position}
+        setActiveSnapPoint={handleSnapPointChange}
+        dismissible={false}
+        modal={false}
+      >
+        <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
+          <VisuallyHidden>
+            <DrawerTitle>{venue.name} Details</DrawerTitle>
+            <DrawerDescription>Information about {venue.name}</DrawerDescription>
+          </VisuallyHidden>
           
-          <MobileSidebarHeader
-            venue={venue}
-            breweryInfo={breweryInfo}
-            onClose={onClose}
-            displayMode={displayMode}
-            onOpenCheckInDialog={handleCheckInClick}
-            onOpenTodoListDialog={handleTodoListClick}
-          />
-        </DrawerHeader>
+          {/* Fixed header with drawer drag handle */}
+          <DrawerHeader className="relative p-0">
+            <DrawerDragHandle className="mb-1" />
+            
+            <MobileSidebarHeader
+              venue={venue}
+              breweryInfo={breweryInfo}
+              onClose={onClose}
+              displayMode={displayMode}
+              onOpenCheckInDialog={handleCheckInClick}
+              onOpenTodoListDialog={handleTodoListClick}
+            />
+          </DrawerHeader>
 
-        {/* Scrollable body content */}
-        <DrawerBody className="px-0 pt-0">
-          {children}
-        </DrawerBody>
+          {/* Scrollable body content */}
+          <DrawerBody className="px-0 pt-0">
+            {children}
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
 
-        {/* Check-in and Todo list dialogs */}
-        <MobileSidebarDialogs
-          venue={venue}
-          user={user}
-          isCheckInDialogOpen={isCheckInDialogOpen}
-          isTodoListDialogOpen={isTodoListDialogOpen}
-          onCheckInDialogClose={() => setIsCheckInDialogOpen(false)}
-          onTodoListDialogClose={() => setIsTodoListDialogOpen(false)}
-          onCheckInSuccess={handleCheckInSuccess}
-        />
-      </DrawerContent>
-    </Drawer>
+      {/* Check-in and Todo list dialogs - moved outside the Drawer component for proper stacking */}
+      <MobileSidebarDialogs
+        venue={venue}
+        user={user}
+        isCheckInDialogOpen={isCheckInDialogOpen}
+        isTodoListDialogOpen={isTodoListDialogOpen}
+        onCheckInDialogClose={() => setIsCheckInDialogOpen(false)}
+        onTodoListDialogClose={() => setIsTodoListDialogOpen(false)}
+        onCheckInSuccess={handleCheckInSuccess}
+      />
+    </>
   );
 };
 

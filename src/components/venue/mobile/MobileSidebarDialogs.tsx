@@ -4,6 +4,13 @@ import { CheckInDialog } from '@/components/CheckInDialog';
 import { TodoListDialog } from '../TodoListDialog';
 import type { Venue } from '@/types/venue';
 import type { User } from '@supabase/supabase-js';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog-fixed';
 
 interface MobileSidebarDialogsProps {
   venue: Venue;
@@ -28,6 +35,7 @@ export const MobileSidebarDialogs = ({
   
   return (
     <>
+      {/* Using dialog-fixed version for better stacking and z-index handling */}
       <CheckInDialog
         venue={venue}
         isOpen={isCheckInDialogOpen}
