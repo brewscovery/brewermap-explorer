@@ -30,9 +30,9 @@ export const VenueFollowButton = ({
 
   if (!showFollowButton) return null;
 
-  // Use secondary variant when favorited for a more distinctive appearance
+  // Use primary variant (orange) when favorited for a more distinctive appearance
   const buttonVariant = isFavorited 
-    ? 'secondary'
+    ? 'default'
     : variant === 'primary'
       ? 'default'
       : variant === 'secondary'
@@ -51,7 +51,7 @@ export const VenueFollowButton = ({
         size={16}
         className={cn(
           "transition-colors",
-          isFavorited ? "fill-primary text-primary-foreground" : ""
+          isFavorited ? "fill-current" : ""
         )}
       />
     </Button>

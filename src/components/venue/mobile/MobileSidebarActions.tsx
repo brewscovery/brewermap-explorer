@@ -44,12 +44,12 @@ export const MobileSidebarActions = ({
           )}
           <Button 
             size="sm" 
-            variant={venueInTodoList ? "secondary" : "outline"}
+            variant={venueInTodoList ? "default" : "outline"}
             onClick={onOpenTodoListDialog}
             className="h-9 px-3"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
-            <ListTodo size={16} className={venueInTodoList ? "fill-primary" : ""} />
+            <ListTodo size={16} className={venueInTodoList ? "fill-current" : ""} />
             <span className="sr-only">ToDo List</span>
           </Button>
         </>
