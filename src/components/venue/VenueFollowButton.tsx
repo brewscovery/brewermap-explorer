@@ -30,11 +30,14 @@ export const VenueFollowButton = ({
 
   if (!showFollowButton) return null;
 
-  const buttonVariant = variant === 'primary'
-    ? 'default'
-    : variant === 'secondary'
-      ? 'secondary'
-      : 'outline';
+  // Use secondary variant when favorited for a more distinctive appearance
+  const buttonVariant = isFavorited 
+    ? 'secondary'
+    : variant === 'primary'
+      ? 'default'
+      : variant === 'secondary'
+        ? 'secondary'
+        : 'outline';
 
   return (
     <Button
