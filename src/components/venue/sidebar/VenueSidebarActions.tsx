@@ -49,7 +49,7 @@ const VenueSidebarActions = ({
             className="h-9 px-3"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
-            <ListTodo size={18} className={venueInTodoList ? "fill-secondary-foreground" : ""} />
+            <ListTodo size={18} className={venueInTodoList ? "fill-primary" : ""} />
             <span className="sr-only">ToDo List</span>
           </Button>
         </>

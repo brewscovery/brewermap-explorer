@@ -51,7 +51,7 @@ export const VenueFollowButton = ({
         size={16}
         className={cn(
           "transition-colors",
-          isFavorited ? "fill-current" : ""
+          isFavorited ? "fill-primary text-primary-foreground" : ""
         )}
       />
     </Button>
