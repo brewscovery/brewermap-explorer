@@ -78,7 +78,7 @@ const VenueSidebarHeader = ({
         </Button>
       </div>
       
-      {/* Two column layout for content */}
+      {/* Two column layout */}
       <div className="flex">
         {/* Column 1: Logo */}
         <div className="flex-shrink-0 mr-4">
@@ -89,14 +89,14 @@ const VenueSidebarHeader = ({
           />
         </div>
         
-        {/* Column 2: Info and Actions (3 rows) */}
-        <div className="flex flex-col flex-grow space-y-3">
+        {/* Column 2: Three rows of info */}
+        <div className="flex flex-col flex-grow justify-between h-32">
           {/* Row 1: Check-in details */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             {checkInStats && checkInStats.avgRating > 0 && (
-              <div className="flex items-center bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
-                <Star size={16} className="text-amber-500 mr-1 fill-amber-500" />
-                <span className="font-semibold">{checkInStats.avgRating.toFixed(1)}</span>
+              <div className="flex items-center bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200">
+                <Star size={18} className="text-amber-500 mr-1.5 fill-amber-500" />
+                <span className="font-semibold text-base">{checkInStats.avgRating.toFixed(1)}</span>
               </div>
             )}
             {checkInStats && (
@@ -107,15 +107,15 @@ const VenueSidebarHeader = ({
           </div>
           
           {/* Row 2: Verification badges */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 mb-1">
             {breweryInfo?.is_verified ? (
-              <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300">
-                <ShieldCheck size={14} className="text-amber-500" />
+              <Badge variant="secondary" className="flex items-center gap-1.5 bg-amber-100 text-amber-700 border border-amber-300 py-1.5 px-3 text-sm">
+                <ShieldCheck size={18} className="text-amber-500" />
                 <span>Verified</span>
               </Badge>
             ) : (
-              <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
-                <ShieldCheck size={14} />
+              <Badge variant="outline" className="flex items-center gap-1.5 text-muted-foreground py-1.5 px-3 text-sm">
+                <ShieldCheck size={18} />
                 <span>Unverified</span>
               </Badge>
             )}
@@ -125,15 +125,15 @@ const VenueSidebarHeader = ({
               <div>
                 <img 
                   src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                  alt="Certified Independent Brewery" 
-                  className="h-6" 
+                  alt="Certified Independent" 
+                  className="h-8" 
                 />
               </div>
             )}
           </div>
           
           {/* Row 3: Action buttons */}
-          <div className="flex items-center">
+          <div className="flex items-center mt-1">
             <VenueSidebarActions
               venue={venue}
               displayMode={displayMode}

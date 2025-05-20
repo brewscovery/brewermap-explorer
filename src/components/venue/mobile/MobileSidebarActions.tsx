@@ -28,29 +28,29 @@ export const MobileSidebarActions = ({
   const todoList = user && venue ? getTodoListForVenue(venue.id) : null;
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-3">
       {user && userType === 'regular' && (
         <>
           {displayMode === 'full' && (
             <Button 
-              size="sm" 
+              size="default" 
               variant="outline"
               onClick={onOpenCheckInDialog}
-              className="h-9 px-3 transition-all active:scale-95"
+              className="h-10 px-4 transition-all active:scale-95"
               title="Check In"
             >
-              <UserCheck size={18} />
+              <UserCheck size={20} />
               <span className="sr-only">Check In</span>
             </Button>
           )}
           <Button 
-            size="sm" 
+            size="default" 
             variant={venueInTodoList ? "default" : "outline"}
             onClick={onOpenTodoListDialog}
-            className="h-9 px-3 transition-all active:scale-95"
+            className="h-10 px-4 transition-all active:scale-95"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
-            <ListTodo size={18} className={venueInTodoList ? "fill-current" : ""} />
+            <ListTodo size={20} className={venueInTodoList ? "fill-current" : ""} />
             <span className="sr-only">Todo</span>
           </Button>
         </>
@@ -59,6 +59,7 @@ export const MobileSidebarActions = ({
         <VenueFollowButton 
           venueId={venue.id} 
           showCount={false}
+          size="default"
         />
       )}
     </div>
