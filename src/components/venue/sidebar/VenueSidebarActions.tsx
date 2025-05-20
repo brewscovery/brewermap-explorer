@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UserCheck, ListTodo, Star } from 'lucide-react';
+import { UserCheck, ListTodo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { VenueFollowButton } from '../VenueFollowButton';
 import { useTodoLists } from '@/hooks/useTodoLists';
@@ -51,9 +51,7 @@ const VenueSidebarActions = ({
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
             <ListTodo size={18} className={venueInTodoList ? "fill-current" : ""} />
-            <span className="sr-only md:not-sr-only md:ml-2">
-              {venueInTodoList ? "Todo" : "Todo"}
-            </span>
+            <span className="sr-only md:not-sr-only md:ml-2">Todo</span>
           </Button>
         </>
       )}
