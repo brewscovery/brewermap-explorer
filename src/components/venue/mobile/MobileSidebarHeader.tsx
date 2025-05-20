@@ -89,15 +89,6 @@ export const MobileSidebarHeader = ({
         
         {/* Center column: stats and verification */}
         <div className="flex flex-col flex-1 min-w-0">
-          {/* Check-in stats */}
-          <div className="mb-2">
-            <span className="text-sm font-medium">
-              {checkInStats?.count || 0} check-ins
-              {checkInStats?.avgRating > 0 && (
-                <span className="ml-1">• {checkInStats.avgRating} avg</span>
-              )}
-            </span>
-          </div>
           
           {/* Verification status */}
           <div className="flex flex-wrap gap-2 items-center">
