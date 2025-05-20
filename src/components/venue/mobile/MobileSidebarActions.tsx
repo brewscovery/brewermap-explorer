@@ -36,9 +36,10 @@ export const MobileSidebarActions = ({
               size="sm" 
               variant="outline"
               onClick={onOpenCheckInDialog}
-              className="h-9 px-3"
+              className="h-9 px-3 transition-all active:scale-95"
+              title="Check In"
             >
-              <UserCheck size={16} />
+              <UserCheck size={18} />
               <span className="sr-only">Check In</span>
             </Button>
           )}
@@ -46,16 +47,19 @@ export const MobileSidebarActions = ({
             size="sm" 
             variant={venueInTodoList ? "default" : "outline"}
             onClick={onOpenTodoListDialog}
-            className="h-9 px-3"
+            className="h-9 px-3 transition-all active:scale-95"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
-            <ListTodo size={16} className={venueInTodoList ? "fill-current" : ""} />
-            <span className="sr-only">ToDo List</span>
+            <ListTodo size={18} className={venueInTodoList ? "fill-current" : ""} />
+            <span className="sr-only">ToDo</span>
           </Button>
         </>
       )}
       {venue.id && (
-        <VenueFollowButton venueId={venue.id} />
+        <VenueFollowButton 
+          venueId={venue.id} 
+          showCount={false}
+        />
       )}
     </div>
   );

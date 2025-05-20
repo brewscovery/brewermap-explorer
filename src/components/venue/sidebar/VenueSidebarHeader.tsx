@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import BreweryLogo from '@/components/brewery/BreweryLogo';
@@ -80,24 +80,38 @@ const VenueSidebarHeader = ({
       
       {/* Main content area with logo, stats and actions */}
       <div className="flex items-start">
-        {/* Logo column */}
+        {/* Logo column - smaller size */}
         <div className="flex-shrink-0 mr-3">
           <BreweryLogo 
             logoUrl={breweryInfo?.logo_url}
             name={breweryInfo?.name}
-            size="large"
+            size="medium"
           />
         </div>
         
         {/* Center column: stats and verification */}
         <div className="flex flex-col flex-1 min-w-0">
+          {/* Rating stats */}
+          {checkInStats && (
+            <div className="flex items-center gap-2 mb-2">
+              {checkInStats.avgRating > 0 && (
+                <div className="flex items-center bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                  <Star size={16} className="text-amber-500 mr-1 fill-amber-500" />
+                  <span className="font-semibold">{checkInStats.avgRating.toFixed(1)}</span>
+                </div>
+              )}
+              <span className="text-sm text-muted-foreground">
+                {checkInStats.count} {checkInStats.count === 1 ? 'check-in' : 'check-ins'}
+              </span>
+            </div>
+          )}
           
           {/* Verification status */}
-          <div className="flex flex-wrap gap-2 items-center">
+          <div className="flex flex-wrap gap-2 items-center mt-1">
             {breweryInfo?.is_verified ? (
               <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300">
                 <ShieldCheck size={14} className="text-amber-500" />
-                <span>Verified</span>
+                <span>Verified Brewery</span>
               </Badge>
             ) : (
               <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
@@ -108,11 +122,11 @@ const VenueSidebarHeader = ({
             
             {/* Independent brewery badge */}
             {breweryInfo?.is_independent && (
-              <div>
+              <div className="ml-1">
                 <img 
                   src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
                   alt="Certified Independent Brewery" 
-                  className="h-8" 
+                  className="h-6" 
                 />
               </div>
             )}

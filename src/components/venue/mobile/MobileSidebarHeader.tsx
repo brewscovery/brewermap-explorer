@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, ShieldCheck } from 'lucide-react';
+import { X, ShieldCheck, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import BreweryLogo from '@/components/brewery/BreweryLogo';
@@ -76,49 +76,65 @@ export const MobileSidebarHeader = ({
         </Button>
       </div>
       
-      {/* Main content area */}
-      <div className="flex items-start">
-        {/* Logo column */}
-        <div className="flex-shrink-0 mr-3">
-          <BreweryLogo 
-            logoUrl={breweryInfo?.logo_url}
-            name={breweryInfo?.name}
-            size="large"
-          />
-        </div>
-        
-        {/* Center column: stats and verification */}
-        <div className="flex flex-col flex-1 min-w-0">
+      {/* Main content area - optimized for mobile */}
+      <div className="flex flex-wrap">
+        {/* First row: logo and stats */}
+        <div className="flex items-start w-full mb-2">
+          {/* Logo column - smaller for mobile */}
+          <div className="flex-shrink-0 mr-3">
+            <BreweryLogo 
+              logoUrl={breweryInfo?.logo_url}
+              name={breweryInfo?.name}
+              size="small"
+            />
+          </div>
           
-          {/* Verification status */}
-          <div className="flex flex-wrap gap-2 items-center">
-            {breweryInfo?.is_verified ? (
-              <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300">
-                <ShieldCheck size={14} className="text-amber-500" />
-                <span>Verified</span>
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
-                <ShieldCheck size={14} />
-                <span>Unverified</span>
-              </Badge>
-            )}
-            
-            {/* Independent brewery badge */}
-            {breweryInfo?.is_independent && (
-              <div>
-                <img 
-                  src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
-                  alt="Certified Independent Brewery" 
-                  className="h-6" 
-                />
+          {/* Rating stats */}
+          <div className="flex flex-col flex-1">
+            {checkInStats && (
+              <div className="flex items-center gap-2 mb-2">
+                {checkInStats.avgRating > 0 && (
+                  <div className="flex items-center bg-amber-50 px-2 py-1 rounded-md border border-amber-200">
+                    <Star size={16} className="text-amber-500 mr-1 fill-amber-500" />
+                    <span className="font-semibold">{checkInStats.avgRating.toFixed(1)}</span>
+                  </div>
+                )}
+                <span className="text-sm text-muted-foreground">
+                  {checkInStats.count} {checkInStats.count === 1 ? 'check-in' : 'check-ins'}
+                </span>
               </div>
             )}
+            
+            {/* Verification status */}
+            <div className="flex flex-wrap gap-2 items-center">
+              {breweryInfo?.is_verified ? (
+                <Badge variant="secondary" className="flex items-center gap-1 bg-amber-100 text-amber-700 border border-amber-300">
+                  <ShieldCheck size={14} className="text-amber-500" />
+                  <span>Verified</span>
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="flex items-center gap-1 text-muted-foreground">
+                  <ShieldCheck size={14} />
+                  <span>Unverified</span>
+                </Badge>
+              )}
+              
+              {/* Independent brewery badge */}
+              {breweryInfo?.is_independent && (
+                <div className="ml-1">
+                  <img 
+                    src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                    alt="Certified Independent Brewery" 
+                    className="h-5" 
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Action buttons in a row below */}
+      {/* Action buttons row */}
       <div className="flex justify-end mt-3">
         <MobileSidebarActions
           venue={venue}

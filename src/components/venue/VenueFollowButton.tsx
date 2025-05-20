@@ -43,17 +43,21 @@ export const VenueFollowButton = ({
     <Button
       variant={buttonVariant}
       size={size}
-      className={cn("gap-1", className)}
+      className={cn("gap-1 transition-all hover:scale-105", className)}
       onClick={() => toggleFavorite()}
       disabled={isLoading}
+      title={isFavorited ? "Remove from Favorites" : "Add to Favorites"}
     >
       <Heart
-        size={16}
+        size={18}
         className={cn(
           "transition-colors",
           isFavorited ? "fill-current" : ""
         )}
       />
+      {showCount && favoritesCount > 0 && (
+        <span className="text-xs font-medium">{favoritesCount}</span>
+      )}
     </Button>
   );
 };

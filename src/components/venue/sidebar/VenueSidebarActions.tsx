@@ -36,26 +36,32 @@ const VenueSidebarActions = ({
               size="sm" 
               variant="outline"
               onClick={onOpenCheckInDialog}
-              className="h-9 px-3"
+              className="h-9 px-3 transition-all hover:scale-105"
+              title="Check In"
             >
               <UserCheck size={18} />
-              <span className="sr-only">Check In</span>
+              <span className="sr-only md:not-sr-only md:ml-2">Check In</span>
             </Button>
           )}
           <Button 
             size="sm" 
             variant={venueInTodoList ? "default" : "outline"}
             onClick={onOpenTodoListDialog}
-            className="h-9 px-3"
+            className="h-9 px-3 transition-all hover:scale-105"
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
             <ListTodo size={18} className={venueInTodoList ? "fill-current" : ""} />
-            <span className="sr-only">ToDo List</span>
+            <span className="sr-only md:not-sr-only md:ml-2">
+              {venueInTodoList ? "Todo" : "Todo"}
+            </span>
           </Button>
         </>
       )}
       {venue.id && (
-        <VenueFollowButton venueId={venue.id} />
+        <VenueFollowButton 
+          venueId={venue.id} 
+          showCount={false}
+        />
       )}
     </div>
   );
