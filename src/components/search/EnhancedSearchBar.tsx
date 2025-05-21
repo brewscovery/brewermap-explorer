@@ -33,12 +33,20 @@ const EnhancedSearchBar = ({
     updateSearch
   } = useVenueSearch(inputValue, 'name');
 
+  // Track previous selectedVenue to detect actual changes
+  const prevSelectedVenueRef = useRef<Venue | null | undefined>(selectedVenue);
+
   // Clear search input when venue is deselected (selectedVenue becomes null)
   useEffect(() => {
-    if (!selectedVenue && inputValue) {
+    // Only clear if we had a selected venue before and now it's null
+    // This prevents clearing when typing in an empty search bar
+    if (!selectedVenue && prevSelectedVenueRef.current && inputValue) {
       setManualInputChange(false);
       setInputValue('');
     }
+    
+    // Update our reference for next time
+    prevSelectedVenueRef.current = selectedVenue;
   }, [selectedVenue, inputValue]);
 
   // Close dropdown when clicking outside
