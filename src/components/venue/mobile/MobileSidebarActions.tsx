@@ -40,7 +40,6 @@ export const MobileSidebarActions = ({
               title="Check In"
             >
               <UserCheck size={20} />
-              <span className="sr-only">Check In</span>
             </Button>
           )}
           <Button 
@@ -51,7 +50,6 @@ export const MobileSidebarActions = ({
             title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
           >
             <ListTodo size={20} className={venueInTodoList ? "fill-current" : ""} />
-            <span className="sr-only">Todo</span>
           </Button>
         </>
       )}

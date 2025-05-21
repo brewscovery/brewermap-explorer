@@ -55,7 +55,6 @@ const VenueSidebarActions = ({
           title="Check In"
         >
           <UserCheck size={20} />
-          <span className="sr-only md:not-sr-only md:ml-2">Check In</span>
         </Button>
       )}
       <Button 
@@ -66,7 +65,6 @@ const VenueSidebarActions = ({
         title={venueInTodoList ? `In "${todoList?.name}" list` : "Add to ToDo List"}
       >
         <ListTodo size={20} className={venueInTodoList ? "fill-current" : ""} />
-        <span className="sr-only md:not-sr-only md:ml-2">Todo</span>
       </Button>
       
       {venue.id && (
