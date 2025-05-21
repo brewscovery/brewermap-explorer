@@ -86,11 +86,13 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     if (user) {
       // Avatar with initials for authenticated users
       return (
-        <Avatar className="h-5 w-5 cursor-pointer" onClick={handleSidebarToggle}>
-          <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
-            {getUserInitials()}
-          </AvatarFallback>
-        </Avatar>
+        <div onClick={handleSidebarToggle} className="cursor-pointer z-20">
+          <Avatar className="h-5 w-5">
+            <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
+              {getUserInitials()}
+            </AvatarFallback>
+          </Avatar>
+        </div>
       );
     } else {
       // Login popover trigger for unauthenticated users
@@ -99,7 +101,9 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
           open={loginOpen}
           onOpenChange={setLoginOpen}
           triggerElement={
-            <PanelLeft className="h-5 w-5 cursor-pointer" />
+            <div className="cursor-pointer z-20">
+              <PanelLeft className="h-5 w-5" />
+            </div>
           }
         />
       );
@@ -113,7 +117,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
         <TooltipTrigger asChild>
           <div 
             onClick={() => setFiltersVisible(prev => !prev)} 
-            className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
+            className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors z-20"
           >
             <Filter className="h-5 w-5" />
           </div>

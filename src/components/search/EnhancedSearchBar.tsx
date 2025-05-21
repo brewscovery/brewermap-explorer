@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useVenueSearch } from '@/hooks/useVenueSearch';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -34,6 +33,7 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
   const [isOpen, setIsOpen] = useState(false);
   const [initialRender, setInitialRender] = useState(true);
   const { venues, isLoading, searchTerm, updateSearch } = useVenueSearch();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Expose the resetSearch method
   useImperativeHandle(ref, () => ({
@@ -78,6 +78,21 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
     setSearchText('');
     setIsOpen(false);
     onVenueSelect(null);
+    // Focus the input after clearing
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
+
+  // Handle open state change without losing focus
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    // Keep focus on input if closing dropdown
+    if (!open && inputRef.current) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
   };
 
   const renderResults = () => {
@@ -118,16 +133,17 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
 
   return (
     <div className={className}>
-      <Popover open={isOpen && searchText.trim().length > 0} onOpenChange={setIsOpen}>
+      <Popover open={isOpen && searchText.trim().length > 0} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <div className="relative flex items-center rounded-md shadow-sm">
             {leftIcon && (
-              <div className="absolute left-3 flex items-center pointer-events-none">
+              <div className="absolute left-3 flex items-center pointer-events-none z-10">
                 {leftIcon}
               </div>
             )}
             
             <Input
+              ref={inputRef}
               type="text"
               placeholder="Search venues..."
               className={`pr-9 ${leftIcon ? 'pl-9' : ''} ${rightIcon ? 'pr-9' : ''}`}
