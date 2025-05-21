@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Filter } from "lucide-react";
@@ -18,13 +18,15 @@ interface FloatingSearchBarProps {
   className?: string;
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
+  selectedVenue?: Venue | null;
 }
 
 const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({ 
   onVenueSelect,
   className,
   activeFilters = [],
-  onFilterChange = () => {}
+  onFilterChange = () => {},
+  selectedVenue
 }) => {
   const navigate = useNavigate();
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
@@ -128,6 +130,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
               className="shadow-lg w-full"
               leftIcon={<SidebarToggleButton />}
               rightIcon={<FilterToggleButton />}
+              selectedVenue={selectedVenue}
             />
           </div>
           {filtersVisible && (

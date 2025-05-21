@@ -102,6 +102,7 @@ const Index = () => {
         onVenueSelect={handleVenueSelect} 
         activeFilters={activeFilters}
         onFilterChange={handleFilterChange}
+        selectedVenue={selectedVenue}
       />
       
       <Map

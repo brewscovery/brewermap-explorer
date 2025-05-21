@@ -11,13 +11,15 @@ interface EnhancedSearchBarProps {
   className?: string;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
+  selectedVenue?: Venue | null;
 }
 
 const EnhancedSearchBar = ({ 
   onVenueSelect, 
   className = '',
   leftIcon = <Search size={20} />,
-  rightIcon = null
+  rightIcon = null,
+  selectedVenue
 }: EnhancedSearchBarProps) => {
   const [inputValue, setInputValue] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -30,6 +32,14 @@ const EnhancedSearchBar = ({
     isLoading,
     updateSearch
   } = useVenueSearch(inputValue, 'name');
+
+  // Clear search input when venue is deselected (selectedVenue becomes null)
+  useEffect(() => {
+    if (!selectedVenue && inputValue) {
+      setManualInputChange(false);
+      setInputValue('');
+    }
+  }, [selectedVenue, inputValue]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -102,7 +112,7 @@ const EnhancedSearchBar = ({
   return (
     <div className={`relative ${className}`}>
       <div className="flex items-center bg-white rounded-full shadow-md">
-        <div className="pl-4 pr-2 text-gray-400">
+        <div className="pl-4 pr-2 text-gray-400 z-10 pointer-events-auto">
           {leftIcon}
         </div>
         <Input 
@@ -114,7 +124,7 @@ const EnhancedSearchBar = ({
           className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-12 rounded-full"
         />
         {showClearButton && (
-          <div className="pr-2">
+          <div className="pr-2 z-10 pointer-events-auto">
             <Button 
               variant="ghost" 
               size="icon" 
@@ -128,11 +138,11 @@ const EnhancedSearchBar = ({
           </div>
         )}
         {isLoading ? (
-          <div className="pr-4">
+          <div className="pr-4 z-10 pointer-events-auto">
             <Loader2 size={20} className="animate-spin text-gray-400" />
           </div>
         ) : rightIcon && (
-          <div className="pr-4">
+          <div className="pr-4 z-10 pointer-events-auto">
             {rightIcon}
           </div>
         )}

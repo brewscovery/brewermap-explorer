@@ -75,10 +75,12 @@ const Map = ({
     }
   }, [map, isStyleLoaded, venues.length]);
 
-  // Custom sidebar close handler to ensure it's only closed explicitly
+  // Custom sidebar close handler to ensure it clears the venue and search
   const handleVenueSidebarClose = () => {
     console.log("Map: Explicitly closing venue sidebar");
     handleSidebarClose();
+    // Notify parent component to clear search bar and venue selection
+    onVenueSelect(null);
   };
 
   return (
