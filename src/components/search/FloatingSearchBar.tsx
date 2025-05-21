@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Filter } from "lucide-react";
@@ -18,37 +18,24 @@ interface FloatingSearchBarProps {
   className?: string;
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
-  selectedVenue?: Venue | null; // Add this prop to track selected venue
 }
 
 const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({ 
   onVenueSelect,
   className,
   activeFilters = [],
-  onFilterChange = () => {},
-  selectedVenue = null
+  onFilterChange = () => {}
 }) => {
   const navigate = useNavigate();
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
-  const searchBarRef = useRef<any>(null);
   
   const handleVenueSelect = (venue: Venue | null) => {
     console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
     onVenueSelect(venue);
   };
-
-  // Reset the search input when selectedVenue is null
-  useEffect(() => {
-    if (!selectedVenue && searchBarRef.current) {
-      // Access the search bar's reset method if it's exposed
-      if (typeof searchBarRef.current.resetSearch === 'function') {
-        searchBarRef.current.resetSearch();
-      }
-    }
-  }, [selectedVenue]);
 
   const handleSidebarToggle = () => {
     console.log("FloatingSearchBar: handleSidebarToggle called");
@@ -86,13 +73,11 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     if (user) {
       // Avatar with initials for authenticated users
       return (
-        <div onClick={handleSidebarToggle} className="cursor-pointer">
-          <Avatar className="h-5 w-5">
-            <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
-              {getUserInitials()}
-            </AvatarFallback>
-          </Avatar>
-        </div>
+        <Avatar className="h-5 w-5 cursor-pointer" onClick={handleSidebarToggle}>
+          <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
+            {getUserInitials()}
+          </AvatarFallback>
+        </Avatar>
       );
     } else {
       // Login popover trigger for unauthenticated users
@@ -101,9 +86,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
           open={loginOpen}
           onOpenChange={setLoginOpen}
           triggerElement={
-            <div className="cursor-pointer">
-              <PanelLeft className="h-5 w-5" />
-            </div>
+            <PanelLeft className="h-5 w-5 cursor-pointer" />
           }
         />
       );
@@ -141,12 +124,10 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
         <div className="flex flex-1 items-center gap-2">
           <div className="flex-1 sm:max-w-[25%]"> {/* Limited width on desktop */}
             <EnhancedSearchBar 
-              ref={searchBarRef}
               onVenueSelect={handleVenueSelect}
               className="shadow-lg w-full"
               leftIcon={<SidebarToggleButton />}
               rightIcon={<FilterToggleButton />}
-              selectedVenue={selectedVenue}
             />
           </div>
           {filtersVisible && (
