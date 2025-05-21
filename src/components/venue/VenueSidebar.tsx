@@ -150,8 +150,8 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
         onClose={handleClose}
         open={true}
         displayMode={displayMode}
-        onOpenCheckInDialog={user && userType === 'regular' ? handleOpenCheckInDialog : undefined}
-        onOpenTodoListDialog={user && userType === 'regular' ? handleOpenTodoListDialog : undefined}
+        onOpenCheckInDialog={handleOpenCheckInDialog}
+        onOpenTodoListDialog={handleOpenTodoListDialog}
       >
         <VenueSidebarContent
           venue={venue}
