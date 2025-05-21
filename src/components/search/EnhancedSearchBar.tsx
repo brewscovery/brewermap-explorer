@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, forwardRef, useImperativeHandle, useRef } from 'react';
 import { useVenueSearch } from '@/hooks/useVenueSearch';
 import { Input } from '@/components/ui/input';
@@ -84,17 +85,6 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
     }, 0);
   };
 
-  // Handle open state change without losing focus
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    // Keep focus on input if closing dropdown
-    if (!open && inputRef.current) {
-      setTimeout(() => {
-        inputRef.current?.focus();
-      }, 0);
-    }
-  };
-
   const renderResults = () => {
     if (isLoading) {
       return (
@@ -133,11 +123,11 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
 
   return (
     <div className={className}>
-      <Popover open={isOpen && searchText.trim().length > 0} onOpenChange={handleOpenChange}>
+      <Popover open={isOpen && searchText.trim().length > 0}>
         <PopoverTrigger asChild>
           <div className="relative flex items-center rounded-md shadow-sm">
             {leftIcon && (
-              <div className="absolute left-3 flex items-center pointer-events-none z-10">
+              <div className="absolute left-3 flex items-center">
                 {leftIcon}
               </div>
             )}
