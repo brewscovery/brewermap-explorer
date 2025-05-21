@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Filter } from "lucide-react";
@@ -18,24 +18,37 @@ interface FloatingSearchBarProps {
   className?: string;
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
+  selectedVenue?: Venue | null; // Add this prop to track selected venue
 }
 
 const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({ 
   onVenueSelect,
   className,
   activeFilters = [],
-  onFilterChange = () => {}
+  onFilterChange = () => {},
+  selectedVenue = null
 }) => {
   const navigate = useNavigate();
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
+  const searchBarRef = useRef<any>(null);
   
   const handleVenueSelect = (venue: Venue | null) => {
     console.log('FloatingSearchBar: onVenueSelect called with venue:', venue?.name || 'none');
     onVenueSelect(venue);
   };
+
+  // Reset the search input when selectedVenue is null
+  useEffect(() => {
+    if (!selectedVenue && searchBarRef.current) {
+      // Access the search bar's reset method if it's exposed
+      if (typeof searchBarRef.current.resetSearch === 'function') {
+        searchBarRef.current.resetSearch();
+      }
+    }
+  }, [selectedVenue]);
 
   const handleSidebarToggle = () => {
     console.log("FloatingSearchBar: handleSidebarToggle called");
@@ -124,10 +137,12 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
         <div className="flex flex-1 items-center gap-2">
           <div className="flex-1 sm:max-w-[25%]"> {/* Limited width on desktop */}
             <EnhancedSearchBar 
+              ref={searchBarRef}
               onVenueSelect={handleVenueSelect}
               className="shadow-lg w-full"
               leftIcon={<SidebarToggleButton />}
               rightIcon={<FilterToggleButton />}
+              selectedVenue={selectedVenue}
             />
           </div>
           {filtersVisible && (
