@@ -51,12 +51,20 @@ export const useVenueHours = (venueId: string | null) => {
       setIsUpdating(true);
       
       // Process the hours data with updated_by information
-      const processedData = hoursData.map(hour => ({
-        ...hour,
-        venue_id: venueId,
-        updated_by: user.id,
-        updated_at: new Date().toISOString()
-      }));
+      const processedData = hoursData.map(hour => {
+        // Validate required fields
+        if (typeof hour.day_of_week !== 'number') {
+          throw new Error('day_of_week is required and must be a number');
+        }
+
+        return {
+          ...hour,
+          day_of_week: hour.day_of_week, // Ensure day_of_week is present
+          venue_id: venueId,
+          updated_by: user.id,
+          updated_at: new Date().toISOString()
+        };
+      });
       
       const { error } = await supabase
         .from('venue_hours')

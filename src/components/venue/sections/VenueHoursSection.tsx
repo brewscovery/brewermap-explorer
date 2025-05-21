@@ -29,7 +29,7 @@ const VenueHoursSection = memo(({ venueHours, isLoadingHours }: VenueHoursSectio
           ? current 
           : latest;
       }, 
-      { updated_at: null }
+      { updated_at: null } as any
     );
     
     return {

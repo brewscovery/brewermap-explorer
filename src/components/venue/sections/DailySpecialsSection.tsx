@@ -28,7 +28,7 @@ const DailySpecialsSection = ({ dailySpecials, isLoading }: DailySpecialsSection
           ? current 
           : latest;
       }, 
-      { updated_at: null }
+      { updated_at: null } as any
     );
     
     return {
