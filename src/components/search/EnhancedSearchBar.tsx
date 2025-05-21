@@ -85,6 +85,17 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
     }, 0);
   };
 
+  // Handle open state change to maintain focus
+  const handleOpenChange = (open: boolean) => {
+    setIsOpen(open);
+    // Re-focus the input whenever the dropdown state changes
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+      }
+    }, 0);
+  };
+
   const renderResults = () => {
     if (isLoading) {
       return (
@@ -123,11 +134,11 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
 
   return (
     <div className={className}>
-      <Popover open={isOpen && searchText.trim().length > 0}>
+      <Popover open={isOpen && searchText.trim().length > 0} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <div className="relative flex items-center rounded-md shadow-sm">
             {leftIcon && (
-              <div className="absolute left-3 flex items-center">
+              <div className="absolute left-3 flex items-center pointer-events-auto z-10">
                 {leftIcon}
               </div>
             )}
@@ -139,6 +150,12 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
               className={`pr-9 ${leftIcon ? 'pl-9' : ''} ${rightIcon ? 'pr-9' : ''}`}
               value={searchText}
               onChange={handleSearchChange}
+              onFocus={() => {
+                // Re-open dropdown if we have search text when input is focused
+                if (searchText.trim().length > 0) {
+                  setIsOpen(true);
+                }
+              }}
             />
             
             {searchText && (
@@ -155,7 +172,7 @@ const EnhancedSearchBar = forwardRef<EnhancedSearchBarHandle, EnhancedSearchBarP
             )}
             
             {rightIcon && (
-              <div className="absolute right-3 flex items-center">
+              <div className="absolute right-3 flex items-center pointer-events-auto z-10">
                 {rightIcon}
               </div>
             )}
