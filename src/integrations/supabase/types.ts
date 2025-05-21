@@ -330,6 +330,7 @@ export type Database = {
           is_active: boolean
           start_time: string | null
           updated_at: string
+          updated_by: string | null
           venue_id: string
         }
         Insert: {
@@ -341,6 +342,7 @@ export type Database = {
           is_active?: boolean
           start_time?: string | null
           updated_at?: string
+          updated_by?: string | null
           venue_id: string
         }
         Update: {
@@ -352,6 +354,7 @@ export type Database = {
           is_active?: boolean
           start_time?: string | null
           updated_at?: string
+          updated_by?: string | null
           venue_id?: string
         }
         Relationships: [
@@ -456,6 +459,7 @@ export type Database = {
           is_active: boolean
           start_time: string | null
           updated_at: string
+          updated_by: string | null
           venue_id: string
         }
         Insert: {
@@ -467,6 +471,7 @@ export type Database = {
           is_active?: boolean
           start_time?: string | null
           updated_at?: string
+          updated_by?: string | null
           venue_id: string
         }
         Update: {
@@ -478,6 +483,7 @@ export type Database = {
           is_active?: boolean
           start_time?: string | null
           updated_at?: string
+          updated_by?: string | null
           venue_id?: string
         }
         Relationships: [
@@ -499,6 +505,7 @@ export type Database = {
           kitchen_close_time: string | null
           kitchen_open_time: string | null
           updated_at: string | null
+          updated_by: string | null
           venue_close_time: string | null
           venue_id: string
           venue_open_time: string | null
@@ -511,6 +518,7 @@ export type Database = {
           kitchen_close_time?: string | null
           kitchen_open_time?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           venue_close_time?: string | null
           venue_id: string
           venue_open_time?: string | null
@@ -523,6 +531,7 @@ export type Database = {
           kitchen_close_time?: string | null
           kitchen_open_time?: string | null
           updated_at?: string | null
+          updated_by?: string | null
           venue_close_time?: string | null
           venue_id?: string
           venue_open_time?: string | null

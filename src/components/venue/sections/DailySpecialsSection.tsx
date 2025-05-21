@@ -4,6 +4,7 @@ import { MenuSquare, Clock } from 'lucide-react';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { formatTime, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
 import type { VenueDailySpecial } from '@/hooks/useVenueDailySpecials';
+import LastUpdatedInfo from './LastUpdatedInfo';
 
 interface DailySpecialsSectionProps {
   dailySpecials: VenueDailySpecial[];
@@ -12,6 +13,31 @@ interface DailySpecialsSectionProps {
 
 const DailySpecialsSection = ({ dailySpecials, isLoading }: DailySpecialsSectionProps) => {
   const activeSpecials = dailySpecials.filter(special => special.is_active);
+  
+  // Get the most recent update time and who updated it
+  const getLastUpdatedInfo = () => {
+    if (dailySpecials.length === 0) return { updatedAt: null, updatedByType: null };
+    
+    // Find the most recently updated special
+    const mostRecent = dailySpecials.reduce(
+      (latest, current) => {
+        if (!latest.updated_at) return current;
+        if (!current.updated_at) return latest;
+        
+        return new Date(current.updated_at) > new Date(latest.updated_at) 
+          ? current 
+          : latest;
+      }, 
+      { updated_at: null }
+    );
+    
+    return {
+      updatedAt: mostRecent.updated_at,
+      updatedByType: mostRecent.updated_by ? 'admin' : 'business'
+    };
+  };
+  
+  const { updatedAt, updatedByType } = getLastUpdatedInfo();
   
   if (isLoading) {
     return (
@@ -57,15 +83,18 @@ const DailySpecialsSection = ({ dailySpecials, isLoading }: DailySpecialsSection
   
   return (
     <div className="space-y-2">
-      <h3 className="font-medium text-sm flex items-center gap-1.5">
-        <MenuSquare className="h-4 w-4" /> 
-        Daily Specials
-        {activeNow && (
-          <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full animate-pulse">
-            Available now!
-          </span>
-        )}
-      </h3>
+      <div className="flex flex-col">
+        <h3 className="font-medium text-sm flex items-center gap-1.5">
+          <MenuSquare className="h-4 w-4" /> 
+          Daily Specials
+          {activeNow && (
+            <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full animate-pulse">
+              Available now!
+            </span>
+          )}
+        </h3>
+        <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+      </div>
       
       <div className="space-y-3">
         {sortedSpecials.map((special, index) => (
