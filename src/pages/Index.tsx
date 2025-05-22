@@ -8,11 +8,14 @@ import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
+import { CheckInDialog } from '@/components/CheckInDialog';
+import { useState } from 'react';
 
 const Index = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
+  const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   
   const {
     venues,
@@ -39,6 +42,7 @@ const Index = () => {
   // Handle venueId from URL parameter
   useEffect(() => {
     const venueId = searchParams.get('venueId');
+    const action = searchParams.get('action');
     
     if (venueId && allVenues.length > 0) {
       // First try to find the venue in our loaded venues
@@ -47,6 +51,11 @@ const Index = () => {
       if (venue) {
         console.log('Found venue from URL parameter:', venue.name);
         setSelectedVenue(venue);
+        
+        // If action is check-in, open the check-in dialog
+        if (action === 'check-in' && user) {
+          setIsCheckInDialogOpen(true);
+        }
       } else {
         // If venue is not in our loaded venues, fetch it directly
         const fetchVenue = async () => {
@@ -63,6 +72,11 @@ const Index = () => {
               console.log('Fetched venue from URL parameter:', data.name);
               // Cast the data to Venue type to ensure compatibility
               setSelectedVenue(data as Venue);
+              
+              // If action is check-in, open the check-in dialog
+              if (action === 'check-in' && user) {
+                setIsCheckInDialogOpen(true);
+              }
             }
           } catch (error) {
             console.error('Error fetching venue from ID:', error);
@@ -73,7 +87,17 @@ const Index = () => {
         fetchVenue();
       }
     }
-  }, [searchParams, allVenues, setSelectedVenue]);
+
+    // Check for stored venue ID from QR code flow
+    const qrCheckInVenueId = sessionStorage.getItem('qr_checkin_venue_id');
+    if (qrCheckInVenueId && user) {
+      // Clear the stored venue ID
+      sessionStorage.removeItem('qr_checkin_venue_id');
+      
+      // Navigate to the venue with check-in action
+      navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`);
+    }
+  }, [searchParams, allVenues, setSelectedVenue, user]);
 
   // Handle venue data errors
   useEffect(() => {
@@ -95,6 +119,13 @@ const Index = () => {
     setSelectedVenue(venue);
   };
 
+  const handleCheckInSuccess = () => {
+    setIsCheckInDialogOpen(false);
+    // Clear the action parameter from URL
+    navigate('/?venueId=' + (selectedVenue?.id || ''), { replace: true });
+    toast.success('Check-in successful!');
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Floating UI Elements */}
@@ -113,6 +144,16 @@ const Index = () => {
         onFilterChange={handleFilterChange}
         lastFilterUpdateTime={lastFilterUpdateTime}
       />
+
+      {/* Check-in dialog */}
+      {selectedVenue && user && (
+        <CheckInDialog
+          venue={selectedVenue}
+          isOpen={isCheckInDialogOpen}
+          onClose={() => setIsCheckInDialogOpen(false)}
+          onSuccess={handleCheckInSuccess}
+        />
+      )}
     </div>
   );
 };

@@ -13,6 +13,7 @@ import {
   Beer, 
   Utensils, 
   Trash2,
+  QrCode
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Venue } from '@/types/venue';
@@ -20,6 +21,7 @@ import { VenueDetailsTab } from '@/components/brewery/venue-tabs/VenueDetailsTab
 import { VenueHoursTab } from '@/components/brewery/venue-tabs/VenueHoursTab';
 import { HappyHoursTab } from '@/components/brewery/venue-tabs/HappyHoursTab';
 import { DailySpecialsTab } from '@/components/brewery/venue-tabs/DailySpecialsTab';
+import { QrCodeTab } from '@/components/brewery/venue-tabs/QrCodeTab';
 import DeleteVenueConfirmDialog from './DeleteVenueConfirmDialog';
 
 interface VenueDetailViewProps {
@@ -84,7 +86,7 @@ export const VenueDetailView = ({
       </div>
       
       <Tabs value={selectedTab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="details" className="flex items-center gap-1">
             <Store className="h-4 w-4" />
             <span className="hidden sm:inline">Venue Details</span>
@@ -104,6 +106,11 @@ export const VenueDetailView = ({
             <Utensils className="h-4 w-4" />
             <span className="hidden sm:inline">Daily Specials</span>
             <span className="sm:hidden">Specials</span>
+          </TabsTrigger>
+          <TabsTrigger value="qr-code" className="flex items-center gap-1">
+            <QrCode className="h-4 w-4" />
+            <span className="hidden sm:inline">QR Code</span>
+            <span className="sm:hidden">QR</span>
           </TabsTrigger>
         </TabsList>
         
@@ -129,6 +136,12 @@ export const VenueDetailView = ({
         
         <TabsContent value="specials" className="pt-4">
           <DailySpecialsTab 
+            venue={venue}
+          />
+        </TabsContent>
+        
+        <TabsContent value="qr-code" className="pt-4">
+          <QrCodeTab 
             venue={venue}
           />
         </TabsContent>

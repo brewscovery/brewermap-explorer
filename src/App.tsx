@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -30,6 +31,7 @@ import EventsPage from "./pages/dashboard/EventsPage";
 import TodoListsPage from "./pages/dashboard/TodoListsPage";
 import EventsExplorer from "./pages/dashboard/EventsExplorer";
 import ProtectedRoute from "./components/protected/ProtectedRoute";
+import VenueQrRedirect from "./components/qr/VenueQrRedirect";
 
 const UserTypeRoute = ({ 
   element, 
@@ -88,6 +90,7 @@ const App = () => {
           <BrowserRouter>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
               
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
