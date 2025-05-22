@@ -72,7 +72,7 @@ export function CheckInDialog({ venue, isOpen, onClose, onSuccess }: CheckInDial
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md z-[150]">
+      <DialogContent className="sm:max-w-md z-[200]">
         <DialogHeader>
           <DialogTitle>Check in at {venue.name}</DialogTitle>
           <DialogDescription>

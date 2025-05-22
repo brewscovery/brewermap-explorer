@@ -54,7 +54,10 @@ const Index = () => {
         
         // If action is check-in, open the check-in dialog
         if (action === 'check-in' && user) {
-          setIsCheckInDialogOpen(true);
+          console.log('Opening check-in dialog for venue:', venue.name);
+          setTimeout(() => {
+            setIsCheckInDialogOpen(true);
+          }, 100); // Small delay to ensure venue is selected first
         }
       } else {
         // If venue is not in our loaded venues, fetch it directly
@@ -75,7 +78,10 @@ const Index = () => {
               
               // If action is check-in, open the check-in dialog
               if (action === 'check-in' && user) {
-                setIsCheckInDialogOpen(true);
+                console.log('Opening check-in dialog for venue:', data.name);
+                setTimeout(() => {
+                  setIsCheckInDialogOpen(true);
+                }, 100); // Small delay to ensure venue is selected first
               }
             }
           } catch (error) {
@@ -91,11 +97,12 @@ const Index = () => {
     // Check for stored venue ID from QR code flow
     const qrCheckInVenueId = sessionStorage.getItem('qr_checkin_venue_id');
     if (qrCheckInVenueId && user) {
+      console.log('Found stored QR check-in venue ID:', qrCheckInVenueId);
       // Clear the stored venue ID
       sessionStorage.removeItem('qr_checkin_venue_id');
       
       // Navigate to the venue with check-in action
-      navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`);
+      navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`, { replace: true });
     }
   }, [searchParams, allVenues, setSelectedVenue, user, navigate]);
 
@@ -122,8 +129,17 @@ const Index = () => {
   const handleCheckInSuccess = () => {
     setIsCheckInDialogOpen(false);
     // Clear the action parameter from URL
-    navigate('/?venueId=' + (selectedVenue?.id || ''), { replace: true });
+    navigate(`/?venueId=${selectedVenue?.id || ''}`, { replace: true });
     toast.success('Check-in successful!');
+  };
+
+  const handleCheckInClose = () => {
+    console.log('Index page: Closing check-in dialog');
+    setIsCheckInDialogOpen(false);
+    // Clear the action parameter from URL if it exists
+    if (searchParams.get('action') === 'check-in') {
+      navigate(`/?venueId=${selectedVenue?.id || ''}`, { replace: true });
+    }
   };
 
   return (
@@ -145,14 +161,16 @@ const Index = () => {
         lastFilterUpdateTime={lastFilterUpdateTime}
       />
 
-      {/* Check-in dialog */}
+      {/* Check-in dialog - now with improved z-index and event handling */}
       {selectedVenue && user && (
-        <CheckInDialog
-          venue={selectedVenue}
-          isOpen={isCheckInDialogOpen}
-          onClose={() => setIsCheckInDialogOpen(false)}
-          onSuccess={handleCheckInSuccess}
-        />
+        <div className="z-[200] pointer-events-auto">
+          <CheckInDialog
+            venue={selectedVenue}
+            isOpen={isCheckInDialogOpen}
+            onClose={handleCheckInClose}
+            onSuccess={handleCheckInSuccess}
+          />
+        </div>
       )}
     </div>
   );

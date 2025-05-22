@@ -26,20 +26,33 @@ export const MobileSidebarDialogs = ({
 }: MobileSidebarDialogsProps) => {
   if (!venue || !user) return null;
   
+  // Add logging to track dialog state
+  console.log('Mobile dialogs rendering with states:', { isCheckInDialogOpen, isTodoListDialogOpen });
+  
+  const handleCheckInClose = () => {
+    console.log('Check-in dialog close triggered');
+    onCheckInDialogClose();
+  };
+  
+  const handleTodoListClose = () => {
+    console.log('Todo list dialog close triggered');
+    onTodoListDialogClose();
+  };
+  
   return (
-    <>
+    <div className="z-[200] pointer-events-auto">
       {/* Using dialog-fixed version for better stacking and z-index handling */}
       <CheckInDialog
         venue={venue}
         isOpen={isCheckInDialogOpen}
-        onClose={onCheckInDialogClose}
+        onClose={handleCheckInClose}
         onSuccess={onCheckInSuccess}
       />
       <TodoListDialog
         venue={venue}
         isOpen={isTodoListDialogOpen}
-        onClose={onTodoListDialogClose}
+        onClose={handleTodoListClose}
       />
-    </>
+    </div>
   );
 };
