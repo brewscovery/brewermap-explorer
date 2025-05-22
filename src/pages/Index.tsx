@@ -97,7 +97,7 @@ const Index = () => {
       // Navigate to the venue with check-in action
       navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`);
     }
-  }, [searchParams, allVenues, setSelectedVenue, user]);
+  }, [searchParams, allVenues, setSelectedVenue, user, navigate]);
 
   // Handle venue data errors
   useEffect(() => {
