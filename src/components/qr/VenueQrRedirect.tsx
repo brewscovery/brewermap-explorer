@@ -55,11 +55,7 @@ const VenueQrRedirect = () => {
         }
 
         setVenue(venueData);
-        
-        // Handle based on authentication state
-        if (!authLoading) {
-          handleRedirect(venueData);
-        }
+        setIsLoading(false);
       } catch (error) {
         console.error('Error processing QR code:', error);
         toast.error('Could not process the QR code');
@@ -69,18 +65,21 @@ const VenueQrRedirect = () => {
     };
 
     getVenueFromToken();
-  }, [token, authLoading]);
+  }, [token]);
 
-  // Handle redirect once authentication state is known
+  // Handle redirect once authentication state is known and venue is loaded
   useEffect(() => {
-    if (!authLoading && venue) {
+    if (!authLoading && venue && !isLoading) {
       handleRedirect(venue);
     }
-  }, [authLoading, user, userType, venue]);
+  }, [authLoading, user, userType, venue, isLoading]);
 
   const handleRedirect = (venue: Venue) => {
+    console.log('QR redirect: handling redirect for venue:', venue.name, 'user:', user?.id, 'userType:', userType);
+    
     // If user is not logged in, redirect to auth page
     if (!user) {
+      console.log('QR redirect: User not authenticated, storing venue ID and redirecting to auth');
       // Store the venue ID in session storage to redirect after login
       sessionStorage.setItem('qr_checkin_venue_id', venue.id);
       navigate('/auth');
@@ -89,18 +88,19 @@ const VenueQrRedirect = () => {
 
     // If user is a business user, show error message
     if (userType === 'business') {
+      console.log('QR redirect: Business user trying to check in, showing error');
       toast.error('Check-in functionality is not available for business users');
       navigate('/');
       return;
     }
 
     // For regular users and admins, redirect to venue with check-in dialog
-    // Set a flag to open the check-in dialog automatically
+    console.log('QR redirect: Authenticated user, redirecting to check-in');
     navigate(`/?venueId=${venue.id}&action=check-in`);
   };
 
   // Show loading state while processing
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen p-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />

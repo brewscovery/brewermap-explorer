@@ -39,6 +39,23 @@ const Index = () => {
     }
   }, [navigate, searchParams, user]);
 
+  // Handle QR code flow when user becomes authenticated
+  useEffect(() => {
+    if (user) {
+      // Check for stored venue ID from QR code flow
+      const qrCheckInVenueId = sessionStorage.getItem('qr_checkin_venue_id');
+      if (qrCheckInVenueId) {
+        console.log('Processing stored QR check-in venue ID:', qrCheckInVenueId);
+        // Clear the stored venue ID immediately
+        sessionStorage.removeItem('qr_checkin_venue_id');
+        
+        // Navigate to the venue with check-in action
+        navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`, { replace: true });
+        return; // Exit early, let the URL parameter handling take over
+      }
+    }
+  }, [user, navigate]);
+
   // Handle venueId from URL parameter
   useEffect(() => {
     const venueId = searchParams.get('venueId');
@@ -93,18 +110,7 @@ const Index = () => {
         fetchVenue();
       }
     }
-
-    // Check for stored venue ID from QR code flow
-    const qrCheckInVenueId = sessionStorage.getItem('qr_checkin_venue_id');
-    if (qrCheckInVenueId && user) {
-      console.log('Found stored QR check-in venue ID:', qrCheckInVenueId);
-      // Clear the stored venue ID
-      sessionStorage.removeItem('qr_checkin_venue_id');
-      
-      // Navigate to the venue with check-in action
-      navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`, { replace: true });
-    }
-  }, [searchParams, allVenues, setSelectedVenue, user, navigate]);
+  }, [searchParams, allVenues, setSelectedVenue, user]);
 
   // Handle venue data errors
   useEffect(() => {
@@ -163,13 +169,15 @@ const Index = () => {
 
       {/* Check-in dialog - now with improved z-index and event handling */}
       {selectedVenue && user && (
-        <div className="z-[200] pointer-events-auto">
-          <CheckInDialog
-            venue={selectedVenue}
-            isOpen={isCheckInDialogOpen}
-            onClose={handleCheckInClose}
-            onSuccess={handleCheckInSuccess}
-          />
+        <div className="fixed inset-0 z-[300] pointer-events-none">
+          <div className="pointer-events-auto">
+            <CheckInDialog
+              venue={selectedVenue}
+              isOpen={isCheckInDialogOpen}
+              onClose={handleCheckInClose}
+              onSuccess={handleCheckInSuccess}
+            />
+          </div>
         </div>
       )}
     </div>
