@@ -1,6 +1,6 @@
 
 /**
- * Format a time string from database format (HH:MM:SS) to display format (h:MM AM/PM)
+ * Format a time string from database format (HH:MM:SS) to display format using device locale
  */
 export const formatTime = (timeString: string | null): string => {
   if (!timeString) return '';
@@ -8,12 +8,47 @@ export const formatTime = (timeString: string | null): string => {
   // Parse the time string (expected format: "HH:MM:SS")
   const [hours, minutes] = timeString.split(':').map(Number);
   
-  // Convert to 12-hour format
-  const period = hours >= 12 ? 'PM' : 'AM';
-  const hours12 = hours % 12 || 12; // Convert 0 to 12 for 12 AM
+  // Create a date object for today with the specified time
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
   
-  // Format and return the time
-  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+  // Use device locale for time formatting
+  return date.toLocaleTimeString([], { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: undefined // Let the locale decide 12/24 hour format
+  });
+};
+
+/**
+ * Format a date using device locale
+ */
+export const formatDate = (date: Date | string): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  return dateObj.toLocaleDateString([], {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+};
+
+/**
+ * Format date and time together using device locale
+ */
+export const formatDateTime = (datetime: Date | string): string => {
+  const dateObj = typeof datetime === 'string' ? new Date(datetime) : datetime;
+  
+  return dateObj.toLocaleString([], {
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: undefined // Let the locale decide 12/24 hour format
+  });
 };
 
 /**

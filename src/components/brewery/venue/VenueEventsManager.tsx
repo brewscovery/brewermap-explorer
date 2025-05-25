@@ -6,8 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useVenueEvents, useCreateVenueEvent, useUpdateVenueEvent, useDeleteVenueEvent, VenueEvent } from '@/hooks/useVenueEvents';
 import type { Venue } from '@/types/venue';
-import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { formatDateTime } from '@/utils/dateTimeUtils';
 
 interface VenueEventsManagerProps {
   venue: Venue;
@@ -120,7 +120,7 @@ const VenueEventsManager: React.FC<VenueEventsManagerProps> = ({ venue }) => {
                     <div className="font-medium">{ev.title}</div>
                     <div className="text-sm text-muted-foreground">{ev.description}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {format(new Date(ev.start_time), "PPPp")} - {format(new Date(ev.end_time), "PPPp")}
+                      {formatDateTime(new Date(ev.start_time))} - {formatDateTime(new Date(ev.end_time))}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {ev.is_published ? "Published" : "Unpublished"} &nbsp;

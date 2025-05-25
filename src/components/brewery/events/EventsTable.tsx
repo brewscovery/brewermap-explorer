@@ -1,7 +1,7 @@
+
 import React, { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVenueEvents, useDeleteVenueEvent, VenueEvent } from "@/hooks/useVenueEvents";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, Users } from "lucide-react";
 import EditEventDialog from "./EditEventDialog";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { formatDateTime } from "@/utils/dateTimeUtils";
 
 interface Venue {
   id: string;
@@ -208,8 +209,8 @@ const EventRow: React.FC<EventRowProps> = ({
     <tr className="hover:bg-muted/30">
       <td className="py-1">{event.title}</td>
       <td className="py-1">{venueMap[event.venue_id] || event.venue_id}</td>
-      <td className="py-1">{format(new Date(event.start_time), "PPPp")}</td>
-      <td className="py-1">{format(new Date(event.end_time), "PPPp")}</td>
+      <td className="py-1">{formatDateTime(new Date(event.start_time))}</td>
+      <td className="py-1">{formatDateTime(new Date(event.end_time))}</td>
       <td className="py-1">{event.is_published ? "Yes" : "No"}</td>
       <td className="py-1">
         <Badge variant="outline">

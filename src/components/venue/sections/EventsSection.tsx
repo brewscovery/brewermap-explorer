@@ -1,6 +1,4 @@
-
 import React, { useState } from 'react';
-import { format } from 'date-fns';
 import { Calendar, Clock, Heart, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
 import { useAuth } from '@/contexts/AuthContext';
@@ -13,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
+import { formatDate, formatTime } from '@/utils/dateTimeUtils';
 
 interface EventsSectionProps {
   venueId: string;
@@ -135,12 +134,12 @@ const EventCard = ({
       )}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Calendar size={14} />
-        <span>{format(new Date(event.start_time), "EEE, MMM d, yyyy")}</span>
+        <span>{formatDate(new Date(event.start_time))}</span>
       </div>
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Clock size={14} />
         <span>
-          {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+          {new Date(event.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })} - {new Date(event.end_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })}
         </span>
       </div>
       

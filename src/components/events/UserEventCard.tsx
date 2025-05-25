@@ -1,5 +1,5 @@
+
 import React from "react";
-import { format } from "date-fns";
 import { Calendar, Clock, Heart, ChevronDown, ChevronUp, MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,7 @@ import { useEventInterest } from "@/hooks/useEventInterest";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDate } from "@/utils/dateTimeUtils";
 
 interface UserEventCardProps {
   event: VenueEvent;
@@ -135,12 +136,12 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
       <div className="space-y-1 mb-3">
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Calendar size={14} />
-          <span>{format(new Date(event.start_time), "EEE, MMM d, yyyy")}</span>
+          <span>{formatDate(new Date(event.start_time))}</span>
         </div>
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Clock size={14} />
           <span>
-            {format(new Date(event.start_time), "h:mm a")} - {format(new Date(event.end_time), "h:mm a")}
+            {new Date(event.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })} - {new Date(event.end_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })}
           </span>
         </div>
         {venue && (
