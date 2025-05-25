@@ -94,7 +94,8 @@ const LoginPopover = ({ triggerElement, open, onOpenChange }: LoginPopoverProps)
   };
 
   const handleSignUp = () => {
-    navigate('/auth');
+    // Navigate directly to signup form instead of login screen
+    navigate('/auth?signup=true');
   };
 
   return (

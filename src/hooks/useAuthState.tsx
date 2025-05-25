@@ -26,8 +26,9 @@ export const useAuthState = () => {
   useEffect(() => {
     const type = searchParams.get('type');
     const forgot = searchParams.get('forgot');
+    const signup = searchParams.get('signup');
     
-    console.log('URL parameters changed:', { type, forgot });
+    console.log('URL parameters changed:', { type, forgot, signup });
     
     if (type === 'recovery') {
       console.log('Setting recovery mode from URL parameter');
@@ -43,7 +44,14 @@ export const useAuthState = () => {
         isForgotPassword: true,
         isPasswordRecovery: false
       });
-    } else if (!type && !forgot) {
+    } else if (signup === 'true') {
+      console.log('Setting signup mode from URL parameter');
+      setAuthState({
+        isLogin: false,
+        isForgotPassword: false,
+        isPasswordRecovery: false
+      });
+    } else if (!type && !forgot && !signup) {
       // Only reset to login if no special parameters are present
       console.log('No special parameters, defaulting to login view');
       setAuthState(prev => {
