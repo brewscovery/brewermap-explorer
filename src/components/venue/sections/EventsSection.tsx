@@ -139,7 +139,7 @@ const EventCard = ({
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Clock size={14} />
         <span>
-          {new Date(event.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })} - {new Date(event.end_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', hour12: undefined })}
+          {new Date(event.start_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })} - {new Date(event.end_time).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
         </span>
       </div>
       

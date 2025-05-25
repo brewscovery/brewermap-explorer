@@ -67,7 +67,7 @@ const DailySpecialsSection = ({ dailySpecials, isLoading }: DailySpecialsSection
     if (todaySpecials.length === 0) return false;
     
     const now = new Date();
-    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     return todaySpecials.some(special => {
       if (!special.start_time || !special.end_time) return false;

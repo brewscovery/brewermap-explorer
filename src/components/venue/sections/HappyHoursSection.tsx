@@ -67,7 +67,7 @@ const HappyHoursSection = ({ happyHours, isLoading }: HappyHoursSectionProps) =>
     if (todayHappyHours.length === 0) return false;
     
     const now = new Date();
-    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    const currentTime = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     return todayHappyHours.some(hour => {
       if (!hour.start_time || !hour.end_time) return false;

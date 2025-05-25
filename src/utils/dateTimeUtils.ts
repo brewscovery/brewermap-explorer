@@ -15,8 +15,7 @@ export const formatTime = (timeString: string | null): string => {
   // Use device locale for time formatting
   return date.toLocaleTimeString([], { 
     hour: 'numeric', 
-    minute: '2-digit',
-    hour12: undefined // Let the locale decide 12/24 hour format
+    minute: '2-digit'
   });
 };
 
@@ -46,8 +45,7 @@ export const formatDateTime = (datetime: Date | string): string => {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
-    minute: '2-digit',
-    hour12: undefined // Let the locale decide 12/24 hour format
+    minute: '2-digit'
   });
 };
 
