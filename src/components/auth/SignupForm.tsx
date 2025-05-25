@@ -60,96 +60,104 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     }
   };
 
+  const handleReturnToMap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/');
+  };
+
   return (
-    <form onSubmit={handleSignup} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="firstName">
-          {userType === 'business' ? 'Business/Brewery Name' : 'First Name'}
-        </Label>
-        <Input
-          id="firstName"
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
-      </div>
-      {userType === 'regular' && (
+    <div className="space-y-4">
+      <form onSubmit={handleSignup} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="lastName">Last Name</Label>
+          <Label htmlFor="email">Email</Label>
           <Input
-            id="lastName"
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
-      )}
-      <div className="space-y-2">
-        <Label>User Type</Label>
-        <RadioGroup
-          value={userType}
-          onValueChange={handleUserTypeChange}
-          className="flex gap-4"
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="firstName">
+            {userType === 'business' ? 'Business/Brewery Name' : 'First Name'}
+          </Label>
+          <Input
+            id="firstName"
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+          />
+        </div>
+        {userType === 'regular' && (
+          <div className="space-y-2">
+            <Label htmlFor="lastName">Last Name</Label>
+            <Input
+              id="lastName"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              required
+            />
+          </div>
+        )}
+        <div className="space-y-2">
+          <Label>User Type</Label>
+          <RadioGroup
+            value={userType}
+            onValueChange={handleUserTypeChange}
+            className="flex gap-4"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="regular" id="regular" />
+              <Label htmlFor="regular">Regular User</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="business" id="business" />
+              <Label htmlFor="business">Business User</Label>
+            </div>
+          </RadioGroup>
+        </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Loading...' : 'Sign Up'}
+        </Button>
+        <Button
+          variant="link"
+          className="w-full"
+          onClick={onSwitchToLogin}
         >
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="regular" id="regular" />
-            <Label htmlFor="regular">Regular User</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <RadioGroupItem value="business" id="business" />
-            <Label htmlFor="business">Business User</Label>
-          </div>
-        </RadioGroup>
-      </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Loading...' : 'Sign Up'}
-      </Button>
+          Already have an account? Login
+        </Button>
+      </form>
       <Button
         variant="link"
         className="w-full"
-        onClick={onSwitchToLogin}
-      >
-        Already have an account? Login
-      </Button>
-      <Button
-        variant="link"
-        className="w-full"
-        onClick={navigate('/')}
+        onClick={handleReturnToMap}
       >
         Return to map
       </Button>
-    </form>
+    </div>
   );
 };

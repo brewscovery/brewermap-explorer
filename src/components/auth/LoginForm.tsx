@@ -80,53 +80,61 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
     }
   };
 
+  const handleReturnToMap = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate('/');
+  };
+
   return (
-    <form onSubmit={handleLogin} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Loading...' : 'Login'}
-      </Button>
+    <div className="space-y-4">
+      <form onSubmit={handleLogin} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? 'Loading...' : 'Login'}
+        </Button>
+        <Button
+          type="button"
+          variant="link"
+          className="w-full"
+          onClick={onForgotPassword}
+        >
+          Forgot your password?
+        </Button>
+        <Button
+          variant="link"
+          className="w-full"
+          onClick={onSwitchToSignup}
+        >
+          Don't have an account? Sign up
+        </Button>
+      </form>
       <Button
-        type="button"
         variant="link"
         className="w-full"
-        onClick={onForgotPassword}
-      >
-        Forgot your password?
-      </Button>
-      <Button
-        variant="link"
-        className="w-full"
-        onClick={onSwitchToSignup}
-      >
-        Don't have an account? Sign up
-      </Button>
-      <Button
-        variant="link"
-        className="w-full"
-        onClick={navigate('/')}
+        onClick={handleReturnToMap}
       >
         Return to map
       </Button>
-    </form>
+    </div>
   );
 };
