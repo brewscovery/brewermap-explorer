@@ -120,6 +120,13 @@ export const LoginForm = ({ onForgotPassword, onSwitchToSignup }: LoginFormProps
       >
         Don't have an account? Sign up
       </Button>
+      <Button
+        variant="link"
+        className="w-full"
+        onClick={navigate('/')}
+      >
+        Return to map
+      </Button>
     </form>
   );
 };

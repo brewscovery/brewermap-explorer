@@ -141,6 +141,13 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
       >
         Already have an account? Login
       </Button>
+      <Button
+        variant="link"
+        className="w-full"
+        onClick={navigate('/')}
+      >
+        Return to map
+      </Button>
     </form>
   );
 };
