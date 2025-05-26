@@ -48,7 +48,7 @@ export const StateBreakdownChart = ({ data, isLoading }: StateBreakdownChartProp
       </CardHeader>
       <CardContent className="h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} barCategoryGap="0%" margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="state" />
             <YAxis allowDecimals={false} />
@@ -60,8 +60,8 @@ export const StateBreakdownChart = ({ data, isLoading }: StateBreakdownChartProp
               labelFormatter={(label) => `State: ${label}`}
             />
             <Legend />
-            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" barSize={60} stackId="doStack"/>
-            <Bar dataKey="totalCount" fill="#e5e7eb" name="Total" barSize={60} barGap={-60} stackId="doStack"/>
+            <Bar dataKey="totalCount" fill="#e5e7eb" name="Total" />
+            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
