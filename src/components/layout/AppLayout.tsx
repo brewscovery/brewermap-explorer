@@ -15,6 +15,7 @@ const AppLayout = () => {
   const isAdminRoute = location.pathname.includes('/admin');
   const isRootRoute = location.pathname === '/';
   const isBusinessUserDashboard = isDashboardRoute && userType === 'business';
+  const isRegularUserDashboard = isDashboardRoute && userType === 'regular';
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
@@ -30,14 +31,7 @@ const AppLayout = () => {
         <UnifiedSidebar />
         
         <div className="h-screen overflow-auto flex-1">
-          {isDashboardRoute && user && !isBusinessUserDashboard ? (
-            <div className="flex-1 flex flex-col">
-              <DashboardHeader displayName={displayName} />
-              <main className="p-6 pt-4 flex-1">
-                <Outlet />
-              </main>
-            </div>
-          ) : isBusinessUserDashboard ? (
+          {isBusinessUserDashboard || isRegularUserDashboard ? (
             <div className="flex-1 flex flex-col">
               <FloatingSidebarToggle position="top-left" />
               <main className="p-6 pt-4 flex-1">
