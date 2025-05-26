@@ -7,6 +7,7 @@ import { VenueHappyHour } from '@/types/venueHappyHours';
 import { VenueDailySpecial } from '@/types/venueDailySpecials';
 import { getVenueOpenStatus, getKitchenOpenStatus, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
 import { useTodoLists } from '@/hooks/useTodoLists';
+import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface VenueFiltersState {
@@ -25,6 +26,7 @@ export function useVenueFilters(
   const [lastFilterUpdateTime, setLastFilterUpdateTime] = useState<number>(0);
   const { user } = useAuth();
   const { todoListVenues } = useTodoLists();
+  const { visitedVenueIds } = useVisitedVenues();
   
   const handleFilterChange = useCallback((filters: string[]) => {
     console.log('Filter changed to:', filters);
@@ -164,6 +166,11 @@ export function useVenueFilters(
             });
           }
           
+          case 'visited': {
+            // Check if this venue has been visited by the user
+            return visitedVenueIds.includes(venueId);
+          }
+          
           case 'verified-breweries': {
             // Check if this venue belongs to a verified brewery
             return brewery && brewery.is_verified === true;
@@ -179,7 +186,7 @@ export function useVenueFilters(
         }
       });
     });
-  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents, todoListVenues, user, breweries]);
+  }, [venues, activeFilters, venueHours, venueHappyHours, venueDailySpecials, venueEvents, todoListVenues, visitedVenueIds, user, breweries]);
   
   return {
     activeFilters,

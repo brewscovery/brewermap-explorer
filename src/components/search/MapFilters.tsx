@@ -1,7 +1,7 @@
 
 import React from 'react';
 import {
-  Clock, Utensils, Beer, MenuSquare, Calendar, ListTodo, Shield, Leaf 
+  Clock, Utensils, Beer, MenuSquare, Calendar, ListTodo, Shield, Leaf, MapPin 
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Toggle } from "@/components/ui/toggle";
@@ -47,6 +47,12 @@ export const VENUE_FILTERS: VenueFilter[] = [
     label: 'Events',
     icon: <Calendar size={18} />,
     tooltip: 'Events Today'
+  },
+  {
+    id: 'visited',
+    label: 'Visited',
+    icon: <MapPin size={18} />,
+    tooltip: 'Venues You Have Visited'
   },
   {
     id: 'verified-breweries',
