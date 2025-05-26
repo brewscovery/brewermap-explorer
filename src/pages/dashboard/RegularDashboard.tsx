@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAnalytics } from '@/hooks/useUserAnalytics';
-import { CountryBreakdownChart } from '@/components/dashboard/analytics/CountryBreakdownChart';
+import { StateBreakdownChart } from '@/components/dashboard/analytics/StateBreakdownChart';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -55,8 +55,8 @@ const RegularDashboard = () => {
           </CardContent>
         </Card>
 
-        <CountryBreakdownChart 
-          data={analytics?.venuesByCountry || []}
+        <StateBreakdownChart 
+          data={analytics?.venuesByState || []}
           isLoading={isLoading}
         />
       </div>
