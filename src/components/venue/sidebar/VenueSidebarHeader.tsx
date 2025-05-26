@@ -93,16 +93,14 @@ const VenueSidebarHeader = ({
         <div className="flex flex-col flex-grow justify-between h-32">
           {/* Row 1: Check-in details */}
           <div className="flex items-center gap-2 mb-1">
+              <span className="text-sm text-muted-foreground">
+                My check-ins: 
+              </span>
             {checkInStats && checkInStats.avgRating > 0 && (
               <div className="flex items-center bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200">
                 <Star size={18} className="text-amber-500 mr-1.5 fill-amber-500" />
-                <span className="font-semibold text-base">{checkInStats.avgRating.toFixed(1)}</span>
+                <span className="font-semibold text-base">{checkInStats.avgRating.toFixed(1)} ({checkInStats.count})</span>
               </div>
-            )}
-            {checkInStats && (
-              <span className="text-sm text-muted-foreground">
-                {checkInStats.count} {checkInStats.count === 1 ? 'check-in' : 'check-ins'}
-              </span>
             )}
           </div>
           
