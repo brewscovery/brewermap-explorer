@@ -60,8 +60,8 @@ export const StateBreakdownChart = ({ data, isLoading }: StateBreakdownChartProp
               labelFormatter={(label) => `State: ${label}`}
             />
             <Legend />
-            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" barSize={60} xAxisId="main" stackId="doStack"/>
-            <Bar dataKey="totalCount" fill="#e5e7eb" name="Total" barSize={60} barGap={-60} xAxisId="main" stackId="doStack"/>
+            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" barSize={60} stackId="doStack"/>
+            <Bar dataKey="totalCount" fill="#e5e7eb" name="Total" barSize={60} barGap={-60} stackId="doStack"/>
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
