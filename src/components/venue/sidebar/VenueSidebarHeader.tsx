@@ -94,7 +94,7 @@ const VenueSidebarHeader = ({
           {/* Row 1: Check-in details */}
           <div className="flex items-center gap-2 mb-1">
               <span className="text-sm text-muted-foreground">
-                My check-ins: 
+                My rating: 
               </span>
             {checkInStats && checkInStats.avgRating > 0 && (
               <div className="flex items-center bg-amber-50 px-3 py-1.5 rounded-md border border-amber-200">
