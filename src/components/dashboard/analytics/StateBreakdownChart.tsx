@@ -51,7 +51,6 @@ export const StateBreakdownChart = ({ data, isLoading }: StateBreakdownChartProp
           <BarChart 
             data={data} 
             margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-            barCategoryGap="20%"
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="state" />
@@ -65,7 +64,7 @@ export const StateBreakdownChart = ({ data, isLoading }: StateBreakdownChartProp
             />
             <Legend />
             <Bar dataKey="totalCount" fill="#e5e7eb" name="Total" />
-            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" />
+            <Bar dataKey="visitedCount" fill="#22c55e" name="Visited" offset={0} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
