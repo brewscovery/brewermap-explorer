@@ -122,25 +122,25 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
       isMobile && openMobile ? "opacity-0 pointer-events-none" : "opacity-100",
       className
     )}>
-      <div className="flex w-full items-center gap-2">
-        <div className="flex-1 sm:flex-initial sm:min-w-[320px] sm:max-w-[400px]">
-          <EnhancedSearchBar 
-            onVenueSelect={handleVenueSelect}
-            className="shadow-lg w-full"
-            leftIcon={<SidebarToggleButton />}
-            rightIcon={<FilterToggleButton />}
-            selectedVenue={selectedVenue}
-          />
-        </div>
-        {filtersVisible && (
-          <div className="hidden sm:block flex-1">
+      <div className="flex w-full items-center">
+        <div className="flex flex-1 items-center gap-2">
+          <div className="flex-1 sm:max-w-[25%]"> {/* Limited width on desktop */}
+            <EnhancedSearchBar 
+              onVenueSelect={handleVenueSelect}
+              className="shadow-lg w-full"
+              leftIcon={<SidebarToggleButton />}
+              rightIcon={<FilterToggleButton />}
+              selectedVenue={selectedVenue}
+            />
+          </div>
+          {filtersVisible && (
             <MapFilters 
               activeFilters={activeFilters} 
               onFilterChange={onFilterChange} 
-              className="w-full"
+              className="hidden sm:flex"
             />
-          </div>
-        )}
+          )}
+        </div>
       </div>
       {/* Responsive filters for mobile */}
       {filtersVisible && (
