@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog-fixed';
 import { Clock } from 'lucide-react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
@@ -66,7 +66,7 @@ const VenueHoursDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden z-[100]">
+      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
