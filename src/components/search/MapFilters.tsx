@@ -7,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Toggle } from "@/components/ui/toggle";
 import { Button } from "@/components/ui/button";
 import { Separator } from '@/components/ui/separator';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { useAuth } from "@/contexts/AuthContext";
 import { useTodoLists } from "@/hooks/useTodoLists";
 
@@ -109,80 +110,85 @@ const MapFilters = ({ activeFilters, onFilterChange, className }: MapFiltersProp
   const hasTodoListFilters = activeFilters.some(filter => filter.startsWith('todo-list-'));
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <div className={`flex items-center ${className}`}>
       <TooltipProvider>
-        <div className="bg-white/30 backdrop-blur-md border border-white/40 rounded-lg shadow-sm p-1 flex flex-wrap gap-1">
-          {VENUE_FILTERS.map((filter) => (
-            <Tooltip key={filter.id} delayDuration={300}>
-              <TooltipTrigger asChild>
-                <Toggle
-                  pressed={activeFilters.includes(filter.id)}
-                  onPressedChange={() => toggleFilter(filter.id)}
-                  variant="outline" 
-                  size="sm"
-                  className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200
-                    ${activeFilters.includes(filter.id) 
-                      ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
-                      : "bg-background/80 text-muted-foreground hover:bg-accent/50"
-                    }`}
-                >
-                  {filter.icon}
-                  <span>{filter.label}</span>
-                </Toggle>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center">
-                <p>{filter.tooltip}</p>
-              </TooltipContent>
-            </Tooltip>
-          ))}
-          
-          {user && todoListsWithIncomplete.length > 0 && (
-            <>
-              <Separator orientation="vertical" className="h-6 mx-1" />
+        <div className="bg-white/30 backdrop-blur-md border border-white/40 rounded-lg shadow-sm p-1 flex items-center max-w-full">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex gap-1 pb-1">
+              {VENUE_FILTERS.map((filter) => (
+                <Tooltip key={filter.id} delayDuration={300}>
+                  <TooltipTrigger asChild>
+                    <Toggle
+                      pressed={activeFilters.includes(filter.id)}
+                      onPressedChange={() => toggleFilter(filter.id)}
+                      variant="outline" 
+                      size="sm"
+                      className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200 flex-shrink-0
+                        ${activeFilters.includes(filter.id) 
+                          ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
+                          : "bg-background/80 text-muted-foreground hover:bg-accent/50"
+                        }`}
+                    >
+                      {filter.icon}
+                      <span>{filter.label}</span>
+                    </Toggle>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" align="center">
+                    <p>{filter.tooltip}</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
               
-              {todoListsWithIncomplete.map(list => {
-                const filterId = getTodoListFilterId(list.id);
-                const incompleteCount = todoListVenues.filter(
-                  item => item.todo_list_id === list.id && !item.is_completed
-                ).length;
-                
-                return (
-                  <Tooltip key={filterId} delayDuration={300}>
-                    <TooltipTrigger asChild>
-                      <Toggle
-                        pressed={activeFilters.includes(filterId)}
-                        onPressedChange={() => toggleFilter(filterId)}
-                        variant="outline" 
-                        size="sm"
-                        className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200
-                          ${activeFilters.includes(filterId) 
-                            ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
-                            : "bg-background/80 text-muted-foreground hover:bg-accent/50"
-                          }`}
-                      >
-                        <ListTodo size={18} />
-                        <span>{list.name} ({incompleteCount})</span>
-                      </Toggle>
-                    </TooltipTrigger>
-                    <TooltipContent side="bottom" align="center">
-                      <p>Venues in "{list.name}" to visit</p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </>
-          )}
-          
-          {activeFilters.length > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={clearFilters} 
-              className="text-xs font-normal hover:bg-destructive/10 hover:text-destructive"
-            >
-              Clear
-            </Button>
-          )}
+              {user && todoListsWithIncomplete.length > 0 && (
+                <>
+                  <Separator orientation="vertical" className="h-6 mx-1 flex-shrink-0" />
+                  
+                  {todoListsWithIncomplete.map(list => {
+                    const filterId = getTodoListFilterId(list.id);
+                    const incompleteCount = todoListVenues.filter(
+                      item => item.todo_list_id === list.id && !item.is_completed
+                    ).length;
+                    
+                    return (
+                      <Tooltip key={filterId} delayDuration={300}>
+                        <TooltipTrigger asChild>
+                          <Toggle
+                            pressed={activeFilters.includes(filterId)}
+                            onPressedChange={() => toggleFilter(filterId)}
+                            variant="outline" 
+                            size="sm"
+                            className={`flex items-center gap-1 text-xs whitespace-nowrap transition-all duration-200 flex-shrink-0
+                              ${activeFilters.includes(filterId) 
+                                ? "bg-primary text-primary-foreground border-primary font-medium shadow-sm" 
+                                : "bg-background/80 text-muted-foreground hover:bg-accent/50"
+                              }`}
+                          >
+                            <ListTodo size={18} />
+                            <span>{list.name} ({incompleteCount})</span>
+                          </Toggle>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" align="center">
+                          <p>Venues in "{list.name}" to visit</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </>
+              )}
+              
+              {activeFilters.length > 0 && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={clearFilters} 
+                  className="text-xs font-normal hover:bg-destructive/10 hover:text-destructive flex-shrink-0 ml-1"
+                >
+                  Clear
+                </Button>
+              )}
+            </div>
+            <ScrollBar orientation="horizontal" className="hidden sm:flex" />
+          </ScrollArea>
         </div>
       </TooltipProvider>
     </div>
