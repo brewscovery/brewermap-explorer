@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useTodoLists } from '@/hooks/useTodoLists';
 import { useAuth } from '@/contexts/AuthContext';
@@ -75,7 +76,7 @@ export function TodoListDialog({ venue, isOpen, onClose }: TodoListDialogProps) 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md z-[150]">
+      <DialogContent className="sm:max-w-md z-[250]">
         <DialogHeader>
           <DialogTitle>Add to ToDo List</DialogTitle>
           <DialogDescription>
