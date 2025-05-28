@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useSidebar } from "@/components/ui/sidebar";
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 import { useVenueNotificationTriggers } from '@/hooks/useVenueNotificationTriggers';
 import { supabase } from '@/integrations/supabase/client';
@@ -14,6 +15,7 @@ const AppLayout = ({ children }: { children?: React.ReactNode }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
+  const { open, isMobile, openMobile } = useSidebar();
 
   // Handle sign out
   const handleSignOut = async () => {
@@ -58,8 +60,18 @@ const AppLayout = ({ children }: { children?: React.ReactNode }) => {
       {/* Unified Sidebar - only for authenticated users */}
       <UnifiedSidebar />
       
+      {/* Overlay for mobile */}
+      {isMobile && openMobile && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[100]" 
+          onClick={() => {}} 
+        />
+      )}
+
       {/* Main Content */}
-      <div className="flex-1">
+      <div className={`flex-1 transition-all duration-300 ${
+        !isMobile && open ? 'ml-64' : 'ml-0'
+      }`}>
         {children || <Outlet />}
       </div>
     </div>
