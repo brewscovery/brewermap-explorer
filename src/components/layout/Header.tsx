@@ -1,3 +1,4 @@
+
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { PanelLeft, LogOut, Map, User, ChevronDown, Shield, LayoutDashboard } from 'lucide-react';
@@ -8,6 +9,7 @@ import LoginPopover from '@/components/auth/LoginPopover';
 import { useSidebar } from '@/components/ui/sidebar';
 import EnhancedSearchBar from '@/components/search/EnhancedSearchBar';
 import { useVenueData } from '@/hooks/useVenueData';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -111,6 +113,8 @@ const Header = () => {
       </div>
 
       <div className="flex items-center gap-4 ml-4">
+        {user && <NotificationCenter />}
+        
         {user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

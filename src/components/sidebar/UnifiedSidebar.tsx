@@ -16,7 +16,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard, Calendar, ListTodo
+  CreditCard, Calendar, ListTodo, Bell
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -25,6 +25,7 @@ import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 import { useBreweryVenues } from '@/hooks/useBreweryVenues';
 import { BrewerySidebarHeader } from '@/components/dashboard/sidebar/BrewerySidebarHeader';
 import { SidebarFooterMenu } from '@/components/dashboard/sidebar/SidebarFooterMenu';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
 
@@ -128,7 +129,10 @@ const SidebarContentComponent = () => {
       
       {userType === 'regular' && user && (
         <div className="flex flex-col p-4 border-b">
-          <h2 className="text-lg font-semibold">Hello, {user.email?.split('@')[0] || 'User'}</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-lg font-semibold">Hello, {user.email?.split('@')[0] || 'User'}</h2>
+            <NotificationCenter />
+          </div>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
         </div>
       )}
