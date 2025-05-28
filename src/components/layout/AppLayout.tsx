@@ -1,36 +1,44 @@
+
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Sidebar } from "@/components/ui/sidebar";
-import { MainNav } from "@/components/ui/main-nav";
-import { siteConfig } from "@/config/site";
-import { Link } from "@tanstack/react-router";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { ModeToggle } from "@/components/ui/mode-toggle";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { toast } from "@/components/ui/toast";
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useToast } from "@/hooks/use-toast";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 import { useVenueNotificationTriggers } from '@/hooks/useVenueNotificationTriggers';
+import { supabase } from '@/integrations/supabase/client';
 
-const AppLayout = ({ children }: { children: React.ReactNode }) => {
-  const { user, signOut } = useAuth();
+const AppLayout = ({ children }: { children?: React.ReactNode }) => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
-  const isSmall = useMediaQuery('(max-width: 768px)');
   const { toggleSidebar, open, setOpen, isMobile, openMobile, setOpenMobile } = useSidebar();
 
-  // Initialize mobile sidebar state based on screen size
-  useEffect(() => {
-    if (isSmall) {
-      setOpenMobile(false);
-    } else {
-      setOpenMobile(false);
+  // Handle sign out
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        toast({
+          title: "Error",
+          description: "Failed to sign out",
+          variant: "destructive",
+        });
+      } else {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast({
+        title: "Error", 
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
     }
-  }, [isSmall, setOpenMobile]);
+  };
 
   // Handle brewery claim notifications
   useBreweryClaimNotifications();
@@ -44,20 +52,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
       <Sidebar className="bg-gray-50 border-r w-60 hidden md:block">
         <div className="flex flex-col h-full">
           <div className="px-4 py-6">
-            <Link to="/">
-              <span className="font-bold text-xl">{siteConfig.name}</span>
-            </Link>
+            <span className="font-bold text-xl">BreweryApp</span>
           </div>
-          <MainNav className="flex-1 px-4" />
+          <div className="flex-1 px-4">
+            {/* Navigation menu will go here */}
+          </div>
           <div className="p-4">
-            <ThemeToggle />
-            <ModeToggle />
             {user ? (
-              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => signOut(() => navigate('/'))}>
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={handleSignOut}>
                 Sign Out
               </Button>
             ) : (
-              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/auth/sign-in')}>
+              <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/auth')}>
                 Sign In
               </Button>
             )}
@@ -70,20 +76,18 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
         <Sidebar className={`fixed inset-y-0 left-0 z-50 w-60 bg-gray-50 border-r transform transition-transform duration-300 ease-in-out ${openMobile ? 'translate-x-0' : '-translate-x-full'}`}>
           <div className="flex flex-col h-full">
             <div className="px-4 py-6">
-              <Link to="/">
-                <span className="font-bold text-xl">{siteConfig.name}</span>
-              </Link>
+              <span className="font-bold text-xl">BreweryApp</span>
             </div>
-            <MainNav className="flex-1 px-4" />
+            <div className="flex-1 px-4">
+              {/* Navigation menu will go here */}
+            </div>
             <div className="p-4">
-              <ThemeToggle />
-              <ModeToggle />
               {user ? (
-                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => signOut(() => navigate('/'))}>
+                <Button variant="outline" size="sm" className="w-full mt-2" onClick={handleSignOut}>
                   Sign Out
                 </Button>
               ) : (
-                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/auth/sign-in')}>
+                <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => navigate('/auth')}>
                   Sign In
                 </Button>
               )}
@@ -94,7 +98,7 @@ const AppLayout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <div className="flex-1">
-        {children}
+        {children || <Outlet />}
       </div>
     </div>
   );
