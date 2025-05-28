@@ -1,7 +1,47 @@
 
 project_id = "hvpylervaaklqwiafuag"
 
-[functions.admin-get-users]
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+
+[studio]
+enabled = true
+port = 54323
+
+[inbucket]
+enabled = true
+port = 54324
+smtp_port = 1025
+pop3_port = 1100
+
+[storage]
+enabled = true
+port = 54325
+
+[auth]
+enabled = true
+port = 54326
+
+[auth.email]
+
+[realtime]
+enabled = true
+port = 54327
+
+[functions.create-notifications]
+verify_jwt = false
+
+[functions.address-suggestions]
+verify_jwt = false
+
+[functions.admin-brewery-operations]
 verify_jwt = true
 
 [functions.admin-get-breweries]
@@ -13,6 +53,9 @@ verify_jwt = true
 [functions.admin-get-stats]
 verify_jwt = true
 
+[functions.admin-get-users]
+verify_jwt = true
+
 [functions.admin-update-brewery]
 verify_jwt = true
 
@@ -21,3 +64,12 @@ verify_jwt = true
 
 [functions.admin-update-user]
 verify_jwt = true
+
+[functions.geocode]
+verify_jwt = false
+
+[functions.geocode-city]
+verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
