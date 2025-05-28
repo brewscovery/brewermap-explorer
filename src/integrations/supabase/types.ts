@@ -224,6 +224,78 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          claim_updates: boolean
+          created_at: string
+          daily_special_updates: boolean
+          event_updates: boolean
+          happy_hour_updates: boolean
+          id: string
+          updated_at: string
+          user_id: string
+          venue_updates: boolean
+        }
+        Insert: {
+          claim_updates?: boolean
+          created_at?: string
+          daily_special_updates?: boolean
+          event_updates?: boolean
+          happy_hour_updates?: boolean
+          id?: string
+          updated_at?: string
+          user_id: string
+          venue_updates?: boolean
+        }
+        Update: {
+          claim_updates?: boolean
+          created_at?: string
+          daily_special_updates?: boolean
+          event_updates?: boolean
+          happy_hour_updates?: boolean
+          id?: string
+          updated_at?: string
+          user_id?: string
+          venue_updates?: boolean
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

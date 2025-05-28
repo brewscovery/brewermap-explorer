@@ -12,6 +12,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Venue } from '@/types/venue';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 
 interface FloatingSearchBarProps {
   onVenueSelect: (venue: Venue | null) => void;
@@ -141,6 +142,12 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
             />
           )}
         </div>
+        {/* Notification center for authenticated users */}
+        {user && (
+          <div className="ml-2">
+            <NotificationCenter />
+          </div>
+        )}
       </div>
       {/* Responsive filters for mobile */}
       {filtersVisible && (
