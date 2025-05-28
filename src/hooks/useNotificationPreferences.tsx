@@ -38,11 +38,11 @@ export const useNotificationPreferences = () => {
         const allowedUpdates = { claim_updates: updates.claim_updates };
         const { error } = await supabase
           .from('notification_preferences')
-          .upsert({
-            user_id: user.id,
+          .update({
             ...allowedUpdates,
             updated_at: new Date().toISOString(),
-          });
+          })
+          .eq('user_id', user.id);
 
         if (error) throw error;
       } else {
@@ -50,11 +50,11 @@ export const useNotificationPreferences = () => {
         const { claim_updates, ...allowedUpdates } = updates;
         const { error } = await supabase
           .from('notification_preferences')
-          .upsert({
-            user_id: user.id,
+          .update({
             ...allowedUpdates,
             updated_at: new Date().toISOString(),
-          });
+          })
+          .eq('user_id', user.id);
 
         if (error) throw error;
       }
