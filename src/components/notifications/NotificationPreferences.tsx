@@ -4,10 +4,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNotificationPreferences } from '@/hooks/useNotificationPreferences';
+import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const NotificationPreferences: React.FC = () => {
   const { preferences, isLoading, updatePreferences } = useNotificationPreferences();
+  const { userType } = useAuth();
 
   if (isLoading) {
     return (
@@ -34,6 +36,36 @@ const NotificationPreferences: React.FC = () => {
     updatePreferences({ [key]: value });
   };
 
+  // For business users, only show claim updates
+  if (userType === 'business') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Notification Preferences</CardTitle>
+          <CardDescription>
+            Choose which notifications you'd like to receive
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="claim-updates">Brewery Claim Updates</Label>
+              <p className="text-sm text-muted-foreground">
+                Get notified about the status of your brewery claims
+              </p>
+            </div>
+            <Switch
+              id="claim-updates"
+              checked={preferences?.claim_updates ?? true}
+              onCheckedChange={(checked) => handlePreferenceChange('claim_updates', checked)}
+            />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // For regular users, show all preferences except claim updates
   return (
     <Card>
       <CardHeader>
@@ -96,20 +128,6 @@ const NotificationPreferences: React.FC = () => {
             id="daily-special-updates"
             checked={preferences?.daily_special_updates ?? true}
             onCheckedChange={(checked) => handlePreferenceChange('daily_special_updates', checked)}
-          />
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="space-y-0.5">
-            <Label htmlFor="claim-updates">Brewery Claim Updates</Label>
-            <p className="text-sm text-muted-foreground">
-              Get notified about the status of your brewery claims
-            </p>
-          </div>
-          <Switch
-            id="claim-updates"
-            checked={preferences?.claim_updates ?? true}
-            onCheckedChange={(checked) => handlePreferenceChange('claim_updates', checked)}
           />
         </div>
       </CardContent>
