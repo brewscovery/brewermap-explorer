@@ -74,27 +74,62 @@ serve(async (req) => {
 async function handleVenueHoursUpdate(supabase: any, body: NotificationRequest) {
   if (!body.venue_id) return;
 
+  console.log('Processing venue hours update for venue:', body.venue_id);
+
   // Get venue name for the notification content
-  const { data: venue } = await supabase
+  const { data: venue, error: venueError } = await supabase
     .from('venues')
     .select('name')
     .eq('id', body.venue_id)
     .single();
 
-  if (!venue) return;
+  if (venueError) {
+    console.error('Error fetching venue:', venueError);
+    return;
+  }
 
-  // Get users who have this venue in their favorites and have venue_updates enabled
-  const { data: favoriteUsers } = await supabase
+  if (!venue) {
+    console.log('Venue not found');
+    return;
+  }
+
+  console.log('Found venue:', venue.name);
+
+  // Get users who have this venue in their favorites
+  const { data: favoriteUsers, error: favoritesError } = await supabase
     .from('venue_favorites')
-    .select(`
-      user_id,
-      notification_preferences!inner(venue_updates)
-    `)
-    .eq('venue_id', body.venue_id)
-    .eq('notification_preferences.venue_updates', true);
+    .select('user_id')
+    .eq('venue_id', body.venue_id);
+
+  if (favoritesError) {
+    console.error('Error fetching venue favorites:', favoritesError);
+    return;
+  }
+
+  console.log('Found favorite users:', favoriteUsers?.length || 0);
 
   if (!favoriteUsers || favoriteUsers.length === 0) {
-    console.log('No users to notify for venue hours update');
+    console.log('No users have this venue in favorites');
+    return;
+  }
+
+  // Get notification preferences for these users
+  const userIds = favoriteUsers.map(f => f.user_id);
+  const { data: preferences, error: preferencesError } = await supabase
+    .from('notification_preferences')
+    .select('user_id, venue_updates')
+    .in('user_id', userIds)
+    .eq('venue_updates', true);
+
+  if (preferencesError) {
+    console.error('Error fetching notification preferences:', preferencesError);
+    return;
+  }
+
+  console.log('Users with venue_updates enabled:', preferences?.length || 0);
+
+  if (!preferences || preferences.length === 0) {
+    console.log('No users have venue_updates enabled');
     return;
   }
 
@@ -115,23 +150,27 @@ async function handleVenueHoursUpdate(supabase: any, body: NotificationRequest) 
     content = `${venue.name} has updated their kitchen hours.`;
   }
 
+  console.log('Creating notifications with content:', content);
+
   // Create notifications for each user
-  const notifications = favoriteUsers.map(favorite => ({
-    user_id: favorite.user_id,
+  const notifications = preferences.map(pref => ({
+    user_id: pref.user_id,
     type: notificationType,
     content,
     related_entity_id: body.venue_id,
     related_entity_type: 'venue'
   }));
 
-  const { error } = await supabase
+  console.log('Inserting notifications:', notifications.length);
+
+  const { error: insertError } = await supabase
     .from('notifications')
     .insert(notifications);
 
-  if (error) {
-    console.error('Error creating venue hours notifications:', error);
+  if (insertError) {
+    console.error('Error creating venue hours notifications:', insertError);
   } else {
-    console.log(`Created ${notifications.length} venue hours notifications`);
+    console.log(`Successfully created ${notifications.length} venue hours notifications`);
   }
 }
 
