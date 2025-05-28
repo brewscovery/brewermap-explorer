@@ -6,7 +6,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -89,16 +88,16 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <SidebarProvider>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
-                
-                <Route path="/" element={<AppLayout><Index /></AppLayout>} />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
+              
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<Index />} />
                 
                 {/* Protected Dashboard Routes */}
                 <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<AppLayout />}>
+                  <Route path="/dashboard">
                     <Route index element={
                       <UserTypeRoute 
                         element={<Navigate to="/" />}
@@ -131,8 +130,8 @@ const App = () => {
                     <Route path="users" element={<UsersManagement />} />
                   </Route>
                 </Route>
-              </Routes>
-            </SidebarProvider>
+              </Route>
+            </Routes>
           </BrowserRouter>
         </TooltipProvider>
       </AuthProvider>

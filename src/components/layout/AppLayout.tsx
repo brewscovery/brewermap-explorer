@@ -1,80 +1,62 @@
 
-import React, { useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { useSidebar } from "@/components/ui/sidebar";
-import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
-import { useVenueNotificationTriggers } from '@/hooks/useVenueNotificationTriggers';
-import { supabase } from '@/integrations/supabase/client';
+import React from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
+import Header from '@/components/layout/Header';
+import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import { useAuth } from '@/contexts/AuthContext';
+import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
-const AppLayout = ({ children }: { children?: React.ReactNode }) => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const AppLayout = () => {
+  const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
-  const { toast } = useToast();
-  const { open, isMobile, openMobile } = useSidebar();
-
-  // Handle sign out
-  const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        toast({
-          title: "Error",
-          description: "Failed to sign out",
-          variant: "destructive",
-        });
-      } else {
-        navigate('/');
-      }
-    } catch (error) {
-      console.error('Sign out error:', error);
-      toast({
-        title: "Error", 
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle brewery claim notifications (only for authenticated users)
-  useBreweryClaimNotifications();
+  const isDashboardRoute = location.pathname.includes('/dashboard');
+  const isAdminRoute = location.pathname.includes('/admin');
+  const isRootRoute = location.pathname === '/';
+  const isBusinessUserDashboard = isDashboardRoute && userType === 'business';
+  const isRegularUserDashboard = isDashboardRoute && userType === 'regular';
   
-  // Add notification triggers (only for authenticated users)
-  useVenueNotificationTriggers();
-
-  // Only show sidebar for authenticated users
-  if (!user) {
-    return (
-      <div className="w-full">
-        {children || <Outlet />}
-      </div>
-    );
-  }
-
+  const displayName = firstName || lastName 
+    ? `${firstName || ''} ${lastName || ''}`.trim()
+    : userType === 'business' 
+      ? 'Business Owner' 
+      : userType === 'admin' 
+        ? 'Admin' 
+        : 'User';
+  
   return (
-    <div className="flex min-h-screen w-full">
-      {/* Unified Sidebar - only for authenticated users */}
-      <UnifiedSidebar />
-      
-      {/* Overlay for mobile */}
-      {isMobile && openMobile && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-[100]" 
-          onClick={() => {}} 
-        />
-      )}
-
-      {/* Main Content */}
-      <div className={`flex-1 transition-all duration-300 ${
-        !isMobile && open ? 'ml-64' : 'ml-0'
-      }`}>
-        {children || <Outlet />}
+    <SidebarProvider defaultOpen={false}>
+      <div className="flex w-full min-h-screen">
+        <UnifiedSidebar />
+        
+        <div className="h-screen overflow-auto flex-1">
+          {isBusinessUserDashboard || isRegularUserDashboard ? (
+            <div className="flex-1 flex flex-col">
+              <FloatingSidebarToggle position="top-left" />
+              <main className="p-6 pt-4 flex-1">
+                <Outlet />
+              </main>
+            </div>
+          ) : isAdminRoute ? (
+            <main className="flex-1 flex flex-col">
+              <Outlet />
+            </main>
+          ) : isRootRoute ? (
+            <main className="flex-1 flex flex-col h-full">
+              <Outlet />
+            </main>
+          ) : (
+            <div className="flex-1 flex flex-col h-full">
+              <Header />
+              <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
+                <Outlet />
+              </main>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 

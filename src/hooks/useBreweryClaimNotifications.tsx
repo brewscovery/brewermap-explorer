@@ -3,7 +3,6 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { NotificationService } from '@/services/notificationService';
 
 export const useBreweryClaimNotifications = () => {
   const { user } = useAuth();
@@ -23,41 +22,28 @@ export const useBreweryClaimNotifications = () => {
           filter: `user_id=eq.${user.id}`,
         },
         async (payload) => {
-          console.log('Brewery claim status updated:', payload);
-          
-          if (payload.new && typeof payload.new === 'object') {
-            const claim = payload.new as any;
-            const newStatus = claim.status;
+          const newStatus = payload.new.status;
+          const breweryName = payload.new.brewery_name;
+
+          // Get brewery name if not in payload
+          if (!breweryName) {
+            const { data: brewery } = await supabase
+              .from('breweries')
+              .select('name')
+              .eq('id', payload.new.brewery_id)
+              .single();
             
-            // Get brewery name if not in payload
-            let breweryName = claim.brewery_name;
-            if (!breweryName && claim.brewery_id) {
-              const { data: brewery } = await supabase
-                .from('breweries')
-                .select('name')
-                .eq('id', claim.brewery_id)
-                .single();
-              
-              breweryName = brewery?.name || 'Unknown Brewery';
-            }
-
-            if (breweryName) {
-              // Create notification using our service
-              if (newStatus === 'approved' || newStatus === 'rejected') {
-                await NotificationService.createClaimNotification(
-                  user.id,
-                  newStatus === 'approved' ? 'CLAIM_APPROVED' : 'CLAIM_REJECTED',
-                  breweryName,
-                  claim.admin_notes
-                );
-              }
-
-              // Show toast notification as before
-              const message = getStatusMessage(newStatus, breweryName);
+            if (brewery) {
+              const message = getStatusMessage(newStatus, brewery.name);
               toast(message.title, {
                 description: message.description,
               });
             }
+          } else {
+            const message = getStatusMessage(newStatus, breweryName);
+            toast(message.title, {
+              description: message.description,
+            });
           }
         }
       )
