@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import type { NotificationPreferences } from '@/types/notification';
 
 export const useNotificationPreferences = () => {
-  const { user } = useAuth();
+  const { user, userType } = useAuth();
   const queryClient = useQueryClient();
 
   // Fetch user's notification preferences
@@ -32,15 +32,32 @@ export const useNotificationPreferences = () => {
     mutationFn: async (updates: Partial<Omit<NotificationPreferences, 'id' | 'user_id' | 'created_at' | 'updated_at'>>) => {
       if (!user?.id) throw new Error('User not authenticated');
 
-      const { error } = await supabase
-        .from('notification_preferences')
-        .upsert({
-          user_id: user.id,
-          ...updates,
-          updated_at: new Date().toISOString(),
-        });
+      // Prevent business users from updating preferences they shouldn't have access to
+      if (userType === 'business') {
+        // Business users can only update claim_updates
+        const allowedUpdates = { claim_updates: updates.claim_updates };
+        const { error } = await supabase
+          .from('notification_preferences')
+          .upsert({
+            user_id: user.id,
+            ...allowedUpdates,
+            updated_at: new Date().toISOString(),
+          });
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        // Regular users can update all preferences except claim_updates
+        const { claim_updates, ...allowedUpdates } = updates;
+        const { error } = await supabase
+          .from('notification_preferences')
+          .upsert({
+            user_id: user.id,
+            ...allowedUpdates,
+            updated_at: new Date().toISOString(),
+          });
+
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificationPreferences'] });

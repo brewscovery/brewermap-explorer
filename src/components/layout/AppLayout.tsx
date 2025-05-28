@@ -7,6 +7,7 @@ import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
+import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -16,6 +17,9 @@ const AppLayout = () => {
   const isRootRoute = location.pathname === '/';
   const isBusinessUserDashboard = isDashboardRoute && userType === 'business';
   const isRegularUserDashboard = isDashboardRoute && userType === 'regular';
+  
+  // Initialize brewery claim notifications for business users
+  useBreweryClaimNotifications();
   
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
