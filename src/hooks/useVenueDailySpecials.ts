@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { NotificationService } from '@/services/NotificationService';
 
 export interface VenueDailySpecial {
   id: string;
@@ -77,6 +78,17 @@ export const useVenueDailySpecials = (venueId: string | null) => {
       
       // Invalidate and refetch
       await queryClient.invalidateQueries({ queryKey: ['venueDailySpecials', venueId] });
+      
+      // Send notifications to users who have this venue favorited
+      try {
+        await NotificationService.notifyDailySpecialUpdate(
+          venueId,
+          'Daily specials have been updated!'
+        );
+      } catch (notificationError) {
+        console.error('Failed to send notifications:', notificationError);
+        // Don't fail the whole operation if notifications fail
+      }
       
       toast.success('Daily specials updated successfully');
       return true;
