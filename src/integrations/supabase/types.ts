@@ -188,6 +188,36 @@ export type Database = {
           },
         ]
       }
+      debug_trigger_log: {
+        Row: {
+          fired_at: string | null
+          id: number
+          new_data: Json | null
+          old_data: Json | null
+          operation: string | null
+          table_name: string | null
+          trigger_name: string | null
+        }
+        Insert: {
+          fired_at?: string | null
+          id?: number
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string | null
+          table_name?: string | null
+          trigger_name?: string | null
+        }
+        Update: {
+          fired_at?: string | null
+          id?: number
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string | null
+          table_name?: string | null
+          trigger_name?: string | null
+        }
+        Relationships: []
+      }
       event_interests: {
         Row: {
           created_at: string
