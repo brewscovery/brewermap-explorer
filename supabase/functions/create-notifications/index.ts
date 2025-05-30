@@ -23,18 +23,48 @@ interface NotificationRequest {
 }
 
 serve(async (req) => {
+  console.log('=== Edge function called ===');
+  console.log('Method:', req.method);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    console.log('Environment check:');
+    console.log('SUPABASE_URL:', supabaseUrl ? 'Present' : 'Missing');
+    console.log('SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'Present' : 'Missing');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing required environment variables');
+      return new Response(JSON.stringify({ error: 'Missing environment variables' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const body: NotificationRequest = await req.json();
+    let body: NotificationRequest;
+    
+    try {
+      const text = await req.text();
+      console.log('Request body text:', text);
+      body = JSON.parse(text);
+    } catch (parseError) {
+      console.error('Error parsing request body:', parseError);
+      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     console.log('=== Notification function called ===');
     console.log('Request body:', JSON.stringify(body, null, 2));
 
@@ -62,13 +92,17 @@ serve(async (req) => {
     }
 
     console.log('=== Notification function completed successfully ===');
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, timestamp: new Date().toISOString() }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
     console.error('=== Error in create-notifications function ===');
     console.error('Error details:', error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    console.error('Error stack:', error.stack);
+    return new Response(JSON.stringify({ 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
