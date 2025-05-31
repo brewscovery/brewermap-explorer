@@ -422,6 +422,30 @@ export type Database = {
         }
         Relationships: []
       }
+      trigger_activity_log: {
+        Row: {
+          details: Json | null
+          id: number
+          operation: string | null
+          triggered_at: string | null
+          venue_id: string | null
+        }
+        Insert: {
+          details?: Json | null
+          id?: number
+          operation?: string | null
+          triggered_at?: string | null
+          venue_id?: string | null
+        }
+        Update: {
+          details?: Json | null
+          id?: number
+          operation?: string | null
+          triggered_at?: string | null
+          venue_id?: string | null
+        }
+        Relationships: []
+      }
       venue_daily_specials: {
         Row: {
           created_at: string

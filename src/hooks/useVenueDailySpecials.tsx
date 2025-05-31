@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVenueDailySpecialsRealtimeUpdates } from './useVenueDailySpecialsRealtimeUpdates';
 import { categorizeDailySpecials } from '@/utils/dailySpecialUtils';
+import { NotificationService } from '@/services/NotificationService';
 import type { VenueDailySpecial, VenueDailySpecialInput } from '@/types/venueDailySpecials';
 
 export type { VenueDailySpecial, VenueDailySpecialInput } from '@/types/venueDailySpecials';
@@ -66,6 +67,9 @@ export const useVenueDailySpecials = (venueId: string | null) => {
       console.log('Records to update:', recordsToUpdate);
       console.log('Records to insert:', recordsToInsert);
       
+      // Track if we made any changes for notification purposes
+      let hasChanges = false;
+      
       // Update existing records
       if (recordsToUpdate.length > 0) {
         for (const record of recordsToUpdate) {
@@ -79,6 +83,7 @@ export const useVenueDailySpecials = (venueId: string | null) => {
             throw updateError;
           }
         }
+        hasChanges = true;
       }
       
       // Insert new records
@@ -91,6 +96,7 @@ export const useVenueDailySpecials = (venueId: string | null) => {
           console.error('Error inserting new daily specials:', insertError);
           throw insertError;
         }
+        hasChanges = true;
       }
 
       console.log('Daily specials to delete:', idsToDelete);
@@ -105,6 +111,22 @@ export const useVenueDailySpecials = (venueId: string | null) => {
         if (deleteError) {
           console.error('Error deleting daily specials:', deleteError);
           throw deleteError;
+        }
+        hasChanges = true;
+      }
+
+      // Send notifications if we made changes
+      if (hasChanges) {
+        try {
+          const content = recordsToInsert.length > 0 
+            ? 'Daily specials have been updated with new offerings!'
+            : 'Daily specials have been updated.';
+            
+          await NotificationService.notifyDailySpecialUpdate(venueId, content);
+          console.log('Daily special update notifications sent');
+        } catch (notificationError) {
+          console.error('Error sending daily special notifications:', notificationError);
+          // Don't fail the whole operation for notification errors
         }
       }
 
@@ -131,6 +153,16 @@ export const useVenueDailySpecials = (venueId: string | null) => {
         .eq('id', dailySpecialId);
 
       if (error) throw error;
+
+      // Send notification for deletion
+      if (venueId) {
+        try {
+          await NotificationService.notifyDailySpecialUpdate(venueId, 'A daily special has been removed.');
+          console.log('Daily special deletion notification sent');
+        } catch (notificationError) {
+          console.error('Error sending daily special deletion notification:', notificationError);
+        }
+      }
 
       toast.success('Daily special deleted successfully');
       await refetch();
