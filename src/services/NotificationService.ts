@@ -113,6 +113,45 @@ export class NotificationService {
     console.log('🔔 NotificationService.notifyDailySpecialUpdate called with:', { venueId, content });
     
     try {
+      // Let's first check if there are ANY favorites for this venue
+      console.log('🔍 Checking if there are ANY favorites for venue:', venueId);
+      const { data: allFavorites, error: allFavoritesError } = await supabase
+        .from('venue_favorites')
+        .select('*')
+        .eq('venue_id', venueId);
+
+      console.log('📊 ALL favorites for this venue:', allFavorites?.length || 0, allFavorites);
+      
+      if (allFavoritesError) {
+        console.error('❌ Error fetching ALL favorites:', allFavoritesError);
+      }
+
+      // Let's also check if the venue exists
+      console.log('🏢 Checking if venue exists:', venueId);
+      const { data: venue, error: venueError } = await supabase
+        .from('venues')
+        .select('id, name')
+        .eq('id', venueId)
+        .single();
+
+      console.log('🏢 Venue data:', venue);
+      
+      if (venueError) {
+        console.error('❌ Error fetching venue:', venueError);
+      }
+
+      // Let's also check the total count of favorites in the database
+      console.log('📈 Checking total favorites count in database');
+      const { count: totalFavoritesCount, error: countError } = await supabase
+        .from('venue_favorites')
+        .select('*', { count: 'exact', head: true });
+
+      console.log('📈 Total favorites in database:', totalFavoritesCount);
+      
+      if (countError) {
+        console.error('❌ Error counting total favorites:', countError);
+      }
+
       // First, get users who have this venue in their favorites
       console.log('📋 Fetching users who favorited venue:', venueId);
       const { data: favoriteUsers, error: favoritesError } = await supabase
