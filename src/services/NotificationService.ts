@@ -113,32 +113,50 @@ export class NotificationService {
     console.log('🔔 NotificationService.notifyDailySpecialUpdate called with:', { venueId, content });
     
     try {
-      // Get users who have this venue in their favorites and have daily_special_updates enabled
-      console.log('📋 Fetching favorite users for venue:', venueId);
+      // First, get users who have this venue in their favorites
+      console.log('📋 Fetching users who favorited venue:', venueId);
       const { data: favoriteUsers, error: favoritesError } = await supabase
         .from('venue_favorites')
-        .select(`
-          user_id,
-          notification_preferences!inner(daily_special_updates)
-        `)
-        .eq('venue_id', venueId)
-        .eq('notification_preferences.daily_special_updates', true);
+        .select('user_id')
+        .eq('venue_id', venueId);
 
       if (favoritesError) {
         console.error('❌ Error fetching favorite users for daily special update:', favoritesError);
         return;
       }
 
-      console.log('👥 Found favorite users with daily_special_updates enabled:', favoriteUsers?.length || 0, favoriteUsers);
+      console.log('👥 Found users who favorited the venue:', favoriteUsers?.length || 0, favoriteUsers);
 
       if (!favoriteUsers || favoriteUsers.length === 0) {
-        console.log('ℹ️ No users to notify for daily special update');
+        console.log('ℹ️ No users have favorited this venue');
         return;
       }
 
-      // Create notifications for each user
-      const notifications = favoriteUsers.map(favorite => ({
-        user_id: favorite.user_id,
+      // Now get notification preferences for these users
+      const userIds = favoriteUsers.map(f => f.user_id);
+      console.log('🔍 Checking notification preferences for users:', userIds);
+      
+      const { data: usersWithPreferences, error: preferencesError } = await supabase
+        .from('notification_preferences')
+        .select('user_id')
+        .in('user_id', userIds)
+        .eq('daily_special_updates', true);
+
+      if (preferencesError) {
+        console.error('❌ Error fetching notification preferences:', preferencesError);
+        return;
+      }
+
+      console.log('✅ Users with daily_special_updates enabled:', usersWithPreferences?.length || 0, usersWithPreferences);
+
+      if (!usersWithPreferences || usersWithPreferences.length === 0) {
+        console.log('ℹ️ No users have daily special updates enabled');
+        return;
+      }
+
+      // Create notifications for each user with preferences enabled
+      const notifications = usersWithPreferences.map(user => ({
+        user_id: user.user_id,
         type: 'DAILY_SPECIAL_UPDATE' as NotificationType,
         content,
         related_entity_id: venueId,
