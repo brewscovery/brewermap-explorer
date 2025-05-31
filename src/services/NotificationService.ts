@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { NotificationType } from '@/types/notification';
 
@@ -113,51 +112,10 @@ export class NotificationService {
     console.log('🔔 NotificationService.notifyDailySpecialUpdate called with:', { venueId, content });
     
     try {
-      // Let's first check if there are ANY favorites for this venue
-      console.log('🔍 Checking if there are ANY favorites for venue:', venueId);
-      const { data: allFavorites, error: allFavoritesError } = await supabase
-        .from('venue_favorites')
-        .select('*')
-        .eq('venue_id', venueId);
-
-      console.log('📊 ALL favorites for this venue:', allFavorites?.length || 0, allFavorites);
-      
-      if (allFavoritesError) {
-        console.error('❌ Error fetching ALL favorites:', allFavoritesError);
-      }
-
-      // Let's also check if the venue exists
-      console.log('🏢 Checking if venue exists:', venueId);
-      const { data: venue, error: venueError } = await supabase
-        .from('venues')
-        .select('id, name')
-        .eq('id', venueId)
-        .single();
-
-      console.log('🏢 Venue data:', venue);
-      
-      if (venueError) {
-        console.error('❌ Error fetching venue:', venueError);
-      }
-
-      // Let's also check the total count of favorites in the database
-      console.log('📈 Checking total favorites count in database');
-      const { count: totalFavoritesCount, error: countError } = await supabase
-        .from('venue_favorites')
-        .select('*', { count: 'exact', head: true });
-
-      console.log('📈 Total favorites in database:', totalFavoritesCount);
-      
-      if (countError) {
-        console.error('❌ Error counting total favorites:', countError);
-      }
-
-      // First, get users who have this venue in their favorites
-      console.log('📋 Fetching users who favorited venue:', venueId);
+      // Use the new security definer function to get venue favorites (bypasses RLS)
+      console.log('🔍 Using security definer function to get venue favorites');
       const { data: favoriteUsers, error: favoritesError } = await supabase
-        .from('venue_favorites')
-        .select('user_id')
-        .eq('venue_id', venueId);
+        .rpc('get_venue_favorites_for_notifications', { venue_id_param: venueId });
 
       if (favoritesError) {
         console.error('❌ Error fetching favorite users for daily special update:', favoritesError);
@@ -171,30 +129,29 @@ export class NotificationService {
         return;
       }
 
-      // Now get notification preferences for these users
+      // Get notification preferences for these users using the security definer function
       const userIds = favoriteUsers.map(f => f.user_id);
       console.log('🔍 Checking notification preferences for users:', userIds);
       
       const { data: usersWithPreferences, error: preferencesError } = await supabase
-        .from('notification_preferences')
-        .select('user_id')
-        .in('user_id', userIds)
-        .eq('daily_special_updates', true);
+        .rpc('get_notification_preferences_for_users', { user_ids: userIds });
 
       if (preferencesError) {
         console.error('❌ Error fetching notification preferences:', preferencesError);
         return;
       }
 
-      console.log('✅ Users with daily_special_updates enabled:', usersWithPreferences?.length || 0, usersWithPreferences);
+      // Filter users who have daily_special_updates enabled
+      const enabledUsers = usersWithPreferences?.filter(user => user.daily_special_updates) || [];
+      console.log('✅ Users with daily_special_updates enabled:', enabledUsers?.length || 0, enabledUsers);
 
-      if (!usersWithPreferences || usersWithPreferences.length === 0) {
+      if (!enabledUsers || enabledUsers.length === 0) {
         console.log('ℹ️ No users have daily special updates enabled');
         return;
       }
 
       // Create notifications for each user with preferences enabled
-      const notifications = usersWithPreferences.map(user => ({
+      const notifications = enabledUsers.map(user => ({
         user_id: user.user_id,
         type: 'DAILY_SPECIAL_UPDATE' as NotificationType,
         content,

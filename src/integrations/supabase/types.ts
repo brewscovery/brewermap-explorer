@@ -790,6 +790,13 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_notification_preferences_for_users: {
+        Args: { user_ids: string[] }
+        Returns: {
+          user_id: string
+          daily_special_updates: boolean
+        }[]
+      }
       get_profile_by_id: {
         Args: { profile_id: string }
         Returns: {
@@ -814,6 +821,13 @@ export type Database = {
       get_user_type: {
         Args: { user_id: string }
         Returns: string
+      }
+      get_venue_favorites_for_notifications: {
+        Args: { venue_id_param: string }
+        Returns: {
+          user_id: string
+          created_at: string
+        }[]
       }
       is_admin: {
         Args: { user_id: string }
