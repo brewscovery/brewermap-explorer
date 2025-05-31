@@ -110,8 +110,11 @@ export class NotificationService {
    * Notifies users who have the venue in their favorites
    */
   static async notifyDailySpecialUpdate(venueId: string, content: string) {
+    console.log('🔔 NotificationService.notifyDailySpecialUpdate called with:', { venueId, content });
+    
     try {
       // Get users who have this venue in their favorites and have daily_special_updates enabled
+      console.log('📋 Fetching favorite users for venue:', venueId);
       const { data: favoriteUsers, error: favoritesError } = await supabase
         .from('venue_favorites')
         .select(`
@@ -122,12 +125,14 @@ export class NotificationService {
         .eq('notification_preferences.daily_special_updates', true);
 
       if (favoritesError) {
-        console.error('Error fetching favorite users for daily special update:', favoritesError);
+        console.error('❌ Error fetching favorite users for daily special update:', favoritesError);
         return;
       }
 
+      console.log('👥 Found favorite users with daily_special_updates enabled:', favoriteUsers?.length || 0, favoriteUsers);
+
       if (!favoriteUsers || favoriteUsers.length === 0) {
-        console.log('No users to notify for daily special update');
+        console.log('ℹ️ No users to notify for daily special update');
         return;
       }
 
@@ -140,17 +145,19 @@ export class NotificationService {
         related_entity_type: 'venue'
       }));
 
+      console.log('📝 Creating notifications:', notifications);
+
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert(notifications);
 
       if (notificationError) {
-        console.error('Error creating daily special notifications:', notificationError);
+        console.error('❌ Error creating daily special notifications:', notificationError);
       } else {
-        console.log(`Created ${notifications.length} daily special notifications`);
+        console.log(`✅ Created ${notifications.length} daily special notifications successfully`);
       }
     } catch (error) {
-      console.error('Error in notifyDailySpecialUpdate:', error);
+      console.error('💥 Error in notifyDailySpecialUpdate:', error);
     }
   }
 
