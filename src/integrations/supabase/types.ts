@@ -775,6 +775,10 @@ export type Database = {
           last_name: string
         }[]
       }
+      get_service_role_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_user_checkin_analytics: {
         Args: { user_id: string }
         Returns: Json
