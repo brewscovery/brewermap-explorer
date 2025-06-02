@@ -1,560 +1,448 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.12';
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-
-interface NotificationRequest {
-  type: string;
-  venue_id?: string;
-  event_id?: string;
-  user_id?: string;
-  claim_id?: string;
-  status?: string;
-  brewery_name?: string;
-  day_of_week?: number;
-  operation?: string;
-  data?: any;
-  old_data?: any;
-  new_data?: any;
 }
 
 serve(async (req) => {
-  console.log('=== Edge function called ===');
-  console.log('Method:', req.method);
-  console.log('Headers:', Object.fromEntries(req.headers.entries()));
-
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling OPTIONS request');
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-    
-    console.log('Environment check:');
-    console.log('SUPABASE_URL:', supabaseUrl ? 'Present' : 'Missing');
-    console.log('SUPABASE_SERVICE_ROLE_KEY:', supabaseServiceKey ? 'Present' : 'Missing');
-    
-    if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('Missing required environment variables');
-      return new Response(JSON.stringify({ error: 'Missing environment variables' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    
-    let body: NotificationRequest;
-    
-    try {
-      const text = await req.text();
-      console.log('Request body text:', text);
-      body = JSON.parse(text);
-    } catch (parseError) {
-      console.error('Error parsing request body:', parseError);
-      return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    console.log('=== Notification function called ===');
-    console.log('Request body:', JSON.stringify(body, null, 2));
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
 
-    switch (body.type) {
+    const body = await req.json()
+    console.log('🔔 create-notifications called with:', body)
+
+    const { type } = body
+
+    switch (type) {
       case 'venue_hours_update':
-        await handleVenueHoursUpdate(supabase, body);
-        break;
+        await handleVenueHoursUpdate(supabaseClient, body)
+        break
       case 'happy_hour_update':
-        await handleHappyHourUpdate(supabase, body);
-        break;
+        await handleHappyHourUpdate(supabaseClient, body)
+        break
       case 'daily_special_update':
-        await handleDailySpecialUpdate(supabase, body);
-        break;
+        await handleDailySpecialUpdate(supabaseClient, body)
+        break
       case 'event_created':
-        await handleEventCreated(supabase, body);
-        break;
       case 'event_updated':
-        await handleEventUpdated(supabase, body);
-        break;
+        await handleEventUpdate(supabaseClient, body)
+        break
       case 'claim_status_update':
-        await handleClaimStatusUpdate(supabase, body);
-        break;
+        await handleClaimStatusUpdate(supabaseClient, body)
+        break
       default:
-        console.log('Unknown notification type:', body.type);
+        console.log('Unknown notification type:', type)
     }
 
-    console.log('=== Notification function completed successfully ===');
-    return new Response(JSON.stringify({ success: true, timestamp: new Date().toISOString() }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return new Response(
+      JSON.stringify({ success: true }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+    )
   } catch (error) {
-    console.error('=== Error in create-notifications function ===');
-    console.error('Error details:', error);
-    console.error('Error stack:', error.stack);
-    return new Response(JSON.stringify({ 
-      error: error.message,
-      timestamp: new Date().toISOString()
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error('Error in create-notifications:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
+    )
   }
-});
+})
 
-async function handleVenueHoursUpdate(supabase: any, body: NotificationRequest) {
-  console.log('=== handleVenueHoursUpdate called ===');
+async function handleVenueHoursUpdate(supabaseClient: any, body: any) {
+  const { venue_id, day_of_week, old_data, new_data } = body
   
-  if (!body.venue_id) {
-    console.log('No venue_id provided');
-    return;
-  }
-
-  console.log('Processing venue hours update for venue:', body.venue_id);
-
-  try {
-    // Get venue name for the notification content
-    const { data: venue, error: venueError } = await supabase
-      .from('venues')
-      .select('name')
-      .eq('id', body.venue_id)
-      .single();
-
-    if (venueError) {
-      console.error('Error fetching venue:', venueError);
-      return;
-    }
-
-    if (!venue) {
-      console.log('Venue not found');
-      return;
-    }
-
-    console.log('Found venue:', venue.name);
-
-    // Get users who have this venue in their favorites
-    const { data: favoriteUsers, error: favoritesError } = await supabase
-      .from('venue_favorites')
-      .select('user_id')
-      .eq('venue_id', body.venue_id);
-
-    if (favoritesError) {
-      console.error('Error fetching venue favorites:', favoritesError);
-      return;
-    }
-
-    console.log('Found favorite users:', favoriteUsers?.length || 0);
-
-    if (!favoriteUsers || favoriteUsers.length === 0) {
-      console.log('No users have this venue in favorites');
-      return;
-    }
-
-    // Get notification preferences for these users
-    const userIds = favoriteUsers.map(f => f.user_id);
-    console.log('Checking preferences for user IDs:', userIds);
-    
-    const { data: preferences, error: preferencesError } = await supabase
-      .from('notification_preferences')
-      .select('user_id, venue_updates')
-      .in('user_id', userIds)
-      .eq('venue_updates', true);
-
-    if (preferencesError) {
-      console.error('Error fetching notification preferences:', preferencesError);
-      return;
-    }
-
-    console.log('Users with venue_updates enabled:', preferences?.length || 0);
-
-    if (!preferences || preferences.length === 0) {
-      console.log('No users have venue_updates enabled');
-      return;
-    }
-
-    // Determine notification type and content
-    const hasKitchenChanges = body.old_data?.kitchen_open_time !== body.new_data?.kitchen_open_time ||
-                             body.old_data?.kitchen_close_time !== body.new_data?.kitchen_close_time;
-    const hasVenueChanges = body.old_data?.venue_open_time !== body.new_data?.venue_open_time ||
-                           body.old_data?.venue_close_time !== body.new_data?.venue_close_time ||
-                           body.old_data?.is_closed !== body.new_data?.is_closed;
-
-    let notificationType = 'VENUE_HOURS_UPDATE';
-    let content = `${venue.name} has updated their hours.`;
-    
-    if (hasKitchenChanges && hasVenueChanges) {
-      content = `${venue.name} has updated their venue and kitchen hours.`;
-    } else if (hasKitchenChanges) {
-      notificationType = 'KITCHEN_HOURS_UPDATE';
-      content = `${venue.name} has updated their kitchen hours.`;
-    }
-
-    console.log('Creating notifications with content:', content);
-
-    // Create notifications for each user
-    const notifications = preferences.map(pref => ({
-      user_id: pref.user_id,
-      type: notificationType,
-      content,
-      related_entity_id: body.venue_id,
-      related_entity_type: 'venue'
-    }));
-
-    console.log('Inserting notifications:', notifications.length);
-    console.log('Notification data:', JSON.stringify(notifications, null, 2));
-
-    const { data: insertedData, error: insertError } = await supabase
-      .from('notifications')
-      .insert(notifications)
-      .select();
-
-    if (insertError) {
-      console.error('Error creating venue hours notifications:', insertError);
-    } else {
-      console.log(`Successfully created ${notifications.length} venue hours notifications`);
-      console.log('Inserted notifications:', insertedData);
-    }
-  } catch (error) {
-    console.error('Error in handleVenueHoursUpdate:', error);
-  }
-}
-
-async function handleHappyHourUpdate(supabase: any, body: NotificationRequest) {
-  console.log('=== handleHappyHourUpdate called ===');
+  console.log('📍 Processing venue hours update for venue:', venue_id)
   
-  if (!body.venue_id) {
-    console.log('No venue_id provided');
-    return;
-  }
-
-  try {
-    // Get venue name
-    const { data: venue, error: venueError } = await supabase
-      .from('venues')
-      .select('name')
-      .eq('id', body.venue_id)
-      .single();
-
-    if (venueError || !venue) {
-      console.error('Error fetching venue or venue not found:', venueError);
-      return;
-    }
-
-    console.log('Found venue for happy hour update:', venue.name);
-
-    // Get users who have this venue in their favorites
-    const { data: favoriteUsers, error: favoritesError } = await supabase
-      .from('venue_favorites')
-      .select('user_id')
-      .eq('venue_id', body.venue_id);
-
-    if (favoritesError) {
-      console.error('Error fetching venue favorites:', favoritesError);
-      return;
-    }
-
-    console.log('Found favorite users for happy hour:', favoriteUsers?.length || 0);
-
-    if (!favoriteUsers || favoriteUsers.length === 0) {
-      console.log('No users to notify for happy hour update');
-      return;
-    }
-
-    // Get notification preferences for these users
-    const userIds = favoriteUsers.map(f => f.user_id);
-    const { data: preferences, error: preferencesError } = await supabase
-      .from('notification_preferences')
-      .select('user_id, happy_hour_updates')
-      .in('user_id', userIds)
-      .eq('happy_hour_updates', true);
-
-    if (preferencesError) {
-      console.error('Error fetching happy hour notification preferences:', preferencesError);
-      return;
-    }
-
-    console.log('Users with happy_hour_updates enabled:', preferences?.length || 0);
-
-    if (!preferences || preferences.length === 0) {
-      console.log('No users have happy_hour_updates enabled');
-      return;
-    }
-
-    const content = body.operation === 'INSERT' 
-      ? `${venue.name} has added new happy hour specials!`
-      : `${venue.name} has updated their happy hour specials.`;
-
-    const notifications = preferences.map(pref => ({
-      user_id: pref.user_id,
-      type: 'HAPPY_HOURS_UPDATE',
-      content,
-      related_entity_id: body.venue_id,
-      related_entity_type: 'venue'
-    }));
-
-    console.log('Creating happy hour notifications:', notifications.length);
-
-    const { data: insertedData, error: insertError } = await supabase
-      .from('notifications')
-      .insert(notifications)
-      .select();
-
-    if (insertError) {
-      console.error('Error creating happy hour notifications:', insertError);
-    } else {
-      console.log(`Created ${notifications.length} happy hour notifications`);
-      console.log('Inserted happy hour notifications:', insertedData);
-    }
-  } catch (error) {
-    console.error('Error in handleHappyHourUpdate:', error);
-  }
-}
-
-async function handleDailySpecialUpdate(supabase: any, body: NotificationRequest) {
-  console.log('=== handleDailySpecialUpdate called ===');
-  
-  if (!body.venue_id) {
-    console.log('No venue_id provided');
-    return;
-  }
-
-  try {
-    // Get venue name
-    const { data: venue, error: venueError } = await supabase
-      .from('venues')
-      .select('name')
-      .eq('id', body.venue_id)
-      .single();
-
-    if (venueError || !venue) {
-      console.error('Error fetching venue or venue not found:', venueError);
-      return;
-    }
-
-    console.log('Found venue for daily special update:', venue.name);
-
-    // Get users who have this venue in their favorites
-    const { data: favoriteUsers, error: favoritesError } = await supabase
-      .from('venue_favorites')
-      .select('user_id')
-      .eq('venue_id', body.venue_id);
-
-    if (favoritesError) {
-      console.error('Error fetching venue favorites:', favoritesError);
-      return;
-    }
-
-    console.log('Found favorite users for daily special:', favoriteUsers?.length || 0);
-
-    if (!favoriteUsers || favoriteUsers.length === 0) {
-      console.log('No users to notify for daily special update');
-      return;
-    }
-
-    // Get notification preferences for these users
-    const userIds = favoriteUsers.map(f => f.user_id);
-    const { data: preferences, error: preferencesError } = await supabase
-      .from('notification_preferences')
-      .select('user_id, daily_special_updates')
-      .in('user_id', userIds)
-      .eq('daily_special_updates', true);
-
-    if (preferencesError) {
-      console.error('Error fetching daily special notification preferences:', preferencesError);
-      return;
-    }
-
-    console.log('Users with daily_special_updates enabled:', preferences?.length || 0);
-
-    if (!preferences || preferences.length === 0) {
-      console.log('No users have daily_special_updates enabled');
-      return;
-    }
-
-    const content = body.operation === 'INSERT'
-      ? `${venue.name} has added new daily specials!`
-      : `${venue.name} has updated their daily specials.`;
-
-    const notifications = preferences.map(pref => ({
-      user_id: pref.user_id,
-      type: 'DAILY_SPECIAL_UPDATE',
-      content,
-      related_entity_id: body.venue_id,
-      related_entity_type: 'venue'
-    }));
-
-    console.log('Creating daily special notifications:', notifications.length);
-
-    const { data: insertedData, error: insertError } = await supabase
-      .from('notifications')
-      .insert(notifications)
-      .select();
-
-    if (insertError) {
-      console.error('Error creating daily special notifications:', insertError);
-    } else {
-      console.log(`Created ${notifications.length} daily special notifications`);
-      console.log('Inserted daily special notifications:', insertedData);
-    }
-  } catch (error) {
-    console.error('Error in handleDailySpecialUpdate:', error);
-  }
-}
-
-async function handleEventCreated(supabase: any, body: NotificationRequest) {
-  if (!body.event_id || !body.venue_id) return;
-
   // Get venue name
-  const { data: venue } = await supabase
+  const { data: venue, error: venueError } = await supabaseClient
     .from('venues')
     .select('name')
-    .eq('id', body.venue_id)
-    .single();
+    .eq('id', venue_id)
+    .single()
 
-  if (!venue) return;
+  if (venueError || !venue?.name) {
+    console.error('❌ Error fetching venue name:', venueError)
+    return
+  }
 
-  // Get users who have this venue in their favorites and have event_updates enabled
-  const { data: favoriteUsers } = await supabase
-    .from('venue_favorites')
-    .select(`
-      user_id,
-      notification_preferences!inner(event_updates)
-    `)
-    .eq('venue_id', body.venue_id)
-    .eq('notification_preferences.event_updates', true);
+  // Get users who have favorited this venue
+  const { data: favoriteUsers, error: favoritesError } = await supabaseClient
+    .rpc('get_venue_favorites_for_notifications', { venue_id_param: venue_id })
+
+  if (favoritesError) {
+    console.error('❌ Error fetching favorite users:', favoritesError)
+    return
+  }
+
+  console.log('👥 Found users who favorited the venue:', favoriteUsers?.length || 0)
 
   if (!favoriteUsers || favoriteUsers.length === 0) {
-    console.log('No users to notify for event creation');
-    return;
+    console.log('ℹ️ No users have favorited this venue')
+    return
   }
 
-  const eventTitle = body.data?.title || 'New Event';
-  const content = `${venue.name} has created a new event: ${eventTitle}`;
+  // Get notification preferences for these users
+  const userIds = favoriteUsers.map(u => u.user_id)
+  const { data: usersWithPreferences, error: preferencesError } = await supabaseClient
+    .rpc('get_notification_preferences_for_users', { user_ids: userIds })
 
-  const notifications = favoriteUsers.map(favorite => ({
-    user_id: favorite.user_id,
-    type: 'EVENT_CREATED',
+  if (preferencesError) {
+    console.error('❌ Error fetching notification preferences:', preferencesError)
+    return
+  }
+
+  // Filter users who have venue_updates enabled
+  const enabledUsers = usersWithPreferences?.filter(user => user.venue_updates) || []
+  console.log('✅ Users with venue_updates enabled:', enabledUsers?.length || 0)
+
+  if (!enabledUsers || enabledUsers.length === 0) {
+    console.log('ℹ️ No users have venue updates enabled')
+    return
+  }
+
+  // Determine what changed
+  const changes = []
+  if (old_data.venue_open_time !== new_data.venue_open_time || 
+      old_data.venue_close_time !== new_data.venue_close_time) {
+    changes.push('venue hours')
+  }
+  if (old_data.kitchen_open_time !== new_data.kitchen_open_time || 
+      old_data.kitchen_close_time !== new_data.kitchen_close_time) {
+    changes.push('kitchen hours')
+  }
+  if (old_data.is_closed !== new_data.is_closed) {
+    changes.push(new_data.is_closed ? 'closed' : 'reopened')
+  }
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayName = dayNames[day_of_week]
+  const content = `${venue.name} has updated their ${changes.join(' and ')} for ${dayName}.`
+
+  // Create notifications for each user with preferences enabled
+  const notifications = enabledUsers.map(user => ({
+    user_id: user.user_id,
+    type: changes.includes('kitchen hours') ? 'KITCHEN_HOURS_UPDATE' : 'VENUE_HOURS_UPDATE',
     content,
-    related_entity_id: body.event_id,
-    related_entity_type: 'event'
-  }));
+    related_entity_id: venue_id,
+    related_entity_type: 'venue'
+  }))
 
-  const { error } = await supabase
+  console.log('📝 Creating notifications:', notifications.length)
+
+  const { error: notificationError } = await supabaseClient
     .from('notifications')
-    .insert(notifications);
+    .insert(notifications)
 
-  if (error) {
-    console.error('Error creating event creation notifications:', error);
+  if (notificationError) {
+    console.error('❌ Error creating notifications:', notificationError)
   } else {
-    console.log(`Created ${notifications.length} event creation notifications`);
+    console.log(`✅ Created ${notifications.length} venue hours notifications`)
   }
 }
 
-async function handleEventUpdated(supabase: any, body: NotificationRequest) {
-  if (!body.event_id || !body.venue_id) return;
-
+async function handleHappyHourUpdate(supabaseClient: any, body: any) {
+  const { venue_id, data: updateData } = body
+  
+  console.log('🍻 Processing happy hour update for venue:', venue_id)
+  
   // Get venue name
-  const { data: venue } = await supabase
+  const { data: venue, error: venueError } = await supabaseClient
     .from('venues')
     .select('name')
-    .eq('id', body.venue_id)
-    .single();
+    .eq('id', venue_id)
+    .single()
 
-  if (!venue) return;
-
-  // Get users who have this venue in their favorites and have event_updates enabled
-  const { data: favoriteUsers } = await supabase
-    .from('venue_favorites')
-    .select(`
-      user_id,
-      notification_preferences!inner(event_updates)
-    `)
-    .eq('venue_id', body.venue_id)
-    .eq('notification_preferences.event_updates', true);
-
-  // Get users who have expressed interest in this specific event
-  const { data: interestedUsers } = await supabase
-    .from('event_interests')
-    .select(`
-      user_id,
-      notification_preferences!inner(event_updates)
-    `)
-    .eq('event_id', body.event_id)
-    .eq('notification_preferences.event_updates', true);
-
-  // Combine and deduplicate users
-  const allUsers = new Set();
-  const favoriteUserIds = favoriteUsers?.map(u => u.user_id) || [];
-  const interestedUserIds = interestedUsers?.map(u => u.user_id) || [];
-  
-  [...favoriteUserIds, ...interestedUserIds].forEach(userId => allUsers.add(userId));
-
-  if (allUsers.size === 0) {
-    console.log('No users to notify for event update');
-    return;
+  if (venueError || !venue?.name) {
+    console.error('❌ Error fetching venue name:', venueError)
+    return
   }
 
-  const eventTitle = body.new_data?.title || body.old_data?.title || 'Event';
-  const content = `${venue.name} has updated the event: ${eventTitle}`;
+  // Get users who have favorited this venue
+  const { data: favoriteUsers, error: favoritesError } = await supabaseClient
+    .rpc('get_venue_favorites_for_notifications', { venue_id_param: venue_id })
 
-  const notifications = Array.from(allUsers).map(userId => ({
-    user_id: userId as string,
-    type: 'EVENT_UPDATED',
+  if (favoritesError) {
+    console.error('❌ Error fetching favorite users:', favoritesError)
+    return
+  }
+
+  console.log('👥 Found users who favorited the venue:', favoriteUsers?.length || 0)
+
+  if (!favoriteUsers || favoriteUsers.length === 0) {
+    console.log('ℹ️ No users have favorited this venue')
+    return
+  }
+
+  // Get notification preferences for these users
+  const userIds = favoriteUsers.map(u => u.user_id)
+  const { data: usersWithPreferences, error: preferencesError } = await supabaseClient
+    .rpc('get_notification_preferences_for_users', { user_ids: userIds })
+
+  if (preferencesError) {
+    console.error('❌ Error fetching notification preferences:', preferencesError)
+    return
+  }
+
+  // Filter users who have happy_hour_updates enabled
+  const enabledUsers = usersWithPreferences?.filter(user => user.happy_hour_updates) || []
+  console.log('✅ Users with happy_hour_updates enabled:', enabledUsers?.length || 0)
+
+  if (!enabledUsers || enabledUsers.length === 0) {
+    console.log('ℹ️ No users have happy hour updates enabled')
+    return
+  }
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayName = dayNames[updateData?.day_of_week || 0]
+  const content = `${venue.name} has updated their happy hours for ${dayName}.`
+
+  // Create notifications for each user with preferences enabled
+  const notifications = enabledUsers.map(user => ({
+    user_id: user.user_id,
+    type: 'HAPPY_HOURS_UPDATE',
     content,
-    related_entity_id: body.event_id,
-    related_entity_type: 'event'
-  }));
+    related_entity_id: venue_id,
+    related_entity_type: 'venue'
+  }))
 
-  const { error } = await supabase
+  console.log('📝 Creating happy hour notifications:', notifications.length)
+
+  const { error: notificationError } = await supabaseClient
     .from('notifications')
-    .insert(notifications);
+    .insert(notifications)
 
-  if (error) {
-    console.error('Error creating event update notifications:', error);
+  if (notificationError) {
+    console.error('❌ Error creating happy hour notifications:', notificationError)
   } else {
-    console.log(`Created ${notifications.length} event update notifications`);
+    console.log(`✅ Created ${notifications.length} happy hour notifications`)
   }
 }
 
-async function handleClaimStatusUpdate(supabase: any, body: NotificationRequest) {
-  if (!body.user_id || !body.claim_id || !body.status || !body.brewery_name) return;
+async function handleDailySpecialUpdate(supabaseClient: any, body: any) {
+  const { venue_id, data: updateData } = body
+  
+  console.log('🍽️ Processing daily special update for venue:', venue_id)
+  
+  // Get venue name
+  const { data: venue, error: venueError } = await supabaseClient
+    .from('venues')
+    .select('name')
+    .eq('id', venue_id)
+    .single()
 
-  // Check if user has claim_updates enabled
-  const { data: preferences } = await supabase
-    .from('notification_preferences')
-    .select('claim_updates')
-    .eq('user_id', body.user_id)
-    .single();
-
-  if (!preferences?.claim_updates) {
-    console.log('User does not have claim updates enabled');
-    return;
+  if (venueError || !venue?.name) {
+    console.error('❌ Error fetching venue name:', venueError)
+    return
   }
 
-  const notificationType = body.status === 'approved' ? 'CLAIM_APPROVED' : 'CLAIM_REJECTED';
-  const content = body.status === 'approved' 
-    ? `Your claim for ${body.brewery_name} has been approved! You can now manage this brewery.`
-    : `Your claim for ${body.brewery_name} has been rejected. Please contact support for more information.`;
+  // Get users who have favorited this venue
+  const { data: favoriteUsers, error: favoritesError } = await supabaseClient
+    .rpc('get_venue_favorites_for_notifications', { venue_id_param: venue_id })
 
-  const { error } = await supabase
+  if (favoritesError) {
+    console.error('❌ Error fetching favorite users:', favoritesError)
+    return
+  }
+
+  console.log('👥 Found users who favorited the venue:', favoriteUsers?.length || 0)
+
+  if (!favoriteUsers || favoriteUsers.length === 0) {
+    console.log('ℹ️ No users have favorited this venue')
+    return
+  }
+
+  // Get notification preferences for these users
+  const userIds = favoriteUsers.map(u => u.user_id)
+  const { data: usersWithPreferences, error: preferencesError } = await supabaseClient
+    .rpc('get_notification_preferences_for_users', { user_ids: userIds })
+
+  if (preferencesError) {
+    console.error('❌ Error fetching notification preferences:', preferencesError)
+    return
+  }
+
+  // Filter users who have daily_special_updates enabled
+  const enabledUsers = usersWithPreferences?.filter(user => user.daily_special_updates) || []
+  console.log('✅ Users with daily_special_updates enabled:', enabledUsers?.length || 0)
+
+  if (!enabledUsers || enabledUsers.length === 0) {
+    console.log('ℹ️ No users have daily special updates enabled')
+    return
+  }
+
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+  const dayName = dayNames[updateData?.day_of_week || 0]
+  const content = `${venue.name} has updated their daily specials for ${dayName}.`
+
+  // Create notifications for each user with preferences enabled
+  const notifications = enabledUsers.map(user => ({
+    user_id: user.user_id,
+    type: 'DAILY_SPECIAL_UPDATE',
+    content,
+    related_entity_id: venue_id,
+    related_entity_type: 'venue'
+  }))
+
+  console.log('📝 Creating daily special notifications:', notifications.length)
+
+  const { error: notificationError } = await supabaseClient
+    .from('notifications')
+    .insert(notifications)
+
+  if (notificationError) {
+    console.error('❌ Error creating daily special notifications:', notificationError)
+  } else {
+    console.log(`✅ Created ${notifications.length} daily special notifications`)
+  }
+}
+
+async function handleEventUpdate(supabaseClient: any, body: any) {
+  const { event_id, venue_id, data: eventData, type } = body
+  
+  console.log('🎉 Processing event update for venue:', venue_id, 'event:', event_id)
+  
+  // Get venue name
+  const { data: venue, error: venueError } = await supabaseClient
+    .from('venues')
+    .select('name')
+    .eq('id', venue_id)
+    .single()
+
+  if (venueError || !venue?.name) {
+    console.error('❌ Error fetching venue name:', venueError)
+    return
+  }
+
+  // Get users who have favorited this venue
+  const { data: favoriteUsers, error: favoritesError } = await supabaseClient
+    .rpc('get_venue_favorites_for_notifications', { venue_id_param: venue_id })
+
+  if (favoritesError) {
+    console.error('❌ Error fetching favorite users:', favoritesError)
+    return
+  }
+
+  // Get users who have expressed interest in this specific event
+  const { data: interestedUsers, error: interestError } = await supabaseClient
+    .from('event_interests')
+    .select('user_id')
+    .eq('event_id', event_id)
+
+  if (interestError) {
+    console.error('❌ Error fetching interested users:', interestError)
+    return
+  }
+
+  // Combine and deduplicate users
+  const allUserIds = new Set()
+  const favoriteUserIds = favoriteUsers?.map(u => u.user_id) || []
+  const interestedUserIds = interestedUsers?.map(u => u.user_id) || []
+  
+  favoriteUserIds.forEach(userId => allUserIds.add(userId))
+  interestedUserIds.forEach(userId => allUserIds.add(userId))
+
+  console.log('👥 Found users to potentially notify:', allUserIds.size)
+
+  if (allUserIds.size === 0) {
+    console.log('ℹ️ No users to notify for event update')
+    return
+  }
+
+  // Get notification preferences for these users
+  const { data: usersWithPreferences, error: preferencesError } = await supabaseClient
+    .rpc('get_notification_preferences_for_users', { user_ids: Array.from(allUserIds) })
+
+  if (preferencesError) {
+    console.error('❌ Error fetching notification preferences:', preferencesError)
+    return
+  }
+
+  // Filter users who have event_updates enabled
+  const enabledUsers = usersWithPreferences?.filter(user => user.event_updates) || []
+  console.log('✅ Users with event_updates enabled:', enabledUsers?.length || 0)
+
+  if (!enabledUsers || enabledUsers.length === 0) {
+    console.log('ℹ️ No users have event updates enabled')
+    return
+  }
+
+  const eventTitle = eventData?.title || 'Untitled Event'
+  const notificationType = type === 'event_created' ? 'EVENT_CREATED' : 'EVENT_UPDATED'
+  const action = type === 'event_created' ? 'created' : 'updated'
+  const content = `New event "${eventTitle}" has been ${action} at ${venue.name}.`
+
+  // Create notifications for each user with preferences enabled
+  const notifications = enabledUsers.map(user => ({
+    user_id: user.user_id,
+    type: notificationType,
+    content,
+    related_entity_id: event_id,
+    related_entity_type: 'event'
+  }))
+
+  console.log('📝 Creating event notifications:', notifications.length)
+
+  const { error: notificationError } = await supabaseClient
+    .from('notifications')
+    .insert(notifications)
+
+  if (notificationError) {
+    console.error('❌ Error creating event notifications:', notificationError)
+  } else {
+    console.log(`✅ Created ${notifications.length} event notifications`)
+  }
+}
+
+async function handleClaimStatusUpdate(supabaseClient: any, body: any) {
+  const { user_id, claim_id, status, brewery_name } = body
+  
+  console.log('🔔 Processing claim status update for user:', user_id, 'status:', status)
+  
+  // Check if user has claim_updates enabled using the security definer function
+  const { data: usersWithPreferences, error: preferencesError } = await supabaseClient
+    .rpc('get_notification_preferences_for_users', { user_ids: [user_id] })
+
+  if (preferencesError) {
+    console.error('❌ Error fetching notification preferences for claim update:', preferencesError)
+    return
+  }
+
+  // Check if user has claim_updates enabled
+  const userPreferences = usersWithPreferences?.find(user => user.user_id === user_id)
+  if (!userPreferences?.claim_updates) {
+    console.log('ℹ️ User does not have claim updates enabled')
+    return
+  }
+
+  const notificationType = status === 'approved' ? 'CLAIM_APPROVED' : 'CLAIM_REJECTED'
+  const content = status === 'approved' 
+    ? `Your claim for ${brewery_name} has been approved! You can now manage this brewery.`
+    : `Your claim for ${brewery_name} has been rejected. Please contact support for more information.`
+
+  console.log('📝 Creating claim status notification for user:', user_id)
+
+  const { error: notificationError } = await supabaseClient
     .from('notifications')
     .insert({
-      user_id: body.user_id,
+      user_id: user_id,
       type: notificationType,
       content,
-      related_entity_id: body.claim_id,
+      related_entity_id: claim_id,
       related_entity_type: 'brewery_claim'
-    });
+    })
 
-  if (error) {
-    console.error('Error creating claim status notification:', error);
+  if (notificationError) {
+    console.error('❌ Error creating claim status notification:', notificationError)
   } else {
-    console.log(`Created claim status notification for user ${body.user_id}`);
+    console.log(`✅ Created claim status notification for user ${user_id}`)
   }
 }

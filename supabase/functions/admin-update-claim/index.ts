@@ -189,43 +189,23 @@ Deno.serve(async (req) => {
         if (breweryError) {
           console.error('Error fetching brewery name for notification:', breweryError)
         } else if (brewery?.name) {
-          console.log('🔔 Sending claim status notification')
+          console.log('🔔 Calling create-notifications function for claim status update')
           
-          // Check if user has claim_updates enabled using the security definer function
-          const { data: usersWithPreferences, error: preferencesError } = await supabase
-            .rpc('get_notification_preferences_for_users', { user_ids: [claim.user_id] })
-
-          if (preferencesError) {
-            console.error('❌ Error fetching notification preferences for claim update:', preferencesError)
-          } else {
-            // Check if user has claim_updates enabled
-            const userPreferences = usersWithPreferences?.find(user => user.user_id === claim.user_id)
-            if (userPreferences?.claim_updates) {
-              const notificationType = status === 'approved' ? 'CLAIM_APPROVED' : 'CLAIM_REJECTED'
-              const content = status === 'approved' 
-                ? `Your claim for ${brewery.name} has been approved! You can now manage this brewery.`
-                : `Your claim for ${brewery.name} has been rejected. Please contact support for more information.`
-
-              console.log('📝 Creating claim status notification for user:', claim.user_id)
-
-              const { error: notificationError } = await supabase
-                .from('notifications')
-                .insert({
-                  user_id: claim.user_id,
-                  type: notificationType,
-                  content,
-                  related_entity_id: claimId,
-                  related_entity_type: 'brewery_claim'
-                })
-
-              if (notificationError) {
-                console.error('❌ Error creating claim status notification:', notificationError)
-              } else {
-                console.log(`✅ Created claim status notification for user ${claim.user_id}`)
-              }
-            } else {
-              console.log('ℹ️ User does not have claim updates enabled')
+          // Call the create-notifications edge function to handle the notification
+          const { error: notificationError } = await supabase.functions.invoke('create-notifications', {
+            body: {
+              type: 'claim_status_update',
+              user_id: claim.user_id,
+              claim_id: claimId,
+              status: status,
+              brewery_name: brewery.name
             }
+          })
+
+          if (notificationError) {
+            console.error('❌ Error calling create-notifications function:', notificationError)
+          } else {
+            console.log(`✅ Successfully called create-notifications for claim status update`)
           }
         }
       } catch (notificationError) {
