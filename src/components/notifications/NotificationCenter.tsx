@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Bell, Check, CheckCheck, Trash2, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Popover,
   PopoverContent,
@@ -18,19 +19,33 @@ interface NotificationItemProps {
   notification: Notification;
   onMarkAsRead: (id: string) => void;
   onDelete: (id: string) => void;
+  onNotificationClick: (notification: Notification) => void;
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({
   notification,
   onMarkAsRead,
   onDelete,
+  onNotificationClick,
 }) => {
   const isUnread = !notification.read_at;
+
+  const handleNotificationClick = () => {
+    // Mark as read when clicked
+    if (isUnread) {
+      onMarkAsRead(notification.id);
+    }
+    // Handle the notification click
+    onNotificationClick(notification);
+  };
 
   return (
     <div className={`p-3 border-b last:border-b-0 ${isUnread ? 'bg-blue-50' : ''}`}>
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
+        <div 
+          className="flex-1 min-w-0 cursor-pointer hover:bg-gray-50 p-1 -m-1 rounded"
+          onClick={handleNotificationClick}
+        >
           <p className={`text-sm ${isUnread ? 'font-medium text-gray-900' : 'text-gray-600'}`}>
             {notification.content}
           </p>
@@ -64,6 +79,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 };
 
 const NotificationCenter: React.FC = () => {
+  const navigate = useNavigate();
   const {
     notifications,
     unreadCount,
@@ -72,6 +88,23 @@ const NotificationCenter: React.FC = () => {
     markAllAsRead,
     deleteNotification,
   } = useNotifications();
+
+  const handleNotificationClick = (notification: Notification) => {
+    // Check if this is a venue-related notification
+    const isVenueNotification = notification.related_entity_type === 'venue' && 
+                               notification.related_entity_id;
+
+    if (isVenueNotification) {
+      // Navigate to the main page with the venue selected
+      navigate(`/?venueId=${notification.related_entity_id}`, { replace: true });
+      
+      // Close the notification popover by removing focus
+      const popoverTrigger = document.querySelector('[data-state="open"]');
+      if (popoverTrigger instanceof HTMLElement) {
+        popoverTrigger.click();
+      }
+    }
+  };
 
   return (
     <Popover>
@@ -123,6 +156,7 @@ const NotificationCenter: React.FC = () => {
                   notification={notification}
                   onMarkAsRead={markAsRead}
                   onDelete={deleteNotification}
+                  onNotificationClick={handleNotificationClick}
                 />
               ))}
             </div>
