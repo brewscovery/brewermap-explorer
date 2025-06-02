@@ -61,6 +61,8 @@ export class NotificationService {
    * Notifies users who have the venue in their favorites
    */
   static async notifyHappyHourUpdate(venueId: string, content: string) {
+    console.log('🔔 NotificationService.notifyHappyHourUpdate called with:', { venueId, content });
+
     try {
       // Use the new security definer function to get venue favorites (bypasses RLS)
       console.log('🔍 Using security definer function to get venue favorites');
