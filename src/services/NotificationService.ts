@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { NotificationType } from '@/types/notification';
 
@@ -315,16 +316,22 @@ export class NotificationService {
     status: 'approved' | 'rejected',
     breweryName: string
   ) {
-    try {
-      // Check if user has claim_updates enabled
-      const { data: preferences, error: preferencesError } = await supabase
-        .from('notification_preferences')
-        .select('claim_updates')
-        .eq('user_id', userId)
-        .single();
+    console.log('🔔 NotificationService.notifyClaimStatusUpdate called with:', { userId, claimId, status, breweryName });
 
-      if (preferencesError || !preferences?.claim_updates) {
-        console.log('User does not have claim updates enabled or preferences not found');
+    try {
+      // Check if user has claim_updates enabled using the security definer function
+      const { data: usersWithPreferences, error: preferencesError } = await supabase
+        .rpc('get_notification_preferences_for_users', { user_ids: [userId] });
+
+      if (preferencesError) {
+        console.error('❌ Error fetching notification preferences for claim update:', preferencesError);
+        return;
+      }
+
+      // Check if user has claim_updates enabled
+      const userPreferences = usersWithPreferences?.find(user => user.user_id === userId);
+      if (!userPreferences?.claim_updates) {
+        console.log('ℹ️ User does not have claim updates enabled');
         return;
       }
 
@@ -332,6 +339,8 @@ export class NotificationService {
       const content = status === 'approved' 
         ? `Your claim for ${breweryName} has been approved! You can now manage this brewery.`
         : `Your claim for ${breweryName} has been rejected. Please contact support for more information.`;
+
+      console.log('📝 Creating claim status notification for user:', userId);
 
       const { error: notificationError } = await supabase
         .from('notifications')
@@ -344,12 +353,12 @@ export class NotificationService {
         });
 
       if (notificationError) {
-        console.error('Error creating claim status notification:', notificationError);
+        console.error('❌ Error creating claim status notification:', notificationError);
       } else {
-        console.log(`Created claim status notification for user ${userId}`);
+        console.log(`✅ Created claim status notification for user ${userId}`);
       }
     } catch (error) {
-      console.error('Error in notifyClaimStatusUpdate:', error);
+      console.error('💥 Error in notifyClaimStatusUpdate:', error);
     }
   }
 
