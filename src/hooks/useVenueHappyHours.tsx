@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 import { categorizeHappyHours } from '@/utils/happyHourUtils';
+import { NotificationService } from '@/services/NotificationService';
 import type { VenueHappyHour, VenueHappyHourInput } from '@/types/venueHappyHours';
 
 export type { VenueHappyHour, VenueHappyHourInput } from '@/types/venueHappyHours';
