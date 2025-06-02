@@ -118,9 +118,26 @@ export const useVenueDailySpecials = (venueId: string | null) => {
       // Send notifications if we made changes
       if (hasChanges) {
         try {
-          const content = recordsToInsert.length > 0 
-            ? 'Daily specials have been updated with new offerings!'
-            : 'Daily specials have been updated.';
+          console.log('🏢 Fetching venue name for:', venueId);
+          const { data: venue, error: venueError } = await supabase
+            .from('venues')
+            .select('name')
+            .eq('id', venueId)
+            .single();
+
+          if (venueError) {
+            console.error('❌ Error fetching venue name:', venueError);
+            return;
+          }
+
+          if (!venue?.name) {
+            console.error('❌ No venue found with id:', venueId);
+            return;
+          }
+
+          console.log('🏢 Venue name found:', venue.name);
+
+          const content = `${venue.name} has updated their daily specials.`;
             
           await NotificationService.notifyDailySpecialUpdate(venueId, content);
           console.log('Daily special update notifications sent');
