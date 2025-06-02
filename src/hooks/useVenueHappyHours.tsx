@@ -138,7 +138,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
 
           const content = `${venue.name} has updated their happy hours!`;
             
-          await NotificationService.notifyDailySpecialUpdate(venueId, content);
+          await NotificationService.notifyHappyHourUpdate(venueId, content);
           console.log('Happy hours update notifications sent');
         } catch (notificationError) {
           console.error('Error sending happy hours notifications:', notificationError);
