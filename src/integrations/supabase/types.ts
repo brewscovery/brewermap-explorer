@@ -188,36 +188,6 @@ export type Database = {
           },
         ]
       }
-      debug_trigger_log: {
-        Row: {
-          fired_at: string | null
-          id: number
-          new_data: Json | null
-          old_data: Json | null
-          operation: string | null
-          table_name: string | null
-          trigger_name: string | null
-        }
-        Insert: {
-          fired_at?: string | null
-          id?: number
-          new_data?: Json | null
-          old_data?: Json | null
-          operation?: string | null
-          table_name?: string | null
-          trigger_name?: string | null
-        }
-        Update: {
-          fired_at?: string | null
-          id?: number
-          new_data?: Json | null
-          old_data?: Json | null
-          operation?: string | null
-          table_name?: string | null
-          trigger_name?: string | null
-        }
-        Relationships: []
-      }
       event_interests: {
         Row: {
           created_at: string
@@ -419,30 +389,6 @@ export type Database = {
           name?: string
           updated_at?: string
           user_id?: string
-        }
-        Relationships: []
-      }
-      trigger_activity_log: {
-        Row: {
-          details: Json | null
-          id: number
-          operation: string | null
-          triggered_at: string | null
-          venue_id: string | null
-        }
-        Insert: {
-          details?: Json | null
-          id?: number
-          operation?: string | null
-          triggered_at?: string | null
-          venue_id?: string | null
-        }
-        Update: {
-          details?: Json | null
-          id?: number
-          operation?: string | null
-          triggered_at?: string | null
-          venue_id?: string | null
         }
         Relationships: []
       }

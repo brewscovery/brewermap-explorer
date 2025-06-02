@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { NotificationType } from '@/types/notification';
 
@@ -112,6 +113,26 @@ export class NotificationService {
     console.log('🔔 NotificationService.notifyDailySpecialUpdate called with:', { venueId, content });
     
     try {
+      // Get venue name first
+      console.log('🏢 Fetching venue name for:', venueId);
+      const { data: venue, error: venueError } = await supabase
+        .from('venues')
+        .select('name')
+        .eq('id', venueId)
+        .single();
+
+      if (venueError) {
+        console.error('❌ Error fetching venue name:', venueError);
+        return;
+      }
+
+      if (!venue?.name) {
+        console.error('❌ No venue found with id:', venueId);
+        return;
+      }
+
+      console.log('🏢 Venue name found:', venue.name);
+
       // Use the new security definer function to get venue favorites (bypasses RLS)
       console.log('🔍 Using security definer function to get venue favorites');
       const { data: favoriteUsers, error: favoritesError } = await supabase
@@ -150,11 +171,15 @@ export class NotificationService {
         return;
       }
 
+      // Create notification content with venue name
+      const notificationContent = `${venue.name} has updated their daily specials.`;
+      console.log('📝 Notification content:', notificationContent);
+
       // Create notifications for each user with preferences enabled
       const notifications = enabledUsers.map(user => ({
         user_id: user.user_id,
         type: 'DAILY_SPECIAL_UPDATE' as NotificationType,
-        content,
+        content: notificationContent,
         related_entity_id: venueId,
         related_entity_type: 'venue'
       }));
