@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
 import { toast } from 'sonner';
 import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
+import { NotificationService } from '@/services/NotificationService';
 
 export const useVenueHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -88,6 +89,48 @@ export const useVenueHours = (venueId: string | null) => {
       if (error) throw error;
 
       console.log('[DEBUG] Batch update successful, updated hours:', data);
+
+      // Send notifications after successful update
+      try {
+        console.log('🏢 Fetching venue name for:', venueId);
+        const { data: venue, error: venueError } = await supabase
+          .from('venues')
+          .select('name')
+          .eq('id', venueId)
+          .single();
+
+        if (venueError) {
+          console.error('❌ Error fetching venue name:', venueError);
+        } else if (venue?.name) {
+          console.log('🏢 Venue name found:', venue.name);
+
+          // Check if any venue hours changed
+          const hasVenueHoursChanges = batchData.some(hour => 
+            hour.venue_open_time !== undefined || hour.venue_close_time !== undefined
+          );
+
+          // Check if any kitchen hours changed
+          const hasKitchenHoursChanges = batchData.some(hour => 
+            hour.kitchen_open_time !== undefined || hour.kitchen_close_time !== undefined
+          );
+
+          if (hasVenueHoursChanges) {
+            const content = `${venue.name} has updated their opening hours!`;
+            await NotificationService.notifyVenueUpdate(venueId, 'VENUE_HOURS_UPDATE', content);
+            console.log('Venue hours update notifications sent');
+          }
+
+          if (hasKitchenHoursChanges) {
+            const content = `${venue.name} has updated their kitchen hours!`;
+            await NotificationService.notifyVenueUpdate(venueId, 'KITCHEN_HOURS_UPDATE', content);
+            console.log('Kitchen hours update notifications sent');
+          }
+        }
+      } catch (notificationError) {
+        console.error('Error sending venue hours notifications:', notificationError);
+        // Don't fail the whole operation for notification errors
+      }
+
       toast.success('Venue hours updated successfully');
       await refetch();
       return true;

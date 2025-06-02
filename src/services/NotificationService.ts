@@ -12,47 +12,69 @@ export class NotificationService {
     updateType: 'VENUE_HOURS_UPDATE' | 'KITCHEN_HOURS_UPDATE',
     content: string
   ) {
+    console.log('🔔 NotificationService.notifyVenueUpdate called with:', { venueId, updateType, content });
+
     try {
-      // Get users who have this venue in their favorites and have venue_updates enabled
+      // Use the new security definer function to get venue favorites (bypasses RLS)
+      console.log('🔍 Using security definer function to get venue favorites');
       const { data: favoriteUsers, error: favoritesError } = await supabase
-        .from('venue_favorites')
-        .select(`
-          user_id,
-          notification_preferences!inner(venue_updates)
-        `)
-        .eq('venue_id', venueId)
-        .eq('notification_preferences.venue_updates', true);
+        .rpc('get_venue_favorites_for_notifications', { venue_id_param: venueId });
 
       if (favoritesError) {
-        console.error('Error fetching favorite users:', favoritesError);
+        console.error('❌ Error fetching favorite users for venue update:', favoritesError);
         return;
       }
+
+      console.log('👥 Found users who favorited the venue:', favoriteUsers?.length || 0, favoriteUsers);
 
       if (!favoriteUsers || favoriteUsers.length === 0) {
-        console.log('No users to notify for venue update');
+        console.log('ℹ️ No users have favorited this venue');
         return;
       }
 
-      // Create notifications for each user
-      const notifications = favoriteUsers.map(favorite => ({
-        user_id: favorite.user_id,
-        type: updateType,
+      // Get notification preferences for these users using the security definer function
+      const userIds = favoriteUsers.map(f => f.user_id);
+      console.log('🔍 Checking notification preferences for users:', userIds);
+      
+      const { data: usersWithPreferences, error: preferencesError } = await supabase
+        .rpc('get_notification_preferences_for_users', { user_ids: userIds });
+
+      if (preferencesError) {
+        console.error('❌ Error fetching notification preferences:', preferencesError);
+        return;
+      }
+
+      // Filter users who have venue_updates enabled
+      const enabledUsers = usersWithPreferences?.filter(user => user.venue_updates) || [];
+      console.log('✅ Users with venue_updates enabled:', enabledUsers?.length || 0, enabledUsers);
+
+      if (!enabledUsers || enabledUsers.length === 0) {
+        console.log('ℹ️ No users have venue updates enabled');
+        return;
+      }
+
+      // Create notifications for each user with preferences enabled
+      const notifications = enabledUsers.map(user => ({
+        user_id: user.user_id,
+        type: updateType as NotificationType,
         content,
         related_entity_id: venueId,
         related_entity_type: 'venue'
       }));
+
+      console.log('📝 Creating notifications:', notifications);
 
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert(notifications);
 
       if (notificationError) {
-        console.error('Error creating venue update notifications:', notificationError);
+        console.error('❌ Error creating venue update notifications:', notificationError);
       } else {
-        console.log(`Created ${notifications.length} venue update notifications`);
+        console.log(`✅ Created ${notifications.length} venue update notifications successfully`);
       }
     } catch (error) {
-      console.error('Error in notifyVenueUpdate:', error);
+      console.error('💥 Error in notifyVenueUpdate:', error);
     }
   }
 

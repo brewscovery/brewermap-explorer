@@ -740,6 +740,10 @@ export type Database = {
         Args: { user_ids: string[] }
         Returns: {
           user_id: string
+          venue_updates: boolean
+          event_updates: boolean
+          happy_hour_updates: boolean
+          claim_updates: boolean
           daily_special_updates: boolean
         }[]
       }
