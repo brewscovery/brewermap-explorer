@@ -65,7 +65,10 @@ export const useVenueHappyHours = (venueId: string | null) => {
       
       console.log('Records to update:', recordsToUpdate);
       console.log('Records to insert:', recordsToInsert);
-      
+
+      // Track if we made any changes for notification purposes
+      let hasChanges = false;
+
       // Update existing records
       if (recordsToUpdate.length > 0) {
         for (const record of recordsToUpdate) {
@@ -79,6 +82,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
             throw updateError;
           }
         }
+        hasChanges = true;
       }
       
       // Insert new records
@@ -91,6 +95,7 @@ export const useVenueHappyHours = (venueId: string | null) => {
           console.error('Error inserting new happy hours:', insertError);
           throw insertError;
         }
+        hasChanges = true;
       }
 
       console.log('Happy hours to delete:', idsToDelete);
@@ -105,6 +110,39 @@ export const useVenueHappyHours = (venueId: string | null) => {
         if (deleteError) {
           console.error('Error deleting happy hours:', deleteError);
           throw deleteError;
+        }
+        hasChanges = true;
+      }
+
+      // Send notifications if we made changes
+      if (hasChanges) {
+        try {
+          console.log('🏢 Fetching venue name for:', venueId);
+          const { data: venue, error: venueError } = await supabase
+            .from('venues')
+            .select('name')
+            .eq('id', venueId)
+            .single();
+
+          if (venueError) {
+            console.error('❌ Error fetching venue name:', venueError);
+            return;
+          }
+
+          if (!venue?.name) {
+            console.error('❌ No venue found with id:', venueId);
+            return;
+          }
+
+          console.log('🏢 Venue name found:', venue.name);
+
+          const content = `${venue.name} has updated their happy hours!`;
+            
+          await NotificationService.notifyDailySpecialUpdate(venueId, content);
+          console.log('Happy hours update notifications sent');
+        } catch (notificationError) {
+          console.error('Error sending happy hours notifications:', notificationError);
+          // Don't fail the whole operation for notification errors
         }
       }
 
