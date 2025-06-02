@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { NotificationType } from '@/types/notification';
 
@@ -226,69 +225,83 @@ export class NotificationService {
     updateType: 'EVENT_CREATED' | 'EVENT_UPDATED',
     content: string
   ) {
+    console.log('🔔 NotificationService.notifyEventUpdate called with:', { eventId, venueId, updateType, content });
+
     try {
-      // Get users who have this venue in their favorites and have event_updates enabled
+      // Get users who have this venue in their favorites
       const { data: favoriteUsers, error: favoritesError } = await supabase
-        .from('venue_favorites')
-        .select(`
-          user_id,
-          notification_preferences!inner(event_updates)
-        `)
-        .eq('venue_id', venueId)
-        .eq('notification_preferences.event_updates', true);
+        .rpc('get_venue_favorites_for_notifications', { venue_id_param: venueId });
 
       if (favoritesError) {
-        console.error('Error fetching favorite users for event update:', favoritesError);
+        console.error('❌ Error fetching favorite users for event update:', favoritesError);
         return;
       }
 
       // Get users who have expressed interest in this specific event
       const { data: interestedUsers, error: interestError } = await supabase
         .from('event_interests')
-        .select(`
-          user_id,
-          notification_preferences!inner(event_updates)
-        `)
-        .eq('event_id', eventId)
-        .eq('notification_preferences.event_updates', true);
+        .select('user_id')
+        .eq('event_id', eventId);
 
       if (interestError) {
-        console.error('Error fetching interested users for event update:', interestError);
+        console.error('❌ Error fetching interested users for event update:', interestError);
         return;
       }
 
       // Combine and deduplicate users
-      const allUsers = new Set();
+      const allUserIds = new Set<string>();
       const favoriteUserIds = favoriteUsers?.map(u => u.user_id) || [];
       const interestedUserIds = interestedUsers?.map(u => u.user_id) || [];
       
-      [...favoriteUserIds, ...interestedUserIds].forEach(userId => allUsers.add(userId));
+      [...favoriteUserIds, ...interestedUserIds].forEach(userId => allUserIds.add(userId));
 
-      if (allUsers.size === 0) {
-        console.log('No users to notify for event update');
+      console.log('👥 Found users to potentially notify:', allUserIds.size);
+
+      if (allUserIds.size === 0) {
+        console.log('ℹ️ No users to notify for event update');
         return;
       }
 
-      // Create notifications for each unique user
-      const notifications = Array.from(allUsers).map(userId => ({
-        user_id: userId as string,
-        type: updateType,
+      // Get notification preferences for these users
+      const { data: usersWithPreferences, error: preferencesError } = await supabase
+        .rpc('get_notification_preferences_for_users', { user_ids: Array.from(allUserIds) });
+
+      if (preferencesError) {
+        console.error('❌ Error fetching notification preferences:', preferencesError);
+        return;
+      }
+
+      // Filter users who have event_updates enabled
+      const enabledUsers = usersWithPreferences?.filter(user => user.event_updates) || [];
+      console.log('✅ Users with event_updates enabled:', enabledUsers?.length || 0);
+
+      if (!enabledUsers || enabledUsers.length === 0) {
+        console.log('ℹ️ No users have event updates enabled');
+        return;
+      }
+
+      // Create notifications for each user with preferences enabled
+      const notifications = enabledUsers.map(user => ({
+        user_id: user.user_id,
+        type: updateType as NotificationType,
         content,
         related_entity_id: eventId,
         related_entity_type: 'event'
       }));
+
+      console.log('📝 Creating notifications:', notifications);
 
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert(notifications);
 
       if (notificationError) {
-        console.error('Error creating event update notifications:', notificationError);
+        console.error('❌ Error creating event update notifications:', notificationError);
       } else {
-        console.log(`Created ${notifications.length} event update notifications`);
+        console.log(`✅ Created ${notifications.length} event update notifications successfully`);
       }
     } catch (error) {
-      console.error('Error in notifyEventUpdate:', error);
+      console.error('💥 Error in notifyEventUpdate:', error);
     }
   }
 
