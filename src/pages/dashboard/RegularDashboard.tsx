@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAnalytics } from '@/hooks/useUserAnalytics';
 import { StateBreakdownChart } from '@/components/dashboard/analytics/StateBreakdownChart';
+import { CountryBreakdownChart } from '@/components/dashboard/analytics/CountryBreakdownChart';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -71,6 +72,11 @@ const RegularDashboard = () => {
           availableCountries={analytics?.availableCountries || []}
         />
       </div>
+
+      <CountryBreakdownChart 
+        data={analytics?.venuesByCountry || []}
+        isLoading={isLoading}
+      />
     </div>
   );
 };

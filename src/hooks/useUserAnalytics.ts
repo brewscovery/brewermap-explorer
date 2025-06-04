@@ -11,6 +11,11 @@ interface UserAnalytics {
     visitedCount: number;
     totalCount: number;
   }>;
+  venuesByCountry: Array<{
+    country: string;
+    visitedCount: number;
+    totalCount: number;
+  }>;
   availableCountries: string[];
 }
 
@@ -107,10 +112,40 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
         }
       });
       
-      // Combine the data
+      // Combine the data for states
       const venuesByState = Array.from(totalByState.entries()).map(([state, totalCount]) => ({
         state,
         visitedCount: visitedByState.get(state)?.size || 0,
+        totalCount
+      })).sort((a, b) => b.visitedCount - a.visitedCount);
+      
+      // Process country data - show all countries with venues
+      const visitedByCountry = new Map<string, Set<string>>();
+      const totalByCountry = new Map<string, number>();
+      
+      // Count visited venues by country (unique venues only)
+      visitedVenues?.forEach(checkin => {
+        const country = checkin.venues.country;
+        if (country) {
+          if (!visitedByCountry.has(country)) {
+            visitedByCountry.set(country, new Set());
+          }
+          visitedByCountry.get(country)?.add(checkin.venue_id);
+        }
+      });
+      
+      // Count total venues by country
+      allVenues?.forEach(venue => {
+        const country = venue.country;
+        if (country) {
+          totalByCountry.set(country, (totalByCountry.get(country) || 0) + 1);
+        }
+      });
+      
+      // Combine the data for countries - include all countries with venues
+      const venuesByCountry = Array.from(totalByCountry.entries()).map(([country, totalCount]) => ({
+        country,
+        visitedCount: visitedByCountry.get(country)?.size || 0,
         totalCount
       })).sort((a, b) => b.visitedCount - a.visitedCount);
       
@@ -129,6 +164,7 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
         uniqueVenuesVisited: allVisitedVenues.size,
         totalVenues: totalVenuesInCountry,
         venuesByState,
+        venuesByCountry,
         availableCountries
       };
     },
