@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -167,18 +166,14 @@ const Index = () => {
         lastFilterUpdateTime={lastFilterUpdateTime}
       />
 
-      {/* Check-in dialog - now with improved z-index and event handling */}
+      {/* Check-in dialog with proper z-index */}
       {selectedVenue && user && (
-        <div className="fixed inset-0 z-[300] pointer-events-none">
-          <div className="pointer-events-auto">
-            <CheckInDialog
-              venue={selectedVenue}
-              isOpen={isCheckInDialogOpen}
-              onClose={handleCheckInClose}
-              onSuccess={handleCheckInSuccess}
-            />
-          </div>
-        </div>
+        <CheckInDialog
+          venue={selectedVenue}
+          isOpen={isCheckInDialogOpen}
+          onClose={handleCheckInClose}
+          onSuccess={handleCheckInSuccess}
+        />
       )}
     </div>
   );

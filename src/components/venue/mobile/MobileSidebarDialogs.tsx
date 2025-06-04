@@ -40,8 +40,7 @@ export const MobileSidebarDialogs = ({
   };
   
   return (
-    <div className="z-[200] pointer-events-auto">
-      {/* Using dialog-fixed version for better stacking and z-index handling */}
+    <>
       <CheckInDialog
         venue={venue}
         isOpen={isCheckInDialogOpen}
@@ -53,6 +52,6 @@ export const MobileSidebarDialogs = ({
         isOpen={isTodoListDialogOpen}
         onClose={handleTodoListClose}
       />
-    </div>
+    </>
   );
 };
