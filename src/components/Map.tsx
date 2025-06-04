@@ -1,5 +1,6 @@
 
 import React, { useEffect, useCallback, useState, memo, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import type { Venue } from '@/types/venue';
 import MapLayers from './map/layers/MapLayers';
@@ -30,6 +31,7 @@ const Map = ({
   onFilterChange = () => {},
   lastFilterUpdateTime = 0
 }: MapProps) => {
+  const navigate = useNavigate();
   const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
   
@@ -81,6 +83,8 @@ const Map = ({
     handleSidebarClose();
     // Notify parent component to clear search bar and venue selection
     onVenueSelect(null);
+    // Clear the venueId parameter from URL to allow notifications to work again
+    navigate('/', { replace: true });
   };
 
   return (
