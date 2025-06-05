@@ -89,16 +89,15 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     allowDecimals={false}
-                    //domain={[0, 'dataMax']}
                   />
                   <Tooltip content={<WeeklyCheckInsTooltip />} />
                   <Line 
                     type="monotone" 
                     dataKey="checkIns" 
-                    stroke="var(--color-checkIns)"
+                    stroke="#8884d8"
                     strokeWidth={2}
                     dot={{ fill: "var(--color-checkIns)", strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6, stroke: "var(--color-checkIns)", strokeWidth: 2 }}
+                    activeDot={{ r: 6, stroke: "#8884d8", strokeWidth: 2 }}
                     connectNulls={false}
                   />
                 </LineChart>
