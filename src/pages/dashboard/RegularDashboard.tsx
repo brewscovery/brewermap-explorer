@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAnalytics } from '@/hooks/useUserAnalytics';
-import { StateBreakdownChart } from '@/components/dashboard/analytics/StateBreakdownChart';
+import { StateBreakdown } from '@/components/dashboard/analytics/StateBreakdown';
 import { CountryProgressBars } from '@/components/dashboard/analytics/CountryProgressBars';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -80,7 +79,7 @@ const RegularDashboard = () => {
         />
       </div>
 
-      <StateBreakdownChart 
+      <StateBreakdown 
         data={analytics?.venuesByState || []}
         isLoading={isLoading}
         selectedCountry={selectedCountry}
