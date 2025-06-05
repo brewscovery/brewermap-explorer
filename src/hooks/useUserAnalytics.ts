@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { format, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
 
 interface UserAnalytics {
   uniqueVenuesVisited: number;
@@ -17,6 +18,11 @@ interface UserAnalytics {
     totalCount: number;
   }>;
   availableCountries: string[];
+  weeklyCheckIns: Array<{
+    week: string;
+    checkIns: number;
+    weekStart: Date;
+  }>;
 }
 
 export const useUserAnalytics = (userId: string | undefined, selectedCountry?: string) => {
@@ -68,6 +74,7 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
         .from('checkins')
         .select(`
           venue_id,
+          visited_at,
           venues!inner(state, country)
         `)
         .eq('user_id', userId);
@@ -160,12 +167,45 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
       // Calculate total venues for the selected country
       const totalVenuesInCountry = allVenues?.filter(venue => venue.country === countryToFilter).length || 0;
       
+      // Process weekly check-ins data (global, not filtered by country)
+      const weeklyCheckInsMap = new Map<string, number>();
+      const now = new Date();
+      
+      // Initialize all weeks for the last 13 weeks with 0 check-ins
+      for (let i = 12; i >= 0; i--) {
+        const weekStart = startOfWeek(subWeeks(now, i));
+        const weekKey = format(weekStart, 'MMM dd');
+        weeklyCheckInsMap.set(weekKey, 0);
+      }
+      
+      // Count check-ins per week (all global check-ins)
+      visitedVenues?.forEach(checkin => {
+        const checkinDate = new Date(checkin.visited_at);
+        const weekStart = startOfWeek(checkinDate);
+        const weekEnd = endOfWeek(checkinDate);
+        
+        // Only include check-ins from the last 13 weeks
+        if (checkinDate >= startOfWeek(subWeeks(now, 12)) && checkinDate <= now) {
+          const weekKey = format(weekStart, 'MMM dd');
+          const currentCount = weeklyCheckInsMap.get(weekKey) || 0;
+          weeklyCheckInsMap.set(weekKey, currentCount + 1);
+        }
+      });
+      
+      // Convert to array format for the chart
+      const weeklyCheckIns = Array.from(weeklyCheckInsMap.entries()).map(([week, checkIns]) => ({
+        week,
+        checkIns,
+        weekStart: new Date() // This will be properly calculated in the component if needed
+      }));
+      
       return {
         uniqueVenuesVisited: allVisitedVenues.size,
         totalVenues: totalVenuesInCountry,
         venuesByState,
         venuesByCountry,
-        availableCountries
+        availableCountries,
+        weeklyCheckIns
       };
     },
     enabled: !!userId
