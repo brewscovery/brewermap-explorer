@@ -26,7 +26,7 @@ export const StateBreakdown = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>State Progress</CardTitle>
+          <CardTitle>Brewscoveries by state</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {[1, 2, 3, 4].map((i) => (
@@ -44,7 +44,7 @@ export const StateBreakdown = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>State Progress</CardTitle>
+          <CardTitle>Brewscoveries by state</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-4">
@@ -58,7 +58,7 @@ export const StateBreakdown = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>State Progress - {selectedCountry}</CardTitle>
+        <CardTitle>Brewscoveries by state - {selectedCountry}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {data.map((state) => {

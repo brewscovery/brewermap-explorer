@@ -49,7 +49,7 @@ const RegularDashboard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Global Journey Progress</CardTitle>
+            <CardTitle className="text-lg">Your Global Brewscoveries</CardTitle>
             <CardDescription>
               Your progress across all countries
             </CardDescription>
@@ -64,7 +64,7 @@ const RegularDashboard = () => {
               <div className="space-y-2">
                 <Progress value={globalProgressPercentage} className="h-2" />
                 <p className="text-sm text-muted-foreground">
-                  You've visited {globalProgress.visited} out of {globalProgress.total} venues worldwide
+                  You've brewscovered {globalProgress.visited} out of {globalProgress.total} venues worldwide
                 </p>
               </div>
             )}
