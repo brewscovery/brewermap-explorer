@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAnalytics } from '@/hooks/useUserAnalytics';
 import { StateBreakdownChart } from '@/components/dashboard/analytics/StateBreakdownChart';
-import { CountryBreakdownChart } from '@/components/dashboard/analytics/CountryBreakdownChart';
+import { CountryProgressBars } from '@/components/dashboard/analytics/CountryProgressBars';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -14,11 +14,19 @@ const RegularDashboard = () => {
   const { data: analytics, isLoading } = useUserAnalytics(user?.id, selectedCountry);
   
   const displayName = firstName || lastName 
-    ? `${firstName || ''} ${lastName || ''}`.trim()
+    ? `${firstName || ''}  ${lastName || ''}`.trim()
     : 'User';
     
-  const progressPercentage = analytics 
-    ? (analytics.uniqueVenuesVisited / analytics.totalVenues) * 100
+  // Calculate global progress across all countries
+  const globalProgress = analytics?.venuesByCountry 
+    ? analytics.venuesByCountry.reduce((acc, country) => ({
+        visited: acc.visited + country.visitedCount,
+        total: acc.total + country.totalCount
+      }), { visited: 0, total: 0 })
+    : { visited: 0, total: 0 };
+    
+  const globalProgressPercentage = globalProgress.total > 0 
+    ? (globalProgress.visited / globalProgress.total) * 100 
     : 0;
 
   // Update selected country when analytics data loads for the first time
@@ -42,9 +50,9 @@ const RegularDashboard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Your Journey in {selectedCountry}</CardTitle>
+            <CardTitle className="text-lg">Global Journey Progress</CardTitle>
             <CardDescription>
-              Track your progress visiting unique venues
+              Your progress across all countries
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -55,16 +63,22 @@ const RegularDashboard = () => {
               </div>
             ) : (
               <div className="space-y-2">
-                <Progress value={progressPercentage} className="h-2" />
+                <Progress value={globalProgressPercentage} className="h-2" />
                 <p className="text-sm text-muted-foreground">
-                  You've visited {analytics?.uniqueVenuesVisited || 0} out of {analytics?.totalVenues || 0} venues in {selectedCountry}
+                  You've visited {globalProgress.visited} out of {globalProgress.total} venues worldwide
                 </p>
               </div>
             )}
           </CardContent>
         </Card>
-      </div>
 
+        <CountryProgressBars 
+          data={analytics?.venuesByCountry || []}
+          isLoading={isLoading}
+          selectedCountry={selectedCountry}
+          onCountrySelect={setSelectedCountry}
+        />
+      </div>
 
       <StateBreakdownChart 
         data={analytics?.venuesByState || []}
