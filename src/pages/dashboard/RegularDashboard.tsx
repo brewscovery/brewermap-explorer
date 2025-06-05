@@ -63,20 +63,17 @@ const RegularDashboard = () => {
             )}
           </CardContent>
         </Card>
-
-        <StateBreakdownChart 
-          data={analytics?.venuesByState || []}
-          isLoading={isLoading}
-          selectedCountry={selectedCountry}
-          onCountryChange={setSelectedCountry}
-          availableCountries={analytics?.availableCountries || []}
-        />
       </div>
 
-      <CountryBreakdownChart 
-        data={analytics?.venuesByCountry || []}
+
+      <StateBreakdownChart 
+        data={analytics?.venuesByState || []}
         isLoading={isLoading}
+        selectedCountry={selectedCountry}
+        onCountryChange={setSelectedCountry}
+        availableCountries={analytics?.availableCountries || []}
       />
+      
     </div>
   );
 };
