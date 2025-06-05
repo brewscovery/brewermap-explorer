@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartContainer } from '@/components/ui/chart';
-import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { WeeklyCheckInsTooltip } from './WeeklyCheckInsTooltip';
 
@@ -78,7 +78,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
           <div style={{ minWidth: '800px', height: '250px' }}>
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <XAxis 
                     dataKey="week" 
                     tick={{ fontSize: 12 }}
@@ -90,8 +90,9 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     allowDecimals={false}
+                    domain={[0, 'dataMax']}
                   />
-                  <WeeklyCheckInsTooltip />
+                  <Tooltip content={<WeeklyCheckInsTooltip />} />
                   <Line 
                     type="monotone" 
                     dataKey="checkIns" 
@@ -99,7 +100,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                     strokeWidth={2}
                     dot={{ fill: "var(--color-checkIns)", strokeWidth: 2, r: 4 }}
                     activeDot={{ r: 6, stroke: "var(--color-checkIns)", strokeWidth: 2 }}
-                    connectNulls={true}
+                    connectNulls={false}
                   />
                 </LineChart>
               </ResponsiveContainer>
