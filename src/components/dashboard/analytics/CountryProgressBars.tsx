@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flag } from 'lucide-react';
+import Flag from 'react-world-flags';
+import { getCountryCode } from '@/utils/countryUtils';
 
 interface CountryData {
   country: string;
@@ -78,6 +79,7 @@ export const CountryProgressBars = ({
             : 0;
           
           const isSelected = country.country === selectedCountry;
+          const countryCode = getCountryCode(country.country);
           
           return (
             <div 
@@ -89,7 +91,14 @@ export const CountryProgressBars = ({
             >
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <Flag className="h-4 w-4 text-muted-foreground" />
+                  {countryCode ? (
+                    <Flag 
+                      code={countryCode} 
+                      className="h-4 w-6 object-cover rounded-sm border border-border"
+                    />
+                  ) : (
+                    <div className="h-4 w-6 bg-muted rounded-sm border border-border" />
+                  )}
                   <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>
                     {country.country}
                   </span>
