@@ -90,7 +90,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                   <YAxis 
                     tick={{ fontSize: 12 }}
                     allowDecimals={false}
-                    domain={[0, 'dataMax']}
+                    //domain={[0, 'dataMax']}
                   />
                   <Tooltip content={<WeeklyCheckInsTooltip />} />
                   <Line 
