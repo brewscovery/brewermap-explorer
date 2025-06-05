@@ -41,7 +41,7 @@ const RegularDashboard = () => {
         <CardHeader>
           <CardTitle>Welcome, {displayName}</CardTitle>
           <CardDescription>
-            Your personalized brewery dashboard
+            Your personalized Brewscovery dashboard
           </CardDescription>
         </CardHeader>
       </Card>
@@ -49,9 +49,9 @@ const RegularDashboard = () => {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Your Global Brewscoveries</CardTitle>
+            <CardTitle className="text-lg">Brewscovery progress</CardTitle>
             <CardDescription>
-              Your progress across all countries
+              Total brewscoveries around the world
             </CardDescription>
           </CardHeader>
           <CardContent>

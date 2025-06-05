@@ -50,7 +50,7 @@ export const CountryProgressBars = ({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Country Progress</CardTitle>
+          <CardTitle>Brewscoveries by country</CardTitle>
           <CardDescription>
             Your progress by country
           </CardDescription>
@@ -67,7 +67,7 @@ export const CountryProgressBars = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Country Progress</CardTitle>
+        <CardTitle>Brewscoveries by country</CardTitle>
         <CardDescription>
           Click on a country to view its state breakdown
         </CardDescription>
