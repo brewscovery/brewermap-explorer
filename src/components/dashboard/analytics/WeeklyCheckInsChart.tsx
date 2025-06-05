@@ -1,15 +1,21 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { ChartContainer } from '@/components/ui/chart';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format, subWeeks, startOfWeek, endOfWeek } from 'date-fns';
+import { WeeklyCheckInsTooltip } from './WeeklyCheckInsTooltip';
+
+interface VenueData {
+  venueName: string;
+  checkInCount: number;
+}
 
 interface WeeklyData {
   week: string;
   checkIns: number;
   weekStart: Date;
+  venues: VenueData[];
 }
 
 interface WeeklyCheckInsChartProps {
@@ -35,7 +41,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Skeleton className="h-[300px] w-full" />
+          <Skeleton className="h-[250px] w-full" />
         </CardContent>
       </Card>
     );
@@ -51,7 +57,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] flex items-center justify-center">
+          <div className="h-[250px] flex items-center justify-center">
             <p className="text-muted-foreground">No check-ins recorded yet</p>
           </div>
         </CardContent>
@@ -69,7 +75,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
       </CardHeader>
       <CardContent>
         <div className="w-full overflow-x-auto">
-          <div style={{ minWidth: '800px', height: '300px' }}>
+          <div style={{ minWidth: '800px', height: '250px' }}>
             <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -85,7 +91,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                     tick={{ fontSize: 12 }}
                     allowDecimals={false}
                   />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <WeeklyCheckInsTooltip />
                   <Line 
                     type="monotone" 
                     dataKey="checkIns" 
@@ -93,6 +99,7 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                     strokeWidth={2}
                     dot={{ fill: "var(--color-checkIns)", strokeWidth: 2, r: 4 }}
                     activeDot={{ r: 6, stroke: "var(--color-checkIns)", strokeWidth: 2 }}
+                    connectNulls={true}
                   />
                 </LineChart>
               </ResponsiveContainer>

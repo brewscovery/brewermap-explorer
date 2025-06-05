@@ -22,6 +22,10 @@ interface UserAnalytics {
     week: string;
     checkIns: number;
     weekStart: Date;
+    venues: Array<{
+      venueName: string;
+      checkInCount: number;
+    }>;
   }>;
 }
 
@@ -75,7 +79,7 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
         .select(`
           venue_id,
           visited_at,
-          venues!inner(state, country)
+          venues!inner(name, state, country)
         `)
         .eq('user_id', userId);
         
@@ -167,36 +171,48 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
       // Calculate total venues for the selected country
       const totalVenuesInCountry = allVenues?.filter(venue => venue.country === countryToFilter).length || 0;
       
-      // Process weekly check-ins data (global, not filtered by country)
-      const weeklyCheckInsMap = new Map<string, number>();
+      // Process weekly check-ins data with venue breakdown
+      const weeklyCheckInsMap = new Map<string, { count: number; venues: Map<string, number>; weekStart: Date }>();
       const now = new Date();
       
       // Initialize all weeks for the last 13 weeks with 0 check-ins
       for (let i = 12; i >= 0; i--) {
         const weekStart = startOfWeek(subWeeks(now, i));
         const weekKey = format(weekStart, 'MMM dd');
-        weeklyCheckInsMap.set(weekKey, 0);
+        weeklyCheckInsMap.set(weekKey, { 
+          count: 0, 
+          venues: new Map<string, number>(),
+          weekStart 
+        });
       }
       
-      // Count check-ins per week (all global check-ins)
+      // Count check-ins per week with venue breakdown
       visitedVenues?.forEach(checkin => {
         const checkinDate = new Date(checkin.visited_at);
         const weekStart = startOfWeek(checkinDate);
-        const weekEnd = endOfWeek(checkinDate);
         
         // Only include check-ins from the last 13 weeks
         if (checkinDate >= startOfWeek(subWeeks(now, 12)) && checkinDate <= now) {
           const weekKey = format(weekStart, 'MMM dd');
-          const currentCount = weeklyCheckInsMap.get(weekKey) || 0;
-          weeklyCheckInsMap.set(weekKey, currentCount + 1);
+          const weekData = weeklyCheckInsMap.get(weekKey);
+          
+          if (weekData) {
+            weekData.count += 1;
+            const venueName = checkin.venues.name;
+            const currentVenueCount = weekData.venues.get(venueName) || 0;
+            weekData.venues.set(venueName, currentVenueCount + 1);
+          }
         }
       });
       
       // Convert to array format for the chart
-      const weeklyCheckIns = Array.from(weeklyCheckInsMap.entries()).map(([week, checkIns]) => ({
+      const weeklyCheckIns = Array.from(weeklyCheckInsMap.entries()).map(([week, data]) => ({
         week,
-        checkIns,
-        weekStart: new Date() // This will be properly calculated in the component if needed
+        checkIns: data.count,
+        weekStart: data.weekStart,
+        venues: Array.from(data.venues.entries())
+          .map(([venueName, checkInCount]) => ({ venueName, checkInCount }))
+          .sort((a, b) => b.checkInCount - a.checkInCount)
       }));
       
       return {
