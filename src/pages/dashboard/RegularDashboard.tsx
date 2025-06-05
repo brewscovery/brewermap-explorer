@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const RegularDashboard = () => {
   const { user, firstName, lastName } = useAuth();
-  const [selectedCountry, setSelectedCountry] = useState<string>('United States');
+  const [selectedCountry, setSelectedCountry] = useState<string>('Australia'); //Make Australia default selection for now
   const { data: analytics, isLoading } = useUserAnalytics(user?.id, selectedCountry);
   
   const displayName = firstName || lastName 

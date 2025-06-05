@@ -76,7 +76,6 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
       <CardContent>
         <div className="w-full overflow-x-auto">
           <div style={{ minWidth: '800px', height: '250px' }}>
-            <ChartContainer config={chartConfig}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                   <XAxis 
@@ -104,7 +103,6 @@ export const WeeklyCheckInsChart = ({ data, isLoading }: WeeklyCheckInsChartProp
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </ChartContainer>
           </div>
         </div>
       </CardContent>
