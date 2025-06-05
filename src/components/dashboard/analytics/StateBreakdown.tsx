@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 
 interface StateData {
@@ -21,12 +20,8 @@ interface StateBreakdownProps {
 export const StateBreakdown = ({ 
   data, 
   isLoading, 
-  selectedCountry = 'United States',
-  onCountryChange,
-  availableCountries = []
+  selectedCountry = 'United States'
 }: StateBreakdownProps) => {
-  const hasMultipleCountries = availableCountries.length > 1;
-
   if (isLoading) {
     return (
       <Card>
@@ -49,23 +44,7 @@ export const StateBreakdown = ({
     return (
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>State Progress</CardTitle>
-            {hasMultipleCountries && (
-              <Select value={selectedCountry} onValueChange={onCountryChange}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableCountries.map((country) => (
-                    <SelectItem key={country} value={country}>
-                      {country}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+          <CardTitle>State Progress</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground text-center py-4">
@@ -79,23 +58,7 @@ export const StateBreakdown = ({
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>State Progress - {selectedCountry}</CardTitle>
-          {hasMultipleCountries && (
-            <Select value={selectedCountry} onValueChange={onCountryChange}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select country" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableCountries.map((country) => (
-                  <SelectItem key={country} value={country}>
-                    {country}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-        </div>
+        <CardTitle>State Progress - {selectedCountry}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {data.map((state) => {

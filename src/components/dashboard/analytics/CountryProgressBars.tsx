@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Flag } from 'lucide-react';
 
 interface CountryData {
   country: string;
@@ -87,9 +88,12 @@ export const CountryProgressBars = ({
               onClick={() => onCountrySelect(country.country)}
             >
               <div className="flex justify-between items-center">
-                <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>
-                  {country.country}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Flag className="h-4 w-4 text-muted-foreground" />
+                  <span className={`font-medium ${isSelected ? 'text-primary' : ''}`}>
+                    {country.country}
+                  </span>
+                </div>
                 <span className="text-sm text-muted-foreground">
                   {country.visitedCount}/{country.totalCount}
                 </span>
