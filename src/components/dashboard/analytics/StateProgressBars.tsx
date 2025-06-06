@@ -9,7 +9,7 @@ interface StateData {
   totalCount: number;
 }
 
-interface StateBreakdownProps {
+interface StateProgressBarsProps {
   data: StateData[];
   isLoading?: boolean;
   selectedCountry?: string;
@@ -17,11 +17,11 @@ interface StateBreakdownProps {
   availableCountries?: string[];
 }
 
-export const StateBreakdown = ({ 
+export const StateProgressBars = ({ 
   data, 
   isLoading, 
   selectedCountry = 'United States'
-}: StateBreakdownProps) => {
+}: StateProgressBarsProps) => {
   if (isLoading) {
     return (
       <Card>

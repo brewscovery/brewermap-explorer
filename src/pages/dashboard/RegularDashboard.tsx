@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserAnalytics } from '@/hooks/useUserAnalytics';
-import { StateBreakdown } from '@/components/dashboard/analytics/StateBreakdown';
+import { StateProgressBars } from '@/components/dashboard/analytics/StateProgressBars';
 import { CountryProgressBars } from '@/components/dashboard/analytics/CountryProgressBars';
 import { WeeklyCheckInsChart } from '@/components/dashboard/analytics/WeeklyCheckInsChart';
 import { Progress } from '@/components/ui/progress';
@@ -81,7 +81,7 @@ const RegularDashboard = () => {
         />
       </div>
 
-      <StateBreakdown 
+      <StateProgressBars 
         data={analytics?.venuesByState || []}
         isLoading={isLoading}
         selectedCountry={selectedCountry}
