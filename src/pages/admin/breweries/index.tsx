@@ -10,6 +10,8 @@ import { BreweriesTable } from './table';
 import type { BreweryData } from '@/hooks/useAdminData';
 import { SortDirection, SortField } from './table/types';
 
+const ITEMS_PER_PAGE = 10;
+
 const BreweriesManagement = () => {
   const { 
     data: breweries, 
@@ -28,11 +30,17 @@ const BreweriesManagement = () => {
   const [venueManagementOpen, setVenueManagementOpen] = useState(false);
   const [selectedBrewery, setSelectedBrewery] = useState<BreweryData | null>(null);
   
-  // State for sorting and filtering
+  // State for sorting, filtering, and pagination
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, verificationFilter, countryFilter, sortField, sortDirection]);
   
   // Cleanup useEffect for component unmount
   useEffect(() => {
@@ -85,6 +93,10 @@ const BreweriesManagement = () => {
       setSortField(field);
       setSortDirection('asc');
     }
+  };
+  
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
   };
   
   // Modified handlers with improved cleanup
@@ -188,6 +200,13 @@ const BreweriesManagement = () => {
     });
   }, [breweries, sortField, sortDirection, verificationFilter, countryFilter]);
   
+  // Calculate pagination
+  const totalItems = filteredAndSortedBreweries.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedBreweries = filteredAndSortedBreweries.slice(startIndex, endIndex);
+  
   if (error) {
     return (
       <div className="space-y-6">
@@ -219,18 +238,23 @@ const BreweriesManagement = () => {
       />
       
       <BreweriesTable
-        breweries={filteredAndSortedBreweries}
+        breweries={paginatedBreweries}
         isLoading={isLoading}
         searchQuery={searchQuery}
         verificationFilter={verificationFilter}
         countryFilter={countryFilter}
         sortField={sortField}
         sortDirection={sortDirection}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        itemsPerPage={ITEMS_PER_PAGE}
+        totalItems={totalItems}
         handleSort={handleSort}
         handleEditBrewery={handleEditBrewery}
         handleDeleteBrewery={handleDeleteBrewery}
         handleManageVenues={handleManageVenues}
         handleVerificationChange={handleVerificationChange}
+        onPageChange={handlePageChange}
       />
       
       {/* Only render dialogs when they're open - with extra defensive checks */}
