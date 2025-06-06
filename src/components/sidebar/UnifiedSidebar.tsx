@@ -139,16 +139,7 @@ const SidebarContentComponent = () => {
       
       <UISidebarContent>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton 
-              onClick={() => handleNavigationWithSidebarClose('/')}
-              isActive={isActive('/')}
-            >
-              <Map size={18} />
-              <span>View Map</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
+          
           {!user ? (
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/auth')}>
