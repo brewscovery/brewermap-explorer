@@ -8,7 +8,8 @@ import {
   AlertDialogDescription, 
   AlertDialogFooter, 
   AlertDialogHeader, 
-  AlertDialogTitle 
+  AlertDialogTitle,
+  AlertDialogOverlay
 } from '@/components/ui/alert-dialog';
 
 interface AdminVenueDeleteDialogProps {
@@ -40,14 +41,18 @@ export const AdminVenueDeleteDialog = ({
         }
       }}
     >
-      <AlertDialogContent onCloseAutoFocus={(event) => {
-        // Prevent the default focus behavior to avoid potential issues
-        event.preventDefault();
-        
-        // Force document.body to be interactive again
-        document.body.style.pointerEvents = '';
-        document.body.style.overflow = '';
-      }}>
+      <AlertDialogOverlay className="z-[260]" />
+      <AlertDialogContent 
+        className="z-[270]"
+        onCloseAutoFocus={(event) => {
+          // Prevent the default focus behavior to avoid potential issues
+          event.preventDefault();
+          
+          // Force document.body to be interactive again
+          document.body.style.pointerEvents = '';
+          document.body.style.overflow = '';
+        }}
+      >
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Venue</AlertDialogTitle>
           <AlertDialogDescription>
