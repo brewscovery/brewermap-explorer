@@ -5,14 +5,7 @@ import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Calendar, X, Loader2, MapPin } from "lucide-react";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { Calendar, X, Loader2, MapPin } from "lucide-react";
 import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
@@ -22,7 +15,6 @@ import { useCitySearch, CityResult } from "@/hooks/useCitySearch";
 const EventsExplorer = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchType, setSearchType] = useState<"venue" | "city">("venue");
   const [loading, setLoading] = useState(false);
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
@@ -34,7 +26,7 @@ const EventsExplorer = () => {
   
   // Use the custom hook for city search
   const { cities: cityResults, isLoading: citySearchLoading } = useCitySearch(
-    searchType === "city" && manualInputChange ? searchTerm : ""
+    manualInputChange ? searchTerm : ""
   );
   
   // Fetch all venues for reference
@@ -109,10 +101,10 @@ const EventsExplorer = () => {
   // Update dropdown visibility based on search results
   useEffect(() => {
     // Only show dropdown if it's a manual input change and we have results
-    if (searchType === "city" && manualInputChange && cityResults.length > 0) {
+    if (manualInputChange && cityResults.length > 0) {
       setIsDropdownOpen(true);
     }
-  }, [cityResults, searchType, manualInputChange]);
+  }, [cityResults, manualInputChange]);
   
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -150,18 +142,23 @@ const EventsExplorer = () => {
     setLoading(true);
     
     try {
-      if (searchType === "venue") {
-        // Search by venue name
-        const filteredVenues = allVenues.filter(
-          venue => venue.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        
-        const venueIds = filteredVenues.map(v => v.id);
+      // Search by city with geocoding - 50km radius
+      const { data, error } = await supabase.functions.invoke('geocode-city', {
+        body: { city: searchTerm }
+      });
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Filter events based on venues in the returned data
+        const cityVenueIds = data.map((venue: Venue) => venue.id);
         
         const filtered = allEvents
-          .filter(event => venueIds.includes(event.venue_id))
+          .filter(event => cityVenueIds.includes(event.venue_id))
           .map(event => {
-            const venue = allVenues.find(v => v.id === event.venue_id);
+            // Find the venue from either the geocode results or our local venues
+            const venueFromGeocode = data.find((v: Venue) => v.id === event.venue_id);
+            const venue = venueFromGeocode || allVenues.find(v => v.id === event.venue_id);
             return { ...event, venue };
           })
           .filter(event => new Date(event.start_time) >= new Date())
@@ -171,35 +168,8 @@ const EventsExplorer = () => {
           
         setFilteredEvents(filtered);
       } else {
-        // Search by city with geocoding - 50km radius
-        const { data, error } = await supabase.functions.invoke('geocode-city', {
-          body: { city: searchTerm }
-        });
-        
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          // Filter events based on venues in the returned data
-          const cityVenueIds = data.map((venue: Venue) => venue.id);
-          
-          const filtered = allEvents
-            .filter(event => cityVenueIds.includes(event.venue_id))
-            .map(event => {
-              // Find the venue from either the geocode results or our local venues
-              const venueFromGeocode = data.find((v: Venue) => v.id === event.venue_id);
-              const venue = venueFromGeocode || allVenues.find(v => v.id === event.venue_id);
-              return { ...event, venue };
-            })
-            .filter(event => new Date(event.start_time) >= new Date())
-            .sort((a, b) => 
-              new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-            );
-            
-          setFilteredEvents(filtered);
-        } else {
-          // No results found for this city
-          setFilteredEvents([]);
-        }
+        // No results found for this city
+        setFilteredEvents([]);
       }
     } catch (error) {
       console.error("Search error:", error);
@@ -244,7 +214,7 @@ const EventsExplorer = () => {
     
     setSearchTerm(value);
     
-    if (searchType === "city" && value.length > 1) {
+    if (value.length > 1) {
       // City search will be triggered by the useCitySearch hook
       // Dropdown visibility is managed by the useEffect that watches cityResults
     } else {
@@ -263,14 +233,14 @@ const EventsExplorer = () => {
       <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 mb-6">
         <div className="flex-1 relative">
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground">
-            {searchType === "venue" ? <Search size={18} /> : <MapPin size={18} />}
+            <MapPin size={18} />
           </div>
           <Input
             ref={inputRef}
-            placeholder={`Search events by ${searchType === "venue" ? "venue name" : "city"}`}
+            placeholder="Search events by city (50km radius)"
             value={searchTerm}
             onChange={handleInputChange}
-            onFocus={() => searchType === "city" && manualInputChange && searchTerm.length > 1 && setIsDropdownOpen(true)}
+            onFocus={() => manualInputChange && searchTerm.length > 1 && setIsDropdownOpen(true)}
             className="pl-10 pr-10"
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
           />
@@ -284,7 +254,7 @@ const EventsExplorer = () => {
           )}
           
           {/* Dropdown for city results */}
-          {isDropdownOpen && searchType === "city" && (
+          {isDropdownOpen && (
             <div 
               ref={dropdownRef}
               className="absolute left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white rounded-md shadow-lg z-50"
@@ -325,25 +295,6 @@ const EventsExplorer = () => {
         </div>
         
         <div className="flex space-x-3">
-          <Select
-            value={searchType}
-            onValueChange={(value) => {
-              setSearchType(value as "venue" | "city");
-              // Flag as programmatic change when search type changes
-              setManualInputChange(false);
-              setSearchTerm(""); // Reset search term when changing search type
-              setIsDropdownOpen(false);
-            }}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Search by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="venue">Venue Name</SelectItem>
-              <SelectItem value="city">City (50km radius)</SelectItem>
-            </SelectContent>
-          </Select>
-          
           <Button onClick={handleSearch} disabled={loading}>
             {loading ? (
               <>
@@ -352,7 +303,7 @@ const EventsExplorer = () => {
               </>
             ) : (
               <>
-                <Search className="mr-2 h-4 w-4" />
+                <MapPin className="mr-2 h-4 w-4" />
                 Search
               </>
             )}
