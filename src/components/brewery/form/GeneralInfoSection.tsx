@@ -4,7 +4,7 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -15,6 +15,7 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
+import { RequiredFieldLabel } from '@/components/ui/required-field-label';
 import { UseFormReturn } from 'react-hook-form';
 import { getAllCountries, DEFAULT_COUNTRY } from '@/utils/countryUtils';
 import { UnifiedBreweryFormValues } from './BreweryFormContent';
@@ -36,10 +37,11 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name</FormLabel>
+            <RequiredFieldLabel required>Name</RequiredFieldLabel>
             <FormControl>
               <Input placeholder="Brewery name" {...field} required value={field.value || ''} />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -49,7 +51,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
         name="country"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Country</FormLabel>
+            <RequiredFieldLabel required>Country</RequiredFieldLabel>
             <FormControl>
               <Select
                 onValueChange={field.onChange}
@@ -68,6 +70,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
                 </SelectContent>
               </Select>
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
@@ -77,7 +80,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
         name="about"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>About</FormLabel>
+            <RequiredFieldLabel>About</RequiredFieldLabel>
             <FormControl>
               <Textarea 
                 placeholder="Describe your brewery (up to 1000 characters)" 
@@ -87,6 +90,7 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
                 value={field.value || ''}
               />
             </FormControl>
+            <FormMessage />
           </FormItem>
         )}
       />
