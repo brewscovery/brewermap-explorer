@@ -7,14 +7,22 @@ export class EventNotificationService {
   /**
    * Create notifications for event updates
    * Notifies users who have the venue in their favorites OR have expressed interest in the specific event
+   * Only sends notifications for published events
    */
   static async notifyEventUpdate(
     eventId: string,
     venueId: string,
     updateType: 'EVENT_CREATED' | 'EVENT_UPDATED',
-    content: string
+    content: string,
+    isPublished: boolean = false
   ) {
-    console.log('🔔 EventNotificationService.notifyEventUpdate called with:', { eventId, venueId, updateType, content });
+    console.log('🔔 EventNotificationService.notifyEventUpdate called with:', { eventId, venueId, updateType, content, isPublished });
+
+    // Only send notifications for published events
+    if (!isPublished) {
+      console.log('ℹ️ Event is not published, skipping notifications');
+      return;
+    }
 
     try {
       // Get users who have this venue in their favorites

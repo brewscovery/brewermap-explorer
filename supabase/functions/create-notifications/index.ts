@@ -310,6 +310,23 @@ async function handleEventUpdate(supabaseClient: any, body: any) {
   
   console.log('🎉 Processing event update for venue:', venue_id, 'event:', event_id)
   
+  // Check if the event is published before proceeding
+  const { data: eventDetails, error: eventError } = await supabaseClient
+    .from('venue_events')
+    .select('is_published')
+    .eq('id', event_id)
+    .single()
+
+  if (eventError) {
+    console.error('❌ Error fetching event details:', eventError)
+    return
+  }
+
+  if (!eventDetails?.is_published) {
+    console.log('ℹ️ Event is not published, skipping notifications')
+    return
+  }
+  
   // Get venue name
   const { data: venue, error: venueError } = await supabaseClient
     .from('venues')

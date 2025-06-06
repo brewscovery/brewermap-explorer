@@ -68,26 +68,30 @@ export function useCreateVenueEvent() {
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
 
-      // Send event creation notification
-      try {
-        console.log('🏢 Fetching venue name for event notification:', data.venue_id);
-        const { data: venue, error: venueError } = await supabase
-          .from('venues')
-          .select('name')
-          .eq('id', data.venue_id)
-          .single();
+      // Send event creation notification only if the event is published
+      if (data.is_published) {
+        try {
+          console.log('🏢 Fetching venue name for event notification:', data.venue_id);
+          const { data: venue, error: venueError } = await supabase
+            .from('venues')
+            .select('name')
+            .eq('id', data.venue_id)
+            .single();
 
-        if (venueError) {
-          console.error('❌ Error fetching venue name:', venueError);
-        } else if (venue?.name) {
-          console.log('🏢 Venue name found:', venue.name);
-          const content = `New event "${data.title}" has been created at ${venue.name}!`;
-          await NotificationService.notifyEventUpdate(data.id, data.venue_id, 'EVENT_CREATED', content);
-          console.log('Event creation notifications sent');
+          if (venueError) {
+            console.error('❌ Error fetching venue name:', venueError);
+          } else if (venue?.name) {
+            console.log('🏢 Venue name found:', venue.name);
+            const content = `New event "${data.title}" has been created at ${venue.name}!`;
+            await NotificationService.notifyEventUpdate(data.id, data.venue_id, 'EVENT_CREATED', content, true);
+            console.log('Event creation notifications sent');
+          }
+        } catch (notificationError) {
+          console.error('Error sending event creation notifications:', notificationError);
+          // Don't fail the whole operation for notification errors
         }
-      } catch (notificationError) {
-        console.error('Error sending event creation notifications:', notificationError);
-        // Don't fail the whole operation for notification errors
+      } else {
+        console.log('Event created but not published, skipping notifications');
       }
     }
   });
@@ -110,26 +114,30 @@ export function useUpdateVenueEvent() {
       queryClient.invalidateQueries({ queryKey: ['venueEvents', data.venue_id] });
       queryClient.invalidateQueries({ queryKey: ['multipleVenueEvents'] });
 
-      // Send event update notification
-      try {
-        console.log('🏢 Fetching venue name for event update notification:', data.venue_id);
-        const { data: venue, error: venueError } = await supabase
-          .from('venues')
-          .select('name')
-          .eq('id', data.venue_id)
-          .single();
+      // Send event update notification only if the event is published
+      if (data.is_published) {
+        try {
+          console.log('🏢 Fetching venue name for event update notification:', data.venue_id);
+          const { data: venue, error: venueError } = await supabase
+            .from('venues')
+            .select('name')
+            .eq('id', data.venue_id)
+            .single();
 
-        if (venueError) {
-          console.error('❌ Error fetching venue name:', venueError);
-        } else if (venue?.name) {
-          console.log('🏢 Venue name found:', venue.name);
-          const content = `Event "${data.title}" at ${venue.name} has been updated!`;
-          await NotificationService.notifyEventUpdate(data.id, data.venue_id, 'EVENT_UPDATED', content);
-          console.log('Event update notifications sent');
+          if (venueError) {
+            console.error('❌ Error fetching venue name:', venueError);
+          } else if (venue?.name) {
+            console.log('🏢 Venue name found:', venue.name);
+            const content = `Event "${data.title}" at ${venue.name} has been updated!`;
+            await NotificationService.notifyEventUpdate(data.id, data.venue_id, 'EVENT_UPDATED', content, true);
+            console.log('Event update notifications sent');
+          }
+        } catch (notificationError) {
+          console.error('Error sending event update notifications:', notificationError);
+          // Don't fail the whole operation for notification errors
         }
-      } catch (notificationError) {
-        console.error('Error sending event update notifications:', notificationError);
-        // Don't fail the whole operation for notification errors
+      } else {
+        console.log('Event updated but not published, skipping notifications');
       }
     }
   });
