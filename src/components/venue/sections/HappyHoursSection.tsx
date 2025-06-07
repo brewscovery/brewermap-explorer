@@ -1,6 +1,7 @@
 
-import React from 'react';
-import { Beer, Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Beer, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
 import { formatTime, getTodayDayOfWeek } from '@/utils/dateTimeUtils';
 import type { VenueHappyHour } from '@/hooks/useVenueHappyHours';
@@ -12,6 +13,7 @@ interface HappyHoursSectionProps {
 }
 
 const HappyHoursSection = ({ happyHours, isLoading }: HappyHoursSectionProps) => {
+  const [expanded, setExpanded] = useState(false);
   const activeHappyHours = happyHours.filter(hour => hour.is_active);
   
   // Get the most recent update time and who updated it
@@ -81,44 +83,84 @@ const HappyHoursSection = ({ happyHours, isLoading }: HappyHoursSectionProps) =>
   
   const activeNow = isHappyHourActive();
   
+  // Show today's happy hours summary when collapsed
+  const todaySummary = todayHappyHours.length > 0 ? (
+    <div className="text-sm">
+      <div className="flex items-center justify-between">
+        <div className="font-medium">Today</div>
+        <div className="flex items-center gap-1 text-xs">
+          <Clock className="h-3 w-3" />
+          {todayHappyHours.length === 1 && todayHappyHours[0].start_time && todayHappyHours[0].end_time ? (
+            <span>
+              {formatTime(todayHappyHours[0].start_time)} - {formatTime(todayHappyHours[0].end_time)}
+            </span>
+          ) : (
+            <span>{todayHappyHours.length} happy hour{todayHappyHours.length > 1 ? 's' : ''}</span>
+          )}
+        </div>
+      </div>
+      {todayHappyHours.length === 1 && todayHappyHours[0].description && (
+        <p className="text-xs text-muted-foreground mt-1">{todayHappyHours[0].description}</p>
+      )}
+    </div>
+  ) : (
+    <div className="text-sm text-muted-foreground">No happy hours today</div>
+  );
+  
   return (
     <div className="space-y-2">
-      <div className="flex flex-col">
-        <h3 className="font-medium text-sm flex items-center gap-1.5">
-          <Beer className="h-4 w-4" /> 
-          Happy Hours
-          {activeNow && (
-            <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full animate-pulse">
-              Active now!
-            </span>
-          )}
-        </h3>
-        <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+          <h3 className="font-medium text-sm flex items-center gap-1.5">
+            <Beer className="h-4 w-4" /> 
+            Happy Hours
+            {activeNow && (
+              <span className="bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded-full animate-pulse">
+                Active now!
+              </span>
+            )}
+          </h3>
+          <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+        </div>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => setExpanded(!expanded)}
+          className="h-6 px-1"
+        >
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        </Button>
       </div>
       
-      <div className="space-y-3">
-        {sortedHappyHours.map((hour, index) => (
-          <div key={index} className="text-sm">
-            <div className="flex items-center justify-between">
-              <div className="font-medium">{DAYS_OF_WEEK[hour.day_of_week]}</div>
-              <div className="flex items-center gap-1 text-xs">
-                <Clock className="h-3 w-3" />
-                {hour.start_time && hour.end_time ? (
-                  <span>
-                    {formatTime(hour.start_time)} - {formatTime(hour.end_time)}
-                  </span>
-                ) : (
-                  <span>All day</span>
-                )}
+      {/* Today's summary when collapsed */}
+      {!expanded && todaySummary}
+      
+      {/* Expanded view */}
+      {expanded && (
+        <div className="space-y-3 pt-2">
+          {sortedHappyHours.map((hour, index) => (
+            <div key={index} className="text-sm">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">{DAYS_OF_WEEK[hour.day_of_week]}</div>
+                <div className="flex items-center gap-1 text-xs">
+                  <Clock className="h-3 w-3" />
+                  {hour.start_time && hour.end_time ? (
+                    <span>
+                      {formatTime(hour.start_time)} - {formatTime(hour.end_time)}
+                    </span>
+                  ) : (
+                    <span>All day</span>
+                  )}
+                </div>
               </div>
+              
+              {hour.description && (
+                <p className="text-xs text-muted-foreground mt-1">{hour.description}</p>
+              )}
             </div>
-            
-            {hour.description && (
-              <p className="text-xs text-muted-foreground mt-1">{hour.description}</p>
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
