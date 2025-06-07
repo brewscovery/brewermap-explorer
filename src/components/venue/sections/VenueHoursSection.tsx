@@ -44,17 +44,14 @@ const VenueHoursSection = memo(({ venueHours, isLoadingHours }: VenueHoursSectio
   
   return (
     <div className="space-y-2">
-      <div className="flex flex-col">
-        <h3 className="font-medium text-sm">Hours</h3>
-        <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
-      </div>
       {isLoadingHours ? (
         <p className="text-sm text-muted-foreground">Loading hours...</p>
       ) : venueHours.length === 0 ? (
         <p className="text-sm text-muted-foreground">No hours available</p>
       ) : (
         <div className="space-y-3">
-          <HoursSection title="Operating Hours" hours={venueHours} />
+          <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+          <HoursSection title="Venue Hours" hours={venueHours} />
           {hasKitchenHours && (
             <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />
           )}
