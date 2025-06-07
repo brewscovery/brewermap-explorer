@@ -92,9 +92,9 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
         
       if (allVenuesError) throw allVenuesError;
       
-      // Get all available countries from user's visited venues
+      // Get all available countries from ALL venues in the database
       const availableCountries = [...new Set(
-        visitedVenues?.map(checkin => checkin.venues.country).filter(Boolean) || []
+        allVenues?.map(venue => venue.country).filter(Boolean) || []
       )].sort();
       
       // Use the selected country or default to the first available
