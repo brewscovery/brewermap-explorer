@@ -50,7 +50,6 @@ const VenueHoursSection = memo(({ venueHours, isLoadingHours }: VenueHoursSectio
         <p className="text-sm text-muted-foreground">No hours available</p>
       ) : (
         <div className="space-y-3">
-          <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
           <HoursSection title="Venue Hours" hours={venueHours} />
           {hasKitchenHours && (
             <HoursSection title="Kitchen Hours" hours={venueHours} showKitchenHours={true} />

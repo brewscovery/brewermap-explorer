@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, Clock, Utensils, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { formatTime, sortHoursStartingWithToday, getTodayDayOfWeek, getVenueOpenStatus, getKitchenOpenStatus } from '@/utils/dateTimeUtils';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
+import LastUpdatedInfo from './LastUpdatedInfo';
 
 interface HoursSectionProps { 
   title: string; 
@@ -69,6 +70,7 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
           )}
           {title}
         </h3>
+        <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
         <Button 
           variant="ghost" 
           size="sm" 
