@@ -56,6 +56,31 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
     }
   };
   
+  // Get the most recent update time and who updated it
+  const getLastUpdatedInfo = () => {
+    if (hours.length === 0) return { updatedAt: null, updatedByType: null };
+    
+    // Find the most recently updated hour
+    const mostRecent = hours.reduce(
+      (latest, current) => {
+        if (!latest.updated_at) return current;
+        if (!current.updated_at) return latest;
+        
+        return new Date(current.updated_at) > new Date(latest.updated_at) 
+          ? current 
+          : latest;
+      }, 
+      { updated_at: null } as any
+    );
+    
+    return {
+      updatedAt: mostRecent.updated_at,
+      updatedByType: mostRecent.updated_by ? 'admin' : 'business'
+    };
+  };
+  
+  const { updatedAt, updatedByType } = getLastUpdatedInfo();
+  
   // Sort hours to start with today
   const sortedHours = sortHoursStartingWithToday(hours);
   
