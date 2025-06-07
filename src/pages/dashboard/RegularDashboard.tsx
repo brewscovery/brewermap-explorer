@@ -30,12 +30,16 @@ const RegularDashboard = () => {
     ? (globalProgress.visited / globalProgress.total) * 100 
     : 0;
 
-  // Update selected country when analytics data loads for the first time
+  // Only reset selected country if we have analytics data AND the selected country is not available
+  // This prevents the race condition where selectedCountry gets reset while data is loading
   React.useEffect(() => {
-    if (analytics?.availableCountries?.length && !analytics.availableCountries.includes(selectedCountry)) {
+    if (analytics?.availableCountries?.length && 
+        !isLoading && 
+        !analytics.availableCountries.includes(selectedCountry)) {
+      console.log(`Selected country "${selectedCountry}" not found in available countries:`, analytics.availableCountries);
       setSelectedCountry(analytics.availableCountries[0]);
     }
-  }, [analytics?.availableCountries, selectedCountry]);
+  }, [analytics?.availableCountries, selectedCountry, isLoading]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
