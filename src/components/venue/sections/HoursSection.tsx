@@ -87,15 +87,17 @@ const HoursSection = ({ title, hours, showKitchenHours = false }: HoursSectionPr
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium text-sm flex items-center">
-          {showKitchenHours ? (
-            <Utensils size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
-          ) : (
-            <Clock size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
-          )}
-          {title}
-        </h3>
-        <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+        <div className="flex flex-col">
+          <h3 className="font-medium text-sm flex items-center">
+            {showKitchenHours ? (
+              <Utensils size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
+            ) : (
+              <Clock size={14} className={status.isOpen ? "mr-1 text-green-600" : "mr-1 text-muted-foreground"} />
+            )}
+            {title}
+          </h3>
+          <LastUpdatedInfo updatedAt={updatedAt} updatedByType={updatedByType} />
+        </div>
         <Button 
           variant="ghost" 
           size="sm" 
