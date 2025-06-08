@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,7 +52,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
       
       const { data, error } = await supabase
         .from('breweries')
-        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url, is_verified, is_independent')
+        .select('id, name, about, website_url, facebook_url, instagram_url, logo_url, is_verified, is_independent, country')
         .eq('id', venue.brewery_id)
         .single();
       
