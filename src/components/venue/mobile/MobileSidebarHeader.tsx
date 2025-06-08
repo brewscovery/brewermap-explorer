@@ -60,6 +60,17 @@ export const MobileSidebarHeader = ({
     }
   });
 
+  // Function to get the appropriate independent brewery logo based on country
+  const getIndependentBreweryLogo = (country: string | null) => {
+    if (country === 'United States' || country === 'United States of America') {
+      return "/lovable-uploads/1f789c84-9f47-42b7-ad64-39aac10a72ea.png";
+    } else if (country === 'Australia') {
+      return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
+    }
+    // Default to Australia logo for other countries or if country is null
+    return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
+  };
+
   return (
     <div className="flex flex-col p-4 border-b relative">
       {/* Top row: venue name and close button - Fixed layout to ensure truncation */}
@@ -124,7 +135,7 @@ export const MobileSidebarHeader = ({
             {breweryInfo?.is_independent && (
               <div>
                 <img 
-                  src="/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png" 
+                  src={getIndependentBreweryLogo(breweryInfo?.country)} 
                   alt="Certified Independent" 
                   className="h-8" 
                 />
