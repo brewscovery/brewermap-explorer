@@ -35,18 +35,30 @@ export function useVenueEvents(venueId: string | null) {
   });
 }
 
-export function useMultipleVenueEvents(venueIds: string[]) {
+export function useMultipleVenueEvents(venueIds: string[], page = 1, pageSize = 12) {
   return useQuery({
-    queryKey: ['multipleVenueEvents', venueIds],
+    queryKey: ['multipleVenueEvents', venueIds, page, pageSize],
     queryFn: async () => {
-      if (!venueIds.length) return [];
-      const { data, error } = await supabase
+      if (!venueIds.length) return { events: [], totalCount: 0, hasMore: false };
+      
+      const from = (page - 1) * pageSize;
+      const to = from + pageSize - 1;
+      
+      const { data, error, count } = await supabase
         .from('venue_events')
-        .select('*')
+        .select('*', { count: 'exact' })
         .in('venue_id', venueIds)
-        .order('start_time', { ascending: true });
+        .gte('start_time', new Date().toISOString()) // Only upcoming events
+        .order('start_time', { ascending: true })
+        .range(from, to);
+      
       if (error) throw error;
-      return data as VenueEvent[];
+      
+      return {
+        events: data as VenueEvent[],
+        totalCount: count || 0,
+        hasMore: (count || 0) > to + 1
+      };
     },
     enabled: venueIds.length > 0,
   });

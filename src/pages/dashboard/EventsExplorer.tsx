@@ -11,18 +11,30 @@ import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
 import { toast } from "@/components/ui/use-toast";
 import { useCitySearch, CityResult } from "@/hooks/useCitySearch";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 const EventsExplorer = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
-  const [filteredEvents, setFilteredEvents] = useState<Array<VenueEvent & { venue?: Venue }>>([]);
+  const [filteredVenueIds, setFilteredVenueIds] = useState<string[]>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [manualInputChange, setManualInputChange] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [activeTab, setActiveTab] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  const pageSize = 12;
   
   // Use the custom hook for city search
   const { cities: cityResults, isLoading: citySearchLoading } = useCitySearch(
@@ -42,15 +54,23 @@ const EventsExplorer = () => {
       }
       
       setAllVenues(data as Venue[]);
+      setFilteredVenueIds(data.map(v => v.id));
     };
     
     fetchVenues();
   }, []);
   
-  // Fetch all events 
-  const { data: allEvents = [], isLoading: eventsLoading } = useMultipleVenueEvents(
-    allVenues.map(v => v.id)
+  // Fetch events with pagination
+  const { data: eventsResponse, isLoading: eventsLoading, isFetching } = useMultipleVenueEvents(
+    filteredVenueIds,
+    currentPage,
+    pageSize
   );
+  
+  const events = eventsResponse?.events || [];
+  const totalCount = eventsResponse?.totalCount || 0;
+  const hasMore = eventsResponse?.hasMore || false;
+  const totalPages = Math.ceil(totalCount / pageSize);
   
   // Fetch user's interested events
   useEffect(() => {
@@ -73,30 +93,10 @@ const EventsExplorer = () => {
     fetchUserInterests();
   }, [user]);
   
-  // Process events with venue information
+  // Reset page when search changes
   useEffect(() => {
-    const processEvents = () => {
-      const enrichedEvents = allEvents.map(event => {
-        const venue = allVenues.find(v => v.id === event.venue_id);
-        return { ...event, venue };
-      });
-      
-      // Filter out past events
-      const upcomingEvents = enrichedEvents.filter(event => {
-        return new Date(event.start_time) >= new Date();
-      });
-      
-      // Sort by date
-      return upcomingEvents.sort((a, b) => 
-        new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-      );
-    };
-    
-    if (!eventsLoading && allEvents.length > 0 && allVenues.length > 0) {
-      const processed = processEvents();
-      setFilteredEvents(processed);
-    }
-  }, [allEvents, allVenues, eventsLoading]);
+    setCurrentPage(1);
+  }, [filteredVenueIds]);
   
   // Update dropdown visibility based on search results
   useEffect(() => {
@@ -126,16 +126,8 @@ const EventsExplorer = () => {
   // Handle search
   const handleSearch = async () => {
     if (!searchTerm.trim()) {
-      // Reset to show all upcoming events
-      const processed = allEvents.map(event => {
-        const venue = allVenues.find(v => v.id === event.venue_id);
-        return { ...event, venue };
-      }).filter(event => new Date(event.start_time) >= new Date())
-        .sort((a, b) => 
-          new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-        );
-      
-      setFilteredEvents(processed);
+      // Reset to show all venues
+      setFilteredVenueIds(allVenues.map(v => v.id));
       return;
     }
     
@@ -150,26 +142,12 @@ const EventsExplorer = () => {
       if (error) throw error;
       
       if (data && data.length > 0) {
-        // Filter events based on venues in the returned data
+        // Filter venues based on venues in the returned data
         const cityVenueIds = data.map((venue: Venue) => venue.id);
-        
-        const filtered = allEvents
-          .filter(event => cityVenueIds.includes(event.venue_id))
-          .map(event => {
-            // Find the venue from either the geocode results or our local venues
-            const venueFromGeocode = data.find((v: Venue) => v.id === event.venue_id);
-            const venue = venueFromGeocode || allVenues.find(v => v.id === event.venue_id);
-            return { ...event, venue };
-          })
-          .filter(event => new Date(event.start_time) >= new Date())
-          .sort((a, b) => 
-            new Date(a.start_time).getTime() - new Date(b.start_time).getTime()
-          );
-          
-        setFilteredEvents(filtered);
+        setFilteredVenueIds(cityVenueIds);
       } else {
         // No results found for this city
-        setFilteredEvents([]);
+        setFilteredVenueIds([]);
       }
     } catch (error) {
       console.error("Search error:", error);
@@ -202,8 +180,8 @@ const EventsExplorer = () => {
     setSearchTerm("");
     setIsDropdownOpen(false);
     
-    // Reset to default state if needed
-    handleSearch();
+    // Reset to default state
+    setFilteredVenueIds(allVenues.map(v => v.id));
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -223,7 +201,67 @@ const EventsExplorer = () => {
   };
   
   const getInterestedEvents = () => {
-    return filteredEvents.filter(event => userInterests.includes(event.id));
+    return events.filter(event => userInterests.includes(event.id));
+  };
+
+  const getEventsWithVenueInfo = () => {
+    return events.map(event => {
+      const venue = allVenues.find(v => v.id === event.venue_id);
+      return { ...event, venue };
+    });
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const renderPagination = () => {
+    if (totalPages <= 1) return null;
+
+    const pages = [];
+    const showPages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(showPages / 2));
+    let endPage = Math.min(totalPages, startPage + showPages - 1);
+    
+    if (endPage - startPage + 1 < showPages) {
+      startPage = Math.max(1, endPage - showPages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+              className={currentPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {pages.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => handlePageChange(page)}
+                isActive={currentPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
+              className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
   };
 
   return (
@@ -311,32 +349,38 @@ const EventsExplorer = () => {
         </div>
       </div>
       
-      <Tabs defaultValue="all">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
           <TabsTrigger value="interested" className="flex items-center">
             <Calendar className="mr-2 h-4 w-4" />
-                My Events
+            My Events
           </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center">
             <Calendar className="mr-2 h-4 w-4" />
-                All Events
+            All Events ({totalCount})
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="all">
-          {eventsLoading ? (
-            <div className="text-center py-8">Loading events...</div>
-          ) : filteredEvents.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredEvents.map(event => (
-                <UserEventCard 
-                  key={event.id} 
-                  event={event} 
-                  venue={event.venue}
-                  isInterested={userInterests.includes(event.id)}
-                />
-              ))}
+          {eventsLoading || isFetching ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+              <p>Loading events...</p>
             </div>
+          ) : getEventsWithVenueInfo().length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getEventsWithVenueInfo().map(event => (
+                  <UserEventCard 
+                    key={event.id} 
+                    event={event} 
+                    venue={event.venue}
+                    isInterested={userInterests.includes(event.id)}
+                  />
+                ))}
+              </div>
+              {renderPagination()}
+            </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               No upcoming events found. Try adjusting your search criteria.
@@ -346,17 +390,23 @@ const EventsExplorer = () => {
         
         <TabsContent value="interested">
           {eventsLoading ? (
-            <div className="text-center py-8">Loading events...</div>
+            <div className="text-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+              <p>Loading events...</p>
+            </div>
           ) : getInterestedEvents().length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getInterestedEvents().map(event => (
-                <UserEventCard 
-                  key={event.id} 
-                  event={event} 
-                  venue={event.venue}
-                  isInterested={true}
-                />
-              ))}
+              {getInterestedEvents().map(event => {
+                const venue = allVenues.find(v => v.id === event.venue_id);
+                return (
+                  <UserEventCard 
+                    key={event.id} 
+                    event={event} 
+                    venue={venue}
+                    isInterested={true}
+                  />
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
