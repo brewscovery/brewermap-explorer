@@ -18,9 +18,14 @@ const EventsPage = () => {
   // Get all venue IDs
   const venueIds = venues && venues.length > 0 ? venues.map(v => v.id) : [];
   
-  // Fetch events for all venues
-  const { data: allEvents = [], isLoading: eventsLoading } = useMultipleVenueEvents(venueIds);
+  // Fetch events for all venues with pagination (get all events for business dashboard)
+  const { data: eventsResponse, isLoading: eventsLoading } = useMultipleVenueEvents(
+    venueIds, 
+    1, // page
+    1000 // large pageSize to get all events for business dashboard
+  );
 
+  const allEvents = eventsResponse?.events || [];
   const isLoading = venuesLoading || eventsLoading;
 
   return (
