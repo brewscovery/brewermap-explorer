@@ -64,12 +64,25 @@ const VenueSidebarHeader = ({
 
   // Function to get the appropriate independent brewery logo based on country
   const getIndependentBreweryLogo = (country: string | null) => {
-    if (country === 'United States' || country === 'United States of America') {
-      return "/lovable-uploads/1f789c84-9f47-42b7-ad64-39aac10a72ea.png";
-    } else if (country === 'Australia') {
+    console.log('Brewery country value:', country, 'Type:', typeof country);
+    
+    if (!country) {
+      console.log('No country found, using Australia logo as default');
       return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
     }
-    // Default to Australia logo for other countries or if country is null
+    
+    const trimmedCountry = country.trim();
+    console.log('Trimmed country value:', trimmedCountry);
+    
+    if (trimmedCountry === 'United States' || trimmedCountry === 'United States of America' || trimmedCountry === 'USA' || trimmedCountry === 'US') {
+      console.log('Using USA independent brewery logo');
+      return "/lovable-uploads/1f789c84-9f47-42b7-ad64-39aac10a72ea.png";
+    } else if (trimmedCountry === 'Australia') {
+      console.log('Using Australia independent brewery logo');
+      return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
+    }
+    
+    console.log('Country not matched, using Australia logo as default');
     return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
   };
 
