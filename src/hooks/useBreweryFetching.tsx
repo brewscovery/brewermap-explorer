@@ -4,7 +4,7 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
-import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
+import { useRealtimeBrewery } from '@/hooks/useRealtimeBrewery';
 
 // Create a persistent reference that survives across component remounts
 // This will store the last selected brewery ID across page navigations
@@ -16,8 +16,21 @@ export const useBreweryFetching = (userId: string | undefined) => {
   const [isLoading, setIsLoading] = useState(true);
   const isUpdatingRef = useRef(false);
   
-  // Setup realtime updates for breweries
-  useBreweryRealtimeUpdates(selectedBrewery, setSelectedBrewery, breweries, setBreweries);
+  // Setup realtime updates for the selected brewery using the new consolidated system
+  useRealtimeBrewery(
+    selectedBrewery?.id || null,
+    (updatedBrewery) => {
+      // Update the selected brewery with real-time data
+      setSelectedBrewery(updatedBrewery);
+      
+      // Also update the brewery in the breweries array
+      setBreweries(prevBreweries => 
+        prevBreweries.map(brewery => 
+          brewery.id === updatedBrewery.id ? updatedBrewery : brewery
+        )
+      );
+    }
+  );
   
   // Local ref to track the current brewery ID within this component instance
   const currentBreweryIdRef = useRef<string | null>(selectedBrewery?.id || lastSelectedBreweryIdRef.current);
@@ -105,9 +118,11 @@ export const useBreweryFetching = (userId: string | undefined) => {
     }
   };
 
-  // Set up subscription to brewery_owners table
+  // Initial data fetch and brewery_owners subscription
   useEffect(() => {
     if (!userId) return;
+    
+    fetchBreweries();
     
     console.log('Setting up subscription to brewery_owners table');
     const ownershipChannel = supabase
@@ -133,13 +148,6 @@ export const useBreweryFetching = (userId: string | undefined) => {
       console.log('Cleaning up brewery_owners subscription');
       supabase.removeChannel(ownershipChannel);
     };
-  }, [userId]);
-
-  // Initial data fetch
-  useEffect(() => {
-    if (userId) {
-      fetchBreweries();
-    }
   }, [userId]);
 
   // Custom setter for selectedBrewery that also updates both refs
