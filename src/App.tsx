@@ -9,8 +9,8 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import AdminRoutes from "./pages/admin/Index";
-import { ProtectedRoute } from "./components/protected/ProtectedRoute";
-import { AdminRoute } from "./components/protected/AdminRoute";
+import ProtectedRoute from "./components/protected/ProtectedRoute";
+import AdminRoute from "./components/protected/AdminRoute";
 import VenueQrRedirect from "./components/qr/VenueQrRedirect";
 
 const queryClient = new QueryClient();

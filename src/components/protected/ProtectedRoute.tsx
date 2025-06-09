@@ -1,9 +1,13 @@
 
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const ProtectedRoute = () => {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+}
+
+const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
   const { user, loading } = useAuth();
   
   // Show loading state while authentication is being checked
@@ -26,7 +30,8 @@ const ProtectedRoute = () => {
   }
   
   // Render the protected content if authenticated
-  return <Outlet />;
+  return <>{children}</>;
 };
 
 export default ProtectedRoute;
+export { ProtectedRoute };
