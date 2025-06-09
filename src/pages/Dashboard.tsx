@@ -13,7 +13,7 @@ import DiscoveriesPage from './dashboard/DiscoveriesPage';
 import SettingsPage from './dashboard/SettingsPage';
 import SubscriptionPage from './dashboard/SubscriptionPage';
 import EventsExplorer from './dashboard/EventsExplorer';
-import BreweryInfo from '@/components/brewery/BreweryInfo';
+import BreweryManager from '@/components/dashboard/BreweryManager';
 import AppLayout from '@/components/layout/AppLayout';
 
 const Dashboard = () => {
@@ -31,7 +31,13 @@ const Dashboard = () => {
           element={
             userType === 'business' ? (
               <div className="max-w-6xl mx-auto space-y-6">
-                <BreweryInfo />
+                <BreweryManager 
+                  breweries={[]}
+                  selectedBrewery={null}
+                  isLoading={false}
+                  onBrewerySelect={() => {}}
+                  onNewBreweryAdded={() => {}}
+                />
               </div>
             ) : (
               <RegularDashboard />
