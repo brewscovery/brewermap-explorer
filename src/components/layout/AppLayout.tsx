@@ -8,7 +8,11 @@ import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 
-const AppLayout = () => {
+interface AppLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AppLayout = ({ children }: AppLayoutProps) => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
@@ -35,22 +39,22 @@ const AppLayout = () => {
             <div className="flex-1 flex flex-col">
               <FloatingSidebarToggle position="top-left" />
               <main className="p-6 pt-4 flex-1">
-                <Outlet />
+                {children || <Outlet />}
               </main>
             </div>
           ) : isAdminRoute ? (
             <main className="flex-1 flex flex-col">
-              <Outlet />
+              {children || <Outlet />}
             </main>
           ) : isRootRoute ? (
             <main className="flex-1 flex flex-col h-full">
-              <Outlet />
+              {children || <Outlet />}
             </main>
           ) : (
             <div className="flex-1 flex flex-col h-full">
               <Header />
               <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
-                <Outlet />
+                {children || <Outlet />}
               </main>
             </div>
           )}
