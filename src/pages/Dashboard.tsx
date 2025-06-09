@@ -3,6 +3,7 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRealtimeUser, useRealtimeBusinessUser } from '@/hooks/useRealtimeUser';
+import { useBreweryFetching } from '@/hooks/useBreweryFetching';
 import RegularDashboard from './dashboard/RegularDashboard';
 import EventsPage from './dashboard/EventsPage';
 import VenuesPage from './dashboard/VenuesPage';
@@ -17,11 +18,20 @@ import BreweryManager from '@/components/dashboard/BreweryManager';
 import AppLayout from '@/components/layout/AppLayout';
 
 const Dashboard = () => {
-  const { userType } = useAuth();
+  const { userType, user } = useAuth();
   
   // Set up real-time subscriptions for the current user
   useRealtimeUser();
   useRealtimeBusinessUser();
+
+  // Fetch brewery data for business users
+  const {
+    breweries,
+    selectedBrewery,
+    isLoading,
+    setSelectedBrewery,
+    fetchBreweries
+  } = useBreweryFetching(user?.id);
 
   return (
     <AppLayout>
@@ -32,11 +42,11 @@ const Dashboard = () => {
             userType === 'business' ? (
               <div className="max-w-6xl mx-auto space-y-6">
                 <BreweryManager 
-                  breweries={[]}
-                  selectedBrewery={null}
-                  isLoading={false}
-                  onBrewerySelect={() => {}}
-                  onNewBreweryAdded={() => {}}
+                  breweries={breweries}
+                  selectedBrewery={selectedBrewery}
+                  isLoading={isLoading}
+                  onBrewerySelect={setSelectedBrewery}
+                  onNewBreweryAdded={fetchBreweries}
                 />
               </div>
             ) : (
