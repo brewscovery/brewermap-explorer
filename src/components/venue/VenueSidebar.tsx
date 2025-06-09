@@ -6,7 +6,6 @@ import type { Venue } from '@/types/venue';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { useVenueHappyHours } from '@/hooks/useVenueHappyHours';
 import { useVenueDailySpecials } from '@/hooks/useVenueDailySpecials';
-import { useRealtimeVenue } from '@/hooks/useRealtimeVenue';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { TodoListDialog } from './TodoListDialog';
@@ -37,9 +36,6 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const venueId = venue?.id || null;
   
   console.log(`VenueSidebar rendering with venue ID: ${venueId}`);
-  
-  // Use consolidated real-time updates for this venue
-  useRealtimeVenue(venueId);
   
   const { hours: venueHours = [], isLoading: isLoadingHours } = useVenueHours(venueId);
   const { happyHours = [], isLoading: isLoadingHappyHours } = useVenueHappyHours(venueId);

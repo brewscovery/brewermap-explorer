@@ -1,13 +1,9 @@
 
-import { Navigate } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
-interface AdminRouteProps {
-  children: React.ReactNode;
-}
-
-const AdminRoute = ({ children }: AdminRouteProps) => {
+const AdminRoute = () => {
   const { user, userType, loading } = useAuth();
   
   // Show loading state while authentication is being checked
@@ -31,8 +27,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
   
   // Render the protected content if user is admin
-  return <>{children}</>;
+  return <Outlet />;
 };
 
 export default AdminRoute;
-export { AdminRoute };

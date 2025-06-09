@@ -1,69 +1,112 @@
 
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRealtimeUser, useRealtimeBusinessUser } from '@/hooks/useRealtimeUser';
 import { useBreweryFetching } from '@/hooks/useBreweryFetching';
-import RegularDashboard from './dashboard/RegularDashboard';
-import EventsPage from './dashboard/EventsPage';
-import VenuesPage from './dashboard/VenuesPage';
-import CheckInHistoryPage from './dashboard/CheckInHistoryPage';
-import FavoritesPage from './dashboard/FavoritesPage';
-import TodoListsPage from './dashboard/TodoListsPage';
-import DiscoveriesPage from './dashboard/DiscoveriesPage';
-import SettingsPage from './dashboard/SettingsPage';
-import SubscriptionPage from './dashboard/SubscriptionPage';
-import EventsExplorer from './dashboard/EventsExplorer';
-import BreweryManager from '@/components/dashboard/BreweryManager';
-import AppLayout from '@/components/layout/AppLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import UnifiedBreweryForm from '@/components/brewery/UnifiedBreweryForm';
+import { toast } from 'sonner';
+import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
+import { Button } from '@/components/ui/button';
+import { Trash2 } from 'lucide-react';
+import DeleteBreweryDialog from '@/components/brewery/DeleteBreweryDialog';
 
 const Dashboard = () => {
-  const { userType, user } = useAuth();
+  const { user, userType, loading } = useAuth();
+  const navigate = useNavigate();
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
-  // Set up real-time subscriptions for the current user
-  useRealtimeUser();
-  useRealtimeBusinessUser();
+  // Redirect if not a business user
+  useEffect(() => {
+    if (!loading && (!user || userType !== 'business')) {
+      navigate('/');
+    }
+  }, [user, userType, loading, navigate]);
 
-  // Fetch brewery data for business users
-  const {
-    breweries,
+  const { 
     selectedBrewery,
     isLoading,
-    setSelectedBrewery,
-    fetchBreweries
+    fetchBreweries 
   } = useBreweryFetching(user?.id);
 
+  // Log when the selected brewery changes
+  useEffect(() => {
+    console.log("Dashboard - selectedBrewery updated:", selectedBrewery?.name);
+  }, [selectedBrewery]);
+
+  // Add the notifications hook
+  useBreweryClaimNotifications();
+
+  // If still loading or no user, show loading state
+  if (loading || !user) {
+    return <div className="p-6 text-center">Loading dashboard...</div>;
+  }
+
+  const handleSubmitSuccess = async () => {
+    await fetchBreweries();
+    toast.success("Brewery updated successfully");
+  };
+
+  const handleDeleteSuccess = () => {
+    navigate('/');
+    toast.success("You've been redirected to the home page");
+  };
+
+  if (!selectedBrewery) {
+    return (
+      <div className="pt-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>No Brewery Selected</CardTitle>
+            <CardDescription>
+              Please select a brewery from the sidebar or create a new one to get started.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   return (
-    <AppLayout>
-      <Routes>
-        <Route 
-          path="/" 
-          element={
-            userType === 'business' ? (
-              <div className="max-w-6xl mx-auto space-y-6">
-                <BreweryManager 
-                  breweries={breweries}
-                  selectedBrewery={selectedBrewery}
-                  isLoading={isLoading}
-                  onBrewerySelect={setSelectedBrewery}
-                  onNewBreweryAdded={fetchBreweries}
-                />
-              </div>
-            ) : (
-              <RegularDashboard />
-            )
-          } 
-        />
-        <Route path="/events" element={userType === 'business' ? <EventsPage /> : <EventsExplorer />} />
-        <Route path="/venues" element={<VenuesPage />} />
-        <Route path="/check-ins" element={<CheckInHistoryPage />} />
-        <Route path="/favorites" element={<FavoritesPage />} />
-        <Route path="/todo-lists" element={<TodoListsPage />} />
-        <Route path="/discoveries" element={<DiscoveriesPage />} />
-        <Route path="/settings" element={<SettingsPage />} />
-        <Route path="/subscription" element={<SubscriptionPage />} />
-      </Routes>
-    </AppLayout>
+    <div className="max-w-4xl mx-auto pt-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Brewery Details</CardTitle>
+          <CardDescription>
+            Update your brewery's information below
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <UnifiedBreweryForm
+            initialData={selectedBrewery}
+            onSubmit={() => {}}
+            onSubmitSuccess={handleSubmitSuccess}
+            isAdminMode={false}
+            breweryId={selectedBrewery.id}
+            isEditMode={true}
+          />
+        </CardContent>
+        <CardFooter className="flex justify-between border-t pt-6">
+          <div></div>
+          <Button 
+            variant="destructive" 
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete Brewery
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <DeleteBreweryDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        breweryId={selectedBrewery?.id || null}
+        breweryName={selectedBrewery?.name || ""}
+        onSuccess={handleDeleteSuccess}
+      />
+    </div>
   );
 };
 

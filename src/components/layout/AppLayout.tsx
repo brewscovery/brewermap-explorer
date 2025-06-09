@@ -7,12 +7,9 @@ import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
 import { useAuth } from '@/contexts/AuthContext';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
+import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 
-interface AppLayoutProps {
-  children?: React.ReactNode;
-}
-
-const AppLayout = ({ children }: AppLayoutProps) => {
+const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
   const isDashboardRoute = location.pathname.includes('/dashboard');
@@ -21,6 +18,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const isBusinessUserDashboard = isDashboardRoute && userType === 'business';
   const isRegularUserDashboard = isDashboardRoute && userType === 'regular';
   
+  // Initialize brewery claim notifications for business users
+  useBreweryClaimNotifications();
+  
   const displayName = firstName || lastName 
     ? `${firstName || ''} ${lastName || ''}`.trim()
     : userType === 'business' 
@@ -28,11 +28,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       : userType === 'admin' 
         ? 'Admin' 
         : 'User';
-  
-  // For root route, render directly without layout wrapper
-  if (isRootRoute) {
-    return <>{children || <Outlet />}</>;
-  }
   
   return (
     <SidebarProvider defaultOpen={false}>
@@ -44,18 +39,22 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             <div className="flex-1 flex flex-col">
               <FloatingSidebarToggle position="top-left" />
               <main className="p-6 pt-4 flex-1">
-                {children || <Outlet />}
+                <Outlet />
               </main>
             </div>
           ) : isAdminRoute ? (
             <main className="flex-1 flex flex-col">
-              {children || <Outlet />}
+              <Outlet />
+            </main>
+          ) : isRootRoute ? (
+            <main className="flex-1 flex flex-col h-full">
+              <Outlet />
             </main>
           ) : (
             <div className="flex-1 flex flex-col h-full">
               <Header />
               <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
-                {children || <Outlet />}
+                <Outlet />
               </main>
             </div>
           )}

@@ -50,7 +50,8 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
         toggleSidebar();
       }
     } else {
-      // If user is not authenticated, show login popover
+      // If user is not authenticated, we don't toggle the sidebar
+      // Login popover will be shown via the LoginPopover component
       setLoginOpen(true);
     }
   };
