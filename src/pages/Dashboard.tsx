@@ -13,6 +13,7 @@ import DiscoveriesPage from './dashboard/DiscoveriesPage';
 import SettingsPage from './dashboard/SettingsPage';
 import SubscriptionPage from './dashboard/SubscriptionPage';
 import EventsExplorer from './dashboard/EventsExplorer';
+import BreweryInfo from '@/components/brewery/BreweryInfo';
 import AppLayout from '@/components/layout/AppLayout';
 
 const Dashboard = () => {
@@ -25,7 +26,18 @@ const Dashboard = () => {
   return (
     <AppLayout>
       <Routes>
-        <Route path="/" element={<RegularDashboard />} />
+        <Route 
+          path="/" 
+          element={
+            userType === 'business' ? (
+              <div className="max-w-6xl mx-auto space-y-6">
+                <BreweryInfo />
+              </div>
+            ) : (
+              <RegularDashboard />
+            )
+          } 
+        />
         <Route path="/events" element={userType === 'business' ? <EventsPage /> : <EventsExplorer />} />
         <Route path="/venues" element={<VenuesPage />} />
         <Route path="/check-ins" element={<CheckInHistoryPage />} />
