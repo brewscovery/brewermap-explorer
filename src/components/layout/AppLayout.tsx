@@ -29,6 +29,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         ? 'Admin' 
         : 'User';
   
+  // For root route, render directly without layout wrapper
+  if (isRootRoute) {
+    return <>{children || <Outlet />}</>;
+  }
+  
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
@@ -44,10 +49,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </div>
           ) : isAdminRoute ? (
             <main className="flex-1 flex flex-col">
-              {children || <Outlet />}
-            </main>
-          ) : isRootRoute ? (
-            <main className="flex-1 flex flex-col h-full">
               {children || <Outlet />}
             </main>
           ) : (
