@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 import { CheckInDialog } from '@/components/CheckInDialog';
 import { useState } from 'react';
+import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -149,33 +150,39 @@ const Index = () => {
   };
 
   return (
-    <div className="relative w-full h-screen">
-      {/* Floating UI Elements */}
-      <FloatingSearchBar 
-        onVenueSelect={handleVenueSelect} 
-        activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
-        selectedVenue={selectedVenue}
-      />
+    <div className="flex w-full h-screen">
+      {/* Sidebar */}
+      <UnifiedSidebar />
       
-      <Map
-        venues={venues}
-        onVenueSelect={handleVenueSelect}
-        selectedVenue={selectedVenue}
-        activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
-        lastFilterUpdateTime={lastFilterUpdateTime}
-      />
-
-      {/* Check-in dialog - simplified without complex z-index wrapper */}
-      {selectedVenue && user && (
-        <CheckInDialog
-          venue={selectedVenue}
-          isOpen={isCheckInDialogOpen}
-          onClose={handleCheckInClose}
-          onSuccess={handleCheckInSuccess}
+      {/* Main content with map */}
+      <div className="relative flex-1 w-full h-screen">
+        {/* Floating UI Elements */}
+        <FloatingSearchBar 
+          onVenueSelect={handleVenueSelect} 
+          activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+          selectedVenue={selectedVenue}
         />
-      )}
+        
+        <Map
+          venues={venues}
+          onVenueSelect={handleVenueSelect}
+          selectedVenue={selectedVenue}
+          activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+          lastFilterUpdateTime={lastFilterUpdateTime}
+        />
+
+        {/* Check-in dialog - simplified without complex z-index wrapper */}
+        {selectedVenue && user && (
+          <CheckInDialog
+            venue={selectedVenue}
+            isOpen={isCheckInDialogOpen}
+            onClose={handleCheckInClose}
+            onSuccess={handleCheckInSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 };
