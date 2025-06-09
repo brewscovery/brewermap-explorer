@@ -46,6 +46,10 @@ const SidebarContentComponent = () => {
     userType === 'business' && selectedBrewery ? selectedBrewery.id : null
   );
 
+  console.log('UnifiedSidebar - selectedBrewery:', selectedBrewery?.name);
+  console.log('UnifiedSidebar - venuesForSelectedBrewery:', venuesForSelectedBrewery);
+  console.log('UnifiedSidebar - venuesLoading:', venuesLoading);
+
   const handleNavigationWithSidebarClose = (path: string) => {
     // First navigate to maintain the app's flow
     navigate(path);
@@ -224,6 +228,20 @@ const SidebarContentComponent = () => {
                     </SidebarMenuItem>
                   )}
                   
+                  {/* Add Venue button for verified breweries */}
+                  {selectedBrewery && selectedBrewery.is_verified && (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton 
+                        onClick={() => handleAddVenue(selectedBrewery)}
+                        className="text-sm text-muted-foreground ml-4"
+                      >
+                        <Plus size={16} />
+                        <span>Add Venue</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  )}
+                  
+                  {/* Display venues for the selected brewery */}
                   {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
                     <SidebarMenuSub>
                       {venuesForSelectedBrewery.map((venue) => (
@@ -238,6 +256,27 @@ const SidebarContentComponent = () => {
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
+                    </SidebarMenuSub>
+                  )}
+                  
+                  {/* Show loading or empty state for venues */}
+                  {selectedBrewery && venuesLoading && (
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          Loading venues...
+                        </div>
+                      </SidebarMenuSubItem>
+                    </SidebarMenuSub>
+                  )}
+                  
+                  {selectedBrewery && !venuesLoading && (!venuesForSelectedBrewery || venuesForSelectedBrewery.length === 0) && (
+                    <SidebarMenuSub>
+                      <SidebarMenuSubItem>
+                        <div className="px-2 py-1 text-xs text-muted-foreground">
+                          No venues yet
+                        </div>
+                      </SidebarMenuSubItem>
                     </SidebarMenuSub>
                   )}
                   
