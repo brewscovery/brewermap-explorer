@@ -43,9 +43,12 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   const handleSidebarToggle = () => {
     console.log("FloatingSearchBar: handleSidebarToggle called");
     if (user) {
-      // If user is authenticated, navigate to dashboard where the sidebar will work properly
-      console.log("User authenticated, navigating to dashboard");
-      navigate('/dashboard');
+      // If user is authenticated, toggle sidebar as normal
+      if (isMobile) {
+        setOpenMobile(!openMobile);
+      } else {
+        toggleSidebar();
+      }
     } else {
       // If user is not authenticated, show login popover
       setLoginOpen(true);
