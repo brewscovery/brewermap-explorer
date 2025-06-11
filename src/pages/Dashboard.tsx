@@ -18,14 +18,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   
+  useRealtimeUser();
+  useRealtimeBusinessUser();
+  
   // Redirect if not a business user
   useEffect(() => {
     if (!loading && (!user || userType !== 'business')) {
-      useRealtimeUser();
       navigate('/');
-    } else {
-      useRealtimeBusinessUser();
-    }
+    } 
   }, [user, userType, loading, navigate]);
 
   const { 
