@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
+import { useRealtimeUser, useRealtimeBusinessUser } from '@/hooks/useRealtimeUser';
 import DeleteBreweryDialog from '@/components/brewery/DeleteBreweryDialog';
 
 const Dashboard = () => {
@@ -19,7 +20,10 @@ const Dashboard = () => {
   // Redirect if not a business user
   useEffect(() => {
     if (!loading && (!user || userType !== 'business')) {
+      useRealtimeUser();
       navigate('/');
+    } else {
+      useRealtimeBusinessUser();
     }
   }, [user, userType, loading, navigate]);
 
