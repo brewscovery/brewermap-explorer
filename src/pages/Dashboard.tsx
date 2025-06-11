@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
-import { useRealtimeUser, useRealtimeBusinessUser } from '@/hooks/useRealtimeUser';
+import { useRealtimeUser } from '@/hooks/useRealtimeUser';
+import { useRealtimeBusinessUser } from '@/hooks/useRealtimeBusinessUser';
 import DeleteBreweryDialog from '@/components/brewery/DeleteBreweryDialog';
 
 const Dashboard = () => {
