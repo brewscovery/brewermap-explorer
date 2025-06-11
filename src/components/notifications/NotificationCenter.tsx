@@ -112,7 +112,7 @@ const NotificationCenter: React.FC = () => {
       try {
         // Fetch the event to get its venue_id
         const { data: event, error } = await supabase
-          .from('events')
+          .from('venue_events')
           .select('venue_id')
           .eq('id', notification.related_entity_id)
           .single();
