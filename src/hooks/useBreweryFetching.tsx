@@ -4,7 +4,6 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
-import { useBreweryRealtimeUpdates } from '@/hooks/useBreweryRealtimeUpdates';
 import { useRealtimeBrewery } from '@/hooks/useRealtimeBrewery';
 
 // Create a persistent reference that survives across component remounts
