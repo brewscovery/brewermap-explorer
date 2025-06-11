@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
 import type { Notification } from '@/types/notification';
 
 interface NotificationItemProps {
@@ -89,15 +90,16 @@ const NotificationCenter: React.FC = () => {
     deleteNotification,
   } = useNotifications();
 
-  const handleNotificationClick = (notification: Notification) => {
-    // Check if this is a venue or event-related notification
+  const handleNotificationClick = async (notification: Notification) => {
+    // Check if this is a venue-related notification
     const isVenueNotification = notification.related_entity_type === 'venue' && 
                                notification.related_entity_id;
 
+    // Check if this is an event-related notification
     const isEventNotification = notification.related_entity_type === 'event' &&
                                 notification.related_entity_id;
 
-    if (isVenueNotification || isEventNotification) {
+    if (isVenueNotification) {
       // Navigate to the main page with the venue selected
       navigate(`/?venueId=${notification.related_entity_id}`, { replace: true });
       
@@ -105,6 +107,33 @@ const NotificationCenter: React.FC = () => {
       const popoverTrigger = document.querySelector('[data-state="open"]');
       if (popoverTrigger instanceof HTMLElement) {
         popoverTrigger.click();
+      }
+    } else if (isEventNotification) {
+      try {
+        // Fetch the event to get its venue_id
+        const { data: event, error } = await supabase
+          .from('events')
+          .select('venue_id')
+          .eq('id', notification.related_entity_id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching event:', error);
+          return;
+        }
+
+        if (event?.venue_id) {
+          // Navigate to the main page with the venue selected
+          navigate(`/?venueId=${event.venue_id}`, { replace: true });
+          
+          // Close the notification popover
+          const popoverTrigger = document.querySelector('[data-state="open"]');
+          if (popoverTrigger instanceof HTMLElement) {
+            popoverTrigger.click();
+          }
+        }
+      } catch (error) {
+        console.error('Error handling event notification click:', error);
       }
     }
   };
