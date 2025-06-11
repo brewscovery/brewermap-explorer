@@ -21,7 +21,7 @@ export const useRealtimeBusinessUser = () => {
       (payload) => {
         console.log('Brewery claim updated:', payload);
         
-        if (payload.eventType === 'UPDATE' && payload.new) {
+        if (payload.event_Type === 'UPDATE' && payload.new) {
           const newStatus = payload.new.status;
           const breweryName = payload.new.brewery_name;
 

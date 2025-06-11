@@ -90,11 +90,14 @@ const NotificationCenter: React.FC = () => {
   } = useNotifications();
 
   const handleNotificationClick = (notification: Notification) => {
-    // Check if this is a venue-related notification
+    // Check if this is a venue or event-related notification
     const isVenueNotification = notification.related_entity_type === 'venue' && 
                                notification.related_entity_id;
 
-    if (isVenueNotification) {
+    const isEventNotification = notification.related_entity_type === 'event' &&
+                                notification.related_entity_id;
+
+    if (isVenueNotification || isEventNotification) {
       // Navigate to the main page with the venue selected
       navigate(`/?venueId=${notification.related_entity_id}`, { replace: true });
       
