@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useVenueDailySpecialsRealtimeUpdates } from './useVenueDailySpecialsRealtimeUpdates';
 import { categorizeDailySpecials } from '@/utils/dailySpecialUtils';
 import { NotificationService } from '@/services/NotificationService';
 import type { VenueDailySpecial, VenueDailySpecialInput } from '@/types/venueDailySpecials';
@@ -12,9 +11,6 @@ export type { VenueDailySpecial, VenueDailySpecialInput } from '@/types/venueDai
 
 export const useVenueDailySpecials = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Set up realtime subscription for daily specials
-  useVenueDailySpecialsRealtimeUpdates(venueId);
 
   // Fetch daily specials
   const { 

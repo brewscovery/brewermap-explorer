@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { useVenueHappyHoursRealtimeUpdates } from './useVenueHappyHoursRealtimeUpdates';
 import { categorizeHappyHours } from '@/utils/happyHourUtils';
 import { NotificationService } from '@/services/NotificationService';
 import type { VenueHappyHour, VenueHappyHourInput } from '@/types/venueHappyHours';
@@ -12,9 +11,6 @@ export type { VenueHappyHour, VenueHappyHourInput } from '@/types/venueHappyHour
 
 export const useVenueHappyHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
-  
-  // Set up realtime subscription for happy hours
-  useVenueHappyHoursRealtimeUpdates(venueId);
 
   // Fetch happy hours
   const { 

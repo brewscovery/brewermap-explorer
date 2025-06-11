@@ -4,16 +4,12 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import type { VenueHour } from '@/types/venueHours';
 import { toast } from 'sonner';
-import { useVenueHoursRealtimeUpdates } from './useVenueHoursRealtimeUpdates';
 import { NotificationService } from '@/services/NotificationService';
 
 export const useVenueHours = (venueId: string | null) => {
   const [isUpdating, setIsUpdating] = useState(false);
   
   console.log(`useVenueHours called with venueId: ${venueId}`);
-  
-  // Setup realtime subscriptions
-  useVenueHoursRealtimeUpdates(venueId);
 
   // Fetch venue hours
   const { 
