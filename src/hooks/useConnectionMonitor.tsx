@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { connectionManager } from '@/services/ConnectionManager';
+import { MAX_DB_CONNECTIONS } from '@/constants/db';
 
 interface ConnectionStats {
   totalQueries: number;
@@ -35,7 +36,7 @@ export function useConnectionMonitor() {
       // Check for alerts
       const newAlerts: string[] = [];
       
-      if (currentStats.activeConnections >= 6) { // 75% of max connections
+      if (currentStats.activeConnections >= MAX_DB_CONNECTIONS * 0.75) { // 75% of max connections
         newAlerts.push('High connection usage detected');
       }
       
