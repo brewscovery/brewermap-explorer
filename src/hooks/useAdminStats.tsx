@@ -17,9 +17,12 @@ export const useAdminStats = () => {
   };
   
   // Note: This uses edge functions, not direct Supabase queries, so keeping useQuery
+  // Adding refetchInterval to refresh every second for real-time updates
   const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'stats'],
-    queryFn: fetchStats
+    queryFn: fetchStats,
+    refetchInterval: 1000, // Refresh every second
+    refetchIntervalInBackground: true // Continue refreshing even when tab is not active
   });
   
   return { data, isLoading, error };
