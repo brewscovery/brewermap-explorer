@@ -1,7 +1,7 @@
-
-import { useQuery } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { callEdgeFunction } from '@/utils/adminApiUtils';
 import { AdminStats } from '@/types/admin';
+import { useQuery } from '@tanstack/react-query';
 
 // Hook for fetching admin dashboard stats
 export const useAdminStats = () => {
@@ -17,8 +17,11 @@ export const useAdminStats = () => {
     }
   };
   
-  return useQuery({
+  // Note: This uses edge functions, not direct Supabase queries, so keeping useQuery
+  const { data, isLoading, error } = useQuery({
     queryKey: ['admin', 'stats'],
     queryFn: fetchStats
   });
+  
+  return { data, isLoading, error };
 };

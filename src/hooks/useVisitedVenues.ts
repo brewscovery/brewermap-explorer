@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -9,9 +10,10 @@ export const useVisitedVenues = () => {
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
-  const { data: checkins, isLoading } = useQuery({
-    queryKey: ['checkins', user?.id],
-    queryFn: async () => {
+  const { data: checkins, isLoading } = useOptimizedSupabaseQuery(
+    ['checkins', user?.id],
+    'checkins',
+    async () => {
       if (!user) return [];
       const { data, error } = await supabase
         .from('checkins')
@@ -22,8 +24,10 @@ export const useVisitedVenues = () => {
       console.log(`Fetched ${data?.length || 0} check-ins for user ${user.id}`);
       return data || [];
     },
-    enabled: !!user
-  });
+    'HIGH',
+    120000, // 2 minutes stale time for checkins
+    !!user
+  );
 
   useEffect(() => {
     if (!user) return;

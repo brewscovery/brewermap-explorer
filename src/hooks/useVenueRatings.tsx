@@ -1,5 +1,5 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 
 interface VenueRatingData {
@@ -13,9 +13,10 @@ export const useVenueRatings = (venueIds: string[] = []) => {
     data: ratingsData,
     isLoading,
     error,
-  } = useQuery({
-    queryKey: ['venueRatings', venueIds],
-    queryFn: async () => {
+  } = useOptimizedSupabaseQuery(
+    ['venueRatings', venueIds],
+    'checkins',
+    async () => {
       if (!venueIds.length) return [];
       
       console.log('Fetching ratings for venue IDs:', venueIds);
@@ -75,8 +76,10 @@ export const useVenueRatings = (venueIds: string[] = []) => {
       
       return result;
     },
-    enabled: venueIds.length > 0,
-  });
+    'NORMAL',
+    180000, // 3 minutes stale time for ratings
+    venueIds.length > 0
+  );
   
   return {
     ratingsData: ratingsData || [],

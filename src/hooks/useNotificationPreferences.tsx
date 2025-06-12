@@ -1,5 +1,6 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,9 +11,10 @@ export const useNotificationPreferences = () => {
   const queryClient = useQueryClient();
 
   // Fetch user's notification preferences
-  const { data: preferences, isLoading } = useQuery({
-    queryKey: ['notificationPreferences', user?.id],
-    queryFn: async () => {
+  const { data: preferences, isLoading } = useOptimizedSupabaseQuery(
+    ['notificationPreferences', user?.id],
+    'notification_preferences',
+    async () => {
       if (!user?.id) return null;
       
       const { data, error } = await supabase
@@ -24,8 +26,10 @@ export const useNotificationPreferences = () => {
       if (error) throw error;
       return data as NotificationPreferences | null;
     },
-    enabled: !!user?.id,
-  });
+    'HIGH',
+    60000, // 1 minute stale time for preferences
+    !!user?.id
+  );
 
   // Update notification preferences
   const updatePreferencesMutation = useMutation({

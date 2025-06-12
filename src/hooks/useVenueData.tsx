@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+
 import { useState, useEffect, useMemo } from 'react';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useVenueFilters } from './useVenueFilters';
 import type { Venue } from '@/types/venue';
@@ -9,9 +10,10 @@ export function useVenueData() {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
   // Fetch venues
-  const { data: venues = [], error, isLoading, refetch } = useQuery({
-    queryKey: ['venues'],
-    queryFn: async () => {
+  const { data: venues = [], error, isLoading, refetch } = useOptimizedSupabaseQuery(
+    ['venues'],
+    'venues',
+    async () => {
       const { data, error } = await supabase
         .from('venues')
         .select('*');
@@ -19,13 +21,15 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
   
   // Fetch venue hours
-  const { data: venueHours = [] } = useQuery({
-    queryKey: ['venue-hours'],
-    queryFn: async () => {
+  const { data: venueHours = [] } = useOptimizedSupabaseQuery(
+    ['venue-hours'],
+    'venue_hours',
+    async () => {
       const { data, error } = await supabase
         .from('venue_hours')
         .select('*');
@@ -33,13 +37,15 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
   
   // Fetch happy hours
-  const { data: happyHours = [] } = useQuery({
-    queryKey: ['happy-hours'],
-    queryFn: async () => {
+  const { data: happyHours = [] } = useOptimizedSupabaseQuery(
+    ['happy-hours'],
+    'venue_happy_hours',
+    async () => {
       const { data, error } = await supabase
         .from('venue_happy_hours')
         .select('*');
@@ -47,13 +53,15 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
   
   // Fetch daily specials
-  const { data: dailySpecials = [] } = useQuery({
-    queryKey: ['daily-specials'],
-    queryFn: async () => {
+  const { data: dailySpecials = [] } = useOptimizedSupabaseQuery(
+    ['daily-specials'],
+    'venue_daily_specials',
+    async () => {
       const { data, error } = await supabase
         .from('venue_daily_specials')
         .select('*');
@@ -61,13 +69,15 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
   
   // Fetch events
-  const { data: events = [] } = useQuery({
-    queryKey: ['events'],
-    queryFn: async () => {
+  const { data: events = [] } = useOptimizedSupabaseQuery(
+    ['events'],
+    'venue_events',
+    async () => {
       const { data, error } = await supabase
         .from('venue_events')
         .select('*');
@@ -75,13 +85,15 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
 
   // Fetch breweries
-  const { data: breweries = [] } = useQuery({
-    queryKey: ['breweries'],
-    queryFn: async () => {
+  const { data: breweries = [] } = useOptimizedSupabaseQuery(
+    ['breweries'],
+    'breweries',
+    async () => {
       const { data, error } = await supabase
         .from('breweries')
         .select('*');
@@ -89,8 +101,9 @@ export function useVenueData() {
       if (error) throw error;
       return data || [];
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+    'NORMAL',
+    300000 // 5 minutes stale time
+  );
 
   // Process and organize the data
   const venueHoursMap = useMemo(() => {

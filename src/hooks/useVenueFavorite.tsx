@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -13,9 +14,10 @@ export const useVenueFavorite = (venueId: string | null) => {
   const [isRedirectPending, setIsRedirectPending] = useState(false);
 
   // Query to check if the user has favorited this venue
-  const { data: isFavorited, isLoading: isCheckingFavorite } = useQuery({
-    queryKey: ['venueFavorite', venueId, user?.id],
-    queryFn: async () => {
+  const { data: isFavorited, isLoading: isCheckingFavorite } = useOptimizedSupabaseQuery(
+    ['venueFavorite', venueId, user?.id],
+    'venue_favorites',
+    async () => {
       if (!user || !venueId) return false;
       
       const { data, error } = await supabase
@@ -29,13 +31,16 @@ export const useVenueFavorite = (venueId: string | null) => {
       
       return !!data;
     },
-    enabled: !!user && !!venueId
-  });
+    'HIGH',
+    60000, // 1 minute stale time
+    !!user && !!venueId
+  );
 
   // Count how many users have favorited this venue
-  const { data: favoritesCount = 0 } = useQuery({
-    queryKey: ['venueFavoritesCount', venueId],
-    queryFn: async () => {
+  const { data: favoritesCount = 0 } = useOptimizedSupabaseQuery(
+    ['venueFavoritesCount', venueId],
+    'venue_favorites',
+    async () => {
       if (!venueId) return 0;
       
       const { count, error } = await supabase
@@ -47,8 +52,10 @@ export const useVenueFavorite = (venueId: string | null) => {
       
       return count || 0;
     },
-    enabled: !!venueId
-  });
+    'NORMAL',
+    120000, // 2 minutes stale time for counts
+    !!venueId
+  );
 
   // Mutation to toggle favorites
   const toggleFavoriteMutation = useMutation({

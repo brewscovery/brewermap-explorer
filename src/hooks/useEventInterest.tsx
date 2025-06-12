@@ -1,5 +1,7 @@
+
 import { useState, useEffect } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,9 +12,10 @@ export const useEventInterest = (event: VenueEvent) => {
   const { user } = useAuth();
 
   // Query to check if the user is interested in this event
-  const { data: isInterested, isLoading: isInterestLoading } = useQuery({
-    queryKey: ['eventInterest', event.id, user?.id],
-    queryFn: async () => {
+  const { data: isInterested, isLoading: isInterestLoading } = useOptimizedSupabaseQuery(
+    ['eventInterest', event.id, user?.id],
+    'event_interests',
+    async () => {
       if (!user) return false;
       
       const { data, error } = await supabase
@@ -26,13 +29,16 @@ export const useEventInterest = (event: VenueEvent) => {
       
       return !!data;
     },
-    enabled: !!user
-  });
+    'HIGH',
+    60000, // 1 minute stale time
+    !!user
+  );
 
   // New query to count interested users
-  const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useQuery({
-    queryKey: ['eventInterestedUsersCount', event.id],
-    queryFn: async () => {
+  const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useOptimizedSupabaseQuery(
+    ['eventInterestedUsersCount', event.id],
+    'event_interests',
+    async () => {
       const { count, error } = await supabase
         .from('event_interests')
         .select('user_id', { count: 'exact' })
@@ -41,8 +47,10 @@ export const useEventInterest = (event: VenueEvent) => {
       if (error) throw error;
       
       return count || 0;
-    }
-  });
+    },
+    'NORMAL',
+    120000 // 2 minutes stale time for counts
+  );
 
   // Mutation to toggle event interest
   const toggleInterestMutation = useMutation({

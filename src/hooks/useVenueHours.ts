@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -12,9 +13,10 @@ export const useVenueHours = (venueId: string | null) => {
   const { user } = useAuth();
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const { data: hours = [], isLoading, error } = useQuery({
-    queryKey: ['venueHours', venueId],
-    queryFn: async () => {
+  const { data: hours = [], isLoading, error } = useOptimizedSupabaseQuery(
+    ['venueHours', venueId],
+    'venue_hours',
+    async () => {
       if (!venueId) return [];
       
       const { data, error } = await supabase
@@ -39,8 +41,10 @@ export const useVenueHours = (venueId: string | null) => {
       
       return data as VenueHour[];
     },
-    enabled: !!venueId
-  });
+    'HIGH',
+    60000, // 1 minute stale time for venue hours
+    !!venueId
+  );
 
   const updateVenueHours = async (hoursData: Partial<VenueHour>[]) => {
     if (!venueId || !user) {
@@ -88,12 +92,12 @@ export const useVenueHours = (venueId: string | null) => {
           console.log('🏢 Venue name found:', venue.name);
 
           // Check if any venue hours changed
-          const hasVenueHoursChanges = processedData.some(hour => 
+          const hasVenueHoursChanges = hoursData.some(hour => 
             hour.venue_open_time !== undefined || hour.venue_close_time !== undefined
           );
 
           // Check if any kitchen hours changed
-          const hasKitchenHoursChanges = processedData.some(hour => 
+          const hasKitchenHoursChanges = hoursData.some(hour => 
             hour.kitchen_open_time !== undefined || hour.kitchen_close_time !== undefined
           );
 
@@ -113,26 +117,54 @@ export const useVenueHours = (venueId: string | null) => {
         console.error('Error sending venue hours notifications:', notificationError);
         // Don't fail the whole operation for notification errors
       }
-      
-      // Invalidate and refetch
-      await queryClient.invalidateQueries({ queryKey: ['venueHours', venueId] });
-      
+
       toast.success('Venue hours updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['venueHours', venueId] });
       return true;
-    } catch (err) {
-      console.error('Error updating venue hours:', err);
-      toast.error('Failed to update venue hours');
+    } catch (error: any) {
+      console.error('Error updating venue hours:', error);
+      toast.error(error.message || 'Failed to update venue hours');
       return false;
     } finally {
       setIsUpdating(false);
     }
   };
 
+  /**
+   * Delete a venue hour record
+   */
+  const deleteVenueHours = async (hourId: string) => {
+    if (!venueId) {
+      toast.error('Venue ID is missing');
+      return false;
+    }
+    
+    try {
+      const { error } = await supabase
+        .from('venue_hours')
+        .delete()
+        .eq('id', hourId)
+        .eq('venue_id', venueId);
+
+      if (error) throw error;
+
+      toast.success('Venue hour deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['venueHours', venueId] });
+      return true;
+    } catch (error: any) {
+      console.error('Error deleting venue hour:', error);
+      toast.error(error.message || 'Failed to delete venue hour');
+      return false;
+    }
+  };
+
   return {
-    hours,
+    hours: hours || [],
     isLoading,
     error,
+    refetch: () => queryClient.invalidateQueries({ queryKey: ['venueHours', venueId] }),
+    isUpdating,
     updateVenueHours,
-    isUpdating
+    deleteVenueHours
   };
 };

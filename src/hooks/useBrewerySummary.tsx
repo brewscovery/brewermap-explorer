@@ -1,12 +1,13 @@
 
-import { useQuery } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 
 export function useBrewerySummary(breweryId: string | null) {
-  return useQuery({
-    queryKey: ['brewerySummary', breweryId],
-    queryFn: async () => {
+  return useOptimizedSupabaseQuery(
+    ['brewerySummary', breweryId],
+    'venues',
+    async () => {
       if (!breweryId) return null;
 
       const { data: venues, error: venuesError } = await supabase
@@ -29,6 +30,8 @@ export function useBrewerySummary(breweryId: string | null) {
         country: brewery.country
       };
     },
-    enabled: !!breweryId
-  });
+    'NORMAL',
+    300000, // 5 minutes stale time
+    !!breweryId
+  );
 }

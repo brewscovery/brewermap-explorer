@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 
@@ -26,9 +26,10 @@ export const useVenueSearch = (
     isLoading, 
     error, 
     refetch: originalRefetch 
-  } = useQuery({
-    queryKey: ['venues', searchTerm, searchType],
-    queryFn: async () => {
+  } = useOptimizedSupabaseQuery(
+    ['venues', searchTerm, searchType],
+    'venues',
+    async () => {
       if (!searchTerm) {
         const { data, error } = await supabase
           .from('venues')
@@ -60,8 +61,10 @@ export const useVenueSearch = (
 
       if (error) throw error;
       return data || [];
-    }
-  });
+    },
+    'NORMAL',
+    60000 // 1 minute stale time
+  );
 
   const updateSearch = useCallback((newTerm: string, newType: 'name' | 'city' | 'country') => {
     setSearchTerm(newTerm);

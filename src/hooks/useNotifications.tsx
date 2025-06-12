@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -11,9 +12,10 @@ export const useNotifications = () => {
   const queryClient = useQueryClient();
 
   // Fetch user's notifications
-  const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ['notifications', user?.id],
-    queryFn: async () => {
+  const { data: notifications = [], isLoading } = useOptimizedSupabaseQuery(
+    ['notifications', user?.id],
+    'notifications',
+    async () => {
       if (!user?.id) return [];
       
       const { data, error } = await supabase
@@ -26,8 +28,10 @@ export const useNotifications = () => {
       if (error) throw error;
       return data as Notification[];
     },
-    enabled: !!user?.id,
-  });
+    'HIGH',
+    30000, // 30 seconds stale time for notifications
+    !!user?.id
+  );
 
   // Get unread notification count
   const unreadCount = notifications.filter(n => !n.read_at).length;
