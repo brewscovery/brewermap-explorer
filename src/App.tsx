@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { RealtimeProvider } from "./contexts/RealtimeContext";
 import Index from "./pages/Index";
@@ -89,52 +89,50 @@ const App = () => {
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
+              
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<Index />} />
                 
-                <Route element={<AppLayout />}>
-                  <Route path="/" element={<Index />} />
-                  
-                  {/* Protected Dashboard Routes */}
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard">
-                      <Route index element={
-                        <UserTypeRoute 
-                          element={<Navigate to="/" />}
-                          businessElement={<Dashboard />}
-                          regularElement={<RegularDashboard />}
-                        />
-                      } />
-                      
-                      <Route path="breweries" element={<Dashboard />} />
-                      <Route path="venues" element={<VenuesPage />} />
-                      <Route path="events" element={<EventsPage />} />
-                      
-                      <Route path="favorites" element={<FavoritesPage />} />
-                      <Route path="eventsExplorer" element={<EventsExplorer />} />
-                      <Route path="todoLists" element={<TodoListsPage />} />
-                      <Route path="history" element={<CheckInHistoryPage />} />
-                      <Route path="discoveries" element={<DiscoveriesPage />} />
-                      <Route path="subscription" element={<SubscriptionPage />} />
-                      
-                      <Route path="settings" element={<SettingsPage />} />
-                    </Route>
-                  </Route>
-                  
-                  {/* Admin Routes (already protected by AdminRoute component) */}
-                  <Route path="/admin" element={<AdminRoute />}>
-                    <Route element={<AdminContentLayout />}>
-                      <Route index element={<AdminDashboard />} />
-                      <Route path="claims" element={<ClaimsManagement />} />
-                      <Route path="breweries" element={<BreweriesManagement />} />
-                      <Route path="users" element={<UsersManagement />} />
-                    </Route>
+                {/* Protected Dashboard Routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard">
+                    <Route index element={
+                      <UserTypeRoute 
+                        element={<Navigate to="/" />}
+                        businessElement={<Dashboard />}
+                        regularElement={<RegularDashboard />}
+                      />
+                    } />
+                    
+                    <Route path="breweries" element={<Dashboard />} />
+                    <Route path="venues" element={<VenuesPage />} />
+                    <Route path="events" element={<EventsPage />} />
+                    
+                    <Route path="favorites" element={<FavoritesPage />} />
+                    <Route path="eventsExplorer" element={<EventsExplorer />} />
+                    <Route path="todoLists" element={<TodoListsPage />} />
+                    <Route path="history" element={<CheckInHistoryPage />} />
+                    <Route path="discoveries" element={<DiscoveriesPage />} />
+                    <Route path="subscription" element={<SubscriptionPage />} />
+                    
+                    <Route path="settings" element={<SettingsPage />} />
                   </Route>
                 </Route>
-              </Routes>
-            </BrowserRouter>
+                
+                {/* Admin Routes (already protected by AdminRoute component) */}
+                <Route path="/admin" element={<AdminRoute />}>
+                  <Route element={<AdminContentLayout />}>
+                    <Route index element={<AdminDashboard />} />
+                    <Route path="claims" element={<ClaimsManagement />} />
+                    <Route path="breweries" element={<BreweriesManagement />} />
+                    <Route path="users" element={<UsersManagement />} />
+                  </Route>
+                </Route>
+              </Route>
+            </Routes>
           </TooltipProvider>
         </RealtimeProvider>
       </AuthProvider>
