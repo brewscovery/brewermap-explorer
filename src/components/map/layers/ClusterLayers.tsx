@@ -14,11 +14,18 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const attemptCount = useRef(0);
   const maxAttempts = 3;
 
-  // Safely remove cluster layers
+  // Safely remove cluster layers with proper style checks
   const removeClusterLayers = useCallback(() => {
-    if (!map.getStyle()) return;
+    // Check if map exists and style is loaded before accessing
+    if (!map || !map.isStyleLoaded() || !map.getStyle) {
+      return;
+    }
     
     try {
+      // Additional check to ensure style is actually available
+      const style = map.getStyle();
+      if (!style) return;
+      
       const layers = ['cluster-count', 'clusters'];
       
       layers.forEach(layer => {
@@ -38,6 +45,12 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   const addClusterLayers = useCallback(() => {
     if (!isSourceReady) {
       console.log('Source not ready yet for cluster layers');
+      return false;
+    }
+
+    // Check if map and style are ready
+    if (!map || !map.isStyleLoaded()) {
+      console.log('Map or style not ready for cluster layers');
       return false;
     }
 
@@ -120,7 +133,7 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
   useEffect(() => {
     const handleStyleChange = () => {
       // If layers were previously added but now missing, try to add them again
-      if (layersAdded.current && !map.getLayer('clusters')) {
+      if (layersAdded.current && map.isStyleLoaded() && !map.getLayer('clusters')) {
         console.log('Detected missing cluster layers after style change, attempting to re-add');
         layersAdded.current = false;
         
@@ -166,7 +179,15 @@ const ClusterLayers = ({ map, source }: ClusterLayersProps) => {
 
     return () => {
       map.off('styledata', handleStyleChange);
-      removeClusterLayers();
+      
+      // Safe cleanup with style checks
+      if (map && map.isStyleLoaded()) {
+        try {
+          removeClusterLayers();
+        } catch (error) {
+          console.warn('Error during cleanup:', error);
+        }
+      }
     };
   }, [map, addClusterLayers, removeClusterLayers, isSourceReady]);
   
