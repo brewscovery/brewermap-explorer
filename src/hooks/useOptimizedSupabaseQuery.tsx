@@ -2,11 +2,15 @@
 import { useOptimizedQuery } from './useOptimizedQuery';
 import { supabase } from '@/integrations/supabase/client';
 import { QueryPriority, getQueryConfig } from '@/utils/queryConfig';
+import type { Database } from '@/integrations/supabase/types';
+
+// Get the table names from the Database type
+type TableName = keyof Database['public']['Tables'];
 
 // Optimized hook for Supabase queries with connection pooling
 export function useOptimizedSupabaseQuery<T>(
   queryKey: string[],
-  tableName: string,
+  tableName: TableName,
   queryBuilder: (query: any) => any,
   priority: keyof typeof QueryPriority = 'NORMAL',
   customStaleTime?: number
