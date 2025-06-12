@@ -22,11 +22,10 @@ interface MapProps {
 
 // Create a memo-wrapped MapLayers component to prevent unnecessary rerenders
 const MemoizedMapLayers = memo(MapLayers, (prevProps, nextProps) => {
-  // Only re-render if venues count changes, visited venues change, or key changes
+  // Only re-render if venues count changes or visited venues change
   return (
     prevProps.venues.length === nextProps.venues.length &&
-    JSON.stringify(prevProps.visitedVenueIds?.sort()) === JSON.stringify(nextProps.visitedVenueIds?.sort()) &&
-    prevProps.key === nextProps.key
+    JSON.stringify(prevProps.visitedVenueIds?.sort()) === JSON.stringify(nextProps.visitedVenueIds?.sort())
   );
 });
 
