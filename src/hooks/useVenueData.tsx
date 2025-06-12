@@ -10,7 +10,7 @@ export function useVenueData() {
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   
   // Fetch venues
-  const { data: venues = [], error, isLoading, refetch } = useOptimizedSupabaseQuery(
+  const { data: venues = [], error, isLoading, refetch } = useOptimizedSupabaseQuery<Venue[]>(
     ['venues'],
     'venues',
     async () => {
@@ -26,7 +26,7 @@ export function useVenueData() {
   );
   
   // Fetch venue hours
-  const { data: venueHours = [] } = useOptimizedSupabaseQuery(
+  const { data: venueHours = [] } = useOptimizedSupabaseQuery<any[]>(
     ['venue-hours'],
     'venue_hours',
     async () => {
@@ -42,7 +42,7 @@ export function useVenueData() {
   );
   
   // Fetch happy hours
-  const { data: happyHours = [] } = useOptimizedSupabaseQuery(
+  const { data: happyHours = [] } = useOptimizedSupabaseQuery<any[]>(
     ['happy-hours'],
     'venue_happy_hours',
     async () => {
@@ -58,7 +58,7 @@ export function useVenueData() {
   );
   
   // Fetch daily specials
-  const { data: dailySpecials = [] } = useOptimizedSupabaseQuery(
+  const { data: dailySpecials = [] } = useOptimizedSupabaseQuery<any[]>(
     ['daily-specials'],
     'venue_daily_specials',
     async () => {
@@ -74,7 +74,7 @@ export function useVenueData() {
   );
   
   // Fetch events
-  const { data: events = [] } = useOptimizedSupabaseQuery(
+  const { data: events = [] } = useOptimizedSupabaseQuery<any[]>(
     ['events'],
     'venue_events',
     async () => {
@@ -90,7 +90,7 @@ export function useVenueData() {
   );
 
   // Fetch breweries
-  const { data: breweries = [] } = useOptimizedSupabaseQuery(
+  const { data: breweries = [] } = useOptimizedSupabaseQuery<Brewery[]>(
     ['breweries'],
     'breweries',
     async () => {

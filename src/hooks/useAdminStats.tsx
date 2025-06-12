@@ -1,4 +1,3 @@
-import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { callEdgeFunction } from '@/utils/adminApiUtils';
 import { AdminStats } from '@/types/admin';
 import { useQuery } from '@tanstack/react-query';

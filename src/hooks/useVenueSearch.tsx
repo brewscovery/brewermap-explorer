@@ -26,7 +26,7 @@ export const useVenueSearch = (
     isLoading, 
     error, 
     refetch: originalRefetch 
-  } = useOptimizedSupabaseQuery(
+  } = useOptimizedSupabaseQuery<Venue[]>(
     ['venues', searchTerm, searchType],
     'venues',
     async () => {

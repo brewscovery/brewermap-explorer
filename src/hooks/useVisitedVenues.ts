@@ -5,12 +5,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 
+interface CheckinData {
+  venue_id: string;
+}
+
 export const useVisitedVenues = () => {
   const { user } = useAuth();
   const [visitedVenueIds, setVisitedVenueIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
 
-  const { data: checkins, isLoading } = useOptimizedSupabaseQuery(
+  const { data: checkins = [], isLoading } = useOptimizedSupabaseQuery<CheckinData[]>(
     ['checkins', user?.id],
     'checkins',
     async () => {

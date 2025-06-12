@@ -12,7 +12,7 @@ export const useEventInterest = (event: VenueEvent) => {
   const { user } = useAuth();
 
   // Query to check if the user is interested in this event
-  const { data: isInterested, isLoading: isInterestLoading } = useOptimizedSupabaseQuery(
+  const { data: isInterested = false, isLoading: isInterestLoading } = useOptimizedSupabaseQuery<boolean>(
     ['eventInterest', event.id, user?.id],
     'event_interests',
     async () => {
@@ -35,7 +35,7 @@ export const useEventInterest = (event: VenueEvent) => {
   );
 
   // New query to count interested users
-  const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useOptimizedSupabaseQuery(
+  const { data: interestedUsersCount = 0, isLoading: isCountLoading } = useOptimizedSupabaseQuery<number>(
     ['eventInterestedUsersCount', event.id],
     'event_interests',
     async () => {
@@ -120,7 +120,7 @@ export const useEventInterest = (event: VenueEvent) => {
   });
 
   return {
-    isInterested: isInterested || false,
+    isInterested,
     interestedUsersCount,
     isLoading: isInterestLoading || isCountLoading,
     toggleInterest: toggleInterestMutation.mutate

@@ -11,27 +11,20 @@ type TableName = keyof Database['public']['Tables'];
 export function useOptimizedSupabaseQuery<T>(
   queryKey: string[],
   tableName: TableName,
-  queryBuilder: (query: any) => any,
+  queryFn: () => Promise<T>,
   priority: keyof typeof QueryPriority = 'NORMAL',
-  customStaleTime?: number
+  customStaleTime?: number,
+  enabled?: boolean
 ) {
   const config = getQueryConfig(priority, customStaleTime);
   
   return useOptimizedQuery<T>({
     queryKey,
-    queryFn: async () => {
-      const query = queryBuilder(supabase.from(tableName));
-      const { data, error } = await query;
-      
-      if (error) {
-        throw error;
-      }
-      
-      return data;
-    },
+    queryFn,
     priority: config.priority,
     staleTime: config.staleTime,
     gcTime: config.gcTime,
+    enabled: enabled ?? true,
   });
 }
 
@@ -40,7 +33,11 @@ export function useOptimizedVenues(searchParams?: any) {
   return useOptimizedSupabaseQuery(
     ['venues', searchParams],
     'venues',
-    (query) => query.select('*'),
+    async () => {
+      const { data, error } = await supabase.from('venues').select('*');
+      if (error) throw error;
+      return data;
+    },
     'NORMAL'
   );
 }
@@ -49,7 +46,15 @@ export function useOptimizedUserProfile(userId: string) {
   return useOptimizedSupabaseQuery(
     ['profiles', userId],
     'profiles',
-    (query) => query.select('*').eq('id', userId).single(),
+    async () => {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
     'CRITICAL',
     30000 // 30 seconds stale time for user profiles
   );
@@ -59,11 +64,16 @@ export function useOptimizedNotifications(userId: string) {
   return useOptimizedSupabaseQuery(
     ['notifications', userId],
     'notifications',
-    (query) => query
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(50),
+    async () => {
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (error) throw error;
+      return data;
+    },
     'HIGH'
   );
 }

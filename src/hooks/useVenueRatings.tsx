@@ -10,10 +10,10 @@ interface VenueRatingData {
 
 export const useVenueRatings = (venueIds: string[] = []) => {
   const {
-    data: ratingsData,
+    data: ratingsData = [],
     isLoading,
     error,
-  } = useOptimizedSupabaseQuery(
+  } = useOptimizedSupabaseQuery<VenueRatingData[]>(
     ['venueRatings', venueIds],
     'checkins',
     async () => {
@@ -82,7 +82,7 @@ export const useVenueRatings = (venueIds: string[] = []) => {
   );
   
   return {
-    ratingsData: ratingsData || [],
+    ratingsData,
     isLoading,
     error,
     getRatingData: (venueId: string) => {
@@ -90,7 +90,7 @@ export const useVenueRatings = (venueIds: string[] = []) => {
       const stringVenueId = String(venueId);
       console.log(`Looking for rating data for venue ID: ${stringVenueId}`);
       
-      const foundRating = ratingsData?.find(data => String(data.venue_id) === stringVenueId);
+      const foundRating = ratingsData.find(data => String(data.venue_id) === stringVenueId);
       console.log(`Found rating data:`, foundRating);
       
       return foundRating || { 

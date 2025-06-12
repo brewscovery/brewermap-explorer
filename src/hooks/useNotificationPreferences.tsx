@@ -11,7 +11,7 @@ export const useNotificationPreferences = () => {
   const queryClient = useQueryClient();
 
   // Fetch user's notification preferences
-  const { data: preferences, isLoading } = useOptimizedSupabaseQuery(
+  const { data: preferences, isLoading } = useOptimizedSupabaseQuery<NotificationPreferences | null>(
     ['notificationPreferences', user?.id],
     'notification_preferences',
     async () => {

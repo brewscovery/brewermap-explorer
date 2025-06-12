@@ -12,7 +12,7 @@ export const useBreweryData = (initialSearchTerm = '', initialSearchType: 'name'
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: breweries = [], isLoading, error, refetch } = useOptimizedSupabaseQuery(
+  const { data: breweries = [], isLoading, error, refetch } = useOptimizedSupabaseQuery<Brewery[]>(
     ['breweries', searchTerm, searchType],
     'breweries',
     async () => {

@@ -14,7 +14,7 @@ export const useVenueFavorite = (venueId: string | null) => {
   const [isRedirectPending, setIsRedirectPending] = useState(false);
 
   // Query to check if the user has favorited this venue
-  const { data: isFavorited, isLoading: isCheckingFavorite } = useOptimizedSupabaseQuery(
+  const { data: isFavorited = false, isLoading: isCheckingFavorite } = useOptimizedSupabaseQuery<boolean>(
     ['venueFavorite', venueId, user?.id],
     'venue_favorites',
     async () => {
@@ -37,7 +37,7 @@ export const useVenueFavorite = (venueId: string | null) => {
   );
 
   // Count how many users have favorited this venue
-  const { data: favoritesCount = 0 } = useOptimizedSupabaseQuery(
+  const { data: favoritesCount = 0 } = useOptimizedSupabaseQuery<number>(
     ['venueFavoritesCount', venueId],
     'venue_favorites',
     async () => {
@@ -140,7 +140,7 @@ export const useVenueFavorite = (venueId: string | null) => {
   const showFollowButton = userType === 'regular' || userType === 'admin' || !user;
 
   return {
-    isFavorited: isFavorited || false,
+    isFavorited,
     favoritesCount,
     isLoading: isCheckingFavorite,
     toggleFavorite: toggleFavoriteMutation.mutate,

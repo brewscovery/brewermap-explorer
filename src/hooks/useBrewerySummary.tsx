@@ -3,8 +3,13 @@ import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
 import type { Venue } from '@/types/venue';
 
+interface BrewerySummaryData {
+  venues: Venue[];
+  country: string;
+}
+
 export function useBrewerySummary(breweryId: string | null) {
-  return useOptimizedSupabaseQuery(
+  return useOptimizedSupabaseQuery<BrewerySummaryData | null>(
     ['brewerySummary', breweryId],
     'venues',
     async () => {
