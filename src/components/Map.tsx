@@ -21,7 +21,14 @@ interface MapProps {
 }
 
 // Create a memo-wrapped MapLayers component to prevent unnecessary rerenders
-const MemoizedMapLayers = memo(MapLayers);
+const MemoizedMapLayers = memo(MapLayers, (prevProps, nextProps) => {
+  // Only re-render if venues count changes, visited venues change, or key changes
+  return (
+    prevProps.venues.length === nextProps.venues.length &&
+    JSON.stringify(prevProps.visitedVenueIds?.sort()) === JSON.stringify(nextProps.visitedVenueIds?.sort()) &&
+    prevProps.key === nextProps.key
+  );
+});
 
 const Map = ({ 
   venues, 
@@ -52,22 +59,16 @@ const Map = ({
     handleSidebarClose
   } = useVenueMapInteraction({ 
     map: map.current, 
-    onVenueSelect: (venue) => {
+    onVenueSelect: useCallback((venue) => {
       setIsInternalSelection(true);
       onVenueSelect(venue);
-    }, 
+    }, [onVenueSelect]), 
     selectedVenueFromProps 
   });
   
-  // For debugging only
-  const venueName = selectedVenue?.name || 'null';
-  const filterCount = activeFilters.length;
-  console.log(`Map: Render with selectedVenue: ${venueName}`);
-  console.log(`Map: Rendering with ${venues.length} venues and ${filterCount} active filters`);
-
-  // Force map resize when venues array changes
+  // Force map resize when venues array changes - but only if significant
   useEffect(() => {
-    if (map.current && isStyleLoaded) {
+    if (map.current && isStyleLoaded && venues.length > 0) {
       const timer = setTimeout(() => {
         if (map.current) {
           map.current.resize();
@@ -78,14 +79,19 @@ const Map = ({
   }, [map, isStyleLoaded, venues.length]);
 
   // Custom sidebar close handler to ensure it clears the venue and search
-  const handleVenueSidebarClose = () => {
+  const handleVenueSidebarClose = useCallback(() => {
     console.log("Map: Explicitly closing venue sidebar");
     handleSidebarClose();
     // Notify parent component to clear search bar and venue selection
     onVenueSelect(null);
     // Clear the venueId parameter from URL to allow notifications to work again
     navigate('/', { replace: true });
-  };
+  }, [handleSidebarClose, onVenueSelect, navigate]);
+
+  // Memoize the venue select handler to prevent recreating on every render
+  const memoizedVenueSelect = useCallback((venue: Venue) => {
+    handleVenueSelect(venue);
+  }, [handleVenueSelect]);
 
   return (
     <div className="relative flex-1 w-full h-full">
@@ -101,13 +107,13 @@ const Map = ({
             map={map.current}
             venues={venues}
             visitedVenueIds={visitedVenueIds}
-            onVenueSelect={handleVenueSelect}
+            onVenueSelect={memoizedVenueSelect}
             key={mapLayersKey}
           />
           <MapInteractions
             map={map.current}
             venues={venues}
-            onVenueSelect={handleVenueSelect}
+            onVenueSelect={memoizedVenueSelect}
           />
         </>
       )}
@@ -122,4 +128,12 @@ const Map = ({
   );
 };
 
-export default Map;
+export default memo(Map, (prevProps, nextProps) => {
+  // Only re-render Map if venues count changes significantly or selected venue changes
+  return (
+    prevProps.venues.length === nextProps.venues.length &&
+    prevProps.selectedVenue?.id === nextProps.selectedVenue?.id &&
+    JSON.stringify(prevProps.activeFilters) === JSON.stringify(nextProps.activeFilters) &&
+    prevProps.lastFilterUpdateTime === nextProps.lastFilterUpdateTime
+  );
+});

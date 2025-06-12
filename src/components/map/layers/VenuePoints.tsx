@@ -21,6 +21,7 @@ const VenuePoints = ({
 }: VenuePointsProps) => {
   const { isSourceReady } = useMapSource();
   const layersAddedRef = useRef(false);
+  const lastVisitedVenuesRef = useRef<string>('');
   
   const { 
     updatePointColors, 
@@ -56,11 +57,16 @@ const VenuePoints = ({
     return () => clearTimeout(timer);
   }, [map, source, isSourceReady, addPointLayers]);
 
-  // Update colors whenever visited venues change,
-  // but don't recreate the layers
+  // Update colors whenever visited venues change, but only if they actually changed
   useEffect(() => {
-    if (isSourceReady && map.getLayer('unclustered-point')) {
+    const currentVisitedVenues = JSON.stringify(visitedVenueIds.sort());
+    
+    if (isSourceReady && map.getLayer('unclustered-point') && 
+        currentVisitedVenues !== lastVisitedVenuesRef.current) {
+      
+      console.log('Updating venue point colors with', visitedVenueIds.length, 'visited venues');
       updatePointColors();
+      lastVisitedVenuesRef.current = currentVisitedVenues;
     }
   }, [map, visitedVenueIds, updatePointColors, isSourceReady]);
 
@@ -68,6 +74,7 @@ const VenuePoints = ({
   useEffect(() => {
     return () => {
       layersAddedRef.current = false;
+      lastVisitedVenuesRef.current = '';
     };
   }, [source]);
 
