@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { MAX_DB_CONNECTIONS } from '@/constants/db';
 
 interface ConnectionConfig {
   maxConnections: number;
@@ -34,7 +35,7 @@ class ConnectionManager {
 
   private constructor() {
     this.config = {
-      maxConnections: 500, // Supabase PRO limit
+      maxConnections: MAX_DB_CONNECTIONS,
       connectionTimeout: 30000,
       idleTimeout: 60000,
       retryAttempts: 3,

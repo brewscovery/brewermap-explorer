@@ -6,11 +6,12 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useConnectionMonitor } from '@/hooks/useConnectionMonitor';
 import { Activity, Database, Clock, TrendingUp } from 'lucide-react';
+import { MAX_DB_CONNECTIONS } from '@/constants/db';
 
 const ConnectionMonitor: React.FC = () => {
   const { stats, alerts } = useConnectionMonitor();
 
-  const connectionUsagePercent = (stats.activeConnections / 500) * 100; // Assuming 500 max connections for Supabase PRO
+  const connectionUsagePercent = (stats.activeConnections / MAX_DB_CONNECTIONS) * 100; // Assuming 500 max connections for Supabase PRO
   const queueStatus = stats.queuedQueries > 0 ? 'warning' : 'success';
 
   return (
@@ -32,7 +33,7 @@ const ConnectionMonitor: React.FC = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeConnections}/8</div>
+            <div className="text-2xl font-bold">{stats.activeConnections}/MAX_DB_CONNECTIONS</div>
             <Progress value={connectionUsagePercent} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
               {connectionUsagePercent.toFixed(1)}% usage

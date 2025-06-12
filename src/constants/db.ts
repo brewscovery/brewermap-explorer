@@ -1,0 +1,1 @@
+export const MAX_DB_CONNECTIONS = 500
