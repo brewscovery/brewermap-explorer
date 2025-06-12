@@ -34,7 +34,7 @@ class ConnectionManager {
 
   private constructor() {
     this.config = {
-      maxConnections: 8, // Conservative limit
+      maxConnections: 500, // Supabase PRO limit
       connectionTimeout: 30000,
       idleTimeout: 60000,
       retryAttempts: 3,

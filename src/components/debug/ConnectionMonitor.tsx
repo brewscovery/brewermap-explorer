@@ -10,7 +10,7 @@ import { Activity, Database, Clock, TrendingUp } from 'lucide-react';
 const ConnectionMonitor: React.FC = () => {
   const { stats, alerts } = useConnectionMonitor();
 
-  const connectionUsagePercent = (stats.activeConnections / 8) * 100; // Assuming 8 max connections
+  const connectionUsagePercent = (stats.activeConnections / 500) * 100; // Assuming 500 max connections for Supabase PRO
   const queueStatus = stats.queuedQueries > 0 ? 'warning' : 'success';
 
   return (
