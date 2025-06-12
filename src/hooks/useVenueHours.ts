@@ -45,6 +45,13 @@ export const useVenueHours = (venueId: string | null) => {
 
       console.log('Updating venue hours:', hoursData);
 
+      // Validate that all records have required day_of_week
+      for (const hour of hoursData) {
+        if (typeof hour.day_of_week !== 'number') {
+          throw new Error('day_of_week is required and must be a number');
+        }
+      }
+
       // Delete existing hours for this venue
       const { error: deleteError } = await supabase
         .from('venue_hours')
@@ -56,12 +63,20 @@ export const useVenueHours = (venueId: string | null) => {
         throw deleteError;
       }
 
-      // Insert new hours
+      // Prepare data for insert - ensure all required fields are present and properly typed
       const hoursToInsert = hoursData.map(hour => ({
-        ...hour,
         venue_id: venueId,
+        day_of_week: hour.day_of_week as number, // Ensure this is required
+        venue_open_time: hour.venue_open_time || null,
+        venue_close_time: hour.venue_close_time || null,
+        kitchen_open_time: hour.kitchen_open_time || null,
+        kitchen_close_time: hour.kitchen_close_time || null,
+        is_closed: hour.is_closed || false,
         updated_by: user.id,
         updated_at: new Date().toISOString(),
+        // Include id and created_at if they exist (for updates)
+        ...(hour.id && { id: hour.id }),
+        ...(hour.created_at && { created_at: hour.created_at }),
       }));
 
       const { data, error: insertError } = await supabase
