@@ -5,6 +5,7 @@ import { ClipboardCheck, Beer, Users } from 'lucide-react';
 import { useAdminStats } from '@/hooks/useAdminData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
+import ConnectionMonitor from '@/components/debug/ConnectionMonitor';
 
 const AdminDashboard = () => {
   const { data: stats, isLoading, error } = useAdminStats();
@@ -84,8 +85,17 @@ const AdminDashboard = () => {
         </Link>
       </div>
       
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="col-span-2">
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Database Connection Monitor</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConnectionMonitor />
+          </CardContent>
+        </Card>
+        
+        <Card>
           <CardHeader>
             <CardTitle>Recent Activity</CardTitle>
           </CardHeader>
