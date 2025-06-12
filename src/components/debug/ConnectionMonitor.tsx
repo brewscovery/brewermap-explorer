@@ -33,7 +33,7 @@ const ConnectionMonitor: React.FC = () => {
             <Database className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeConnections}/MAX_DB_CONNECTIONS</div>
+            <div className="text-2xl font-bold">{stats.activeConnections}/{MAX_DB_CONNECTIONS}</div>
             <Progress value={connectionUsagePercent} className="mt-2" />
             <p className="text-xs text-muted-foreground mt-1">
               {connectionUsagePercent.toFixed(1)}% usage
