@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,9 +21,21 @@ export const useOptimizedVenueHours = (venueId: string | null) => {
   } = useOptimizedSupabaseQuery<VenueHour[]>(
     ['venueHours', venueId],
     'venue_hours',
-    (query) => query.select('*').eq('venue_id', venueId).order('day_of_week'),
+    async () => {
+      if (!venueId) return [];
+      
+      const { data, error } = await supabase
+        .from('venue_hours')
+        .select('*')
+        .eq('venue_id', venueId)
+        .order('day_of_week');
+      
+      if (error) throw error;
+      return data || [];
+    },
     'HIGH', // High priority for venue hours
-    60000 // 1 minute stale time
+    60000, // 1 minute stale time
+    !!venueId
   );
   
   /**
@@ -134,13 +147,15 @@ export const useOptimizedVenueHours = (venueId: string | null) => {
     }
     
     try {
-      const { error } = await supabase
-        .from('venue_hours')
-        .delete()
-        .eq('id', hourId)
-        .eq('venue_id', venueId);
+      await connectionManager.executeQuery(async () => {
+        const { error } = await supabase
+          .from('venue_hours')
+          .delete()
+          .eq('id', hourId)
+          .eq('venue_id', venueId);
 
-      if (error) throw error;
+        if (error) throw error;
+      }, 7); // High priority for deletes
 
       toast.success('Venue hour deleted successfully');
       await refetch();
@@ -159,31 +174,6 @@ export const useOptimizedVenueHours = (venueId: string | null) => {
     refetch,
     isUpdating,
     updateVenueHours,
-    deleteVenueHours: async (hourId: string) => {
-      if (!venueId) {
-        toast.error('Venue ID is missing');
-        return false;
-      }
-      
-      try {
-        await connectionManager.executeQuery(async () => {
-          const { error } = await supabase
-            .from('venue_hours')
-            .delete()
-            .eq('id', hourId)
-            .eq('venue_id', venueId);
-
-          if (error) throw error;
-        }, 7); // High priority for deletes
-
-        toast.success('Venue hour deleted successfully');
-        await refetch();
-        return true;
-      } catch (error: any) {
-        console.error('Error deleting venue hour:', error);
-        toast.error(error.message || 'Failed to delete venue hour');
-        return false;
-      }
-    }
+    deleteVenueHours
   };
 };

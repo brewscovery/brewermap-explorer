@@ -92,6 +92,26 @@ export const useNotifications = () => {
     },
   });
 
+  // Delete notification
+  const deleteNotificationMutation = useMutation({
+    mutationFn: async (notificationId: string) => {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications', user?.id] });
+      toast.success('Notification deleted');
+    },
+    onError: (error) => {
+      console.error('Error deleting notification:', error);
+      toast.error('Failed to delete notification');
+    },
+  });
+
   return {
     notifications,
     unreadNotifications,
@@ -99,6 +119,7 @@ export const useNotifications = () => {
     isLoading,
     markAsRead: markAsReadMutation.mutate,
     markAllAsRead: markAllAsReadMutation.mutate,
+    deleteNotification: deleteNotificationMutation.mutate,
     isMarkingAsRead: markAsReadMutation.isPending,
     isMarkingAllAsRead: markAllAsReadMutation.isPending,
   };

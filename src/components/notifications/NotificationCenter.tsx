@@ -14,7 +14,19 @@ import { Separator } from '@/components/ui/separator';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
-import type { Notification } from '@/types/notification';
+
+// Use the Notification type from the hook
+interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  content: string;
+  related_entity_id: string | null;
+  related_entity_type: string | null;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 interface NotificationItemProps {
   notification: Notification;

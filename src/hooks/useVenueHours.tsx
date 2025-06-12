@@ -58,21 +58,27 @@ export const useVenueHours = (venueId: string | null) => {
     setIsUpdating(true);
     
     try {
-      // Validate all records before submitting
-      for (const hourData of venueHoursData) {
+      // Prepare data for batch upsert with required fields
+      const batchData = venueHoursData.map(hourData => {
+        // Ensure required fields are present
         if (typeof hourData.day_of_week !== 'number') {
           throw new Error('day_of_week is required and must be a number');
         }
-      }
-      
-      // Prepare data for batch upsert
-      // Explicit typing to ensure day_of_week is treated as required
-      const batchData = venueHoursData.map(hourData => ({
-        ...hourData,
-        venue_id: venueId,
-        day_of_week: hourData.day_of_week as number, // Force non-optional type
-        updated_at: new Date().toISOString()
-      }));
+        
+        return {
+          venue_id: venueId,
+          day_of_week: hourData.day_of_week,
+          venue_open_time: hourData.venue_open_time || null,
+          venue_close_time: hourData.venue_close_time || null,
+          kitchen_open_time: hourData.kitchen_open_time || null,
+          kitchen_close_time: hourData.kitchen_close_time || null,
+          is_closed: hourData.is_closed || false,
+          updated_at: new Date().toISOString(),
+          ...(hourData.id && { id: hourData.id }),
+          ...(hourData.created_at && { created_at: hourData.created_at }),
+          ...(hourData.updated_by && { updated_by: hourData.updated_by })
+        };
+      });
       
       console.log('[DEBUG] Batch updating venue hours with data:', batchData);
       

@@ -14,7 +14,7 @@ export const useVenueRatings = (venueIds: string[] = []) => {
     isLoading,
     error,
   } = useOptimizedSupabaseQuery<VenueRatingData[]>(
-    ['venueRatings', venueIds],
+    ['venueRatings', ...venueIds],
     'checkins',
     async () => {
       if (!venueIds.length) return [];
