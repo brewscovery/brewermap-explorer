@@ -88,11 +88,7 @@ export const MobileSidebarHeader = ({
     <div className="flex flex-col p-4 border-b relative">
       {/* Top row: venue name and close button - Fixed layout to ensure truncation */}
       <div className="flex items-center justify-between mb-4">
-        <div className="max-w-[80%] flex-shrink overflow-hidden">
-          <h2 className="text-xl font-bold truncate" title={venue.name}>
-            {venue.name}
-          </h2>
-        </div>
+        <h2 className="text-xl font-bold truncate pr-8">{venue.name}</h2>
         <Button 
           variant="ghost" 
           size="icon" 
