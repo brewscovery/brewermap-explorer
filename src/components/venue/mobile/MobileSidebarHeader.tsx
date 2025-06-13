@@ -85,10 +85,10 @@ export const MobileSidebarHeader = ({
 
   return (
     <div className="flex flex-col p-4 border-b relative">
-      {/* Top row: venue name and close button - Fixed layout with better truncation */}
-      <div className="flex items-center mb-4 min-w-0">
+      {/* Top row: venue name and close button - Fixed layout to ensure close button is always visible */}
+      <div className="flex items-center mb-4">
         <div className="flex-1 min-w-0 pr-3">
-          <h2 className="text-xl font-bold truncate min-w-0" title={venue.name}>
+          <h2 className="text-xl font-bold truncate" title={venue.name}>
             {venue.name}
           </h2>
         </div>
