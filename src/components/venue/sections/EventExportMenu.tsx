@@ -35,13 +35,13 @@ const EventExportMenu = ({ event, venue }: EventExportMenuProps) => {
         <Button
           variant="outline"
           size="sm"
-          className="w-full mt-2"
+          className="w-full mt-2 relative z-[135]"
         >
           <CalendarIcon className="mr-2" size={16} />
           Export
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-48 z-[140] bg-background border shadow-lg">
         <DropdownMenuItem onClick={() => window.open(generateGoogleCalendarUrl(eventWithVenue), '_blank')}>
           <CalendarIcon className="mr-2" size={16} />
           Google Calendar

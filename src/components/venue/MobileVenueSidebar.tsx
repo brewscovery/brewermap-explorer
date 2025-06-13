@@ -90,14 +90,14 @@ const MobileVenueSidebar = ({
         dismissible={false}
         modal={false}
       >
-        <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[110] rounded-t-[10px] border bg-background p-0">
+        <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[120] rounded-t-[10px] border bg-background p-0">
           <VisuallyHidden>
             <DrawerTitle>{venue.name} Details</DrawerTitle>
             <DrawerDescription>Information about {venue.name}</DrawerDescription>
           </VisuallyHidden>
           
           {/* Fixed header with drawer drag handle */}
-          <DrawerHeader className="relative p-0">
+          <DrawerHeader className="relative p-0 z-[125]">
             <DrawerDragHandle className="mb-1" />
             
             <MobileSidebarHeader
@@ -110,9 +110,11 @@ const MobileVenueSidebar = ({
             />
           </DrawerHeader>
 
-          {/* Scrollable body content */}
-          <DrawerBody className="px-0 pt-0">
-            {children}
+          {/* Scrollable body content with higher z-index for dropdowns */}
+          <DrawerBody className="px-0 pt-0 z-[125] relative">
+            <div className="relative z-[130]">
+              {children}
+            </div>
           </DrawerBody>
         </DrawerContent>
       </Drawer>
