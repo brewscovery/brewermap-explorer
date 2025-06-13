@@ -88,7 +88,7 @@ export const MobileSidebarHeader = ({
       {/* Top row: venue name and close button - Fixed layout to ensure close button is always visible */}
       <div className="flex items-center mb-4">
         <div className="flex-1 min-w-0 pr-3">
-          <h2 className="text-xl font-bold truncate overflow-hidden whitespace-nowrap w-full" title={venue.name}>
+          <h2 className="text-xl font-bold truncate overflow-hidden whitespace-nowrap w-full">
             {venue.name}
           </h2>
         </div>
