@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { X, ShieldCheck, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -86,10 +85,10 @@ export const MobileSidebarHeader = ({
 
   return (
     <div className="flex flex-col p-4 border-b relative">
-      {/* Top row: venue name and close button - Fixed layout to ensure truncation */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="max-w-[80%] flex-shrink overflow-hidden">
-          <h2 className="text-xl font-bold truncate" title={venue.name}>
+      {/* Top row: venue name and close button - Fixed layout with better truncation */}
+      <div className="flex items-center mb-4 min-w-0">
+        <div className="flex-1 min-w-0 pr-3">
+          <h2 className="text-xl font-bold truncate min-w-0" title={venue.name}>
             {venue.name}
           </h2>
         </div>
@@ -97,7 +96,7 @@ export const MobileSidebarHeader = ({
           variant="ghost" 
           size="icon" 
           onClick={onClose}
-          className="hover:bg-gray-100 absolute right-2 top-3"
+          className="hover:bg-gray-100 flex-shrink-0"
         >
           <X size={20} />
           <span className="sr-only">Close</span>
