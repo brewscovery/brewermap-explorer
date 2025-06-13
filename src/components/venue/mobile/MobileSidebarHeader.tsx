@@ -87,9 +87,11 @@ export const MobileSidebarHeader = ({
     <div className="flex flex-col p-4 border-b relative">
       {/* Top row: venue name and close button - Fixed layout to ensure close button is always visible */}
       <div className="flex items-center justify-between mb-4 gap-3">
-        <h2 className="text-xl font-bold truncate min-w-0" title={venue.name}>
-          {venue.name}
-        </h2>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-xl font-bold truncate" title={venue.name}>
+            {venue.name}
+          </h2>
+        </div>
         <Button 
           variant="ghost" 
           size="icon" 
