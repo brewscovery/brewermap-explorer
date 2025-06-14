@@ -120,11 +120,11 @@ const VenueSidebarContent = ({
         <TabsContent value="overview" className="focus:outline-none">
           {overviewContent}
         </TabsContent>
-        <TabsContent value="checkins" className="focus:outline-none">
-          {checkInsContent}
-        </TabsContent>
         <TabsContent value="events" className="focus:outline-none p-4">
           <EventsSection venueId={venue.id} />
+        </TabsContent>
+        <TabsContent value="checkins" className="focus:outline-none">
+          {checkInsContent}
         </TabsContent>
       </Tabs>
     </div>
