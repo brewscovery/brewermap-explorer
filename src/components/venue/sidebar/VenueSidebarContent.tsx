@@ -104,7 +104,7 @@ const VenueSidebarContent = ({
         user={user}
         userType={userType}
         onOpenCheckInDialog={onOpenCheckInDialog}
-        showCheckInButton={true}
+        showCheckInButton={false}
       />
     </div>
   );
