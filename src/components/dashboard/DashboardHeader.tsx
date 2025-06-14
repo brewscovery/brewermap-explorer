@@ -6,6 +6,7 @@ import { PanelLeft, Map, User, ChevronDown, LogOut } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useSidebar } from '@/components/ui/sidebar';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,8 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
       <div className="flex-1"></div>
 
       <div className="flex items-center gap-4 ml-4">
+        <NotificationCenter />
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">

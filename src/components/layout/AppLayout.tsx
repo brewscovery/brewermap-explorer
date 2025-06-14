@@ -37,7 +37,7 @@ const AppLayout = () => {
         <div className="h-screen overflow-auto flex-1">
           {isBusinessUserDashboard || isRegularUserDashboard ? (
             <div className="flex-1 flex flex-col">
-              <FloatingSidebarToggle position="top-left" />
+              <DashboardHeader displayName={displayName} />
               <main className="p-6 pt-4 flex-1">
                 <Outlet />
               </main>

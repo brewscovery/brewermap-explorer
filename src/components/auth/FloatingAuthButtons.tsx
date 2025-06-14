@@ -1,9 +1,10 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import LoginPopover from './LoginPopover';
+import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 const FloatingAuthButtons = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, userType, firstName, lastName } = useAuth();
   
   // Display name based on user type
@@ -60,50 +62,53 @@ const FloatingAuthButtons = () => {
   return (
     <div className="fixed z-[100] top-4 right-4 flex gap-2 animate-fade-in duration-300">
       {user ? (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2 bg-white/80 backdrop-blur-sm">
-              <User size={18} />
-              <span>{displayName}</span>
-              <ChevronDown size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            {!isOnDashboard && userType === 'business' && (
-              <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                <LayoutDashboard className="mr-2" size={18} />
-                Dashboard
+        <>
+          <NotificationCenter />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="flex items-center gap-2 bg-white/80 backdrop-blur-sm">
+                <User size={18} />
+                <span>{displayName}</span>
+                <ChevronDown size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              {!isOnDashboard && userType === 'business' && (
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <LayoutDashboard className="mr-2" size={18} />
+                  Dashboard
+                </DropdownMenuItem>
+              )}
+              
+              {!isOnAdmin && userType === 'admin' && (
+                <DropdownMenuItem onClick={() => navigate('/admin')}>
+                  <Shield className="mr-2" size={18} />
+                  Admin Dashboard
+                </DropdownMenuItem>
+              )}
+              
+              {!isOnDashboard && userType === 'regular' && (
+                <DropdownMenuItem onClick={() => navigate('/dashboard')}>
+                  <LayoutDashboard className="mr-2" size={18} />
+                  Dashboard
+                </DropdownMenuItem>
+              )}
+              
+              {(isOnDashboard || isOnAdmin) && (
+                <DropdownMenuItem onClick={() => navigate('/')}>
+                  <Map className="mr-2" size={18} />
+                  View Map
+                </DropdownMenuItem>
+              )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2" size={18} />
+                Logout
               </DropdownMenuItem>
-            )}
-            
-            {!isOnAdmin && userType === 'admin' && (
-              <DropdownMenuItem onClick={() => navigate('/admin')}>
-                <Shield className="mr-2" size={18} />
-                Admin Dashboard
-              </DropdownMenuItem>
-            )}
-            
-            {!isOnDashboard && userType === 'regular' && (
-              <DropdownMenuItem onClick={() => navigate('/dashboard')}>
-                <LayoutDashboard className="mr-2" size={18} />
-                Dashboard
-              </DropdownMenuItem>
-            )}
-            
-            {(isOnDashboard || isOnAdmin) && (
-              <DropdownMenuItem onClick={() => navigate('/')}>
-                <Map className="mr-2" size={18} />
-                View Map
-              </DropdownMenuItem>
-            )}
-            
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2" size={18} />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
       ) : (
         <div className="flex gap-2">
           <LoginPopover />
