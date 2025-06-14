@@ -31,7 +31,7 @@ const CheckInsSection = ({
   user, 
   userType, 
   onOpenCheckInDialog,
-  showCheckInButton = true // Default to showing the button
+  showCheckInButton = false // Default to showing the button
 }: CheckInsSectionProps) => {
   const renderStars = (rating: number) => {
     return Array(5).fill(0).map((_, i) => (

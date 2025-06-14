@@ -114,8 +114,8 @@ const VenueSidebarContent = ({
       <Tabs defaultValue="overview" className="w-full" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full grid grid-cols-3 sticky top-0 bg-background z-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="checkins">Check-ins</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
+          <TabsTrigger value="checkins">Check-ins</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="focus:outline-none">
           {overviewContent}
