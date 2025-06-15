@@ -130,7 +130,7 @@ const SidebarContentComponent = () => {
       {userType === 'regular' && user && (
         <div className="flex flex-col p-4 border-b">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold">Hello, {user.email?.split('@')[0] || 'User'}</h2>
+            <h2 className="text-lg font-semibold">Hello, {user?.firstName || 'User'}</h2>
             <NotificationCenter />
           </div>
           <p className="text-sm text-muted-foreground">{user?.email}</p>

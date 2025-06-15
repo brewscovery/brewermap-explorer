@@ -22,17 +22,6 @@ interface DashboardHeaderProps {
 const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   const navigate = useNavigate();
   const { toggleSidebar } = useSidebar();
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate('/');
-      toast.success('Logged out successfully');
-    } catch (error: any) {
-      toast.error('Failed to logout. Please try again.');
-    }
-  };
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between sticky top-0 z-10">
@@ -50,27 +39,6 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
 
       <div className="flex items-center gap-4 ml-4">
         <NotificationCenter />
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="flex items-center gap-2">
-              <User size={18} />
-              <span>{displayName}</span>
-              <ChevronDown size={16} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem onClick={() => navigate('/')}>
-              <Map className="mr-2" size={18} />
-              View Map
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
-              <LogOut className="mr-2" size={18} />
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );
