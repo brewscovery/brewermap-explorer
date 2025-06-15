@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AdminBulkBreweryImport } from '@/admin/brewery/AdminBulkBreweryImport';
+import { AdminBulkBreweryImport } from '@/components/admin/brewery/AdminBulkBreweryImport';
 
 const BreweryImport = () => {
   return (
