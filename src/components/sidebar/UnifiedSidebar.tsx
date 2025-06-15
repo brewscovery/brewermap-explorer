@@ -133,7 +133,7 @@ const SidebarContentComponent = () => {
             <h2 className="text-lg font-semibold">Hello, {firstName || 'User'}</h2>
             <NotificationCenter />
           </div>
-          <p className="text-sm text-muted-foreground">{user?.email}</p>
+          <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
       )}
       
