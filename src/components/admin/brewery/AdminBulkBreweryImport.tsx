@@ -22,7 +22,7 @@ const testBreweries = [
   }
 ];
 
-export const BulkBreweryImport = () => {
+export const AdminBulkBreweryImport = () => {
   const [isImporting, setIsImporting] = useState(false);
   const [results, setResults] = useState<any[]>([]);
 
