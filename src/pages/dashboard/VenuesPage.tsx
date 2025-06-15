@@ -9,8 +9,6 @@ import { VenueDetailView } from '@/components/dashboard/venues/VenueDetailView';
 import { VenueListView } from '@/components/dashboard/venues/VenueListView';
 import { NoBrewerySelectedView } from '@/components/dashboard/venues/NoBrewerySelectedView';
 import { LoadingVenueView } from '@/components/dashboard/venues/LoadingVenueView';
-import { BulkBreweryImport } from '@/components/brewery/BulkBreweryImport';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const VenuesPage = () => {
   const location = useLocation();
@@ -76,22 +74,7 @@ const VenuesPage = () => {
   
   // Render based on different states
   if (!selectedBrewery) {
-    return (
-      <div className="max-w-5xl mx-auto p-4">
-        <Tabs defaultValue="import" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="import">Import Breweries</TabsTrigger>
-            <TabsTrigger value="no-brewery">No Brewery Selected</TabsTrigger>
-          </TabsList>
-          <TabsContent value="import">
-            <BulkBreweryImport />
-          </TabsContent>
-          <TabsContent value="no-brewery">
-            <NoBrewerySelectedView />
-          </TabsContent>
-        </Tabs>
-      </div>
-    );
+    return <NoBrewerySelectedView />;
   }
   
   if (selectedVenue) {

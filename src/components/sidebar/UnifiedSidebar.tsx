@@ -16,7 +16,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard, Calendar, ListTodo, Bell
+  CreditCard, Calendar, ListTodo, Bell, Upload
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -176,6 +176,15 @@ const SidebarContentComponent = () => {
                     >
                       <Beer size={18} />
                       <span>Breweries</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/admin/brewery-import')}
+                      onClick={() => handleNavigationWithSidebarClose('/admin/brewery-import')}
+                    >
+                      <Upload size={18} />
+                      <span>Brewery Import</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
