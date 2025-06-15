@@ -32,7 +32,7 @@ import { Venue } from '@/types/venue';
 const SidebarContentComponent = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, userType } = useAuth();
+  const { user, userType, firstName } = useAuth();
   const { toggleSidebar, isMobile, setOpenMobile } = useSidebar();
   
   const { 
@@ -130,7 +130,7 @@ const SidebarContentComponent = () => {
       {userType === 'regular' && user && (
         <div className="flex flex-col p-4 border-b">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold">Hello, {user?.first_Name || 'User'}</h2>
+            <h2 className="text-lg font-semibold">Hello, {firstName || 'User'}</h2>
             <NotificationCenter />
           </div>
           <p className="text-sm text-muted-foreground">{user?.email}</p>
