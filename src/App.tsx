@@ -4,7 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClientProvider } from '@/contexts/QueryClientProvider';
-import { AuthContextProvider } from '@/contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 import { RealtimeProvider } from '@/contexts/RealtimeContext';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { ThemeProvider } from 'next-themes';
@@ -39,7 +39,7 @@ function App() {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
       <QueryClientProvider>
-        <AuthContextProvider>
+        <AuthProvider>
           <RealtimeProvider>
             <TooltipProvider>
               <SidebarProvider>
@@ -80,7 +80,7 @@ function App() {
               </SidebarProvider>
             </TooltipProvider>
           </RealtimeProvider>
-        </AuthContextProvider>
+        </AuthProvider>
       </QueryClientProvider>
     </ThemeProvider>
   );
