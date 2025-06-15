@@ -54,10 +54,6 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
 
   const handleUserTypeChange = (value: 'regular' | 'business') => {
     setUserType(value);
-    // Clear lastName when switching to business type
-    if (value === 'business') {
-      setLastName('');
-    }
   };
 
   const handleReturnToMap = (e: React.MouseEvent) => {
@@ -100,9 +96,7 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="firstName">
-            {userType === 'business' ? 'Business/Brewery Name' : 'First Name'}
-          </Label>
+          <Label htmlFor="firstName">First Name</Label>
           <Input
             id="firstName"
             type="text"
@@ -111,18 +105,16 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
             required
           />
         </div>
-        {userType === 'regular' && (
-          <div className="space-y-2">
-            <Label htmlFor="lastName">Last Name</Label>
-            <Input
-              id="lastName"
-              type="text"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
-              required
-            />
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="lastName">Last Name</Label>
+           <Input
+            id="lastName"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+          />
+        </div>
         <div className="space-y-2">
           <Label>User Type</Label>
           <RadioGroup
