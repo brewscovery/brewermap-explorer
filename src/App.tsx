@@ -1,6 +1,6 @@
 
 import './App.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClientProvider } from '@/contexts/QueryClientProvider';
@@ -43,39 +43,37 @@ function App() {
           <RealtimeProvider>
             <TooltipProvider>
               <SidebarProvider>
-                <Router>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/auth" element={<Auth />} />
-                    
-                    {/* Protected Routes */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route element={<AppLayout />}>
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/dashboard/venues" element={<VenuesPage />} />
-                        <Route path="/dashboard/settings" element={<SettingsPage />} />
-                        <Route path="/dashboard/events" element={<EventsPage />} />
-                        <Route path="/dashboard/favorites" element={<FavoritesPage />} />
-                        <Route path="/dashboard/history" element={<CheckInHistoryPage />} />
-                        <Route path="/dashboard/discoveries" element={<DiscoveriesPage />} />
-                        <Route path="/dashboard/todoLists" element={<TodoListsPage />} />
-                        <Route path="/dashboard/eventsExplorer" element={<EventsExplorer />} />
-                        <Route path="/dashboard/subscription" element={<SubscriptionPage />} />
-                      </Route>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/auth" element={<Auth />} />
+                  
+                  {/* Protected Routes */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route element={<AppLayout />}>
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/dashboard/venues" element={<VenuesPage />} />
+                      <Route path="/dashboard/settings" element={<SettingsPage />} />
+                      <Route path="/dashboard/events" element={<EventsPage />} />
+                      <Route path="/dashboard/favorites" element={<FavoritesPage />} />
+                      <Route path="/dashboard/history" element={<CheckInHistoryPage />} />
+                      <Route path="/dashboard/discoveries" element={<DiscoveriesPage />} />
+                      <Route path="/dashboard/todoLists" element={<TodoListsPage />} />
+                      <Route path="/dashboard/eventsExplorer" element={<EventsExplorer />} />
+                      <Route path="/dashboard/subscription" element={<SubscriptionPage />} />
                     </Route>
+                  </Route>
 
-                    {/* Admin Routes */}
-                    <Route element={<AdminRoute />}>
-                      <Route element={<AdminContentLayout />}>
-                        <Route path="/admin" element={<AdminIndex />} />
-                        <Route path="/admin/breweries" element={<AdminBreweries />} />
-                        <Route path="/admin/claims" element={<AdminClaims />} />
-                        <Route path="/admin/users" element={<AdminUsers />} />
-                        <Route path="/admin/brewery-import" element={<BreweryImport />} />
-                      </Route>
+                  {/* Admin Routes */}
+                  <Route element={<AdminRoute />}>
+                    <Route element={<AdminContentLayout />}>
+                      <Route path="/admin" element={<AdminIndex />} />
+                      <Route path="/admin/breweries" element={<AdminBreweries />} />
+                      <Route path="/admin/claims" element={<AdminClaims />} />
+                      <Route path="/admin/users" element={<AdminUsers />} />
+                      <Route path="/admin/brewery-import" element={<BreweryImport />} />
                     </Route>
-                  </Routes>
-                </Router>
+                  </Route>
+                </Routes>
                 <Toaster />
               </SidebarProvider>
             </TooltipProvider>
