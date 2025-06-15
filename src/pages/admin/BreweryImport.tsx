@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AdminBulkBreweryImport } from '@/components/brewery/AdminBulkBreweryImport';
+import { BulkBreweryImport } from '@/components/brewery/BulkBreweryImport';
 
 const BreweryImport = () => {
   return (
@@ -12,7 +12,7 @@ const BreweryImport = () => {
         </p>
       </div>
       
-      <AdminBulkBreweryImport />
+      <BulkBreweryImport />
     </div>
   );
 };
