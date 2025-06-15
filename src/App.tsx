@@ -22,6 +22,7 @@ import AdminLayout from "./components/admin/AdminLayout";
 import AdminDashboard from "./pages/admin/Index";
 import ClaimsManagement from "./pages/admin/Claims";
 import BreweriesManagement from "./pages/admin/Breweries";
+import BreweryImport from "/.pages/admin/BreweryImport";
 import UsersManagement from "./pages/admin/Users";
 import { useWindowFocus } from "./hooks/useWindowFocus";
 import { refreshSupabaseConnection } from "./integrations/supabase/connection";
@@ -128,6 +129,7 @@ const App = () => {
                     <Route index element={<AdminDashboard />} />
                     <Route path="claims" element={<ClaimsManagement />} />
                     <Route path="breweries" element={<BreweriesManagement />} />
+                    <Route path="breweryImport" element={<BreweryImport />} />
                     <Route path="users" element={<UsersManagement />} />
                   </Route>
                 </Route>
