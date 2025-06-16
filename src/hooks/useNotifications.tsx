@@ -17,6 +17,12 @@ interface Notification {
   updated_at: string;
 }
 
+interface NotificationPage {
+  data: Notification[];
+  hasMore: boolean;
+  nextPage?: number;
+}
+
 export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -27,9 +33,9 @@ export const useNotifications = () => {
     hasNextPage,
     isFetchingNextPage,
     isLoading,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<NotificationPage, Error>({
     queryKey: ['notifications', user?.id],
-    queryFn: async ({ pageParam = 0 }) => {
+    queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
       if (!user) return { data: [], hasMore: false };
       
       const from = pageParam * 5;
@@ -52,7 +58,8 @@ export const useNotifications = () => {
         nextPage: hasMore ? pageParam + 1 : undefined,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextPage,
+    getNextPageParam: (lastPage: NotificationPage) => lastPage.nextPage,
+    initialPageParam: 0,
     enabled: !!user,
     staleTime: 60000, // 1 minute
   });
