@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
@@ -34,7 +33,7 @@ const EventsExplorer = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
-  const pageSize = 12;
+  const pageSize = 10; // Changed from 12 to 10
   
   // Use the custom hook for city search
   const { cities: cityResults, isLoading: citySearchLoading } = useCitySearch(
@@ -380,6 +379,9 @@ const EventsExplorer = () => {
                 ))}
               </div>
               {renderPagination()}
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} events
+              </div>
             </>
           ) : (
             <div className="text-center py-8 text-muted-foreground">
