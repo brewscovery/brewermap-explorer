@@ -1,6 +1,6 @@
 
 import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -21,27 +21,44 @@ export const useNotifications = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: notifications = [], isLoading } = useOptimizedSupabaseQuery<Notification[]>(
-    ['notifications', user?.id],
-    'notifications',
-    async () => {
-      if (!user) return [];
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ['notifications', user?.id],
+    queryFn: async ({ pageParam = 0 }) => {
+      if (!user) return { data: [], hasMore: false };
       
-      const { data, error } = await supabase
+      const from = pageParam * 5;
+      const to = from + 4;
+      
+      const { data: notifications, error, count } = await supabase
         .from('notifications')
-        .select('*')
+        .select('*', { count: 'exact' })
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(5); // Cap at 5 notifications for virtual scrolling
+        .range(from, to);
       
       if (error) throw error;
-      return data || [];
+      
+      const hasMore = count ? from + 5 < count : false;
+      
+      return {
+        data: notifications || [],
+        hasMore,
+        nextPage: hasMore ? pageParam + 1 : undefined,
+      };
     },
-    'HIGH',
-    60000, // 1 minute stale time
-    !!user
-  );
+    getNextPageParam: (lastPage) => lastPage.nextPage,
+    enabled: !!user,
+    staleTime: 60000, // 1 minute
+  });
 
+  // Flatten all pages into a single notifications array
+  const notifications = data?.pages.flatMap(page => page.data) || [];
   const unreadNotifications = notifications.filter(n => !n.read_at);
 
   // Mark notification as read
@@ -117,6 +134,9 @@ export const useNotifications = () => {
     unreadNotifications,
     unreadCount: unreadNotifications.length,
     isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     markAsRead: markAsReadMutation.mutate,
     markAllAsRead: markAllAsReadMutation.mutate,
     deleteNotification: deleteNotificationMutation.mutate,

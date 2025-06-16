@@ -1,5 +1,5 @@
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Notification {
@@ -17,17 +17,30 @@ interface Notification {
 interface VirtualNotificationListProps {
   notifications: Notification[];
   isLoading: boolean;
+  hasNextPage?: boolean;
+  isFetchingNextPage?: boolean;
+  fetchNextPage?: () => void;
   renderItem: (notification: Notification) => React.ReactNode;
 }
 
 const VirtualNotificationList: React.FC<VirtualNotificationListProps> = ({
   notifications,
   isLoading,
+  hasNextPage,
+  isFetchingNextPage,
+  fetchNextPage,
   renderItem,
 }) => {
-  const virtualizedItems = useMemo(() => {
-    return notifications.slice(0, 5);
-  }, [notifications]);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    
+    // Load more when scrolled to bottom (with small buffer)
+    if (scrollHeight - scrollTop <= clientHeight + 10 && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage?.();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -37,7 +50,7 @@ const VirtualNotificationList: React.FC<VirtualNotificationListProps> = ({
     );
   }
 
-  if (virtualizedItems.length === 0) {
+  if (notifications.length === 0) {
     return (
       <div className="p-4 text-center text-sm text-gray-500">
         No notifications yet
@@ -47,12 +60,17 @@ const VirtualNotificationList: React.FC<VirtualNotificationListProps> = ({
 
   return (
     <ScrollArea className="h-80 overflow-y-auto">
-      <div className="divide-y">
-        {virtualizedItems.map((notification) => (
+      <div ref={scrollRef} onScroll={handleScroll} className="divide-y">
+        {notifications.map((notification) => (
           <div key={notification.id} className="min-h-[64px]">
             {renderItem(notification)}
           </div>
         ))}
+        {isFetchingNextPage && (
+          <div className="p-4 text-center text-sm text-gray-500">
+            Loading more notifications...
+          </div>
+        )}
       </div>
     </ScrollArea>
   );

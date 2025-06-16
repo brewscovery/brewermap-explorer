@@ -95,6 +95,9 @@ const NotificationCenter: React.FC = () => {
     notifications,
     unreadCount,
     isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
     markAsRead,
     markAllAsRead,
     deleteNotification,
@@ -193,6 +196,9 @@ const NotificationCenter: React.FC = () => {
         <VirtualNotificationList
           notifications={notifications}
           isLoading={isLoading}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          fetchNextPage={fetchNextPage}
           renderItem={renderNotificationItem}
         />
       </PopoverContent>
