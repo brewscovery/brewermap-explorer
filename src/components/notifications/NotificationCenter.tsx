@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -52,7 +51,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
   };
 
   return (
-    <div className={`p-3 border-b last:border-b-0 ${isUnread ? 'bg-blue-50' : ''}`}>
+    <div className={`p-3 ${isUnread ? 'bg-blue-50' : ''}`}>
       <div className="flex items-start justify-between gap-2">
         <div 
           className="flex-1 min-w-0 cursor-pointer hover:bg-gray-50 p-1 -m-1 rounded"

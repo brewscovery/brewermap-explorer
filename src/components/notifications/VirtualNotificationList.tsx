@@ -26,8 +26,6 @@ const VirtualNotificationList: React.FC<VirtualNotificationListProps> = ({
   renderItem,
 }) => {
   const virtualizedItems = useMemo(() => {
-    // Since we're limiting to 5 notifications, we can render all of them
-    // Virtual scrolling becomes more beneficial with larger datasets
     return notifications.slice(0, 5);
   }, [notifications]);
 
@@ -48,10 +46,10 @@ const VirtualNotificationList: React.FC<VirtualNotificationListProps> = ({
   }
 
   return (
-    <ScrollArea className="max-h-96">
-      <div>
+    <ScrollArea className="h-80 overflow-y-auto">
+      <div className="divide-y">
         {virtualizedItems.map((notification) => (
-          <div key={notification.id}>
+          <div key={notification.id} className="min-h-[64px]">
             {renderItem(notification)}
           </div>
         ))}
