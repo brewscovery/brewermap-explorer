@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Bell, Check, CheckCheck, Trash2, X } from 'lucide-react';
+import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import {
   Popover,
@@ -9,11 +9,10 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { useNotifications } from '@/hooks/useNotifications';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
+import VirtualNotificationList from './VirtualNotificationList';
 
 // Use the Notification type from the hook
 interface Notification {
@@ -150,6 +149,15 @@ const NotificationCenter: React.FC = () => {
     }
   };
 
+  const renderNotificationItem = (notification: Notification) => (
+    <NotificationItem
+      notification={notification}
+      onMarkAsRead={markAsRead}
+      onDelete={deleteNotification}
+      onNotificationClick={handleNotificationClick}
+    />
+  );
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -183,29 +191,11 @@ const NotificationCenter: React.FC = () => {
           </div>
         </div>
         
-        <ScrollArea className="max-h-96">
-          {isLoading ? (
-            <div className="p-4 text-center text-sm text-gray-500">
-              Loading notifications...
-            </div>
-          ) : notifications.length === 0 ? (
-            <div className="p-4 text-center text-sm text-gray-500">
-              No notifications yet
-            </div>
-          ) : (
-            <div>
-              {notifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onMarkAsRead={markAsRead}
-                  onDelete={deleteNotification}
-                  onNotificationClick={handleNotificationClick}
-                />
-              ))}
-            </div>
-          )}
-        </ScrollArea>
+        <VirtualNotificationList
+          notifications={notifications}
+          isLoading={isLoading}
+          renderItem={renderNotificationItem}
+        />
       </PopoverContent>
     </Popover>
   );
