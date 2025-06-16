@@ -16,9 +16,10 @@ interface UserEventCardProps {
   event: VenueEvent;
   venue?: Venue;
   isInterested: boolean;
+  showInterestButton?: boolean;
 }
 
-const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: UserEventCardProps) => {
+const UserEventCard = ({ event, venue, isInterested: initialIsInterested, showInterestButton = true }: UserEventCardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toggleInterest, interestedUsersCount, isLoading } = useEventInterest(event);
@@ -172,25 +173,27 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested }: User
         )}
       </div>
       
-      {/* Interested button */}
-      <Button 
-        variant={initialIsInterested ? "default" : "outline"} 
-        size="sm" 
-        className="w-full flex items-center gap-2"
-        onClick={handleToggleInterest}
-        disabled={isLoading}
-      >
-        {initialIsInterested ? (
-          <Heart className="mr-2" />
-        ) : (
-          <Heart className="mr-2 text-muted-foreground" />
-        )}
-        Interested {interestedUsersCount > 0 && (
-          <Badge variant="secondary" className="ml-2">
-            {interestedUsersCount}
-          </Badge>
-        )}
-      </Button>
+      {/* Interested button - only show if showInterestButton is true */}
+      {showInterestButton && (
+        <Button 
+          variant={initialIsInterested ? "default" : "outline"} 
+          size="sm" 
+          className="w-full flex items-center gap-2"
+          onClick={handleToggleInterest}
+          disabled={isLoading}
+        >
+          {initialIsInterested ? (
+            <Heart className="mr-2" />
+          ) : (
+            <Heart className="mr-2 text-muted-foreground" />
+          )}
+          Interested {interestedUsersCount > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {interestedUsersCount}
+            </Badge>
+          )}
+        </Button>
+      )}
     </Card>
   );
 };

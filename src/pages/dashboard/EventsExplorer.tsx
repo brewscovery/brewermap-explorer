@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMultipleVenueEvents, VenueEvent } from "@/hooks/useVenueEvents";
+import { usePastInterestedEvents } from "@/hooks/usePastInterestedEvents";
 import { supabase } from "@/integrations/supabase/client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Calendar, X, Loader2, MapPin } from "lucide-react";
+import { Calendar, X, Loader2, MapPin, History } from "lucide-react";
 import { Venue } from "@/types/venue";
 import { Button } from "@/components/ui/button";
 import UserEventCard from "@/components/events/UserEventCard";
@@ -29,6 +30,7 @@ const EventsExplorer = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [manualInputChange, setManualInputChange] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [pastEventsPage, setPastEventsPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -66,10 +68,20 @@ const EventsExplorer = () => {
     pageSize
   );
   
+  // Fetch past interested events with pagination
+  const { data: pastEventsResponse, isLoading: pastEventsLoading, isFetching: pastEventsFetching } = usePastInterestedEvents(
+    pastEventsPage,
+    pageSize
+  );
+  
   const events = eventsResponse?.events || [];
   const totalCount = eventsResponse?.totalCount || 0;
   const hasMore = eventsResponse?.hasMore || false;
   const totalPages = Math.ceil(totalCount / pageSize);
+  
+  const pastEvents = pastEventsResponse?.events || [];
+  const pastEventsTotalCount = pastEventsResponse?.totalCount || 0;
+  const pastEventsTotalPages = Math.ceil(pastEventsTotalCount / pageSize);
   
   // Fetch user's interested events
   useEffect(() => {
@@ -96,6 +108,12 @@ const EventsExplorer = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [filteredVenueIds]);
+  
+  // Reset pages when tab changes
+  useEffect(() => {
+    setCurrentPage(1);
+    setPastEventsPage(1);
+  }, [activeTab]);
   
   // Update dropdown visibility based on search results
   useEffect(() => {
@@ -210,8 +228,19 @@ const EventsExplorer = () => {
     });
   };
 
+  const getPastEventsWithVenueInfo = () => {
+    return pastEvents.map(event => {
+      const venue = allVenues.find(v => v.id === event.venue_id);
+      return { ...event, venue };
+    });
+  };
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
+  };
+
+  const handlePastEventsPageChange = (page: number) => {
+    setPastEventsPage(page);
   };
 
   const renderPagination = () => {
@@ -256,6 +285,55 @@ const EventsExplorer = () => {
             <PaginationNext 
               onClick={() => currentPage < totalPages && handlePageChange(currentPage + 1)}
               className={currentPage >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    );
+  };
+
+  const renderPastEventsPagination = () => {
+    if (pastEventsTotalPages <= 1) return null;
+
+    const pages = [];
+    const showPages = 5;
+    let startPage = Math.max(1, pastEventsPage - Math.floor(showPages / 2));
+    let endPage = Math.min(pastEventsTotalPages, startPage + showPages - 1);
+    
+    if (endPage - startPage + 1 < showPages) {
+      startPage = Math.max(1, endPage - showPages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
+    return (
+      <Pagination className="mt-6">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious 
+              onClick={() => pastEventsPage > 1 && handlePastEventsPageChange(pastEventsPage - 1)}
+              className={pastEventsPage <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            />
+          </PaginationItem>
+          
+          {pages.map((page) => (
+            <PaginationItem key={page}>
+              <PaginationLink
+                onClick={() => handlePastEventsPageChange(page)}
+                isActive={pastEventsPage === page}
+                className="cursor-pointer"
+              >
+                {page}
+              </PaginationLink>
+            </PaginationItem>
+          ))}
+          
+          <PaginationItem>
+            <PaginationNext 
+              onClick={() => pastEventsPage < pastEventsTotalPages && handlePastEventsPageChange(pastEventsPage + 1)}
+              className={pastEventsPage >= pastEventsTotalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
             />
           </PaginationItem>
         </PaginationContent>
@@ -358,6 +436,10 @@ const EventsExplorer = () => {
             <Calendar className="mr-2 h-4 w-4" />
             All Events ({totalCount})
           </TabsTrigger>
+          <TabsTrigger value="past" className="flex items-center">
+            <History className="mr-2 h-4 w-4" />
+            My Past Events
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="all">
@@ -413,6 +495,37 @@ const EventsExplorer = () => {
           ) : (
             <div className="text-center py-8 text-muted-foreground">
               You haven't marked any upcoming events as interested.
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="past">
+          {pastEventsLoading || pastEventsFetching ? (
+            <div className="text-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+              <p>Loading past events...</p>
+            </div>
+          ) : getPastEventsWithVenueInfo().length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {getPastEventsWithVenueInfo().map(event => (
+                  <UserEventCard 
+                    key={event.id} 
+                    event={event} 
+                    venue={event.venue}
+                    isInterested={true}
+                    showInterestButton={false}
+                  />
+                ))}
+              </div>
+              {renderPastEventsPagination()}
+              <div className="mt-4 text-center text-sm text-muted-foreground">
+                Showing {((pastEventsPage - 1) * pageSize) + 1} to {Math.min(pastEventsPage * pageSize, pastEventsTotalCount)} of {pastEventsTotalCount} past events
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              You haven't shown interest in any past events yet.
             </div>
           )}
         </TabsContent>
