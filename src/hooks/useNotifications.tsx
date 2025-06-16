@@ -35,7 +35,8 @@ export const useNotifications = () => {
     isLoading,
   } = useInfiniteQuery<NotificationPage, Error>({
     queryKey: ['notifications', user?.id],
-    queryFn: async ({ pageParam = 0 }: { pageParam: number }) => {
+    queryFn: async (context) => {
+      const pageParam = context.pageParam as number;
       if (!user) return { data: [], hasMore: false };
       
       const from = pageParam * 5;
