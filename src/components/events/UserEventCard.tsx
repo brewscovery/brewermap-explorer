@@ -11,15 +11,25 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDate } from "@/utils/dateTimeUtils";
+import { calculateDistance } from "@/utils/distanceUtils";
 
 interface UserEventCardProps {
   event: VenueEvent;
   venue?: Venue;
   isInterested: boolean;
   showInterestButton?: boolean;
+  showDistance?: boolean;
+  userLocation?: { latitude: number; longitude: number } | null;
 }
 
-const UserEventCard = ({ event, venue, isInterested: initialIsInterested, showInterestButton = true }: UserEventCardProps) => {
+const UserEventCard = ({ 
+  event, 
+  venue, 
+  isInterested: initialIsInterested, 
+  showInterestButton = true,
+  showDistance = false,
+  userLocation = null
+}: UserEventCardProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const { toggleInterest, interestedUsersCount, isLoading } = useEventInterest(event);
@@ -72,8 +82,40 @@ const UserEventCard = ({ event, venue, isInterested: initialIsInterested, showIn
     ? `${event.description.slice(0, 100)}...`
     : event.description;
 
+  const formatDistance = (distance: number, country?: string) => {
+    if (country === 'United States' || country === 'United States of America') {
+      const miles = distance * 0.621371;
+      return `${miles.toFixed(1)} mi`;
+    }
+    return `${distance.toFixed(1)} km`;
+  };
+
+  const getDistanceToVenue = () => {
+    if (!showDistance || !userLocation || !venue?.latitude || !venue?.longitude) {
+      return null;
+    }
+    
+    const distance = calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      parseFloat(venue.latitude),
+      parseFloat(venue.longitude)
+    );
+    
+    return formatDistance(distance, venue.country);
+  };
+
+  const distanceDisplay = getDistanceToVenue();
+
   return (
-    <Card className="p-4 overflow-hidden hover:shadow-md transition-shadow">
+    <Card className="p-4 overflow-hidden hover:shadow-md transition-shadow relative">
+      {/* Distance badge */}
+      {distanceDisplay && (
+        <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-medium border">
+          {distanceDisplay}
+        </div>
+      )}
+      
       <div className="mb-3">
         <h3 className="font-medium text-lg">{event.title}</h3>
         

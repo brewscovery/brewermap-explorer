@@ -3,18 +3,30 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Venue } from "@/types/venue";
+import { useGeolocation } from "@/hooks/useGeolocation";
+import { calculateDistance } from "@/utils/distanceUtils";
 
 export const useEventsExplorer = () => {
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [allVenues, setAllVenues] = useState<Venue[]>([]);
   const [filteredVenueIds, setFilteredVenueIds] = useState<string[]>([]);
+  const [nearbyVenueIds, setNearbyVenueIds] = useState<string[]>([]);
   const [userInterests, setUserInterests] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pastEventsPage, setPastEventsPage] = useState(1);
+  const [nearbyEventsPage, setNearbyEventsPage] = useState(1);
   const [activeTab, setActiveTab] = useState("all");
 
   const pageSize = 10;
+
+  // Add geolocation hook
+  const { 
+    location, 
+    isLoading: locationLoading, 
+    error: locationError, 
+    requestLocation 
+  } = useGeolocation();
 
   // Fetch all venues for reference
   useEffect(() => {
@@ -34,6 +46,31 @@ export const useEventsExplorer = () => {
     
     fetchVenues();
   }, []);
+
+  // Calculate nearby venues when location changes
+  useEffect(() => {
+    if (!location || !allVenues.length) {
+      setNearbyVenueIds([]);
+      return;
+    }
+
+    const venuesWithDistance = allVenues
+      .filter(venue => venue.latitude && venue.longitude)
+      .map(venue => ({
+        ...venue,
+        distance: calculateDistance(
+          location.latitude,
+          location.longitude,
+          parseFloat(venue.latitude!),
+          parseFloat(venue.longitude!)
+        )
+      }))
+      .filter(venue => venue.distance <= 50)
+      .sort((a, b) => a.distance - b.distance)
+      .map(venue => venue.id);
+
+    setNearbyVenueIds(venuesWithDistance);
+  }, [location, allVenues]);
 
   // Fetch user's interested events
   useEffect(() => {
@@ -65,6 +102,7 @@ export const useEventsExplorer = () => {
   useEffect(() => {
     setCurrentPage(1);
     setPastEventsPage(1);
+    setNearbyEventsPage(1);
   }, [activeTab]);
 
   return {
@@ -73,13 +111,20 @@ export const useEventsExplorer = () => {
     allVenues,
     filteredVenueIds,
     setFilteredVenueIds,
+    nearbyVenueIds,
     userInterests,
     currentPage,
     setCurrentPage,
     pastEventsPage,
     setPastEventsPage,
+    nearbyEventsPage,
+    setNearbyEventsPage,
     activeTab,
     setActiveTab,
-    pageSize
+    pageSize,
+    location,
+    locationLoading,
+    locationError,
+    requestLocation
   };
 };
