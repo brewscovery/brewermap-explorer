@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useEffect, useState } from 'react';
 import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,7 @@ type AuthContextType = {
   firstName: string | null;
   lastName: string | null;
   loading: boolean;
+  signOut: () => Promise<void>;
 };
 
 // Define a type for our profile data structure
@@ -25,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   firstName: null,
   lastName: null,
   loading: true,
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -34,6 +35,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [lastName, setLastName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileFetchAttempted, setProfileFetchAttempted] = useState(false);
+
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+        toast.error('Error signing out');
+      } else {
+        toast.success('Signed out successfully');
+      }
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
+      toast.error('Unexpected error during sign out');
+    }
+  };
 
   const fetchUserProfile = async (userId: string) => {
     // Skip if we've already attempted to fetch for this session
@@ -209,7 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, userType, firstName, lastName, loading }}>
+    <AuthContext.Provider value={{ user, userType, firstName, lastName, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
