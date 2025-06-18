@@ -19,24 +19,96 @@ export const usePointLayers = ({
   isSourceReady 
 }: UsePointLayersProps) => {
   const layersAdded = useRef(false);
+  const iconsLoaded = useRef(false);
 
-  // Update point colors without removing/re-adding layers
+  // Create custom marker icons
+  const createMarkerIcons = useCallback(() => {
+    if (iconsLoaded.current || !map.getStyle()) return;
+
+    try {
+      // Create canvas for unvisited venue marker (orange)
+      const createMarkerIcon = (color: string, iconName: string) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return null;
+
+        canvas.width = 40;
+        canvas.height = 50;
+
+        // Draw marker shape
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        // Marker body (rounded rectangle)
+        ctx.roundRect(5, 5, 30, 30, 15);
+        ctx.fill();
+        
+        // Marker point
+        ctx.beginPath();
+        ctx.moveTo(20, 45);
+        ctx.lineTo(15, 35);
+        ctx.lineTo(25, 35);
+        ctx.closePath();
+        ctx.fill();
+
+        // White border
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.roundRect(5, 5, 30, 30, 15);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(20, 45);
+        ctx.lineTo(15, 35);
+        ctx.lineTo(25, 35);
+        ctx.closePath();
+        ctx.stroke();
+
+        // Draw beer mug icon
+        ctx.fillStyle = '#ffffff';
+        ctx.font = '16px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🍺', 20, 20);
+
+        return canvas;
+      };
+
+      // Create and add unvisited marker icon
+      const unvisitedIcon = createMarkerIcon('#fbbf24', 'unvisited-marker');
+      if (unvisitedIcon && !map.hasImage('unvisited-marker')) {
+        map.addImage('unvisited-marker', unvisitedIcon);
+      }
+
+      // Create and add visited marker icon
+      const visitedIcon = createMarkerIcon('#22c55e', 'visited-marker');
+      if (visitedIcon && !map.hasImage('visited-marker')) {
+        map.addImage('visited-marker', visitedIcon);
+      }
+
+      iconsLoaded.current = true;
+      console.log('Custom marker icons loaded successfully');
+    } catch (error) {
+      console.warn('Error creating marker icons:', error);
+    }
+  }, [map]);
+
+  // Update point icons without removing/re-adding layers
   const updatePointColors = useCallback(() => {
     if (!map.getLayer('unclustered-point')) return;
 
     try {
-      console.log(`Updating venue point colors with ${visitedVenueIds.length} visited venues`);
+      console.log(`Updating venue point icons with ${visitedVenueIds.length} visited venues`);
       
       if (map && map.getStyle()) {
-        map.setPaintProperty('unclustered-point', 'circle-color', [
+        map.setLayoutProperty('unclustered-point', 'icon-image', [
           'case',
           ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-          '#22c55e', // Green color for visited venues
-          '#fbbf24'  // Default yellow color for unvisited venues
+          'visited-marker',
+          'unvisited-marker'
         ]);
       }
     } catch (error) {
-      console.warn('Error updating point colors:', error);
+      console.warn('Error updating point icons:', error);
     }
   }, [map, visitedVenueIds]);
 
@@ -73,6 +145,9 @@ export const usePointLayers = ({
         console.log('Source not available, cannot add point layers');
         return false;
       }
+
+      // Create marker icons first
+      createMarkerIcons();
       
       // Check if layers already exist
       if (map.getLayer('unclustered-point')) {
@@ -83,23 +158,23 @@ export const usePointLayers = ({
       }
       
       // Add the point layer if it doesn't exist
-      console.log('Adding point layers');
+      console.log('Adding point layers with custom markers');
       
       map.addLayer({
         id: 'unclustered-point',
-        type: 'circle',
+        type: 'symbol',
         source: source,
         filter: ['!', ['has', 'point_count']],
-        paint: {
-          'circle-color': [
+        layout: {
+          'icon-image': [
             'case',
             ['in', ['get', 'id'], ['literal', visitedVenueIds]],
-            '#22c55e',
-            '#fbbf24'
+            'visited-marker',
+            'unvisited-marker'
           ],
-          'circle-radius': 12,
-          'circle-stroke-width': 3,
-          'circle-stroke-color': '#ffffff'
+          'icon-size': 0.8,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': false
         }
       });
 
@@ -112,7 +187,7 @@ export const usePointLayers = ({
           'text-field': ['get', 'name'],
           'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
           'text-size': 12,
-          'text-offset': [0, 1.5],
+          'text-offset': [0, 2],
           'text-anchor': 'top',
           'text-allow-overlap': false,
           'text-ignore-placement': false
@@ -125,14 +200,14 @@ export const usePointLayers = ({
       });
 
       layersAdded.current = true;
-      console.log('Point layers added successfully');
+      console.log('Point layers with custom markers added successfully');
       return true;
     } catch (error) {
       console.error('Error adding point layers:', error);
       layersAdded.current = false;
       return false;
     }
-  }, [map, source, isSourceReady, visitedVenueIds, updatePointColors]);
+  }, [map, source, isSourceReady, visitedVenueIds, updatePointColors, createMarkerIcons]);
 
   // Initial layer setup - only adds layers if they don't exist
   useEffect(() => {
@@ -162,6 +237,8 @@ export const usePointLayers = ({
   useEffect(() => {
     const handleStyleChange = () => {
       if (isSourceReady && map.getSource(source) && !map.getLayer('unclustered-point')) {
+        // Reset icons loaded flag when style changes
+        iconsLoaded.current = false;
         // Layers missing but source exists, try to re-add the layers
         console.log('Style changed, layers missing. Re-adding point layers...');
         setTimeout(() => {
@@ -181,6 +258,7 @@ export const usePointLayers = ({
   useEffect(() => {
     return () => {
       layersAdded.current = false;
+      iconsLoaded.current = false;
     };
   }, [source]);
 
