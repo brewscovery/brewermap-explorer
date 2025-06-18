@@ -1,4 +1,3 @@
-
 import { useEffect, useRef, useCallback } from 'react';
 import mapboxgl from 'mapbox-gl';
 import type { Venue } from '@/types/venue';
@@ -26,7 +25,7 @@ export const usePointLayers = ({
     if (iconsLoaded.current || !map.getStyle()) return;
 
     try {
-      // Create canvas for unvisited venue marker (orange)
+      // Create canvas for marker icon
       const createMarkerIcon = (color: string, iconName: string) => {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
@@ -70,7 +69,8 @@ export const usePointLayers = ({
         ctx.textBaseline = 'middle';
         ctx.fillText('🍺', 20, 20);
 
-        return canvas;
+        // Convert canvas to ImageData
+        return ctx.getImageData(0, 0, canvas.width, canvas.height);
       };
 
       // Create and add unvisited marker icon
