@@ -1,15 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
 import { PanelLeft, Filter } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
 import MapFilters from './MapFilters';
 import LoginPopover from '@/components/auth/LoginPopover';
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useNavigate } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Venue } from '@/types/venue';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
@@ -29,7 +27,6 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   onFilterChange = () => {},
   selectedVenue
 }) => {
-  const navigate = useNavigate();
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
   const { user, firstName, lastName } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);

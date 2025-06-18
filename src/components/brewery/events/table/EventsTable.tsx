@@ -1,16 +1,11 @@
 
 import React, { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useVenueEvents, useDeleteVenueEvent } from "@/hooks/useVenueEvents";
-import { supabase } from '@/integrations/supabase/client';
+import { useDeleteVenueEvent } from "@/hooks/useVenueEvents";
 import EditEventDialog from "../EditEventDialog";
 import { toast } from "sonner";
-import { EventRow } from "./EventRow";
 import { DeleteEventDialog } from "./DeleteEventDialog";
 import { EventsFilters } from "./EventsFilters";
-import { TableHeader } from "./TableHeader";
 import { useEventsTable } from "./useEventsTable";
-import { EmptyEventsState } from "./EmptyEventsState";
 import { EventsTableBody } from "./EventsTableBody";
 import { EventsTableHeader } from "./EventsTableHeader";
 import { useEventsFetching } from "./useEventsFetching";
