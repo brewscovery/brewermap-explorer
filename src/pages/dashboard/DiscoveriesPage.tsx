@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,14 +83,6 @@ const DiscoveriesPage = () => {
     setIsVenueSidebarOpen(false);
   };
 
-  const formatDistance = (distance: number, country?: string) => {
-    if (country === 'United States' || country === 'United States of America') {
-      const miles = distance * 0.621371;
-      return `${miles.toFixed(1)} mi`;
-    }
-    return `${distance.toFixed(1)} km`;
-  };
-
   const renderLocationRequest = () => (
     <Card>
       <CardHeader>
@@ -152,20 +143,17 @@ const DiscoveriesPage = () => {
         ) : nearbyVenues && nearbyVenues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {nearbyVenues.map(venue => (
-              <div key={venue.id} className="relative">
-                <VenueCard 
-                  venue={venue}
-                  brewery={{
-                    name: venue.breweries.name,
-                    logo_url: venue.breweries.logo_url,
-                    is_verified: venue.breweries.is_verified
-                  }}
-                  onClick={() => handleVenueClick(venue)}
-                />
-                <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-medium border">
-                  {formatDistance(venue.distance, venue.country)}
-                </div>
-              </div>
+              <VenueCard 
+                key={venue.id}
+                venue={venue}
+                brewery={{
+                  name: venue.breweries.name,
+                  logo_url: venue.breweries.logo_url,
+                  is_verified: venue.breweries.is_verified
+                }}
+                distance={venue.distance}
+                onClick={() => handleVenueClick(venue)}
+              />
             ))}
           </div>
         ) : (
