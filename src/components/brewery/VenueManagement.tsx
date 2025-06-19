@@ -74,11 +74,7 @@ const VenueManagement = ({ breweryId }: VenueManagementProps) => {
         onAddVenue={handleAddVenue}
         onSelectVenue={handleSelectVenue}
       />
-      {selectedVenue && (
-        <div className="mt-6">
-          <VenueEventsManager venue={selectedVenue} />
-        </div>
-      )}
+      
       {selectedVenue && (
         <>
           <DeleteVenueDialog 
