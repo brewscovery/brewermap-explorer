@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Calendar, Clock, Heart, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { useVenueEvents } from '@/hooks/useVenueEvents';
@@ -11,7 +12,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { formatDate, formatTime } from '@/utils/dateTimeUtils';
 
 interface EventsSectionProps {
   venueId: string;
@@ -111,7 +111,7 @@ const EventCard = ({
       <h3 className="font-medium">{event.title}</h3>
       {event.description && (
         <div className="text-sm text-muted-foreground">
-          <p>{displayDescription}</p>
+          <p className="whitespace-pre-wrap">{displayDescription}</p>
           {shouldTruncate && (
             <Button 
               variant="ghost" 
@@ -134,7 +134,7 @@ const EventCard = ({
       )}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Calendar size={14} />
-        <span>{formatDate(new Date(event.start_time))}</span>
+        <span>{new Date(event.start_time).toLocaleDateString()}</span>
       </div>
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Clock size={14} />

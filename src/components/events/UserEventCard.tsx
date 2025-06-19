@@ -149,10 +149,10 @@ const UserEventCard = ({
           </div>
         </div>
         
-        {/* Event description */}
+        {/* Event description with preserved line breaks */}
         {event.description && (
           <div className="text-sm text-muted-foreground">
-            <p>{displayDescription}</p>
+            <p className="whitespace-pre-wrap">{displayDescription}</p>
             {shouldTruncate && (
                 <Button 
                 variant="ghost" 
