@@ -47,13 +47,16 @@ export const VenueCard = ({ venue, brewery, onClick }: VenueCardProps) => {
               </p>
             </div>
           </div>
-          {brewery?.is_verified && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              <ShieldCheck size={12} />
-              <span>Verified</span>
-            </Badge>
-          )}
         </div>
+
+        {brewery?.is_verified && (
+        <div className="flex items-start justify-between mb-3">
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <ShieldCheck size={12} />
+            <span>Verified</span>
+          </Badge>
+        </div>
+        )}
         
         <div className="flex items-center justify-between mt-3">
           <div className="flex items-center text-sm text-muted-foreground">
