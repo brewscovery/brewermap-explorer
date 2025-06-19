@@ -19,25 +19,18 @@ interface VenueCardProps {
     logo_url?: string | null;
     is_verified?: boolean;
   };
-  distance?: number; // Add optional distance prop
+  distance?: string; // Add optional distance prop
   onClick?: () => void;
 }
 
 export const VenueCard = ({ venue, brewery, distance, onClick }: VenueCardProps) => {
-  const formatDistance = (distance: number, country?: string) => {
-    if (country === 'United States' || country === 'United States of America') {
-      const miles = distance * 0.621371;
-      return `${miles.toFixed(1)} mi`;
-    }
-    return `${distance.toFixed(1)} km`;
-  };
-
+  
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow" onClick={onClick}>
       <div className="p-4 relative">
         {distance !== undefined && (
           <div className="absolute top-2 right-2 bg-background/90 backdrop-blur-sm rounded-md px-2 py-1 text-xs font-medium border">
-            {formatDistance(distance, venue.country)}
+            {distance}
           </div>
         )}
         

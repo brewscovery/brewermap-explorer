@@ -83,6 +83,14 @@ const DiscoveriesPage = () => {
     setIsVenueSidebarOpen(false);
   };
 
+  const formatDistance = (distance: number, country?: string) => {
+    if (country === 'United States' || country === 'United States of America') {
+      const miles = distance * 0.621371;
+      return `${miles.toFixed(1)} mi`;
+    }
+    return `${distance.toFixed(1)} km`;
+  };
+
   const renderLocationRequest = () => (
     <Card>
       <CardHeader>
@@ -151,7 +159,7 @@ const DiscoveriesPage = () => {
                   logo_url: venue.breweries.logo_url,
                   is_verified: venue.breweries.is_verified
                 }}
-                distance={venue.distance}
+                distance={formatDistance(venue.distance, venue.country)}
                 onClick={() => handleVenueClick(venue)}
               />
             ))}
