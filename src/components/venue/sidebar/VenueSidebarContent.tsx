@@ -67,6 +67,9 @@ const VenueSidebarContent = ({
     window.open(url, '_blank', 'noopener');
   };
 
+  // Determine the check-ins tab text based on user type
+  const checkInsTabText = user && userType === 'regular' ? 'My check-ins' : 'Check-ins';
+
   const overviewContent = (
     <div className="space-y-5 p-4">
       {displayMode === 'full' && (
@@ -115,7 +118,7 @@ const VenueSidebarContent = ({
         <TabsList className="w-full grid grid-cols-3 sticky top-0 bg-background z-10">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="checkins">Check-ins</TabsTrigger>
+          <TabsTrigger value="checkins">{checkInsTabText}</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="focus:outline-none">
           {overviewContent}

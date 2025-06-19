@@ -46,10 +46,13 @@ const CheckInsSection = ({
   const userCheckins = checkins.filter(checkin => user && checkin.user_id === user.id);
   const otherCheckins = checkins.filter(checkin => !user || checkin.user_id !== user.id);
   
+  // Determine the header text based on user type
+  const headerText = user && userType === 'regular' ? 'My check-ins' : 'Check-ins';
+  
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium">Check-ins</h3>
+        <h3 className="font-medium">{headerText}</h3>
         {user && userType === 'regular' && showCheckInButton && (
           <Button 
             size="sm" 
