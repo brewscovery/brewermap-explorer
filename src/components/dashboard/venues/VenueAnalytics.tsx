@@ -39,6 +39,9 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
 
       const venueIds = venues.map(v => v.id);
 
+      //Check if correct venue IDs have been found
+      console.log('Venue IDs found for brewery:', venueIds)
+
       // Get rolling average rating (last 20 check-ins per venue)
       const ratingsPromises = venues.map(async (venue) => {
         const { data: recentCheckIns } = await supabase
