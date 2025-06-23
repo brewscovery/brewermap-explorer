@@ -108,21 +108,13 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
       const weeklyCheckInsResults = await Promise.all(weeklyCheckInsPromises);
       console.log('📈 All weekly check-ins results:', weeklyCheckInsResults);
 
-      // Get total favorites per venue - Fixed query
+      // Get total favorites per venue - Now should work with RLS policies
       const favoritesPromises = venues.map(async (venue) => {
         console.log(`❤️ Fetching favorites for venue ${venue.name} (${venue.id})`);
         
-        // Debug: First check if the table exists and what data is there
-        const { data: allFavorites, error: debugError } = await supabase
-          .from('venue_favorites')
-          .select('*');
-        
-        console.log(`❤️ DEBUG - All venue_favorites in database:`, allFavorites);
-        
-        // Now get favorites for this specific venue
         const { data: favorites, error: favoritesError } = await supabase
           .from('venue_favorites')
-          .select('*')
+          .select('id')
           .eq('venue_id', venue.id);
 
         if (favoritesError) {
