@@ -108,16 +108,26 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
       const weeklyCheckInsResults = await Promise.all(weeklyCheckInsPromises);
       console.log('📈 All weekly check-ins results:', weeklyCheckInsResults);
 
-      // Get total favorites per venue
+      // Get total favorites per venue - Fixed query
       const favoritesPromises = venues.map(async (venue) => {
         console.log(`❤️ Fetching favorites for venue ${venue.name} (${venue.id})`);
+        
+        // Debug: First check if the table exists and what data is there
+        const { data: allFavorites, error: debugError } = await supabase
+          .from('venue_favorites')
+          .select('*');
+        
+        console.log(`❤️ DEBUG - All venue_favorites in database:`, allFavorites);
+        
+        // Now get favorites for this specific venue
         const { data: favorites, error: favoritesError } = await supabase
           .from('venue_favorites')
-          .select('id')
+          .select('*')
           .eq('venue_id', venue.id);
 
         if (favoritesError) {
           console.error(`❌ Error fetching favorites for venue ${venue.id}:`, favoritesError);
+          return { venueId: venue.id, count: 0 };
         }
         
         console.log(`❤️ Favorites for ${venue.name}:`, favorites);
@@ -231,14 +241,19 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
       totalWeeklyCheckIns: acc.totalWeeklyCheckIns + venue.weeklyUniqueCheckIns,
       averageRating: avgRating,
       totalFavorites: acc.totalFavorites + venue.totalFavorites,
-      totalTopEvents: acc.totalTopEvents + venue.topEvents.length
+      allTopEvents: [...acc.allTopEvents, ...venue.topEvents]
     };
   }, {
     totalWeeklyCheckIns: 0,
     averageRating: null as number | null,
     totalFavorites: 0,
-    totalTopEvents: 0
+    allTopEvents: [] as Array<{id: string; title: string; interestCount: number}>
   });
+
+  // Get top events across all venues
+  const topEventsOverall = overallMetrics.allTopEvents
+    .sort((a, b) => b.interestCount - a.interestCount)
+    .slice(0, 3);
 
   console.log('🏢 Overall metrics calculated:', overallMetrics);
 
@@ -302,8 +317,19 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
             <Calendar className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{overallMetrics.totalTopEvents}</div>
-            <p className="text-xs text-muted-foreground">
+            {topEventsOverall.length > 0 ? (
+              <div className="space-y-1">
+                {topEventsOverall.map((event, index) => (
+                  <div key={event.id} className="text-xs">
+                    <span className="font-medium">{index + 1}. {event.title}</span>
+                    <span className="text-muted-foreground ml-1">({event.interestCount})</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-2xl font-bold">—</div>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
               Top events with interest
             </p>
           </CardContent>
