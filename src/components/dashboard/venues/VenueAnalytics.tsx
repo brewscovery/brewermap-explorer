@@ -64,25 +64,27 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
       weekAgo.setDate(weekAgo.getDate() - 7);
 
       const weeklyCheckInsPromises = venues.map(async (venue) => {
-        const { count } = await supabase
+        const { data: uniqueUsers } = await supabase
           .from('checkins')
-          .select('user_id', { count: 'exact', head: true })
+          .select('user_id')
           .eq('venue_id', venue.id)
           .gte('visited_at', weekAgo.toISOString());
 
-        return { venueId: venue.id, count: count || 0 };
+        // Count unique users manually
+        const uniqueUserIds = [...new Set(uniqueUsers?.map(c => c.user_id) || [])];
+        return { venueId: venue.id, count: uniqueUserIds.length };
       });
 
       const weeklyCheckInsResults = await Promise.all(weeklyCheckInsPromises);
 
-      // Get total favorites per venue
+      // Get total favorites per venue using individual queries for better reliability
       const favoritesPromises = venues.map(async (venue) => {
-        const { count } = await supabase
+        const { data: favorites } = await supabase
           .from('venue_favorites')
-          .select('*', { count: 'exact', head: true })
+          .select('id')
           .eq('venue_id', venue.id);
 
-        return { venueId: venue.id, count: count || 0 };
+        return { venueId: venue.id, count: favorites?.length || 0 };
       });
 
       const favoritesResults = await Promise.all(favoritesPromises);
@@ -94,7 +96,7 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
           .select(`
             id,
             title,
-            event_interests(count)
+            event_interests!inner(id)
           `)
           .eq('venue_id', venue.id)
           .eq('is_published', true)
@@ -278,11 +280,17 @@ export const VenueAnalytics = ({ brewery }: VenueAnalyticsProps) => {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Top Events</p>
-                    <p className="font-medium">
-                      {venue.topEvents.length > 0 
-                        ? venue.topEvents[0].title + (venue.topEvents.length > 1 ? ` +${venue.topEvents.length - 1}` : '')
-                        : "None"}
-                    </p>
+                    {venue.topEvents.length > 0 ? (
+                      <div className="space-y-1">
+                        {venue.topEvents.map((event, index) => (
+                          <p key={event.id} className="font-medium text-xs">
+                            {index + 1}. {event.title} ({event.interestCount})
+                          </p>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="font-medium">None</p>
+                    )}
                   </div>
                 </div>
               </Card>
