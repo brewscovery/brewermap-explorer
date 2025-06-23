@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import VenueManagement from '@/components/brewery/VenueManagement';
 import AddVenueDialog from '@/components/brewery/AddVenueDialog';
+import { VenueAnalytics } from './VenueAnalytics';
 import { Brewery } from '@/types/brewery';
 
 interface VenueListViewProps {
@@ -44,12 +45,14 @@ export const VenueListView = ({ brewery, onVenueAdded }: VenueListViewProps) => 
       
       <VenueManagement breweryId={brewery.id} />
       
+      <VenueAnalytics brewery={brewery} />
+      
       {brewery.id && brewery.is_verified && (
         <AddVenueDialog
           open={showAddVenueDialog}
           onOpenChange={handleAddVenueDialogClose}
           breweryId={brewery.id}
-          breweryName={brewery.name} // Pass brewery name to AddVenueDialog
+          breweryName={brewery.name}
           onVenueAdded={handleVenueAdded}
         />
       )}
