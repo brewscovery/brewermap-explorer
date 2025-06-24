@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   
+  console.log('ProtectedRoute check:', { user: !!user, loading });
+  
   // Show loading state while authentication is being checked
   if (loading) {
     return (
@@ -25,6 +27,7 @@ const ProtectedRoute = () => {
     return <Navigate to="/auth" replace />;
   }
   
+  console.log('User authenticated, rendering protected content');
   // Render the protected content if authenticated
   return <Outlet />;
 };
