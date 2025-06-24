@@ -1,4 +1,3 @@
-
 import { Clock, Utensils, XCircle } from 'lucide-react';
 import type { VenueHour } from '@/types/venueHours';
 import { formatTime } from '@/utils/dateTimeUtils';

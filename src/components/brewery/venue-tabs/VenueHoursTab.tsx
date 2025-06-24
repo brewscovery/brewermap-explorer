@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useVenueHours } from '@/hooks/useVenueHours';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,8 +6,7 @@ import { VenueHour } from '@/types/venueHours';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { DAYS_OF_WEEK } from '@/types/venueHours';
-import { formatTimeForForm } from '@/components/brewery/hours/hoursUtils';
-import { generateHourOptions } from '@/components/brewery/hours/hoursUtils';
+import { formatTimeForForm, generateHourOptions } from '@/components/brewery/hours/hoursUtils';
 import { Loader2 } from 'lucide-react';
 import VenueHoursSection from '@/components/brewery/hours/VenueHoursSection';
 import EmptyHoursState from '@/components/brewery/hours/EmptyHoursState';
