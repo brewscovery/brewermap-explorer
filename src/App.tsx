@@ -33,7 +33,7 @@ import TodoListsPage from "./pages/dashboard/TodoListsPage";
 import EventsExplorer from "./pages/dashboard/EventsExplorer";
 import ProtectedRoute from "./components/protected/ProtectedRoute";
 import VenueQrRedirect from "./components/qr/VenueQrRedirect";
-import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import PWAInstallPrompt from './components/PWAInstallPrompt';
 //import './App.css';
 
 const UserTypeRoute = ({ 

@@ -56,7 +56,7 @@ const PWAInstallPrompt = () => {
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1">
-              <h3 className="font-semibold text-sm mb-1">Install BrewerMap</h3>
+              <h3 className="font-semibold text-sm mb-1">Install Brewscovery</h3>
               <p className="text-xs text-muted-foreground mb-3">
                 Install our app for a better experience and offline access
               </p>
