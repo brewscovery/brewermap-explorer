@@ -144,13 +144,13 @@ export const MobileSidebarHeader = ({
               </Badge>
             )}
             
-            {/* Independent brewery badge */}
+            {/* Independent brewery badge - increased size from h-8 to h-12 */}
             {breweryInfo?.is_independent && (
               <div>
                 <img 
                   src={getIndependentBreweryLogo(breweryInfo?.country)} 
                   alt="Certified Independent" 
-                  className="h-8" 
+                  className="h-12" 
                 />
               </div>
             )}
