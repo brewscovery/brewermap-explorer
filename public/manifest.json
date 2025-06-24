@@ -1,7 +1,7 @@
 
 {
-  "name": "BrewerMap Explorer",
-  "short_name": "BrewerMap",
+  "name": "Brewscovery",
+  "short_name": "Brewscovery",
   "description": "Discover breweries and venues around you",
   "start_url": "/",
   "display": "standalone",
