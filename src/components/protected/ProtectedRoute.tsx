@@ -19,10 +19,10 @@ const ProtectedRoute = () => {
     );
   }
   
-  // Redirect to map page if not authenticated
+  // Redirect to auth page if not authenticated
   if (!user) {
-    console.log('User not authenticated, redirecting to map page');
-    return <Navigate to="/" replace />;
+    console.log('User not authenticated, redirecting to auth page');
+    return <Navigate to="/auth" replace />;
   }
   
   // Render the protected content if authenticated

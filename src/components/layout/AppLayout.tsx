@@ -34,7 +34,7 @@ const AppLayout = () => {
       <div className="flex w-full min-h-screen">
         <UnifiedSidebar />
         
-        <div className="h-screen overflow-auto flex-1">
+        <div className={`${isRootRoute ? 'fixed inset-0' : 'h-screen overflow-auto'} flex-1`}>
           {isBusinessUserDashboard || isRegularUserDashboard ? (
             <div className="flex-1 flex flex-col">
               <DashboardHeader displayName={displayName} />
@@ -47,7 +47,7 @@ const AppLayout = () => {
               <Outlet />
             </main>
           ) : isRootRoute ? (
-            <main className="flex-1 flex flex-col h-full">
+            <main className="w-full h-full">
               <Outlet />
             </main>
           ) : (
