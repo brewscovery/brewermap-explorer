@@ -76,7 +76,7 @@ const VenueSidebarHeader = ({
     
     if (trimmedCountry === 'United States' || trimmedCountry === 'United States of America' || trimmedCountry === 'USA' || trimmedCountry === 'US') {
       console.log('Using USA independent brewery logo');
-      return "/lovable-uploads/1f789c84-9f47-42b7-ad64-39aac10a72ea.png";
+      return "/lovable-uploads/86dedef8-43fe-4dbc-82e1-c4845a650bdd.png";
     } else if (trimmedCountry === 'Australia') {
       console.log('Using Australia independent brewery logo');
       return "/lovable-uploads/5aa2675a-19ef-429c-b610-584fdabf6b1b.png";
