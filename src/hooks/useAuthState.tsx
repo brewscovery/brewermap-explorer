@@ -124,15 +124,15 @@ export const useAuthState = () => {
       handleRecoveryFlow();
     }
 
-    // Only redirect to home if user is on the auth page specifically and not during recovery
-    if (user && location.pathname === '/auth' && !authState.isPasswordRecovery) {
+    // Redirect authenticated users away from auth pages (except during recovery)
+    if (user && !authState.isPasswordRecovery && !location.search) {
       navigate('/', { replace: true });
     }
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [user, navigate, searchParams, location.pathname, authState.isPasswordRecovery]);
+  }, [user, navigate, searchParams, location.search, authState.isPasswordRecovery]);
 
   const handleSwitchToSignup = () => {
     console.log('Switching to signup view');

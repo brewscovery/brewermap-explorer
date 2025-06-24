@@ -6,8 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 const ProtectedRoute = () => {
   const { user, loading } = useAuth();
   
-  console.log('ProtectedRoute check:', { user: !!user, loading });
-  
   // Show loading state while authentication is being checked
   if (loading) {
     return (
@@ -21,13 +19,12 @@ const ProtectedRoute = () => {
     );
   }
   
-  // Redirect to auth page if not authenticated
+  // Redirect to map page if not authenticated
   if (!user) {
-    console.log('User not authenticated, redirecting to auth page');
-    return <Navigate to="/auth" replace />;
+    console.log('User not authenticated, redirecting to map page');
+    return <Navigate to="/" replace />;
   }
   
-  console.log('User authenticated, rendering protected content');
   // Render the protected content if authenticated
   return <Outlet />;
 };

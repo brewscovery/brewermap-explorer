@@ -12,7 +12,6 @@ import { Trash2 } from 'lucide-react';
 import { useRealtimeUser } from '@/hooks/useRealtimeUser';
 import { useRealtimeBusinessUser } from '@/hooks/useRealtimeBusinessUser';
 import DeleteBreweryDialog from '@/components/brewery/DeleteBreweryDialog';
-import RegularDashboard from '@/pages/dashboard/RegularDashboard';
 
 const Dashboard = () => {
   const { user, userType, loading } = useAuth();
@@ -22,12 +21,12 @@ const Dashboard = () => {
   useRealtimeUser();
   useRealtimeBusinessUser();
   
-  // Redirect if not authenticated at all
+  // Redirect if not a business user
   useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+    if (!loading && (!user || userType !== 'business')) {
+      navigate('/');
     } 
-  }, [user, loading, navigate]);
+  }, [user, userType, loading, navigate]);
 
   const { 
     selectedBrewery,
@@ -40,7 +39,7 @@ const Dashboard = () => {
     console.log("Dashboard - selectedBrewery updated:", selectedBrewery?.name);
   }, [selectedBrewery]);
 
-  // Add the notifications hook for business users
+  // Add the notifications hook
   useBreweryClaimNotifications();
 
   // If still loading or no user, show loading state
@@ -48,92 +47,70 @@ const Dashboard = () => {
     return <div className="p-6 text-center">Loading dashboard...</div>;
   }
 
-  // Handle regular users - show their dashboard
-  if (userType === 'regular') {
-    return <RegularDashboard />;
-  }
+  const handleSubmitSuccess = async () => {
+    await fetchBreweries();
+    toast.success("Brewery updated successfully");
+  };
 
-  // Handle business users - show brewery management
-  if (userType === 'business') {
-    const handleSubmitSuccess = async () => {
-      await fetchBreweries();
-      toast.success("Brewery updated successfully");
-    };
+  const handleDeleteSuccess = () => {
+    navigate('/');
+    toast.success("You've been redirected to the home page");
+  };
 
-    const handleDeleteSuccess = () => {
-      navigate('/');
-      toast.success("You've been redirected to the home page");
-    };
-
-    if (!selectedBrewery) {
-      return (
-        <div className="pt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>No Brewery Selected</CardTitle>
-              <CardDescription>
-                Please select a brewery from the sidebar or create a new one to get started.
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-      );
-    }
-
+  if (!selectedBrewery) {
     return (
-      <div className="max-w-4xl mx-auto pt-6">
+      <div className="pt-6">
         <Card>
           <CardHeader>
-            <CardTitle>Brewery Details</CardTitle>
+            <CardTitle>No Brewery Selected</CardTitle>
             <CardDescription>
-              Update your brewery's information below
+              Please select a brewery from the sidebar or create a new one to get started.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <UnifiedBreweryForm
-              initialData={selectedBrewery}
-              onSubmit={() => {}}
-              onSubmitSuccess={handleSubmitSuccess}
-              isAdminMode={false}
-              breweryId={selectedBrewery.id}
-              isEditMode={true}
-            />
-          </CardContent>
-          <CardFooter className="flex justify-between border-t pt-6">
-            <div></div>
-            <Button 
-              variant="destructive" 
-              onClick={() => setIsDeleteDialogOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <Trash2 size={16} />
-              Delete Brewery
-            </Button>
-          </CardFooter>
         </Card>
-
-        <DeleteBreweryDialog
-          open={isDeleteDialogOpen}
-          onOpenChange={setIsDeleteDialogOpen}
-          breweryId={selectedBrewery?.id || null}
-          breweryName={selectedBrewery?.name || ""}
-          onSuccess={handleDeleteSuccess}
-        />
       </div>
     );
   }
 
-  // Fallback for unknown user types
   return (
-    <div className="pt-6">
+    <div className="max-w-4xl mx-auto pt-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dashboard</CardTitle>
+          <CardTitle>Brewery Details</CardTitle>
           <CardDescription>
-            Welcome to your dashboard
+            Update your brewery's information below
           </CardDescription>
         </CardHeader>
+        <CardContent>
+          <UnifiedBreweryForm
+            initialData={selectedBrewery}
+            onSubmit={() => {}}
+            onSubmitSuccess={handleSubmitSuccess}
+            isAdminMode={false}
+            breweryId={selectedBrewery.id}
+            isEditMode={true}
+          />
+        </CardContent>
+        <CardFooter className="flex justify-between border-t pt-6">
+          <div></div>
+          <Button 
+            variant="destructive" 
+            onClick={() => setIsDeleteDialogOpen(true)}
+            className="flex items-center gap-2"
+          >
+            <Trash2 size={16} />
+            Delete Brewery
+          </Button>
+        </CardFooter>
       </Card>
+
+      <DeleteBreweryDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        breweryId={selectedBrewery?.id || null}
+        breweryName={selectedBrewery?.name || ""}
+        onSuccess={handleDeleteSuccess}
+      />
     </div>
   );
 };
