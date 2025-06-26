@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,48 +73,53 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
       if (!venueId) return [];
       if (!user) return []; // Only fetch if user is logged in
       
-      let query = supabase
+      // First, get checkins for this venue
+      const { data: checkinsData, error: checkinsError } = await supabase
         .from('checkins')
-        .select(`
-          id, rating, comment, visited_at, created_at, user_id,
-          profiles!inner(first_name, last_name)
-        `)
+        .select('id, rating, comment, visited_at, created_at, user_id')
         .eq('venue_id', venueId)
         .order('created_at', { ascending: false });
       
-      if (user) {
-        const { data: userCheckins, error: userCheckinsError } = await query
-          .eq('user_id', user.id);
-          
-        if (userCheckinsError) throw userCheckinsError;
-        
-        const { data: otherCheckins, error: otherCheckinsError } = await supabase
-          .from('checkins')
-          .select(`
-            id, rating, comment, visited_at, created_at, user_id,
-            profiles!inner(first_name, last_name)
-          `)
-          .eq('venue_id', venueId)
-          .neq('user_id', user.id)
-          .order('created_at', { ascending: false });
-          
-        if (otherCheckinsError) throw otherCheckinsError;
-        
-        return [...(userCheckins || []), ...(otherCheckins || [])].map(item => ({
-          ...item,
-          first_name: item.profiles?.first_name || null,
-          last_name: item.profiles?.last_name || null
-        }));
+      if (checkinsError) throw checkinsError;
+      
+      if (!checkinsData || checkinsData.length === 0) {
+        return [];
       }
       
-      const { data, error } = await query;
-      if (error) throw error;
+      // Get unique user IDs from the checkins
+      const userIds = [...new Set(checkinsData.map(checkin => checkin.user_id).filter(Boolean))];
       
-      return (data || []).map(item => ({
-        ...item,
-        first_name: item.profiles?.first_name || null,
-        last_name: item.profiles?.last_name || null
-      }));
+      // Fetch profile data for all users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', userIds);
+      
+      if (profilesError) throw profilesError;
+      
+      // Create a map of user profiles for quick lookup
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
+      );
+      
+      // Combine checkins with profile data and prioritize user's own checkins
+      const userCheckins = checkinsData
+        .filter(checkin => checkin.user_id === user.id)
+        .map(checkin => ({
+          ...checkin,
+          first_name: profilesMap.get(checkin.user_id)?.first_name || null,
+          last_name: profilesMap.get(checkin.user_id)?.last_name || null
+        }));
+      
+      const otherCheckins = checkinsData
+        .filter(checkin => checkin.user_id !== user.id)
+        .map(checkin => ({
+          ...checkin,
+          first_name: profilesMap.get(checkin.user_id)?.first_name || null,
+          last_name: profilesMap.get(checkin.user_id)?.last_name || null
+        }));
+      
+      return [...userCheckins, ...otherCheckins];
     },
     enabled: !!venueId && !!user
   });
