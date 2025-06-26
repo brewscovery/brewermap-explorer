@@ -43,29 +43,60 @@ export function VenueCheckInsDialog({ venue, isOpen, onClose }: VenueCheckInsDia
     
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
+      // First, get checkins for this venue
+      const { data: checkinsData, error: checkinsError } = await supabase
         .from('checkins')
-        .select(`
-          id,
-          rating,
-          comment,
-          visited_at,
-          user:profiles(first_name, last_name)
-        `)
+        .select('id, rating, comment, visited_at, user_id')
         .eq('venue_id', venue.id)
         .order('visited_at', { ascending: false })
         .range(from, from + PAGE_SIZE - 1);
 
-      if (error) throw error;
+      if (checkinsError) throw checkinsError;
 
-      if (data.length < PAGE_SIZE) {
+      if (!checkinsData || checkinsData.length === 0) {
+        if (from === 0) {
+          setCheckins([]);
+        }
+        setHasMore(false);
+        return;
+      }
+
+      if (checkinsData.length < PAGE_SIZE) {
         setHasMore(false);
       }
 
+      // Get unique user IDs from the checkins
+      const userIds = [...new Set(checkinsData.map(checkin => checkin.user_id).filter(Boolean))];
+      
+      // Fetch profile data for all users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map of user profiles for quick lookup
+      const profilesMap = new Map(
+        (profilesData || []).map(profile => [profile.id, profile])
+      );
+
+      // Combine checkins with profile data
+      const combinedCheckins = checkinsData.map(checkin => ({
+        id: checkin.id,
+        rating: checkin.rating,
+        comment: checkin.comment,
+        visited_at: checkin.visited_at,
+        user: {
+          first_name: profilesMap.get(checkin.user_id)?.first_name || null,
+          last_name: profilesMap.get(checkin.user_id)?.last_name || null
+        }
+      }));
+
       if (from === 0) {
-        setCheckins(data as CheckIn[]);
+        setCheckins(combinedCheckins);
       } else {
-        setCheckins(prevCheckins => [...prevCheckins, ...(data as CheckIn[])]);
+        setCheckins(prevCheckins => [...prevCheckins, ...combinedCheckins]);
       }
     } catch (error) {
       console.error('Error fetching checkins:', error);

@@ -73,24 +73,25 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
     queryFn: async (): Promise<UserAnalytics> => {
       if (!userId) throw new Error('User ID is required');
       
-      // Get user's visited venues by state and country
+      // Get user's visited venues
       const { data: visitedVenues, error: visitedError } = await supabase
         .from('checkins')
-        .select(`
-          venue_id,
-          visited_at,
-          venues!inner(name, state, country)
-        `)
+        .select('venue_id, visited_at')
         .eq('user_id', userId);
         
       if (visitedError) throw visitedError;
       
-      // Get total venues by state and country
+      // Get all venues
       const { data: allVenues, error: allVenuesError } = await supabase
         .from('venues')
-        .select('state, country');
+        .select('id, name, state, country');
         
       if (allVenuesError) throw allVenuesError;
+      
+      // Create a map of venues for quick lookup
+      const venuesMap = new Map(
+        (allVenues || []).map(venue => [venue.id, venue])
+      );
       
       // Get all available countries from ALL venues in the database
       const availableCountries = [...new Set(
@@ -106,8 +107,9 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
       
       // Count visited venues by state (unique venues only) for the selected country
       visitedVenues?.forEach(checkin => {
-        if (checkin.venues.country === countryToFilter) {
-          const state = checkin.venues.state;
+        const venue = venuesMap.get(checkin.venue_id);
+        if (venue && venue.country === countryToFilter) {
+          const state = venue.state;
           if (!visitedByState.has(state)) {
             visitedByState.set(state, new Set());
           }
@@ -136,12 +138,12 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
       
       // Count visited venues by country (unique venues only)
       visitedVenues?.forEach(checkin => {
-        const country = checkin.venues.country;
-        if (country) {
-          if (!visitedByCountry.has(country)) {
-            visitedByCountry.set(country, new Set());
+        const venue = venuesMap.get(checkin.venue_id);
+        if (venue && venue.country) {
+          if (!visitedByCountry.has(venue.country)) {
+            visitedByCountry.set(venue.country, new Set());
           }
-          visitedByCountry.get(country)?.add(checkin.venue_id);
+          visitedByCountry.get(venue.country)?.add(checkin.venue_id);
         }
       });
       
@@ -163,7 +165,8 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
       // Calculate total unique venues visited (for the selected country)
       const allVisitedVenues = new Set<string>();
       visitedVenues?.forEach(checkin => {
-        if (checkin.venues.country === countryToFilter) {
+        const venue = venuesMap.get(checkin.venue_id);
+        if (venue && venue.country === countryToFilter) {
           allVisitedVenues.add(checkin.venue_id);
         }
       });
@@ -198,7 +201,8 @@ export const useUserAnalytics = (userId: string | undefined, selectedCountry?: s
           
           if (weekData) {
             weekData.count += 1;
-            const venueName = checkin.venues.name;
+            const venue = venuesMap.get(checkin.venue_id);
+            const venueName = venue?.name || 'Unknown Venue';
             const currentVenueCount = weekData.venues.get(venueName) || 0;
             weekData.venues.set(venueName, currentVenueCount + 1);
           }
