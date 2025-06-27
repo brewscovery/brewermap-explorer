@@ -13,7 +13,6 @@ import RegularDashboard from "./pages/dashboard/RegularDashboard";
 import VenuesPage from "./pages/dashboard/VenuesPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import FavoritesPage from "./pages/dashboard/FavoritesPage";
-import CheckInHistoryPage from "./pages/dashboard/CheckInHistoryPage";
 import DiscoveriesPage from "./pages/dashboard/DiscoveriesPage";
 import SubscriptionPage from "./pages/dashboard/SubscriptionPage";
 import AdminRoute from "./components/protected/AdminRoute";
@@ -116,7 +115,6 @@ const App = () => {
                     <Route path="favorites" element={<FavoritesPage />} />
                     <Route path="eventsExplorer" element={<EventsExplorer />} />
                     <Route path="todoLists" element={<TodoListsPage />} />
-                    <Route path="history" element={<CheckInHistoryPage />} />
                     <Route path="discoveries" element={<DiscoveriesPage />} />
                     <Route path="subscription" element={<SubscriptionPage />} />
                     

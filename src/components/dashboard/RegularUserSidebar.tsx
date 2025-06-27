@@ -47,12 +47,6 @@ const RegularUserSidebar = () => {
       isActive: location.pathname === "/dashboard/todoLists"
     },
     {
-      title: "Check-in History",
-      url: "/dashboard/history",
-      icon: History,
-      isActive: location.pathname === "/dashboard/history"
-    },
-    {
       title: "Settings",
       url: "/dashboard/settings",
       icon: Settings,

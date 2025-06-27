@@ -301,13 +301,6 @@ const SidebarContentComponent = () => {
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton 
-                      isActive={isActive('/dashboard/history')}
-                      onClick={() => handleNavigationWithSidebarClose('/dashboard/history')}
-                    >
-                      <History size={18} />
-                      <span>Check-in History</span>
-                    </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
                     <SidebarMenuButton 
@@ -315,7 +308,7 @@ const SidebarContentComponent = () => {
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/discoveries')}
                     >
                       <Map size={18} />
-                      <span>Brewery Discoveries</span>
+                      <span>Brewscoveries</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
