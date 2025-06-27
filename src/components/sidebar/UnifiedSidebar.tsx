@@ -29,7 +29,7 @@ import NotificationCenter from '@/components/notifications/NotificationCenter';
 import { Brewery } from '@/types/brewery';
 import { Venue } from '@/types/venue';
 
-const SidebarContentComponent = () => {
+const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: boolean }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, userType, firstName } = useAuth();
@@ -119,12 +119,14 @@ const SidebarContentComponent = () => {
   return (
     <div className="flex flex-col h-full overflow-auto">
       {userType === 'business' && (
-        <BrewerySidebarHeader 
-          selectedBrewery={selectedBrewery} 
-          breweries={breweries}
-          isLoading={breweriesLoading} 
-          onBrewerySelect={handleBrewerySelect}
-        />
+        <div className={isMobileView ? "relative z-50" : ""}>
+          <BrewerySidebarHeader 
+            selectedBrewery={selectedBrewery} 
+            breweries={breweries}
+            isLoading={breweriesLoading} 
+            onBrewerySelect={handleBrewerySelect}
+          />
+        </div>
       )}
       
       {userType === 'regular' && user && (
@@ -348,8 +350,10 @@ const UnifiedSidebar = () => {
   if (isMobile) {
     return (
       <Sheet open={openMobile} onOpenChange={setOpenMobile}>
-        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[110]">
-          <SidebarContentComponent />
+        <SheetContent side="left" className="p-0 w-[80%] max-w-[16rem] z-[110] overflow-hidden">
+          <div className="h-full overflow-y-auto">
+            <SidebarContentComponent isMobileView={true} />
+          </div>
         </SheetContent>
       </Sheet>
     );

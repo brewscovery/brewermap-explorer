@@ -48,7 +48,7 @@ export const BrewerySidebarHeader = ({
   }
   
   return (
-    <SidebarHeader className="flex flex-col items-center p-4">
+    <SidebarHeader className="flex flex-col items-center p-4 relative z-50">
       <BrewerySelector
         selectedBrewery={selectedBrewery}
         breweries={breweries}

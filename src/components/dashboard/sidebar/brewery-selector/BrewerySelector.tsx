@@ -27,14 +27,14 @@ export const BrewerySelector = ({
 }: BrewerySelectorProps) => {
   if (!selectedBrewery && breweries.length > 0) {
     return (
-      <DropdownMenu>
+      <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
           <Button variant="outline" className="w-full justify-between text-sm">
             <span>Select a brewery</span>
             <ChevronDown size={16} />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-56">
+        <DropdownMenuContent align="start" className="w-56 z-[120]" side="bottom" sideOffset={4}>
           <BrewerySelectorItems 
             breweries={breweries}
             selectedBreweryId={null}
@@ -47,7 +47,7 @@ export const BrewerySelector = ({
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="w-full justify-between h-auto p-0 hover:bg-transparent">
           <div className="flex items-center space-x-3">
@@ -72,7 +72,7 @@ export const BrewerySelector = ({
           <ChevronDown size={16} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56">
+      <DropdownMenuContent align="start" className="w-56 z-[120]" side="bottom" sideOffset={4}>
         <BrewerySelectorItems 
           breweries={breweries}
           selectedBreweryId={selectedBrewery?.id}
@@ -125,3 +125,4 @@ const BrewerySelectorItems = ({
     </>
   );
 };
+</DropdownMenuContent>
