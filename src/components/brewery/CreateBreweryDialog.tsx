@@ -13,6 +13,7 @@ import { useBrewerySearch } from '@/hooks/useBrewerySearch';
 import BreweryClaimForm from './BreweryClaimForm';
 import { Button } from '@/components/ui/button';
 import { useBrewerySummary } from '@/hooks/useBrewerySummary';
+import VirtualBreweryList from './VirtualBreweryList';
 
 interface Brewery {
   id: string;
@@ -105,33 +106,11 @@ const CreateBreweryDialog = ({
               </div>
               
               {availableBreweries.length > 0 && (
-                <div className="border rounded max-h-40 overflow-y-auto divide-y">
-                  {availableBreweries.map((brewery) => (
-                    <div 
-                      key={brewery.id} 
-                      className={`p-2 hover:bg-muted cursor-pointer transition-colors ${
-                        selectedBrewery?.id === brewery.id ? 'bg-muted' : ''
-                      }`}
-                      onClick={() => handleBrewerySelect(brewery)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          handleBrewerySelect(brewery);
-                        }
-                      }}
-                    >
-                      <div className="flex flex-col">
-                        <span className="font-medium">{brewery.name}</span>
-                        {brewery.country && (
-                          <span className="text-sm text-muted-foreground">
-                            {brewery.country}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <VirtualBreweryList
+                  breweries={availableBreweries}
+                  onBrewerySelect={handleBrewerySelect}
+                  selectedBreweryId={selectedBrewery?.id}
+                />
               )}
 
               {searchTerm && !isLoading && availableBreweries.length === 0 && (
