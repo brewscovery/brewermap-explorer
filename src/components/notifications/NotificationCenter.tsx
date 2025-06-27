@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -107,18 +106,29 @@ const NotificationCenter: React.FC = () => {
   const handleNotificationClick = async (notification: Notification) => {
     console.log('Notification clicked:', notification);
     
+    // Try to extract venue ID from either field, handling the case where data might be mixed up
+    let venueId = notification.related_entity_id;
+    let entityType = notification.related_entity_type;
+    
+    // If related_entity_id is null but related_entity_type looks like a UUID, it's probably the venue ID
+    if (!venueId && entityType && entityType.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)) {
+      console.log('Venue ID found in related_entity_type field, using it as venue ID');
+      venueId = entityType;
+      entityType = 'venue'; // Assume it's a venue notification
+    }
+    
+    console.log('Extracted venue ID:', venueId, 'Entity type:', entityType);
+    
     // Check if this is a venue-related notification
-    const isVenueNotification = notification.related_entity_type === 'venue' && 
-                               notification.related_entity_id;
+    const isVenueNotification = entityType === 'venue' && venueId;
 
     // Check if this is an event-related notification
-    const isEventNotification = notification.related_entity_type === 'event' &&
-                                notification.related_entity_id;
+    const isEventNotification = entityType === 'event' && venueId;
 
     if (isVenueNotification) {
-      console.log('Navigating to venue:', notification.related_entity_id);
+      console.log('Navigating to venue:', venueId);
       // Navigate to the main page with the venue selected and explicit action to open sidebar
-      navigate(`/?venueId=${notification.related_entity_id}&action=open-venue`, { replace: true });
+      navigate(`/?venueId=${venueId}&action=open-venue`, { replace: true });
       
       // Close the notification popover by removing focus
       const popoverTrigger = document.querySelector('[data-state="open"]');
@@ -127,12 +137,12 @@ const NotificationCenter: React.FC = () => {
       }
     } else if (isEventNotification) {
       try {
-        console.log('Fetching event to get venue_id:', notification.related_entity_id);
+        console.log('Fetching event to get venue_id:', venueId);
         // Fetch the event to get its venue_id
         const { data: event, error } = await supabase
           .from('venue_events')
           .select('venue_id')
-          .eq('id', notification.related_entity_id)
+          .eq('id', venueId)
           .single();
 
         if (error) {
@@ -154,6 +164,12 @@ const NotificationCenter: React.FC = () => {
       } catch (error) {
         console.error('Error handling event notification click:', error);
       }
+    } else {
+      console.log('Notification does not have valid venue or event data:', {
+        venueId,
+        entityType,
+        notification
+      });
     }
   };
 
