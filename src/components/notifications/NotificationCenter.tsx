@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Bell, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -104,6 +105,8 @@ const NotificationCenter: React.FC = () => {
   } = useNotifications();
 
   const handleNotificationClick = async (notification: Notification) => {
+    console.log('Notification clicked:', notification);
+    
     // Check if this is a venue-related notification
     const isVenueNotification = notification.related_entity_type === 'venue' && 
                                notification.related_entity_id;
@@ -113,8 +116,9 @@ const NotificationCenter: React.FC = () => {
                                 notification.related_entity_id;
 
     if (isVenueNotification) {
-      // Navigate to the main page with the venue selected
-      navigate(`/?venueId=${notification.related_entity_id}`, { replace: true });
+      console.log('Navigating to venue:', notification.related_entity_id);
+      // Navigate to the main page with the venue selected and explicit action to open sidebar
+      navigate(`/?venueId=${notification.related_entity_id}&action=open-venue`, { replace: true });
       
       // Close the notification popover by removing focus
       const popoverTrigger = document.querySelector('[data-state="open"]');
@@ -123,6 +127,7 @@ const NotificationCenter: React.FC = () => {
       }
     } else if (isEventNotification) {
       try {
+        console.log('Fetching event to get venue_id:', notification.related_entity_id);
         // Fetch the event to get its venue_id
         const { data: event, error } = await supabase
           .from('venue_events')
@@ -136,8 +141,9 @@ const NotificationCenter: React.FC = () => {
         }
 
         if (event?.venue_id) {
-          // Navigate to the main page with the venue selected
-          navigate(`/?venueId=${event.venue_id}`, { replace: true });
+          console.log('Navigating to venue from event:', event.venue_id);
+          // Navigate to the main page with the venue selected and explicit action to open sidebar
+          navigate(`/?venueId=${event.venue_id}&action=open-venue`, { replace: true });
           
           // Close the notification popover
           const popoverTrigger = document.querySelector('[data-state="open"]');

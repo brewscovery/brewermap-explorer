@@ -1,3 +1,4 @@
+
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
@@ -60,6 +61,8 @@ const Index = () => {
     const venueId = searchParams.get('venueId');
     const action = searchParams.get('action');
     
+    console.log('URL params detected:', { venueId, action });
+    
     if (venueId && allVenues.length > 0) {
       // First try to find the venue in our loaded venues
       const venue = allVenues.find(v => v.id === venueId);
@@ -68,17 +71,23 @@ const Index = () => {
         console.log('Found venue from URL parameter:', venue.name);
         setSelectedVenue(venue);
         
-        // If action is check-in, open the check-in dialog
+        // Handle different actions
         if (action === 'check-in' && user) {
           console.log('Opening check-in dialog for venue:', venue.name);
           setTimeout(() => {
             setIsCheckInDialogOpen(true);
-          }, 100); // Small delay to ensure venue is selected first
+          }, 100);
+        } else if (action === 'open-venue') {
+          console.log('Opening venue sidebar for venue:', venue.name);
+          // The venue is already selected, which should trigger the sidebar to open
+          // Clear the action parameter to clean up URL
+          navigate(`/?venueId=${venueId}`, { replace: true });
         }
       } else {
         // If venue is not in our loaded venues, fetch it directly
         const fetchVenue = async () => {
           try {
+            console.log('Fetching venue directly from database:', venueId);
             const { data, error } = await supabase
               .from('venues')
               .select('*')
@@ -92,12 +101,17 @@ const Index = () => {
               // Cast the data to Venue type to ensure compatibility
               setSelectedVenue(data as Venue);
               
-              // If action is check-in, open the check-in dialog
+              // Handle different actions
               if (action === 'check-in' && user) {
                 console.log('Opening check-in dialog for venue:', data.name);
                 setTimeout(() => {
                   setIsCheckInDialogOpen(true);
-                }, 100); // Small delay to ensure venue is selected first
+                }, 100);
+              } else if (action === 'open-venue') {
+                console.log('Opening venue sidebar for venue:', data.name);
+                // The venue is already selected, which should trigger the sidebar to open
+                // Clear the action parameter to clean up URL
+                navigate(`/?venueId=${venueId}`, { replace: true });
               }
             }
           } catch (error) {
@@ -109,7 +123,7 @@ const Index = () => {
         fetchVenue();
       }
     }
-  }, [searchParams, allVenues, setSelectedVenue, user]);
+  }, [searchParams, allVenues, setSelectedVenue, user, navigate]);
 
   // Handle venue data errors
   useEffect(() => {
