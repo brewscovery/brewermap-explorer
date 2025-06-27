@@ -22,6 +22,11 @@ interface BreweryBasicInfoFieldsProps {
 }
 
 const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
+  const aboutValue = form.watch('about') || '';
+  const characterCount = aboutValue.length;
+  const maxCharacters = 1000;
+  const isOverLimit = characterCount > maxCharacters;
+
   return (
     <>
       <FormField
@@ -81,6 +86,9 @@ const BreweryBasicInfoFields = ({ form }: BreweryBasicInfoFieldsProps) => {
                 value={field.value || ''}
               />
             </FormControl>
+            <div className={`text-sm mt-1 ${isOverLimit ? 'text-red-500' : 'text-muted-foreground'}`}>
+              Used {characterCount}/{maxCharacters} characters
+            </div>
             <FormMessage />
           </FormItem>
         )}

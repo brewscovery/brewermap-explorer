@@ -28,6 +28,11 @@ interface GeneralInfoSectionProps {
 }
 
 const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
+  const aboutValue = form.watch('about') || '';
+  const characterCount = aboutValue.length;
+  const maxCharacters = 1000;
+  const isOverLimit = characterCount > maxCharacters;
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-medium">General Information</h3>
@@ -90,6 +95,9 @@ const GeneralInfoSection = ({ form }: GeneralInfoSectionProps) => {
                 value={field.value || ''}
               />
             </FormControl>
+            <div className={`text-sm mt-1 ${isOverLimit ? 'text-red-500' : 'text-muted-foreground'}`}>
+              Used {characterCount}/{maxCharacters} characters
+            </div>
             <FormMessage />
           </FormItem>
         )}
