@@ -103,15 +103,15 @@ const CreateBreweryDialog = ({
                     <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   </div>
                 )}
+                
+                {availableBreweries.length > 0 && (
+                  <VirtualBreweryList
+                    breweries={availableBreweries}
+                    onBrewerySelect={handleBrewerySelect}
+                    selectedBreweryId={selectedBrewery?.id}
+                  />
+                )}
               </div>
-              
-              {availableBreweries.length > 0 && (
-                <VirtualBreweryList
-                  breweries={availableBreweries}
-                  onBrewerySelect={handleBrewerySelect}
-                  selectedBreweryId={selectedBrewery?.id}
-                />
-              )}
 
               {searchTerm && !isLoading && availableBreweries.length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-2">

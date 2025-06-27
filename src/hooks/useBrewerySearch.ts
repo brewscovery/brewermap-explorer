@@ -27,12 +27,12 @@ export function useBrewerySearch(debounceMs = 300) {
     setError(null);
 
     try {
-      // Update the RPC call or create a new one that returns country information
+      // Increased limit to 50 for better search results
       const { data, error } = await supabase
         .from('breweries')
         .select('id, name, is_verified, country')
         .ilike('name', `%${term}%`)
-        .limit(10);
+        .limit(50);
 
       if (error) throw error;
       

@@ -33,7 +33,7 @@ const BreweryItem = ({ index, style, data }: BreweryItemProps) => {
   return (
     <div
       style={style}
-      className={`p-2 hover:bg-muted cursor-pointer transition-colors border-b border-border/50 ${
+      className={`p-3 hover:bg-muted cursor-pointer transition-colors border-b border-border/50 ${
         selectedBreweryId === brewery.id ? 'bg-muted' : ''
       }`}
       onClick={() => onBrewerySelect(brewery)}
@@ -73,11 +73,11 @@ const VirtualBreweryList = ({
   };
 
   return (
-    <div className="border rounded max-h-60 overflow-hidden">
+    <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg z-50 max-h-60 overflow-hidden">
       <List
-        height={Math.min(breweries.length * 60, 240)} // Max height of 240px (4 items * 60px)
+        height={Math.min(breweries.length * 64, 240)} // Max height of 240px (items are 64px each now)
         itemCount={breweries.length}
-        itemSize={60}
+        itemSize={64}
         itemData={itemData}
         width="100%"
       >
