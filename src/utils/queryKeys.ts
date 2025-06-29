@@ -4,60 +4,60 @@
 export const queryKeys = {
   // Brewery keys
   breweries: {
-    all: ['breweries'] as const,
-    bySearch: (searchTerm: string, searchType: string) => ['breweries', searchTerm, searchType] as const,
-    byId: (id: string) => ['brewery', id] as const,
-    stats: (id: string) => ['brewery-stats', id] as const,
-    summary: (id: string) => ['brewery-summary', id] as const,
-    venues: (id: string) => ['breweryVenues', id] as const,
+    all: ['breweries'] as string[],
+    bySearch: (searchTerm: string, searchType: string) => ['breweries', searchTerm, searchType] as string[],
+    byId: (id: string) => ['brewery', id] as string[],
+    stats: (id: string) => ['brewery-stats', id] as string[],
+    summary: (id: string) => ['brewery-summary', id] as string[],
+    venues: (id: string) => ['breweryVenues', id] as string[],
     claims: {
-      all: ['brewery-claims'] as const,
-      byUser: (userId: string) => ['brewery-claims', userId] as const,
+      all: ['brewery-claims'] as string[],
+      byUser: (userId: string) => ['brewery-claims', userId] as string[],
     }
   },
 
   // Venue keys
   venues: {
-    all: ['venues'] as const,
-    byId: (id: string) => ['venue', id] as const,
-    byBrewery: (breweryId: string) => ['breweryVenues', breweryId] as const,
-    hours: (id: string) => ['venueHours', id] as const,
-    happyHours: (id: string) => ['venueHappyHours', id] as const,
-    dailySpecials: (id: string) => ['venueDailySpecials', id] as const,
-    events: (id: string) => ['venueEvents', id] as const,
-    analytics: (id: string) => ['venue-analytics', id] as const,
-    favorites: (venueId: string, userId: string) => ['venueFavorite', venueId, userId] as const,
-    favoritesCount: (venueId: string) => ['venueFavoritesCount', venueId] as const,
+    all: ['venues'] as string[],
+    byId: (id: string) => ['venue', id] as string[],
+    byBrewery: (breweryId: string) => ['breweryVenues', breweryId] as string[],
+    hours: (id: string) => ['venueHours', id] as string[],
+    happyHours: (id: string) => ['venueHappyHours', id] as string[],
+    dailySpecials: (id: string) => ['venueDailySpecials', id] as string[],
+    events: (id: string) => ['venueEvents', id] as string[],
+    analytics: (id: string) => ['venue-analytics', id] as string[],
+    favorites: (venueId: string, userId: string) => ['venueFavorite', venueId, userId] as string[],
+    favoritesCount: (venueId: string) => ['venueFavoritesCount', venueId] as string[],
   },
 
   // User keys
   users: {
-    profile: (id: string) => ['profiles', id] as const,
-    notifications: (id: string) => ['notifications', id] as const,
-    checkins: (id: string) => ['checkins', id] as const,
-    todoLists: (id: string) => ['todoListVenues', id] as const,
-    analytics: (id: string) => ['user-analytics', id] as const,
+    profile: (id: string) => ['profiles', id] as string[],
+    notifications: (id: string) => ['notifications', id] as string[],
+    checkins: (id: string) => ['checkins', id] as string[],
+    todoLists: (id: string) => ['todoListVenues', id] as string[],
+    analytics: (id: string) => ['user-analytics', id] as string[],
   },
 
   // Event keys
   events: {
-    all: ['events'] as const,
-    byVenue: (venueId: string) => ['venueEvents', venueId] as const,
-    multiple: (venueIds: string[]) => ['multipleVenueEvents', ...venueIds] as const,
-    interests: (eventId: string, userId: string) => ['event-interests', eventId, userId] as const,
+    all: ['events'] as string[],
+    byVenue: (venueId: string) => ['venueEvents', venueId] as string[],
+    multiple: (venueIds: string[]) => ['multipleVenueEvents', ...venueIds] as string[],
+    interests: (eventId: string, userId: string) => ['event-interests', eventId, userId] as string[],
   },
 
   // Admin keys
   admin: {
-    stats: ['admin', 'stats'] as const,
-    breweries: (searchQuery?: string) => searchQuery ? ['admin', 'breweries', searchQuery] : ['admin', 'breweries'] as const,
-    users: (searchQuery?: string) => searchQuery ? ['admin', 'users', searchQuery] : ['admin', 'users'] as const,
-    claims: ['admin', 'brewery-claims'] as const,
+    stats: ['admin', 'stats'] as string[],
+    breweries: (searchQuery?: string) => searchQuery ? ['admin', 'breweries', searchQuery] as string[] : ['admin', 'breweries'] as string[],
+    users: (searchQuery?: string) => searchQuery ? ['admin', 'users', searchQuery] as string[] : ['admin', 'users'] as string[],
+    claims: ['admin', 'brewery-claims'] as string[],
   }
 };
 
 // Helper function to create query keys with validation
-export function createQueryKey<T extends readonly unknown[]>(keyFactory: () => T): T {
+export function createQueryKey<T extends string[]>(keyFactory: () => T): T {
   const key = keyFactory();
   
   // Validate key structure
