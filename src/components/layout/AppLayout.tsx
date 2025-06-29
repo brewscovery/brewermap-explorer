@@ -5,13 +5,19 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import UnifiedSidebar from '@/components/sidebar/UnifiedSidebar';
 import Header from '@/components/layout/Header';
 import DashboardHeader from '@/components/dashboard/DashboardHeader';
+import BottomNavigation from '@/components/navigation/BottomNavigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { usePWADetection } from '@/hooks/usePWADetection';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
   const location = useLocation();
+  const isMobile = useIsMobile();
+  const { isPWA } = usePWADetection();
+  
   const isDashboardRoute = location.pathname.includes('/dashboard');
   const isAdminRoute = location.pathname.includes('/admin');
   const isRootRoute = location.pathname === '/';
@@ -28,13 +34,17 @@ const AppLayout = () => {
       : userType === 'admin' 
         ? 'Admin' 
         : 'User';
+
+  // Determine if we should show bottom navigation and adjust layout
+  const showBottomNav = isMobile && isPWA;
+  const bottomNavHeight = showBottomNav ? 'pb-16' : '';
   
   return (
     <SidebarProvider defaultOpen={false}>
       <div className="flex w-full min-h-screen">
         <UnifiedSidebar />
         
-        <div className="h-screen overflow-auto flex-1">
+        <div className={`h-screen overflow-auto flex-1 ${bottomNavHeight}`}>
           {isBusinessUserDashboard || isRegularUserDashboard ? (
             <div className="flex-1 flex flex-col">
               <DashboardHeader displayName={displayName} />
@@ -59,6 +69,8 @@ const AppLayout = () => {
             </div>
           )}
         </div>
+        
+        <BottomNavigation />
       </div>
     </SidebarProvider>
   );
