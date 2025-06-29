@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Map from '@/components/Map';
-import { useVenueData } from '@/hooks/useVenueData';
+import { useProgressiveVenueData } from '@/hooks/useProgressiveVenueData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
@@ -21,13 +21,20 @@ const Index = () => {
     venues,
     allVenues,
     error,
+    isLoading,
+    isLoadingMore,
+    hasMoreVenues,
+    loadingProgress,
+    totalVenueCount,
     refetch,
     selectedVenue,
     setSelectedVenue,
     activeFilters,
     handleFilterChange,
     lastFilterUpdateTime
-  } = useVenueData();
+  } = useProgressiveVenueData();
+
+  console.log(`Index: Progressive loading - ${venues.length} venues loaded, ${loadingProgress.toFixed(1)}% complete`);
 
   // Handle auth redirects for recovery/signup flows
   useEffect(() => {
@@ -42,52 +49,39 @@ const Index = () => {
   // Handle QR code flow when user becomes authenticated
   useEffect(() => {
     if (user) {
-      // Check for stored venue ID from QR code flow
       const qrCheckInVenueId = sessionStorage.getItem('qr_checkin_venue_id');
       if (qrCheckInVenueId) {
         console.log('Processing stored QR check-in venue ID:', qrCheckInVenueId);
-        // Clear the stored venue ID immediately
         sessionStorage.removeItem('qr_checkin_venue_id');
-        
-        // Navigate to the venue with check-in action
         navigate(`/?venueId=${qrCheckInVenueId}&action=check-in`, { replace: true });
-        return; // Exit early, let the URL parameter handling take over
+        return;
       }
     }
   }, [user, navigate]);
 
-  // Handle venueId from URL parameter
+  // Handle venueId from URL parameter (optimized)
   useEffect(() => {
     const venueId = searchParams.get('venueId');
     const action = searchParams.get('action');
     
-    console.log('URL params detected:', { venueId, action });
-    
     if (venueId && allVenues.length > 0) {
-      // First try to find the venue in our loaded venues
+      // Try to find venue in loaded venues first
       const venue = allVenues.find(v => v.id === venueId);
       
       if (venue) {
-        console.log('Found venue from URL parameter:', venue.name);
+        console.log('Found venue from URL parameter (progressive):', venue.name);
         setSelectedVenue(venue);
         
-        // Handle different actions
         if (action === 'check-in' && user) {
-          console.log('Opening check-in dialog for venue:', venue.name);
-          setTimeout(() => {
-            setIsCheckInDialogOpen(true);
-          }, 100);
+          setTimeout(() => setIsCheckInDialogOpen(true), 100);
         } else if (action === 'open-venue') {
-          console.log('Opening venue sidebar for venue:', venue.name);
-          // The venue is already selected, which should trigger the sidebar to open
-          // Clear the action parameter to clean up URL
           navigate(`/?venueId=${venueId}`, { replace: true });
         }
-      } else {
-        // If venue is not in our loaded venues, fetch it directly
+      } else if (!isLoading && !isLoadingMore) {
+        // Only fetch directly if we're not currently loading
         const fetchVenue = async () => {
           try {
-            console.log('Fetching venue directly from database:', venueId);
+            console.log('Fetching venue directly (not in progressive load):', venueId);
             const { data, error } = await supabase
               .from('venues')
               .select('*')
@@ -98,19 +92,11 @@ const Index = () => {
             
             if (data) {
               console.log('Fetched venue from URL parameter:', data.name);
-              // Cast the data to Venue type to ensure compatibility
               setSelectedVenue(data as Venue);
               
-              // Handle different actions
               if (action === 'check-in' && user) {
-                console.log('Opening check-in dialog for venue:', data.name);
-                setTimeout(() => {
-                  setIsCheckInDialogOpen(true);
-                }, 100);
+                setTimeout(() => setIsCheckInDialogOpen(true), 100);
               } else if (action === 'open-venue') {
-                console.log('Opening venue sidebar for venue:', data.name);
-                // The venue is already selected, which should trigger the sidebar to open
-                // Clear the action parameter to clean up URL
                 navigate(`/?venueId=${venueId}`, { replace: true });
               }
             }
@@ -123,7 +109,7 @@ const Index = () => {
         fetchVenue();
       }
     }
-  }, [searchParams, allVenues, setSelectedVenue, user, navigate]);
+  }, [searchParams, allVenues, setSelectedVenue, user, navigate, isLoading, isLoadingMore]);
 
   // Handle venue data errors
   useEffect(() => {
@@ -132,30 +118,26 @@ const Index = () => {
     }
   }, [error]);
 
-  // Handle venue selection without triggering unnecessary refetching
+  // Optimized venue selection handler
   const handleVenueSelect = (venue: Venue | null) => {
-    // Skip if it's the same venue to prevent unnecessary re-renders
     if (selectedVenue && venue && selectedVenue.id === venue.id) {
-      console.log('Index page: Skipping venue selection, already selected:', venue.name);
+      console.log('Index: Skipping duplicate venue selection:', venue.name);
       return;
     }
     
-    console.log('Index page: Setting selected venue:', venue?.name || 'none');
-    // Update the selected venue in the global state
+    console.log('Index: Setting selected venue (progressive):', venue?.name || 'none');
     setSelectedVenue(venue);
   };
 
   const handleCheckInSuccess = () => {
     setIsCheckInDialogOpen(false);
-    // Clear the action parameter from URL
     navigate(`/?venueId=${selectedVenue?.id || ''}`, { replace: true });
     toast.success('Check-in successful!');
   };
 
   const handleCheckInClose = () => {
-    console.log('Index page: Closing check-in dialog');
+    console.log('Index: Closing check-in dialog (progressive)');
     setIsCheckInDialogOpen(false);
-    // Clear the action parameter from URL if it exists
     if (searchParams.get('action') === 'check-in') {
       navigate(`/?venueId=${selectedVenue?.id || ''}`, { replace: true });
     }
@@ -163,7 +145,6 @@ const Index = () => {
 
   return (
     <div className="flex-1 flex flex-col h-full">
-      {/* Floating UI Elements */}
       <FloatingSearchBar 
         onVenueSelect={handleVenueSelect} 
         activeFilters={activeFilters}
@@ -178,9 +159,12 @@ const Index = () => {
         activeFilters={activeFilters}
         onFilterChange={handleFilterChange}
         lastFilterUpdateTime={lastFilterUpdateTime}
+        isLoadingVenues={isLoading || isLoadingMore}
+        loadingProgress={loadingProgress}
+        venueCount={venues.length}
+        totalVenueCount={totalVenueCount}
       />
 
-      {/* Check-in dialog - simplified without complex z-index wrapper */}
       {selectedVenue && user && (
         <CheckInDialog
           venue={selectedVenue}
