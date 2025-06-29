@@ -1,7 +1,10 @@
+
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRealtime } from '@/contexts/RealtimeContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useInvalidationManager } from '@/contexts/InvalidationContext';
+import { queryKeys } from '@/utils/queryKeys';
 import { toast } from 'sonner';
 import type { Notification } from '@/types/notification';
 
@@ -9,6 +12,7 @@ export const useRealtimeUser = () => {
   const { user } = useAuth();
   const { subscribe, unsubscribe } = useRealtime();
   const queryClient = useQueryClient();
+  const invalidationManager = useInvalidationManager();
   const subscriptionIdsRef = useRef<string[]>([]);
 
   useEffect(() => {
@@ -22,8 +26,25 @@ export const useRealtimeUser = () => {
       (payload) => {
         console.log('New notification received:', payload);
         
-        if (payload.eventType === 'INSERT') {
+        if (payload.eventType === 'INSERT' && payload.new) {
           const notification = payload.new as Notification;
+          
+          // Direct cache update for notifications
+          queryClient.setQueryData(
+            queryKeys.users.notifications(user.id),
+            (old: { pages: { data: Notification[] }[] } | undefined) => {
+              if (!old) return old;
+              const newPages = [...old.pages];
+              if (newPages[0]) {
+                newPages[0] = {
+                  ...newPages[0],
+                  data: [notification, ...newPages[0].data]
+                };
+              }
+              return { ...old, pages: newPages };
+            }
+          );
+          
           toast.info(notification.content, {
             duration: 5000,
             action: {
@@ -33,9 +54,10 @@ export const useRealtimeUser = () => {
               },
             },
           });
+        } else {
+          // Fallback invalidation
+          invalidationManager.invalidateQueries(queryKeys.users.notifications(user.id));
         }
-        
-        queryClient.invalidateQueries({ queryKey: ['notifications', user.id] });
       },
       { user_id: user.id }
     );
@@ -45,9 +67,9 @@ export const useRealtimeUser = () => {
       'checkin_created',
       (payload) => {
         console.log('New checkin created:', payload);
-        queryClient.invalidateQueries({ queryKey: ['checkins', user.id] });
-        queryClient.invalidateQueries({ queryKey: ['venueCheckins'] });
-        queryClient.invalidateQueries({ queryKey: ['todoListVenues', user.id] });
+        
+        // Smart invalidation for checkin-related queries
+        invalidationManager.invalidateByEntity('checkin', user.id, 'create');
       },
       { user_id: user.id }
     );
@@ -59,5 +81,5 @@ export const useRealtimeUser = () => {
       subscriptionIdsRef.current.forEach(id => unsubscribe(id));
       subscriptionIdsRef.current = [];
     };
-  }, [user?.id, subscribe, unsubscribe, queryClient]);
+  }, [user?.id, subscribe, unsubscribe, queryClient, invalidationManager]);
 };

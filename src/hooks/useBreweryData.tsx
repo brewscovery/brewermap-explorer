@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { useOptimizedSupabaseQuery } from './useOptimizedSupabaseQuery';
 import { useQueryClient } from '@tanstack/react-query';
+import { useInvalidationManager } from '@/contexts/InvalidationContext';
+import { queryKeys } from '@/utils/queryKeys';
 import { supabase } from '@/integrations/supabase/client';
 import type { Brewery } from '@/types/brewery';
 import { toast } from 'sonner';
@@ -11,9 +13,10 @@ export const useBreweryData = (initialSearchTerm = '', initialSearchType: 'name'
   const [searchType, setSearchType] = useState<'name' | 'city' | 'country'>(initialSearchType);
   const [selectedBrewery, setSelectedBrewery] = useState<Brewery | null>(null);
   const queryClient = useQueryClient();
+  const invalidationManager = useInvalidationManager();
 
   const { data: breweries = [], isLoading, error, refetch } = useOptimizedSupabaseQuery<Brewery[]>(
-    ['breweries', searchTerm, searchType],
+    queryKeys.breweries.bySearch(searchTerm, searchType),
     'breweries',
     async () => {
       if (!searchTerm) {
