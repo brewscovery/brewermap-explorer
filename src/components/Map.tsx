@@ -6,8 +6,7 @@ import type { Venue } from '@/types/venue';
 import MapLayers from './map/layers/MapLayers';
 import MapInteractions from './map/MapInteractions';
 import MapGeolocation from './map/MapGeolocation';
-import MapLoadingSkeleton from './map/MapLoadingSkeleton';
-import { useOptimizedMapInitialization } from '@/hooks/useOptimizedMapInitialization';
+import { useMapInitialization } from '@/hooks/useMapInitialization';
 import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 import { useVenueMapInteraction } from '@/hooks/useVenueMapInteraction';
 import VenueSidebar from './venue/VenueSidebar';
@@ -19,23 +18,15 @@ interface MapProps {
   activeFilters?: string[];
   onFilterChange?: (filters: string[]) => void;
   lastFilterUpdateTime?: number;
-  isLoadingVenues?: boolean;
-  loadingProgress?: number;
-  venueCount?: number;
-  totalVenueCount?: number;
 }
 
-// Optimized MapLayers with better memoization
-const OptimizedMapLayers = memo(MapLayers, (prevProps, nextProps) => {
-  // More selective re-rendering
-  const venuesChanged = prevProps.venues.length !== nextProps.venues.length ||
-    (prevProps.venues.length > 0 && nextProps.venues.length > 0 && 
-     prevProps.venues[0]?.id !== nextProps.venues[0]?.id);
-  
-  const visitedChanged = JSON.stringify(prevProps.visitedVenueIds?.sort()) !== 
-    JSON.stringify(nextProps.visitedVenueIds?.sort());
-  
-  return !venuesChanged && !visitedChanged;
+// Create a memo-wrapped MapLayers component to prevent unnecessary rerenders
+const MemoizedMapLayers = memo(MapLayers, (prevProps, nextProps) => {
+  // Only re-render if venues count changes or visited venues change
+  return (
+    prevProps.venues.length === nextProps.venues.length &&
+    JSON.stringify(prevProps.visitedVenueIds?.sort()) === JSON.stringify(nextProps.visitedVenueIds?.sort())
+  );
 });
 
 const Map = ({ 
@@ -44,29 +35,21 @@ const Map = ({
   selectedVenue: selectedVenueFromProps,
   activeFilters = [],
   onFilterChange = () => {},
-  lastFilterUpdateTime = 0,
-  isLoadingVenues = false,
-  loadingProgress = 0,
-  venueCount = 0,
-  totalVenueCount
+  lastFilterUpdateTime = 0
 }: MapProps) => {
   const navigate = useNavigate();
-  const { mapContainer, map, isStyleLoaded, isInitializing, initializationProgress } = useOptimizedMapInitialization();
+  const { mapContainer, map, isStyleLoaded } = useMapInitialization();
   const { visitedVenueIds } = useVisitedVenues();
   
+  // Use a state variable to track if selection happened internally
   const [isInternalSelection, setIsInternalSelection] = useState(false);
   
-  // Show loading skeleton while map is initializing or venues are loading
-  const showLoadingSkeleton = isInitializing || (isLoadingVenues && venues.length === 0);
-  const combinedProgress = isInitializing ? 
-    initializationProgress * 0.3 + loadingProgress * 0.7 : // 30% map init, 70% venue loading
-    loadingProgress;
-  
-  // Create stable key for MapLayers - only update when filter composition changes
+  // Create a stable key for MapLayers that only changes when filter COMPOSITION changes
+  // not when venues selection changes
   const filtersKey = activeFilters.join('-');
   const mapLayersKey = useMemo(() => 
-    `venues-${filtersKey}-${lastFilterUpdateTime}-${venues.length}`, 
-    [filtersKey, lastFilterUpdateTime, venues.length]
+    `venues-${filtersKey}-${lastFilterUpdateTime}`, 
+    [filtersKey, lastFilterUpdateTime]
   );
   
   const { 
@@ -82,25 +65,29 @@ const Map = ({
     selectedVenueFromProps 
   });
   
-  // Optimized map resize - only when necessary
+  // Force map resize when venues array changes - but only if significant
   useEffect(() => {
-    if (map.current && isStyleLoaded && venues.length > 0 && !isInitializing) {
+    if (map.current && isStyleLoaded && venues.length > 0) {
       const timer = setTimeout(() => {
-        if (map.current && !map.current._removed) {
+        if (map.current) {
           map.current.resize();
         }
-      }, 200); // Reduced timeout
+      }, 500);
       return () => clearTimeout(timer);
     }
-  }, [map, isStyleLoaded, venues.length, isInitializing]);
+  }, [map, isStyleLoaded, venues.length]);
 
+  // Custom sidebar close handler to ensure it clears the venue and search
   const handleVenueSidebarClose = useCallback(() => {
-    console.log("Map: Closing venue sidebar (optimized)");
+    console.log("Map: Explicitly closing venue sidebar");
     handleSidebarClose();
+    // Notify parent component to clear search bar and venue selection
     onVenueSelect(null);
+    // Clear the venueId parameter from URL to allow notifications to work again
     navigate('/', { replace: true });
   }, [handleSidebarClose, onVenueSelect, navigate]);
 
+  // Memoize the venue select handler to prevent recreating on every render
   const memoizedVenueSelect = useCallback((venue: Venue) => {
     handleVenueSelect(venue);
   }, [handleVenueSelect]);
@@ -112,28 +99,16 @@ const Map = ({
         className="absolute inset-0"
       />
       
-      {/* Show loading skeleton during initialization */}
-      {showLoadingSkeleton && (
-        <MapLoadingSkeleton 
-          progress={combinedProgress}
-          venueCount={venueCount}
-          totalCount={totalVenueCount}
-        />
-      )}
-      
-      {/* Only render map layers when map is ready and we have venues */}
-      {map.current && isStyleLoaded && !isInitializing && (
+      {map.current && isStyleLoaded && (
         <>
           <MapGeolocation map={map.current} />
-          {venues.length > 0 && (
-            <OptimizedMapLayers
-              map={map.current}
-              venues={venues}
-              visitedVenueIds={visitedVenueIds}
-              onVenueSelect={memoizedVenueSelect}
-              key={mapLayersKey}
-            />
-          )}
+          <MemoizedMapLayers
+            map={map.current}
+            venues={venues}
+            visitedVenueIds={visitedVenueIds}
+            onVenueSelect={memoizedVenueSelect}
+            key={mapLayersKey}
+          />
           <MapInteractions
             map={map.current}
             venues={venues}
@@ -153,13 +128,11 @@ const Map = ({
 };
 
 export default memo(Map, (prevProps, nextProps) => {
-  // Optimized comparison for Map re-rendering
+  // Only re-render Map if venues count changes significantly or selected venue changes
   return (
     prevProps.venues.length === nextProps.venues.length &&
     prevProps.selectedVenue?.id === nextProps.selectedVenue?.id &&
     JSON.stringify(prevProps.activeFilters) === JSON.stringify(nextProps.activeFilters) &&
-    prevProps.lastFilterUpdateTime === nextProps.lastFilterUpdateTime &&
-    prevProps.isLoadingVenues === nextProps.isLoadingVenues &&
-    prevProps.loadingProgress === nextProps.loadingProgress
+    prevProps.lastFilterUpdateTime === nextProps.lastFilterUpdateTime
   );
 });
