@@ -38,7 +38,6 @@ export const useOptimizedMapInitialization = () => {
         preserveDrawingBuffer: true,
         // Performance optimizations
         antialias: false, // Disable for better performance
-        optimizeForTerrain: false,
         maxZoom: 18,
         minZoom: 2,
         // Reduce initial render complexity
