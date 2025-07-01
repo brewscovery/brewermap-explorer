@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
+import { TermsAndConditionsDialog } from './TermsAndConditionsDialog';
 
 type SignupFormProps = {
   onSwitchToLogin: () => void;
@@ -21,6 +23,8 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
   const [lastName, setLastName] = useState('');
   const [userType, setUserType] = useState<'regular' | 'business'>('regular');
   const [loading, setLoading] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showTermsDialog, setShowTermsDialog] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +33,10 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     try {
       if (password !== confirmPassword) {
         throw new Error("Passwords don't match");
+      }
+
+      if (!acceptedTerms) {
+        throw new Error("You must accept the terms and conditions to sign up");
       }
 
       const { error } = await supabase.auth.signUp({
@@ -60,6 +68,15 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     e.preventDefault();
     e.stopPropagation();
     navigate('/');
+  };
+
+  const handleTermsLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowTermsDialog(true);
+  };
+
+  const handleTermsAccept = () => {
+    setAcceptedTerms(true);
   };
 
   return (
@@ -132,7 +149,31 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
             </div>
           </RadioGroup>
         </div>
-        <Button type="submit" className="w-full" disabled={loading}>
+        
+        <div className="flex items-start space-x-2">
+          <Checkbox
+            id="terms"
+            checked={acceptedTerms}
+            onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+          />
+          <Label htmlFor="terms" className="text-sm leading-relaxed">
+            I have read and agree to the{' '}
+            <button
+              type="button"
+              onClick={handleTermsLinkClick}
+              className="text-primary hover:underline font-medium"
+            >
+              terms and conditions
+            </button>
+            {' '}as set out by the user agreement
+          </Label>
+        </div>
+        
+        <Button 
+          type="submit" 
+          className="w-full" 
+          disabled={loading || !acceptedTerms}
+        >
           {loading ? 'Loading...' : 'Sign Up'}
         </Button>
         <Button
@@ -150,6 +191,12 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
       >
         Return to map
       </Button>
+
+      <TermsAndConditionsDialog
+        open={showTermsDialog}
+        onOpenChange={setShowTermsDialog}
+        onAccept={handleTermsAccept}
+      />
     </div>
   );
 };
