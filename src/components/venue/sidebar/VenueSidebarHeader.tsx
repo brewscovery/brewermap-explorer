@@ -28,6 +28,18 @@ export const VenueSidebarHeader = ({
 }: VenueSidebarHeaderProps) => {
   const { user } = useAuth();
 
+  // Build address from individual fields
+  const buildAddress = (venue: Venue) => {
+    const parts = [];
+    if (venue.street) parts.push(venue.street);
+    parts.push(venue.city);
+    parts.push(venue.state);
+    if (venue.postal_code) parts.push(venue.postal_code);
+    return parts.join(', ');
+  };
+
+  const address = buildAddress(venue);
+
   return (
     <div className="sticky top-0 z-10 bg-gradient-to-r from-brewscovery-teal to-brewscovery-blue shadow-lg border-b-2 border-brewscovery-orange">
       <div className="flex items-center justify-between p-4">
@@ -40,12 +52,10 @@ export const VenueSidebarHeader = ({
               {breweryInfo.name}
             </p>
           )}
-          {venue.address && (
-            <div className="flex items-center mt-1 text-xs text-brewscovery-cream/80">
-              <MapPin size={12} className="mr-1" />
-              <span className="truncate">{venue.address}</span>
-            </div>
-          )}
+          <div className="flex items-center mt-1 text-xs text-brewscovery-cream/80">
+            <MapPin size={12} className="mr-1" />
+            <span className="truncate">{address}</span>
+          </div>
         </div>
         
         <div className="flex items-center space-x-2 ml-4">

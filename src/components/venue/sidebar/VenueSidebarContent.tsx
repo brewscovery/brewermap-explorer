@@ -56,6 +56,16 @@ export const VenueSidebarContent = ({
 }: VenueSidebarContentProps) => {
   const { user } = useAuth();
 
+  // Build address from individual fields
+  const buildAddress = (venue: Venue) => {
+    const parts = [];
+    if (venue.street) parts.push(venue.street);
+    parts.push(venue.city);
+    parts.push(venue.state);
+    if (venue.postal_code) parts.push(venue.postal_code);
+    return parts.join(', ');
+  };
+
   const formatHours = (hours: any[]) => {
     if (!hours || hours.length === 0) return 'Hours not available';
     
@@ -68,6 +78,8 @@ export const VenueSidebarContent = ({
     
     return 'Closed today';
   };
+
+  const address = buildAddress(venue);
 
   return (
     <div className="flex-1 overflow-y-auto bg-white">
@@ -104,12 +116,10 @@ export const VenueSidebarContent = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 space-y-3">
-                {venue.address && (
-                  <div className="flex items-start space-x-2">
-                    <MapPin size={16} className="text-brewscovery-teal mt-0.5" />
-                    <span className="text-sm text-gray-700">{venue.address}</span>
-                  </div>
-                )}
+                <div className="flex items-start space-x-2">
+                  <MapPin size={16} className="text-brewscovery-teal mt-0.5" />
+                  <span className="text-sm text-gray-700">{address}</span>
+                </div>
                 
                 {venue.phone && (
                   <div className="flex items-center space-x-2">
@@ -140,18 +150,6 @@ export const VenueSidebarContent = ({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Description */}
-            {venue.description && (
-              <Card className="border-2 border-brewscovery-teal/20 shadow-sm">
-                <CardHeader className="bg-brewscovery-cream/30 border-b border-brewscovery-teal/20">
-                  <CardTitle className="text-brewscovery-teal">About</CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <p className="text-sm text-gray-700 leading-relaxed">{venue.description}</p>
-                </CardContent>
-              </Card>
-            )}
 
             {/* Daily Specials */}
             {dailySpecials.length > 0 && (

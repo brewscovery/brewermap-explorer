@@ -26,6 +26,18 @@ export const MobileSidebarHeader = ({
 }: MobileSidebarHeaderProps) => {
   const { user } = useAuth();
 
+  // Build address from individual fields
+  const buildAddress = (venue: Venue) => {
+    const parts = [];
+    if (venue.street) parts.push(venue.street);
+    parts.push(venue.city);
+    parts.push(venue.state);
+    if (venue.postal_code) parts.push(venue.postal_code);
+    return parts.join(', ');
+  };
+
+  const address = buildAddress(venue);
+
   return (
     <div className="bg-gradient-to-r from-brewscovery-teal to-brewscovery-blue text-white shadow-lg">
       {/* Drag indicator */}
@@ -44,12 +56,10 @@ export const MobileSidebarHeader = ({
                 {breweryInfo.name}
               </p>
             )}
-            {venue.address && (
-              <div className="flex items-center mt-1 text-xs text-brewscovery-cream/80">
-                <MapPin size={12} className="mr-1 flex-shrink-0" />
-                <span className="truncate">{venue.address}</span>
-              </div>
-            )}
+            <div className="flex items-center mt-1 text-xs text-brewscovery-cream/80">
+              <MapPin size={12} className="mr-1 flex-shrink-0" />
+              <span className="truncate">{address}</span>
+            </div>
           </div>
           
           <Button
