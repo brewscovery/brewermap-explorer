@@ -117,7 +117,7 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
   };
 
   return (
-    <div className="flex flex-col h-full overflow-auto bg-white border-r-2 border-brewscovery-teal/20">
+    <div className="flex flex-col h-full overflow-auto">
       {userType === 'business' && (
         <div className={isMobileView ? "relative z-50" : ""}>
           <BrewerySidebarHeader 
@@ -130,25 +130,22 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
       )}
       
       {userType === 'regular' && user && (
-        <div className="flex flex-col p-4 border-b-2 border-brewscovery-teal/20 bg-brewscovery-cream/30">
+        <div className="flex flex-col p-4 border-b">
           <div className="flex items-center justify-between mb-2">
-            <h2 className="text-lg font-semibold text-brewscovery-teal">Hello, {firstName || 'User'}</h2>
+            <h2 className="text-lg font-semibold">Hello, {firstName || 'User'}</h2>
             <NotificationCenter />
           </div>
-          <p className="text-sm text-brewscovery-teal/70">{user.email}</p>
+          <p className="text-sm text-muted-foreground">{user.email}</p>
         </div>
       )}
       
-      <UISidebarContent className="px-2 py-4">
+      <UISidebarContent>
         <SidebarMenu>
           
           {!user ? (
             <SidebarMenuItem>
-              <SidebarMenuButton 
-                onClick={() => handleNavigationWithSidebarClose('/auth')}
-                className="hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-              >
-                <LogIn size={18} className="text-brewscovery-teal" />
+              <SidebarMenuButton onClick={() => handleNavigationWithSidebarClose('/auth')}>
+                <LogIn size={18} />
                 <span>Login / Sign Up</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -160,12 +157,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/admin')}
                       onClick={() => handleNavigationWithSidebarClose('/admin')}
-                      className={isActive('/admin') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <LayoutDashboard size={18} className={isActive('/admin') ? "text-white" : "text-brewscovery-teal"} />
+                      <LayoutDashboard size={18} />
                       <span>Admin Dashboard</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -173,12 +166,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/admin/claims')}
                       onClick={() => handleNavigationWithSidebarClose('/admin/claims')}
-                      className={isActive('/admin/claims') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <ClipboardCheck size={18} className={isActive('/admin/claims') ? "text-white" : "text-brewscovery-teal"} />
+                      <ClipboardCheck size={18} />
                       <span>Brewery Claims</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -186,12 +175,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/admin/breweries')}
                       onClick={() => handleNavigationWithSidebarClose('/admin/breweries')}
-                      className={isActive('/admin/breweries') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Beer size={18} className={isActive('/admin/breweries') ? "text-white" : "text-brewscovery-teal"} />
+                      <Beer size={18} />
                       <span>Breweries</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -199,12 +184,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/admin/brewery-import')}
                       onClick={() => handleNavigationWithSidebarClose('/admin/brewery-import')}
-                      className={isActive('/admin/brewery-import') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Upload size={18} className={isActive('/admin/brewery-import') ? "text-white" : "text-brewscovery-teal"} />
+                      <Upload size={18} />
                       <span>Brewery Import</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -212,12 +193,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/admin/users')}
                       onClick={() => handleNavigationWithSidebarClose('/admin/users')}
-                      className={isActive('/admin/users') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Users size={18} className={isActive('/admin/users') ? "text-white" : "text-brewscovery-teal"} />
+                      <Users size={18} />
                       <span>Users</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -230,12 +207,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard')}
-                      className={isActive('/dashboard') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <LayoutDashboard size={18} className={isActive('/dashboard') ? "text-white" : "text-brewscovery-teal"} />
+                      <LayoutDashboard size={18} />
                       <span>Overview</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -244,12 +217,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton
                       isActive={isActive('/dashboard/events')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/events')}
-                      className={isActive('/dashboard/events') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Calendar size={18} className={isActive('/dashboard/events') ? "text-white" : "text-brewscovery-teal"} />
+                      <Calendar size={18} />
                       <span>Events</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -259,30 +228,23 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                       <SidebarMenuButton 
                         onClick={() => handleNavigationWithSidebarClose('/dashboard/venues')}
                         isActive={isActive('/dashboard/venues')}
-                        className={isActive('/dashboard/venues') ? 
-                          "bg-brewscovery-teal text-white font-medium" : 
-                          "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                        }
                       >
-                        <Store size={18} className={isActive('/dashboard/venues') ? "text-white" : "text-brewscovery-teal"} />
+                        <Store size={18} />
                         <span>Venues</span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   )}
                   
                   {selectedBrewery && venuesForSelectedBrewery && venuesForSelectedBrewery.length > 0 && (
-                    <SidebarMenuSub className="border-l-2 border-brewscovery-teal/30 ml-4">
+                    <SidebarMenuSub>
                       {venuesForSelectedBrewery.map((venue) => (
                         <SidebarMenuSubItem key={venue.id}>
                           <SidebarMenuSubButton
                             onClick={() => handleVenueClick(venue)}
                             isActive={isVenueActive('/dashboard/venues', venue.id)}
-                            className={isVenueActive('/dashboard/venues', venue.id) ? 
-                              "font-semibold bg-brewscovery-cream text-brewscovery-teal" : 
-                              "hover:bg-brewscovery-cream/50 hover:text-brewscovery-teal transition-colors"
-                            }
+                            className={isVenueActive('/dashboard/venues', venue.id) ? "font-semibold" : ""}
                           >
-                            <Store size={14} className="text-brewscovery-teal" />
+                            <Store size={14} />
                             <span className="truncate">{venue.name}</span>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
@@ -294,12 +256,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/settings')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
-                      className={isActive('/dashboard/settings') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Settings size={18} className={isActive('/dashboard/settings') ? "text-white" : "text-brewscovery-teal"} />
+                      <Settings size={18} />
                       <span>Settings</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -312,12 +270,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard')}
-                      className={isActive('/dashboard') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <LayoutDashboard size={18} className={isActive('/dashboard') ? "text-white" : "text-brewscovery-teal"} />
+                      <LayoutDashboard size={18} />
                       <span>Dashboard</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -325,12 +279,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/favorites')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/favorites')}
-                      className={isActive('/dashboard/favorites') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Star size={18} className={isActive('/dashboard/favorites') ? "text-white" : "text-brewscovery-teal"} />
+                      <Star size={18} />
                       <span>My Favorites</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -338,12 +288,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/todoLists')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/todoLists')}
-                      className={isActive('/dashboard/todoLists') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <ListTodo size={18} className={isActive('/dashboard/todoLists') ? "text-white" : "text-brewscovery-teal"} />
+                      <ListTodo size={18} />
                       <span>ToDo Lists</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -351,12 +297,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton
                       isActive={isActive('/dashboard/eventsExplorer')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/eventsExplorer')}
-                      className={isActive('/dashboard/eventsExplorer') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Calendar size={18} className={isActive('/dashboard/eventsExplorer') ? "text-white" : "text-brewscovery-teal"} />
+                      <Calendar size={18} />
                       <span>Events</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -366,12 +308,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/discoveries')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/discoveries')}
-                      className={isActive('/dashboard/discoveries') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Map size={18} className={isActive('/dashboard/discoveries') ? "text-white" : "text-brewscovery-teal"} />
+                      <Map size={18} />
                       <span>Brewscoveries</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -379,12 +317,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/settings')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/settings')}
-                      className={isActive('/dashboard/settings') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <Settings size={18} className={isActive('/dashboard/settings') ? "text-white" : "text-brewscovery-teal"} />
+                      <Settings size={18} />
                       <span>Account Settings</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -392,12 +326,8 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     <SidebarMenuButton 
                       isActive={isActive('/dashboard/subscription')}
                       onClick={() => handleNavigationWithSidebarClose('/dashboard/subscription')}
-                      className={isActive('/dashboard/subscription') ? 
-                        "bg-brewscovery-teal text-white font-medium" : 
-                        "hover:bg-brewscovery-cream hover:text-brewscovery-teal transition-colors"
-                      }
                     >
-                      <CreditCard size={18} className={isActive('/dashboard/subscription') ? "text-white" : "text-brewscovery-teal"} />
+                      <CreditCard size={18} />
                       <span>Subscription</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

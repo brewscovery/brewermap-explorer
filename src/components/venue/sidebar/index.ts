@@ -1,3 +1,3 @@
 
-export { VenueSidebarHeader } from './VenueSidebarHeader';
-export { VenueSidebarContent } from './VenueSidebarContent';
+export { default as VenueSidebarHeader } from './VenueSidebarHeader';
+export { default as VenueSidebarContent } from './VenueSidebarContent';
