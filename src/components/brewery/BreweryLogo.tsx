@@ -25,8 +25,9 @@ const BreweryLogo = ({
         className={`
           ${sizeClasses[size]} 
           flex items-center justify-center 
-          bg-muted text-muted-foreground 
-          border rounded-lg font-semibold text-2xl
+          bg-brewscovery-cream text-brewscovery-teal
+          border-2 border-brewscovery-teal rounded-lg font-semibold text-2xl
+          shadow-sm
         `}
       >
         {name?.[0] || 'B'}
@@ -39,10 +40,10 @@ const BreweryLogo = ({
       className={`
         ${sizeClasses[size]} 
         rounded-lg 
-        border 
+        border-2 border-brewscovery-teal
         overflow-hidden 
         flex items-center justify-center
-        bg-white
+        bg-white shadow-sm
       `}
     >
       <img 

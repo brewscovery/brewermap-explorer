@@ -6,57 +6,64 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 198 84% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 198 84% 16%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 198 84% 16%;
+    --primary: 180 50% 24%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 33 100% 50%;
+    --secondary-foreground: 198 84% 16%;
+    --muted: 198 20% 95%;
+    --muted-foreground: 198 20% 45%;
+    --accent: 33 100% 50%;
+    --accent-foreground: 198 84% 16%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 262.1 83.3% 57.8%;
+    --border: 198 20% 88%;
+    --input: 198 20% 88%;
+    --ring: 180 50% 24%;
     --radius: 0.5rem;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --chart-1: 33 100% 50%;
+    --chart-2: 180 50% 24%;
+    --chart-3: 120 60% 40%;
+    --chart-4: 198 84% 16%;
+    --chart-5: 60 100% 45%;
+    
+    /* Brewscovery Brand Colors */
+    --brewscovery-teal: 180 50% 24%;
+    --brewscovery-orange: 33 100% 50%;
+    --brewscovery-cream: 45 100% 92%;
+    --brewscovery-green: 120 60% 40%;
+    --brewscovery-blue: 200 80% 35%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 262.1 83.3% 57.8%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --background: 198 84% 8%;
+    --foreground: 0 0% 98%;
+    --card: 198 84% 8%;
+    --card-foreground: 0 0% 98%;
+    --popover: 198 84% 8%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 180 50% 24%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 198 30% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 198 30% 15%;
+    --muted-foreground: 198 15% 65%;
+    --accent: 33 100% 50%;
+    --accent-foreground: 198 84% 8%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 262.1 83.3% 57.8%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
+    --border: 198 30% 15%;
+    --input: 198 30% 15%;
+    --ring: 180 50% 24%;
+    --chart-1: 33 100% 50%;
+    --chart-2: 180 50% 35%;
+    --chart-3: 120 60% 50%;
+    --chart-4: 200 80% 45%;
+    --chart-5: 60 100% 55%;
   }
 }
 
@@ -82,6 +89,35 @@
   .safe-area-margin-bottom {
     margin-bottom: env(safe-area-inset-bottom);
   }
+  
+  /* Brewscovery Brand Utility Classes */
+  .bg-brewscovery-teal {
+    background-color: hsl(var(--brewscovery-teal));
+  }
+  
+  .bg-brewscovery-orange {
+    background-color: hsl(var(--brewscovery-orange));
+  }
+  
+  .bg-brewscovery-cream {
+    background-color: hsl(var(--brewscovery-cream));
+  }
+  
+  .text-brewscovery-teal {
+    color: hsl(var(--brewscovery-teal));
+  }
+  
+  .text-brewscovery-orange {
+    color: hsl(var(--brewscovery-orange));
+  }
+  
+  .border-brewscovery-teal {
+    border-color: hsl(var(--brewscovery-teal));
+  }
+  
+  .border-brewscovery-orange {
+    border-color: hsl(var(--brewscovery-orange));
+  }
 }
 
 /* PWA specific styles */
@@ -94,6 +130,26 @@
   /* Smooth scrolling for PWA */
   html {
     scroll-behavior: smooth;
+  }
+  
+  /* PWA Splash Screen Styling */
+  .pwa-splash {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, hsl(var(--brewscovery-cream)) 0%, white 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .pwa-splash img {
+    max-width: 200px;
+    max-height: 200px;
+    object-fit: contain;
   }
 }
 
@@ -110,6 +166,6 @@
   
   /* Better tap highlights */
   * {
-    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    -webkit-tap-highlight-color: rgba(30, 90, 90, 0.1);
   }
 }
