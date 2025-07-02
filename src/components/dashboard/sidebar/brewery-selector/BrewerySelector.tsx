@@ -51,14 +51,14 @@ export const BrewerySelector = ({
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="w-full justify-between h-auto p-0 hover:bg-transparent">
           <div className="flex items-center space-x-3">
-            <Avatar>
+            <Avatar className="h-12 w-12">
               {selectedBrewery?.logo_url ? (
                 <AvatarImage 
                   src={selectedBrewery.logo_url} 
                   alt={`${selectedBrewery.name} logo`} 
                 />
               ) : null}
-              <AvatarFallback className="bg-primary text-primary-foreground font-medium">
+              <AvatarFallback className="bg-primary text-primary-foreground font-medium text-lg">
                 {getBreweryInitials(selectedBrewery?.name || "")}
               </AvatarFallback>
             </Avatar>
@@ -106,7 +106,7 @@ const BrewerySelectorItems = ({
           className={selectedBreweryId === brewery.id ? "bg-accent text-accent-foreground" : ""}
         >
           <div className="flex items-center w-full">
-            <Avatar className="h-6 w-6 mr-2">
+            <Avatar className="h-8 w-8 mr-2">
               {brewery.logo_url ? (
                 <AvatarImage src={brewery.logo_url} alt={brewery.name} />
               ) : null}

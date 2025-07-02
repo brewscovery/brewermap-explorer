@@ -53,12 +53,13 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
   
   return (
     <div className="p-4 bg-background/80 backdrop-blur-sm border-b flex items-center justify-between sticky top-0 z-10">
-      <div className="flex items-center gap-4">
-        <div className="cursor-pointer" onClick={toggleSidebar}>
-          <AppLogo size="small" />
-        </div>
-        
-        {/* Brewery Selector for Business Users */}
+      {/* Left section - Logo */}
+      <div className="cursor-pointer" onClick={toggleSidebar}>
+        <AppLogo size="small" />
+      </div>
+      
+      {/* Center section - Brewery Selector for Business Users */}
+      <div className="flex-1 flex justify-center">
         {userType === 'business' && (
           <div className="flex items-center">
             {breweriesLoading ? (
@@ -77,9 +78,8 @@ const DashboardHeader = ({ displayName }: DashboardHeaderProps) => {
         )}
       </div>
 
-      <div className="flex-1"></div>
-
-      <div className="flex items-center gap-4 ml-4">
+      {/* Right section - Notifications */}
+      <div className="flex items-center gap-4">
         <NotificationCenter />
       </div>
       
