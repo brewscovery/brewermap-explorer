@@ -143,13 +143,6 @@ const BottomNavigation = () => {
         path: '/dashboard/eventsExplorer',
         requiresAuth: true,
         userTypes: ['regular']
-      },
-      {
-        id: 'settings',
-        label: 'Settings',
-        icon: User,
-        path: '/dashboard/settings',
-        requiresAuth: true
       }
     ];
   };
