@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
 import { Filter } from "lucide-react";
@@ -19,6 +19,31 @@ interface FloatingSearchBarProps {
   onFilterChange?: (filters: string[]) => void;
   selectedVenue?: Venue | null;
 }
+
+// Extract components outside to prevent re-creation on every render
+const AuthenticatedSidebarButton = ({ onClick }: { onClick: () => void }) => (
+  <div className="cursor-pointer" onClick={onClick}>
+    <AppLogo size="small" />
+  </div>
+);
+
+const UnauthenticatedSidebarButton = ({ 
+  loginOpen, 
+  onLoginOpenChange 
+}: { 
+  loginOpen: boolean;
+  onLoginOpenChange: (open: boolean) => void;
+}) => (
+  <LoginPopover
+    open={loginOpen}
+    onOpenChange={onLoginOpenChange}
+    triggerElement={
+      <div className="cursor-pointer">
+        <AppLogo size="small" />
+      </div>
+    }
+  />
+);
 
 const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({ 
   onVenueSelect,
@@ -53,30 +78,19 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   };
 
-  // Create a sidebar toggle button component that uses the Brewscovery logo for both states
-  const SidebarToggleButton = () => {
+  // Memoize the sidebar toggle button to prevent unnecessary re-renders
+  const SidebarToggleButton = useMemo(() => {
     if (user) {
-      // Brewscovery logo for authenticated users
-      return (
-        <div className="cursor-pointer" onClick={handleSidebarToggle}>
-          <AppLogo size="small" />
-        </div>
-      );
+      return <AuthenticatedSidebarButton onClick={handleSidebarToggle} />;
     } else {
-      // Login popover trigger with Brewscovery logo for unauthenticated users
       return (
-        <LoginPopover
-          open={loginOpen}
-          onOpenChange={setLoginOpen}
-          triggerElement={
-            <div className="cursor-pointer">
-              <AppLogo size="small" />
-            </div>
-          }
+        <UnauthenticatedSidebarButton 
+          loginOpen={loginOpen}
+          onLoginOpenChange={setLoginOpen}
         />
       );
     }
-  };
+  }, [user, loginOpen, handleSidebarToggle]);
 
   // Create a filter toggle button component
   const FilterToggleButton = () => (
@@ -111,7 +125,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
             <EnhancedSearchBar 
               onVenueSelect={handleVenueSelect}
               className="shadow-lg w-full"
-              leftIcon={<SidebarToggleButton />}
+              leftIcon={SidebarToggleButton}
               rightIcon={<FilterToggleButton />}
               selectedVenue={selectedVenue}
             />
