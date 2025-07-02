@@ -85,8 +85,8 @@ const BottomNavigation = () => {
           userTypes: ['business']
         },
         {
-          id: 'profile',
-          label: 'Profile',
+          id: 'settings',
+          label: 'Settings',
           icon: User,
           path: '/dashboard/settings',
           requiresAuth: true
@@ -106,8 +106,8 @@ const BottomNavigation = () => {
           userTypes: ['admin']
         },
         {
-          id: 'profile',
-          label: 'Profile',
+          id: 'settings',
+          label: 'Settings',
           icon: User,
           path: '/dashboard/settings',
           requiresAuth: true
@@ -118,6 +118,22 @@ const BottomNavigation = () => {
     // Regular user items
     return [
       ...baseItems,
+      {
+        id: 'dashboard',
+        label: 'Dashboard',
+        icon: MapPin,
+        path: '/dashboard',
+        requiresAuth: true,
+        userTypes: ['regular']
+      },
+      {
+        id: 'brewscoveries',
+        label: 'Brewscoveries',
+        icon: MapPin,
+        path: '/dashboard/DiscoveriesPage',
+        requiresAuth: true,
+        userTypes: ['regular']
+      },
       {
         id: 'favorites',
         label: 'Favorites',
@@ -135,8 +151,8 @@ const BottomNavigation = () => {
         userTypes: ['regular']
       },
       {
-        id: 'profile',
-        label: 'Profile',
+        id: 'settings',
+        label: 'Settings',
         icon: User,
         path: '/dashboard/settings',
         requiresAuth: true
