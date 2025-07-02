@@ -2,15 +2,15 @@
 import React, { useState } from 'react';
 import EnhancedSearchBar from './EnhancedSearchBar';
 import { cn } from '@/lib/utils';
-import { PanelLeft, Filter } from "lucide-react";
+import { Filter } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import MapFilters from './MapFilters';
 import LoginPopover from '@/components/auth/LoginPopover';
 import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Venue } from '@/types/venue';
 import NotificationCenter from '@/components/notifications/NotificationCenter';
+import AppLogo from '@/components/ui/AppLogo';
 
 interface FloatingSearchBarProps {
   onVenueSelect: (venue: Venue | null) => void;
@@ -28,7 +28,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
   selectedVenue
 }) => {
   const { state, toggleSidebar, isMobile, openMobile, setOpenMobile } = useSidebar();
-  const { user, firstName, lastName } = useAuth();
+  const { user } = useAuth();
   const [loginOpen, setLoginOpen] = useState(false);
   const [filtersVisible, setFiltersVisible] = useState(false);
   
@@ -53,40 +53,25 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   };
 
-  // Get user initials for the avatar
-  const getUserInitials = () => {
-    if (firstName && lastName) {
-      return `${firstName[0]}${lastName[0]}`.toUpperCase();
-    } else if (firstName) {
-      return firstName[0].toUpperCase();
-    } else if (lastName) {
-      return lastName[0].toUpperCase();
-    } else if (user?.email) {
-      return user.email[0].toUpperCase();
-    } else {
-      return 'U';
-    }
-  };
-
-  // Create a sidebar toggle button component based on user authentication state
+  // Create a sidebar toggle button component that uses the Brewscovery logo for both states
   const SidebarToggleButton = () => {
     if (user) {
-      // Avatar with initials for authenticated users
+      // Brewscovery logo for authenticated users
       return (
-        <Avatar className="h-5 w-5 cursor-pointer" onClick={handleSidebarToggle}>
-          <AvatarFallback className="text-xs font-medium bg-transparent text-gray-600">
-            {getUserInitials()}
-          </AvatarFallback>
-        </Avatar>
+        <div className="cursor-pointer" onClick={handleSidebarToggle}>
+          <AppLogo size="small" />
+        </div>
       );
     } else {
-      // Login popover trigger for unauthenticated users
+      // Login popover trigger with Brewscovery logo for unauthenticated users
       return (
         <LoginPopover
           open={loginOpen}
           onOpenChange={setLoginOpen}
           triggerElement={
-            <PanelLeft className="h-5 w-5 cursor-pointer" />
+            <div className="cursor-pointer">
+              <AppLogo size="small" />
+            </div>
           }
         />
       );
