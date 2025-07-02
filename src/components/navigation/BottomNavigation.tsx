@@ -43,12 +43,6 @@ const BottomNavigation = () => {
         label: 'Map',
         icon: Map,
         path: '/'
-      },
-      {
-        id: 'search',
-        label: 'Search',
-        icon: Search,
-        path: '/?search=true'
       }
     ];
 
@@ -121,7 +115,7 @@ const BottomNavigation = () => {
       {
         id: 'dashboard',
         label: 'Dashboard',
-        icon: MapPin,
+        icon: BarChart3,
         path: '/dashboard',
         requiresAuth: true,
         userTypes: ['regular']
@@ -130,7 +124,7 @@ const BottomNavigation = () => {
         id: 'brewscoveries',
         label: 'Brewscoveries',
         icon: MapPin,
-        path: '/dashboard/DiscoveriesPage',
+        path: '/dashboard/discoveries',
         requiresAuth: true,
         userTypes: ['regular']
       },
