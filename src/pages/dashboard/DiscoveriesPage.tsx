@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import VenueSidebar from '@/components/venue/VenueSidebar';
 import { Venue } from '@/types/venue';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { calculateDistance } from '@/utils/distanceUtils';
+import { useVisitedVenues } from '@/hooks/useVisitedVenues';
 
 interface VenueWithDistance extends Venue {
   distance: number;
@@ -25,6 +27,7 @@ const DiscoveriesPage = () => {
   const { user } = useAuth();
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [isVenueSidebarOpen, setIsVenueSidebarOpen] = useState(false);
+  const { visitedVenueIds } = useVisitedVenues();
   
   const { 
     location, 
@@ -150,19 +153,30 @@ const DiscoveriesPage = () => {
           </div>
         ) : nearbyVenues && nearbyVenues.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {nearbyVenues.map(venue => (
-              <VenueCard 
-                key={venue.id}
-                venue={venue}
-                brewery={{
-                  name: venue.breweries.name,
-                  logo_url: venue.breweries.logo_url,
-                  is_verified: venue.breweries.is_verified
-                }}
-                distance={formatDistance(venue.distance, venue.country)}
-                onClick={() => handleVenueClick(venue)}
-              />
-            ))}
+            {nearbyVenues.map(venue => {
+              const isVisited = visitedVenueIds.includes(venue.id);
+              return (
+                <div 
+                  key={venue.id}
+                  className={`rounded-lg ${
+                    isVisited 
+                      ? 'bg-brewscovery-teal/10 border-brewscovery-teal/20' 
+                      : 'bg-orange-100 border-orange-200'
+                  } border p-1`}
+                >
+                  <VenueCard 
+                    venue={venue}
+                    brewery={{
+                      name: venue.breweries.name,
+                      logo_url: venue.breweries.logo_url,
+                      is_verified: venue.breweries.is_verified
+                    }}
+                    distance={formatDistance(venue.distance, venue.country)}
+                    onClick={() => handleVenueClick(venue)}
+                  />
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="text-center py-8 flex flex-col items-center gap-4">
