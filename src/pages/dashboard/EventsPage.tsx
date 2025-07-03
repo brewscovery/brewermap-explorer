@@ -29,9 +29,14 @@ const EventsPage = () => {
   const isLoading = venuesLoading || eventsLoading;
 
   return (
-    <div className="container mx-auto pt-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Events</h1>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Events</h1>
+          <p className="text-muted-foreground">
+            Manage your venue events and view analytics.
+          </p>
+        </div>
         <Button onClick={() => setShowCreateDialog(true)}>
           <span className="mr-2"><Plus size={16} /></span>
           Create Event
