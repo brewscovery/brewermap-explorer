@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -34,6 +33,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isVisible, setIsVisible] = useState(true);
   
   const venueId = venue?.id || null;
 
@@ -141,9 +141,13 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
 
   const handleClose = () => {
     console.log("VenueSidebar: handleClose called explicitly");
-    if (onClose) {
-      onClose();
-    }
+    setIsVisible(false);
+    // Add a small delay to allow slide-out animation before actually closing
+    setTimeout(() => {
+      if (onClose) {
+        onClose();
+      }
+    }, 300); // Match the animation duration
   };
 
   const isMobile = useIsMobile();
@@ -182,7 +186,9 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   }
 
   return (
-    <div className="fixed left-0 top-[73px] z-[30] flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg animate-slide-in-left">
+    <div className={`fixed left-0 top-[73px] z-[30] flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg transition-transform duration-300 ease-in-out ${
+      isVisible ? 'translate-x-0' : '-translate-x-full'
+    }`}>
       <VenueSidebarHeader 
         venue={venue}
         venueName={venue.name}
