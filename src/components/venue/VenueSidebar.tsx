@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,9 +33,20 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
   
   const venueId = venue?.id || null;
+
+  // Start slide-in animation when component mounts
+  useEffect(() => {
+    if (venue) {
+      // Small delay to ensure the component is mounted before starting animation
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [venue]);
 
   // Use consolidated real-time updates for this venue
   useRealtimeVenue(venueId);
