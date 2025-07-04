@@ -92,24 +92,28 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
     }
   }, [user, loginOpen, handleSidebarToggle]);
 
-  // Create a filter toggle button component
-  const FilterToggleButton = () => (
-    <TooltipProvider>
-      <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <div 
-            onClick={() => setFiltersVisible(prev => !prev)} 
-            className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            <Filter className="h-5 w-5" />
-          </div>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p>{filtersVisible ? 'Hide filters' : 'Show filters'}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
+  // Create a filter toggle button component - only for authenticated users
+  const FilterToggleButton = () => {
+    if (!user) return null;
+    
+    return (
+      <TooltipProvider>
+        <Tooltip delayDuration={300}>
+          <TooltipTrigger asChild>
+            <div 
+              onClick={() => setFiltersVisible(prev => !prev)} 
+              className="cursor-pointer text-gray-500 hover:text-gray-700 transition-colors"
+            >
+              <Filter className="h-5 w-5" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p>{filtersVisible ? 'Hide filters' : 'Show filters'}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <div className={cn(
@@ -130,7 +134,7 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
               selectedVenue={selectedVenue}
             />
           </div>
-          {filtersVisible && (
+          {filtersVisible && user && (
             <MapFilters 
               activeFilters={activeFilters} 
               onFilterChange={onFilterChange} 
@@ -145,8 +149,8 @@ const FloatingSearchBar: React.FC<FloatingSearchBarProps> = ({
           </div>
         )}
       </div>
-      {/* Responsive filters for mobile */}
-      {filtersVisible && (
+      {/* Responsive filters for mobile - only for authenticated users */}
+      {filtersVisible && user && (
         <div className="mt-2 sm:hidden">
           <MapFilters 
             activeFilters={activeFilters} 
