@@ -4,16 +4,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import NotificationPreferences from '@/components/notifications/NotificationPreferences';
 import { TermsAndConditionsDialog } from '@/components/auth/TermsAndConditionsDialog';
+import { PrivacyPolicyDialog } from '@/components/auth/PrivacyPolicyDialog';
 
 const SettingsPage = () => {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
   const handleTermsLinkClick = () => {
     setShowTermsDialog(true);
   };
 
+  const handlePrivacyLinkClick = () => {
+    setShowPrivacyDialog(true);
+  };
+
   const handleTermsDialogClose = () => {
     // For settings page, we don't need to do anything special when terms are "accepted"
+    // Just close the dialog
+  };
+
+  const handlePrivacyDialogClose = () => {
+    // For settings page, we don't need to do anything special when privacy policy is "accepted"
     // Just close the dialog
   };
 
@@ -37,13 +48,22 @@ const SettingsPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button
-            variant="link"
-            onClick={handleTermsLinkClick}
-            className="p-0 h-auto text-primary hover:underline"
-          >
-            Terms and Conditions
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="link"
+              onClick={handleTermsLinkClick}
+              className="p-0 h-auto text-primary hover:underline justify-start"
+            >
+              Terms and Conditions
+            </Button>
+            <Button
+              variant="link"
+              onClick={handlePrivacyLinkClick}
+              className="p-0 h-auto text-primary hover:underline justify-start"
+            >
+              Privacy Policy
+            </Button>
+          </div>
         </CardContent>
       </Card>
       
@@ -66,6 +86,12 @@ const SettingsPage = () => {
         open={showTermsDialog}
         onOpenChange={setShowTermsDialog}
         onAccept={handleTermsDialogClose}
+      />
+      
+      <PrivacyPolicyDialog
+        open={showPrivacyDialog}
+        onOpenChange={setShowPrivacyDialog}
+        onAccept={handlePrivacyDialogClose}
       />
     </div>
   );

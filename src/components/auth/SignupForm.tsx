@@ -9,6 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { TermsAndConditionsDialog } from './TermsAndConditionsDialog';
+import { PrivacyPolicyDialog } from './PrivacyPolicyDialog';
 
 type SignupFormProps = {
   onSwitchToLogin: () => void;
@@ -24,7 +25,9 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
   const [userType, setUserType] = useState<'regular' | 'business'>('regular');
   const [loading, setLoading] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
+  const [showPrivacyDialog, setShowPrivacyDialog] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +40,10 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
 
       if (!acceptedTerms) {
         throw new Error("You must accept the terms and conditions to sign up");
+      }
+
+      if (!acceptedPrivacy) {
+        throw new Error("You must accept the privacy policy to sign up");
       }
 
       const { error } = await supabase.auth.signUp({
@@ -75,8 +82,17 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
     setShowTermsDialog(true);
   };
 
+  const handlePrivacyLinkClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowPrivacyDialog(true);
+  };
+
   const handleTermsAccept = () => {
     setAcceptedTerms(true);
+  };
+
+  const handlePrivacyAccept = () => {
+    setAcceptedPrivacy(true);
   };
 
   return (
@@ -169,10 +185,28 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
           </Label>
         </div>
         
+        <div className="flex items-start space-x-2">
+          <Checkbox
+            id="privacy"
+            checked={acceptedPrivacy}
+            onCheckedChange={(checked) => setAcceptedPrivacy(checked as boolean)}
+          />
+          <Label htmlFor="privacy" className="text-sm leading-relaxed">
+            I have read and agree to the{' '}
+            <button
+              type="button"
+              onClick={handlePrivacyLinkClick}
+              className="text-primary hover:underline font-medium"
+            >
+              privacy policy
+            </button>
+          </Label>
+        </div>
+        
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={loading || !acceptedTerms}
+          disabled={loading || !acceptedTerms || !acceptedPrivacy}
         >
           {loading ? 'Loading...' : 'Sign Up'}
         </Button>
@@ -196,6 +230,12 @@ export const SignupForm = ({ onSwitchToLogin }: SignupFormProps) => {
         open={showTermsDialog}
         onOpenChange={setShowTermsDialog}
         onAccept={handleTermsAccept}
+      />
+      
+      <PrivacyPolicyDialog
+        open={showPrivacyDialog}
+        onOpenChange={setShowPrivacyDialog}
+        onAccept={handlePrivacyAccept}
       />
     </div>
   );
