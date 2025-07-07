@@ -6,6 +6,7 @@ import { useAdminStats } from '@/hooks/useAdminData';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 import ConnectionMonitor from '@/components/debug/ConnectionMonitor';
+import { AdminQrCodeGenerator } from '@/components/admin/AdminQrCodeGenerator';
 
 const AdminDashboard = () => {
   const { data: stats, isLoading, error } = useAdminStats();
@@ -86,6 +87,8 @@ const AdminDashboard = () => {
       </div>
       
       <div className="space-y-6">
+        <AdminQrCodeGenerator />
+        
         <Card>
           <CardHeader>
             <CardTitle>Database Connection Monitor</CardTitle>

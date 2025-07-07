@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_qr_codes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          qr_type: string
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          qr_type?: string
+          token?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          qr_type?: string
+          token?: string
+        }
+        Relationships: []
+      }
       breweries: {
         Row: {
           about: string | null

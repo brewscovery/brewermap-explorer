@@ -32,7 +32,7 @@ import EventsPage from "./pages/dashboard/EventsPage";
 import TodoListsPage from "./pages/dashboard/TodoListsPage";
 import EventsExplorer from "./pages/dashboard/EventsExplorer";
 import ProtectedRoute from "./components/protected/ProtectedRoute";
-import VenueQrRedirect from "./components/qr/VenueQrRedirect";
+import QrRedirectHandler from "./components/qr/QrRedirectHandler";
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 //import './App.css';
 
@@ -94,7 +94,8 @@ const App = () => {
               <Sonner />
               <Routes>
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/qr-checkin/:token" element={<VenueQrRedirect />} />
+                <Route path="/qr-checkin/:token" element={<QrRedirectHandler />} />
+                <Route path="/qr/:token" element={<QrRedirectHandler />} />
                 
                 <Route element={<AppLayout />}>
                   <Route path="/" element={<Index />} />
