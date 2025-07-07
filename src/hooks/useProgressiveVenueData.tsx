@@ -300,7 +300,7 @@ export function useProgressiveVenueData(): ProgressiveVenueData {
     venues: filteredVenues,
     allVenues: venues,
     error,
-    isLoading: isLoading && !cachedVenues.length, // Don't show loading if we have cached data
+    isLoading: !hasCacheLoaded || (isLoading && !cachedVenues.length), // Show loading until cache is checked or data is loaded
     isLoadingDetails: isLoadingComplete,
     refetch,
     selectedVenue,
