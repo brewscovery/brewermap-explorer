@@ -296,11 +296,22 @@ export function useProgressiveVenueData(): ProgressiveVenueData {
     breweriesMap
   );
   
+  // Debug logging for loading state
+  const finalIsLoading = !hasCacheLoaded || (isLoading && !cachedVenues.length);
+  console.log('Progressive venue data state:', {
+    hasCacheLoaded,
+    isLoading,
+    cachedVenuesLength: cachedVenues.length,
+    basicVenuesLength: basicVenues.length,
+    finalIsLoading,
+    venuesLength: venues.length
+  });
+
   return {
     venues: filteredVenues,
     allVenues: venues,
     error,
-    isLoading: !hasCacheLoaded || (isLoading && !cachedVenues.length), // Show loading until cache is checked or data is loaded
+    isLoading: finalIsLoading,
     isLoadingDetails: isLoadingComplete,
     refetch,
     selectedVenue,
