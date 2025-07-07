@@ -403,6 +403,204 @@ export type Database = {
         }
         Relationships: []
       }
+      checkins_2025_07: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      checkins_2025_08: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      checkins_2025_09: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      checkins_2025_10: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      checkins_2025_11: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
+      checkins_2025_12: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number | null
+          updated_at: string
+          user_id: string | null
+          venue_id: string
+          visited_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id: string
+          visited_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number | null
+          updated_at?: string
+          user_id?: string | null
+          venue_id?: string
+          visited_at?: string
+        }
+        Relationships: []
+      }
       checkins_old: {
         Row: {
           comment: string | null
