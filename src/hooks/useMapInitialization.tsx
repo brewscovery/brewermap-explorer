@@ -29,8 +29,13 @@ export const useMapInitialization = () => {
         antialias: false, // Disable antialiasing for better performance
         fadeDuration: 0, // Disable fade animations for faster loading
         interactive: true,
-        // Defer loading of non-essential features
-        trackResize: false // We'll handle resizing manually
+        // Mobile-specific optimizations
+        trackResize: true, // Enable resize tracking for mobile orientation changes
+        cooperativeGestures: false, // Disable cooperative gestures that can interfere on mobile
+        touchZoomRotate: true, // Enable touch zoom and rotate
+        dragPan: true, // Enable drag panning
+        doubleClickZoom: true, // Enable double click zoom
+        scrollZoom: true // Enable scroll zoom
       });
 
       // Defer adding controls to after map loads to avoid blocking
