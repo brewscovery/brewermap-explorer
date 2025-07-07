@@ -3,8 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export const MapSkeleton = () => {
   return (
-    <div className="flex-1 flex flex-col h-full relative min-h-screen"
-         style={{ height: '100vh', minHeight: '100vh' }}>
+    <div className="flex-1 flex flex-col h-full relative">
       {/* Search bar skeleton */}
       <div className="absolute top-4 left-4 right-4 z-10">
         <Skeleton className="h-12 w-full rounded-lg" />
