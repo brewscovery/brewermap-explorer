@@ -973,6 +973,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications_2025_07: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_type: string | null
+          type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_type?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications_old: {
         Row: {
           content: string

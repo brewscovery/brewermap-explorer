@@ -21,14 +21,22 @@ export const useMapInitialization = () => {
       
       const newMap = new mapboxgl.Map({
         container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',//'mapbox://styles/mapbox/light-v11',
+        style: 'mapbox://styles/mapbox/light-v11', // Lighter style loads faster
         center: [133.7751, -25.2744], // Center of Australia
         zoom: 4,
-        preserveDrawingBuffer: true // Make the map more resilient to container changes
+        preserveDrawingBuffer: true, // Make the map more resilient to container changes
+        // Performance optimizations
+        antialias: false, // Disable antialiasing for better performance
+        fadeDuration: 0, // Disable fade animations for faster loading
+        interactive: true,
+        // Defer loading of non-essential features
+        trackResize: false // We'll handle resizing manually
       });
 
-      // Add navigation controls (MOVED FROM TOP-RIGHT TO BOTTOM-RIGHT)
-      newMap.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      // Defer adding controls to after map loads to avoid blocking
+      const addControls = () => {
+        newMap.addControl(new mapboxgl.NavigationControl(), 'bottom-right');
+      };
 
       // Create and store the style load listener
       const onStyleLoad = () => {
@@ -64,6 +72,12 @@ export const useMapInitialization = () => {
           console.log('Style confirmed loaded on map load event');
           setIsStyleLoaded(true);
         }
+        
+        // Add controls after map is fully loaded (non-blocking)
+        setTimeout(addControls, 0);
+        
+        // Re-enable resize tracking after load
+        (newMap as any)._trackResize = true;
       });
 
       map.current = newMap;

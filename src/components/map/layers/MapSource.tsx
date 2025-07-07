@@ -31,31 +31,50 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
   const layersRemovedRef = useRef(false);
   const prevVenueCountRef = useRef(venues.length);
   
-  // Create GeoJSON data from venues
+  // Create GeoJSON data from venues with optimized filtering
   const createGeoJsonData = useCallback(() => {
-    const features: Feature<Point, VenueProperties>[] = venues
-      .filter(venue => {
-        const lng = parseFloat(venue.longitude || '');
-        const lat = parseFloat(venue.latitude || '');
-        return !isNaN(lng) && !isNaN(lat);
-      })
-      .map(venue => ({
-        type: 'Feature',
-        properties: {
-          id: venue.id,
-          name: venue.name,
-          brewery_id: venue.brewery_id
-        },
-        geometry: {
-          type: 'Point',
-          coordinates: [
-            parseFloat(venue.longitude || '0'),
-            parseFloat(venue.latitude || '0')
-          ]
-        }
-      }));
+    if (venues.length === 0) {
+      return {
+        type: 'FeatureCollection',
+        features: []
+      } as FeatureCollection<Point, VenueProperties>;
+    }
 
-    console.log(`Created GeoJSON with ${features.length} features`);
+    const features: Feature<Point, VenueProperties>[] = [];
+    
+    // Pre-allocate array for better performance
+    features.length = venues.length;
+    let validCount = 0;
+    
+    for (let i = 0; i < venues.length; i++) {
+      const venue = venues[i];
+      
+      // Fast number validation
+      if (venue.longitude && venue.latitude) {
+        const lng = +venue.longitude; // Faster than parseFloat
+        const lat = +venue.latitude;
+        
+        if (lng && lat && lng >= -180 && lng <= 180 && lat >= -90 && lat <= 90) {
+          features[validCount++] = {
+            type: 'Feature',
+            properties: {
+              id: venue.id,
+              name: venue.name,
+              brewery_id: venue.brewery_id
+            },
+            geometry: {
+              type: 'Point',
+              coordinates: [lng, lat]
+            }
+          };
+        }
+      }
+    }
+    
+    // Trim array to actual valid count
+    features.length = validCount;
+
+    console.log(`Created GeoJSON with ${validCount} features from ${venues.length} venues`);
     return {
       type: 'FeatureCollection',
       features: features
@@ -207,46 +226,38 @@ const MapSource = ({ map, venues, children }: MapSourceProps) => {
     };
   }, [map, addSource, safelyRemoveLayers]);
 
-  // Update source data when venues change
+  // Update source data when venues change (optimized)
   useEffect(() => {
-    // Force recreate source when venues go from 0 to some venues
-    const venuesNowAvailable = prevVenueCountRef.current === 0 && venues.length > 0;
-    prevVenueCountRef.current = venues.length;
+    // Only process updates if venues count changes significantly
+    const currentVenueCount = venues.length;
+    const venueCountChanged = Math.abs(currentVenueCount - prevVenueCountRef.current) > 0;
     
-    // If we have venues available now but didn't before, force recreate the source
-    if (venuesNowAvailable && map.getStyle()) {
-      console.log('Venues now available, recreating source');
-      // Force recreate source and layers
-      try {
-        safelyRemoveLayers();
-        
-        if (map.getSource('venues')) {
-          map.removeSource('venues');
-          sourceAdded.current = false;
-        }
-      } catch (error) {
-        console.warn('Error removing source during recreation:', error);
-      }
-      
-      // Short delay to ensure clean slate
-      setTimeout(() => {
-        addSource();
-      }, 100);
-      return;
+    if (!venueCountChanged && currentVenueCount > 0) {
+      return; // Skip if no significant change
     }
     
-    // Use a debounce mechanism to avoid too many rapid updates
-    const timeoutId = setTimeout(() => {
-      if (sourceAdded.current && map.getSource('venues')) {
-        updateSourceData();
-      } else if (venues.length > 0) {
-        // If source doesn't exist but we have venues, try to add it
-        addSource();
-      }
-    }, 300);
+    prevVenueCountRef.current = currentVenueCount;
     
-    return () => clearTimeout(timeoutId);
-  }, [map, venues, updateSourceData, addSource, safelyRemoveLayers]);
+    // If we have venues available now but didn't before, force recreate the source
+    if (currentVenueCount > 0 && prevVenueCountRef.current !== currentVenueCount && map.getStyle()) {
+      console.log('Venues count changed, updating source');
+      
+      // Use requestIdleCallback for non-critical updates
+      const updateWhenIdle = () => {
+        if (sourceAdded.current && map.getSource('venues')) {
+          updateSourceData();
+        } else if (currentVenueCount > 0) {
+          addSource();
+        }
+      };
+      
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(updateWhenIdle, { timeout: 100 });
+      } else {
+        setTimeout(updateWhenIdle, 50);
+      }
+    }
+  }, [map, venues.length, updateSourceData, addSource]);
 
   // Handle style changes
   useEffect(() => {
