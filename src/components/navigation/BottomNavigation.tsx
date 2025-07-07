@@ -95,6 +95,14 @@ const BottomNavigation = () => {
           userTypes: ['business']
         },
         {
+          id: 'events',
+          label: 'Events',
+          icon: Calendar,
+          path: '/dashboard/events',
+          requiresAuth: true,
+          userTypes: ['business']
+        },
+        {
           id: 'settings',
           label: 'Settings',
           icon: User,
