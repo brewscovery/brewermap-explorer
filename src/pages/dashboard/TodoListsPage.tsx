@@ -2,11 +2,12 @@
 import React, { useState } from 'react';
 import { useTodoLists } from '@/hooks/useTodoLists';
 import { useAuth } from '@/contexts/AuthContext';
+import { useGeolocation } from '@/hooks/useGeolocation';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { ListTodo, Plus, Trash2, Check } from 'lucide-react';
+import { ListTodo, Plus, Trash2, Check, MapPin, Navigation } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -24,6 +25,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
+import { calculateDistance } from '@/utils/distanceUtils';
 
 const TodoListsPage = () => {
   const { user } = useAuth();
@@ -43,10 +45,32 @@ const TodoListsPage = () => {
     createTodoList,
     toggleVenueCompletion
   } = useTodoLists();
+
+  const { location, isLoading: isLocationLoading, error: locationError, requestLocation } = useGeolocation();
   
   console.log("todoLists:", todoLists);
   console.log("todoListVenues:", todoListVenues);
   console.log("isLoadingTodoLists:", isLoadingTodoLists);
+  console.log("user location:", location);
+
+  // Function to calculate and format distance
+  const getVenueDistance = (venue: any) => {
+    if (!location || !venue.latitude || !venue.longitude) return null;
+    
+    const distance = calculateDistance(
+      location.latitude,
+      location.longitude,
+      parseFloat(venue.latitude),
+      parseFloat(venue.longitude)
+    );
+    
+    // Format distance appropriately
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m`;
+    } else {
+      return `${distance.toFixed(1)}km`;
+    }
+  };
 
   const handleAddList = async () => {
     if (newListName.trim()) {
@@ -100,6 +124,35 @@ const TodoListsPage = () => {
     <div className="container mx-auto p-4">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-2xl font-bold">Your ToDo Lists</h1>
+        {!location && !locationError && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={requestLocation}
+            disabled={isLocationLoading}
+            className="flex items-center gap-2"
+          >
+            <Navigation size={16} />
+            {isLocationLoading ? 'Getting Location...' : 'Enable Location for Distances'}
+          </Button>
+        )}
+        {locationError && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={requestLocation}
+            className="flex items-center gap-2 text-destructive"
+          >
+            <MapPin size={16} />
+            Location Access Denied
+          </Button>
+        )}
+        {location && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <MapPin size={16} className="text-green-600" />
+            Location enabled
+          </div>
+        )}
       </div>
       
       <div className="mb-8">
@@ -185,41 +238,53 @@ const TodoListsPage = () => {
                       No venues in this list yet
                     </p>
                   ) : (
-                    venuesInList.map((item) => (
-                      <div 
-                        key={item.id} 
-                        className="flex items-center justify-between group"
-                      >
-                        <div className="flex items-center gap-2 flex-1">
-                          <Checkbox 
-                            id={item.id} 
-                            checked={item.is_completed}
-                            onCheckedChange={() => handleToggleCompletion(item.id, item.is_completed)}
-                          />
-                          <div 
-                            className={`flex-1 cursor-pointer ${item.is_completed ? "line-through text-muted-foreground" : ""}`}
-                            onClick={() => handleViewVenue(item.venue_id)}
-                          >
-                            <span className="text-sm">{item.venues.name}</span>
-                            {item.is_completed && item.completed_at && (
-                              <div className="text-xs text-muted-foreground">
-                                Completed {formatDistanceToNow(new Date(item.completed_at), { addSuffix: true })}
+                    venuesInList.map((item) => {
+                      const distance = !item.is_completed ? getVenueDistance(item.venues) : null;
+                      
+                      return (
+                        <div 
+                          key={item.id} 
+                          className="flex items-center justify-between group"
+                        >
+                          <div className="flex items-center gap-2 flex-1">
+                            <Checkbox 
+                              id={item.id} 
+                              checked={item.is_completed}
+                              onCheckedChange={() => handleToggleCompletion(item.id, item.is_completed)}
+                            />
+                            <div 
+                              className={`flex-1 cursor-pointer ${item.is_completed ? "line-through text-muted-foreground" : ""}`}
+                              onClick={() => handleViewVenue(item.venue_id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm">{item.venues.name}</span>
+                                {distance && !item.is_completed && (
+                                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                    <MapPin size={10} />
+                                    {distance}
+                                  </span>
+                                )}
                               </div>
-                            )}
+                              {item.is_completed && item.completed_at && (
+                                <div className="text-xs text-muted-foreground">
+                                  Completed {formatDistanceToNow(new Date(item.completed_at), { addSuffix: true })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => handleViewVenue(item.venue_id)}
+                            >
+                              <Check size={14} />
+                            </Button>
                           </div>
                         </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button 
-                            variant="ghost" 
-                            size="icon"
-                            className="h-7 w-7"
-                            onClick={() => handleViewVenue(item.venue_id)}
-                          >
-                            <Check size={14} />
-                          </Button>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </CardContent>
                 <CardFooter>
