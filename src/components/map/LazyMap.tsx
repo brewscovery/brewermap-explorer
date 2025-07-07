@@ -2,8 +2,8 @@ import React, { lazy, Suspense } from 'react';
 import { MapSkeleton } from '@/components/loading/MapSkeleton';
 import type { Venue } from '@/types/venue';
 
-// Lazy load the heavy Map component
-const Map = lazy(() => import('@/components/Map'));
+// Direct import for debugging
+import Map from '@/components/Map';
 
 interface LazyMapProps {
   venues: Venue[];
@@ -15,9 +15,9 @@ interface LazyMapProps {
 }
 
 export const LazyMap = (props: LazyMapProps) => {
+  console.log('LazyMap rendering with venues:', props.venues.length);
+  
   return (
-    <Suspense fallback={<MapSkeleton />}>
-      <Map {...props} />
-    </Suspense>
+    <Map {...props} />
   );
 };
