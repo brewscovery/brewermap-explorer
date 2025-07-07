@@ -1,10 +1,9 @@
 
 import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { LazyMap } from '@/components/map/LazyMap';
-import { useProgressiveVenueData } from '@/hooks/useProgressiveVenueData';
+import Map from '@/components/Map';
+import { useVenueData } from '@/hooks/useVenueData';
 import { useAuth } from '@/contexts/AuthContext';
-import { MapSkeleton } from '@/components/loading/MapSkeleton';
 import { toast } from 'sonner';
 import FloatingSearchBar from '@/components/search/FloatingSearchBar';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,14 +21,13 @@ const Index = () => {
     venues,
     allVenues,
     error,
-    isLoading,
     refetch,
     selectedVenue,
     setSelectedVenue,
     activeFilters,
     handleFilterChange,
     lastFilterUpdateTime
-  } = useProgressiveVenueData();
+  } = useVenueData();
 
   // Handle auth redirects for recovery/signup flows
   useEffect(() => {
@@ -163,11 +161,6 @@ const Index = () => {
     }
   };
 
-  // Show loading skeleton while initial data loads
-  if (isLoading) {
-    return <MapSkeleton />;
-  }
-
   return (
     <div className="flex-1 flex flex-col h-full">
       {/* Floating UI Elements */}
@@ -178,7 +171,7 @@ const Index = () => {
         selectedVenue={selectedVenue}
       />
       
-      <LazyMap
+      <Map
         venues={venues}
         onVenueSelect={handleVenueSelect}
         selectedVenue={selectedVenue}
