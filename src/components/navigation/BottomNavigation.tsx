@@ -203,6 +203,10 @@ const BottomNavigation = () => {
     if (path.includes('search=true')) {
       return location.search.includes('search=true');
     }
+    // For exact dashboard route, only match exactly '/dashboard'
+    if (path === '/dashboard') {
+      return location.pathname === '/dashboard';
+    }
     return location.pathname.startsWith(path);
   };
 
