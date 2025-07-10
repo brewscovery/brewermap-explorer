@@ -92,23 +92,39 @@ Deno.serve(async (req) => {
     // Step 2: Get brewery IDs for further queries
     const breweryIds = breweries.map(brewery => brewery.id)
     
-    // Step 3: Get venue counts for each brewery
+    // Step 3: Get venue counts and state information for each brewery
     const { data: venues, error: venuesError } = await supabase
       .from('venues')
-      .select('brewery_id, id')
+      .select('brewery_id, id, state, country')
       .in('brewery_id', breweryIds)
     
     if (venuesError) {
       console.error('Error fetching venues:', venuesError)
     }
     
-    // Count venues per brewery
+    // Count venues and collect states per brewery
     const venueCounts = {}
+    const breweryStates = {}
     if (venues && venues.length > 0) {
       venues.forEach(venue => {
         venueCounts[venue.brewery_id] = (venueCounts[venue.brewery_id] || 0) + 1
+        
+        // Collect unique states for each brewery
+        if (venue.state) {
+          if (!breweryStates[venue.brewery_id]) {
+            breweryStates[venue.brewery_id] = new Set()
+          }
+          breweryStates[venue.brewery_id].add(venue.state)
+        }
       })
     }
+    
+    // Convert state sets to arrays and get primary state (first alphabetically)
+    const breweryPrimaryStates = {}
+    Object.keys(breweryStates).forEach(breweryId => {
+      const statesArray = Array.from(breweryStates[breweryId]).sort()
+      breweryPrimaryStates[breweryId] = statesArray[0] // Use first state alphabetically as primary
+    })
     
     // Step 4: Get brewery owners with JOIN to profiles to get the names directly
     console.log("Fetching brewery owners with profile data")
@@ -170,7 +186,9 @@ Deno.serve(async (req) => {
         venue_count: venueCounts[brewery.id] || 0,
         owner_name: ownerNamesList.length > 0 ? ownerNamesList.join(', ') : 'No owner',
         // Use the country value from the brewery data, and only fall back to 'Unknown' if it's null
-        country: brewery.country || 'Unknown'
+        country: brewery.country || 'Unknown',
+        // Add primary state from venues (first state alphabetically if multiple)
+        state: breweryPrimaryStates[brewery.id] || null
       }
     })
     

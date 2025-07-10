@@ -14,6 +14,7 @@ export interface BreweryData {
   venue_count: number;
   owner_name: string;
   country: string | null;
+  state: string | null;
 }
 
 export interface UserData {

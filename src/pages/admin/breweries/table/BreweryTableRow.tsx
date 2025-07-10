@@ -31,6 +31,9 @@ const BreweryTableRow = ({
         </div>
       </TableCell>
       <TableCell>
+        <span>{brewery.state || 'N/A'}</span>
+      </TableCell>
+      <TableCell>
         <div className="flex items-center gap-1">
           <MapPin className="h-4 w-4 text-muted-foreground" />
           <span>{brewery.venue_count || 0}</span>

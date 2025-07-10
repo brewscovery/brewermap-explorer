@@ -26,6 +26,7 @@ interface BreweriesTableProps {
   searchQuery: string;
   verificationFilter: string;
   countryFilter: string;
+  stateFilter: string;
   sortField: SortField;
   sortDirection: SortDirection;
   currentPage: number;
@@ -46,6 +47,7 @@ const BreweriesTable = ({
   searchQuery,
   verificationFilter,
   countryFilter,
+  stateFilter,
   sortField,
   sortDirection,
   currentPage,

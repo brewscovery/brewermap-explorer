@@ -14,7 +14,10 @@ interface BreweriesFiltersProps {
   setVerificationFilter: (value: string) => void;
   countryFilter: string;
   setCountryFilter: (value: string) => void;
+  stateFilter: string;
+  setStateFilter: (value: string) => void;
   countries: string[];
+  states: string[];
 }
 
 const BreweriesFilters = ({
@@ -22,7 +25,10 @@ const BreweriesFilters = ({
   setVerificationFilter,
   countryFilter,
   setCountryFilter,
+  stateFilter,
+  setStateFilter,
   countries,
+  states,
 }: BreweriesFiltersProps) => {
   return (
     <div className="flex flex-wrap gap-4 items-center">
@@ -62,6 +68,26 @@ const BreweriesFilters = ({
             {countries.map(country => (
               <SelectItem key={country} value={country}>
                 {country}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex gap-2 items-center">
+        <span className="text-sm">State:</span>
+        <Select 
+          value={stateFilter}
+          onValueChange={setStateFilter}
+        >
+          <SelectTrigger className="w-[140px] h-8">
+            <SelectValue placeholder="All States" />
+          </SelectTrigger>
+          <SelectContent className="max-h-[200px] overflow-y-auto">
+            <SelectItem value="all">All States</SelectItem>
+            {states.map(state => (
+              <SelectItem key={state} value={state}>
+                {state}
               </SelectItem>
             ))}
           </SelectContent>

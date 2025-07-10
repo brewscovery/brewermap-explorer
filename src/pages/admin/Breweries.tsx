@@ -35,12 +35,20 @@ const BreweriesManagement = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [verificationFilter, setVerificationFilter] = useState<string>('all');
   const [countryFilter, setCountryFilter] = useState<string>('all');
+  const [stateFilter, setStateFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, verificationFilter, countryFilter, sortField, sortDirection]);
+  }, [searchQuery, verificationFilter, countryFilter, stateFilter, sortField, sortDirection]);
+  
+  // Reset state filter when country filter changes
+  useEffect(() => {
+    if (countryFilter !== 'all') {
+      setStateFilter('all');
+    }
+  }, [countryFilter]);
   
   // Cleanup useEffect for component unmount
   useEffect(() => {
@@ -141,6 +149,30 @@ const BreweriesManagement = () => {
     return Array.from(countrySet).sort();
   }, [breweries]);
   
+  // Extract unique states for the state filter, filtered by selected country
+  const states = useMemo(() => {
+    if (!breweries) return [];
+    
+    let filteredBreweries = breweries;
+    
+    // If a country is selected, only show states from that country
+    if (countryFilter !== 'all') {
+      filteredBreweries = breweries.filter(brewery => {
+        const breweryCountry = brewery.country || 'Unknown';
+        return breweryCountry === countryFilter;
+      });
+    }
+    
+    const stateSet = new Set<string>();
+    filteredBreweries.forEach(brewery => {
+      if (brewery.state) {
+        stateSet.add(brewery.state);
+      }
+    });
+    
+    return Array.from(stateSet).sort();
+  }, [breweries, countryFilter]);
+  
   // Filter and sort the breweries
   const filteredAndSortedBreweries = useMemo(() => {
     if (!breweries) return [];
@@ -160,10 +192,16 @@ const BreweriesManagement = () => {
       });
     }
     
+    if (stateFilter !== 'all') {
+      filtered = filtered.filter(brewery => {
+        return brewery.state === stateFilter;
+      });
+    }
+    
     // Then apply sorting
     return filtered.sort((a, b) => {
       // Handle different field types
-      if (sortField === 'name' || sortField === 'country') {
+      if (sortField === 'name' || sortField === 'country' || sortField === 'state') {
         const aValue = ((a[sortField] as string) || '').toLowerCase();
         const bValue = ((b[sortField] as string) || '').toLowerCase();
         
@@ -198,7 +236,7 @@ const BreweriesManagement = () => {
       
       return 0;
     });
-  }, [breweries, sortField, sortDirection, verificationFilter, countryFilter]);
+  }, [breweries, sortField, sortDirection, verificationFilter, countryFilter, stateFilter]);
   
   // Calculate pagination
   const totalItems = filteredAndSortedBreweries.length;
@@ -234,7 +272,10 @@ const BreweriesManagement = () => {
         setVerificationFilter={setVerificationFilter}
         countryFilter={countryFilter}
         setCountryFilter={setCountryFilter}
+        stateFilter={stateFilter}
+        setStateFilter={setStateFilter}
         countries={countries}
+        states={states}
       />
       
       <BreweriesTable
@@ -243,6 +284,7 @@ const BreweriesManagement = () => {
         searchQuery={searchQuery}
         verificationFilter={verificationFilter}
         countryFilter={countryFilter}
+        stateFilter={stateFilter}
         sortField={sortField}
         sortDirection={sortDirection}
         currentPage={currentPage}

@@ -42,6 +42,7 @@ const BreweriesTableHeader = ({
       <TableRow>
         {makeColumn('name', 'Name')}
         <TableHead>Country</TableHead>
+        <TableHead>State</TableHead>
         {makeColumn('venue_count', 'Venues')}
         {makeColumn('is_verified', 'Status')}
         <TableHead>Owner</TableHead>
