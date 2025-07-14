@@ -106,15 +106,27 @@ export const useVenueHours = (venueId: string | null) => {
         } else if (venue?.name) {
           console.log('🏢 Venue name found:', venue.name);
 
-          // Check if any venue hours changed
-          const hasVenueHoursChanges = batchData.some(hour => 
-            hour.venue_open_time !== undefined || hour.venue_close_time !== undefined
-          );
+          // Get original hours for comparison
+          const originalHours = hours || [];
+          
+          // Check if any venue hours actually changed
+          const hasVenueHoursChanges = batchData.some(hour => {
+            const originalHour = originalHours.find(h => h.day_of_week === hour.day_of_week);
+            return originalHour ? (
+              originalHour.venue_open_time !== hour.venue_open_time ||
+              originalHour.venue_close_time !== hour.venue_close_time ||
+              originalHour.is_closed !== hour.is_closed
+            ) : (hour.venue_open_time !== null || hour.venue_close_time !== null || !hour.is_closed);
+          });
 
-          // Check if any kitchen hours changed
-          const hasKitchenHoursChanges = batchData.some(hour => 
-            hour.kitchen_open_time !== undefined || hour.kitchen_close_time !== undefined
-          );
+          // Check if any kitchen hours actually changed
+          const hasKitchenHoursChanges = batchData.some(hour => {
+            const originalHour = originalHours.find(h => h.day_of_week === hour.day_of_week);
+            return originalHour ? (
+              originalHour.kitchen_open_time !== hour.kitchen_open_time ||
+              originalHour.kitchen_close_time !== hour.kitchen_close_time
+            ) : (hour.kitchen_open_time !== null || hour.kitchen_close_time !== null);
+          });
 
           if (hasVenueHoursChanges) {
             const content = `${venue.name} has updated their opening hours!`;
