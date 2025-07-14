@@ -165,37 +165,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
 
   if (!venue) return null;
 
-  // Check if we should show mobile view
-  if (isMobile) {
-    return (
-      <MobileVenueSidebar
-        venue={venue}
-        breweryInfo={breweryInfo}
-        onClose={handleClose}
-        open={true}
-        displayMode={displayMode}
-        onOpenCheckInDialog={handleOpenCheckInDialog}
-        onOpenTodoListDialog={handleOpenTodoListDialog}
-      >
-        <VenueSidebarContent
-          venue={venue}
-          breweryInfo={breweryInfo}
-          venueHours={venueHours}
-          happyHours={happyHours}
-          dailySpecials={dailySpecials}
-          checkins={checkins}
-          isLoadingHours={isLoadingHours}
-          isLoadingHappyHours={isLoadingHappyHours}
-          isLoadingDailySpecials={isLoadingDailySpecials}
-          displayMode={displayMode}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          onOpenCheckInDialog={handleOpenCheckInDialog}
-        />
-      </MobileVenueSidebar>
-    );
-  }
-
+  // Always use the regular sidebar layout (no mobile-specific drawer)
   return (
     <div className={`fixed left-0 top-[73px] z-[30] flex h-[calc(100vh-73px)] w-full max-w-md flex-col bg-white shadow-lg transition-transform duration-300 ease-in-out ${
       isVisible ? 'translate-x-0' : '-translate-x-full'
