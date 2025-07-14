@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { AdminBulkBreweryImport } from '@/components/admin/brewery/AdminBulkBreweryImport';
+import { NewBreweryImport } from '@/components/admin/brewery/import/NewBreweryImport';
 
 const BreweryImport = () => {
   return (
@@ -8,11 +8,12 @@ const BreweryImport = () => {
       <div className="mb-6">
         <h1 className="text-3xl font-bold">Brewery Import</h1>
         <p className="text-muted-foreground mt-2">
-          Import breweries and their corresponding venues into the database
+          Upload an Excel or CSV file to import breweries and their venues. 
+          The system will automatically create breweries and geocode venue addresses.
         </p>
       </div>
       
-      <AdminBulkBreweryImport />
+      <NewBreweryImport />
     </div>
   );
 };
