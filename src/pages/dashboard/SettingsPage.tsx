@@ -86,12 +86,14 @@ const SettingsPage = () => {
         open={showTermsDialog}
         onOpenChange={setShowTermsDialog}
         onAccept={handleTermsDialogClose}
+        showAcceptanceText={false}
       />
       
       <PrivacyPolicyDialog
         open={showPrivacyDialog}
         onOpenChange={setShowPrivacyDialog}
         onAccept={handlePrivacyDialogClose}
+        showAcceptanceText={false}
       />
     </div>
   );

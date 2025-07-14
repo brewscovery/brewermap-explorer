@@ -6,12 +6,14 @@ interface PrivacyPolicyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccept: () => void;
+  showAcceptanceText?: boolean;
 }
 
 export const PrivacyPolicyDialog = ({ 
   open, 
   onOpenChange, 
-  onAccept 
+  onAccept,
+  showAcceptanceText = true
 }: PrivacyPolicyDialogProps) => {
   const handleAccept = () => {
     onAccept();
@@ -23,9 +25,11 @@ export const PrivacyPolicyDialog = ({
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Privacy Policy</DialogTitle>
-          <DialogDescription>
-            Please read and accept our privacy policy to continue.
-          </DialogDescription>
+          {showAcceptanceText && (
+            <DialogDescription>
+              Please read and accept our privacy policy to continue.
+            </DialogDescription>
+          )}
         </DialogHeader>
         
         <ScrollArea className="h-[400px] w-full rounded-md border p-4">

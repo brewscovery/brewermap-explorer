@@ -7,12 +7,14 @@ interface TermsAndConditionsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onAccept: () => void;
+  showAcceptanceText?: boolean;
 }
 
 export const TermsAndConditionsDialog = ({ 
   open, 
   onOpenChange, 
-  onAccept 
+  onAccept,
+  showAcceptanceText = true
 }: TermsAndConditionsDialogProps) => {
   const handleAccept = () => {
     onAccept();
@@ -24,9 +26,11 @@ export const TermsAndConditionsDialog = ({
       <DialogContent className="max-w-4xl max-h-[80vh]">
         <DialogHeader>
           <DialogTitle>Terms and Conditions</DialogTitle>
-          <DialogDescription>
-            Please read and accept our terms and conditions to continue.
-          </DialogDescription>
+          {showAcceptanceText && (
+            <DialogDescription>
+              Please read and accept our terms and conditions to continue.
+            </DialogDescription>
+          )}
         </DialogHeader>
         
         <ScrollArea className="h-[400px] w-full rounded-md border p-4">
