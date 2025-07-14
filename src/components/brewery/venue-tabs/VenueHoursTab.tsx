@@ -40,13 +40,14 @@ export const VenueHoursTab = ({ venue }: VenueHoursTabProps) => {
   
   const handleSave = async (hoursData: Partial<VenueHour>[]) => {
     const formattedData = hoursData.map(day => ({
-      ...day,
+      ...day, // This preserves the id and other fields
       venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
       venue_close_time: day.venue_close_time ? `${day.venue_close_time}:00` : null,
       kitchen_open_time: hasKitchen && day.kitchen_open_time ? `${day.kitchen_open_time}:00` : null,
       kitchen_close_time: hasKitchen && day.kitchen_close_time ? `${day.kitchen_close_time}:00` : null,
     }));
     
+    console.log('[DEBUG] VenueHoursTab sending data with IDs:', formattedData);
     return await updateVenueHours(formattedData);
   };
   
