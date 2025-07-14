@@ -34,6 +34,7 @@ import EventsExplorer from "./pages/dashboard/EventsExplorer";
 import ProtectedRoute from "./components/protected/ProtectedRoute";
 import QrRedirectHandler from "./components/qr/QrRedirectHandler";
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import About from "./pages/About";
 //import './App.css';
 
 const UserTypeRoute = ({ 
@@ -122,6 +123,7 @@ const App = () => {
                       <Route path="subscription" element={<SubscriptionPage />} />
                       
                       <Route path="settings" element={<SettingsPage />} />
+                      <Route path="about" element={<About />} />
                     </Route>
                   </Route>
                   

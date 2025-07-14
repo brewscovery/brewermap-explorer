@@ -16,7 +16,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { 
   LayoutDashboard, Settings, Store, Plus, Map, LogIn, User, 
   Beer, ClipboardCheck, Users, LogOut, Star, History, 
-  CreditCard, Calendar, ListTodo, Bell, Upload
+  CreditCard, Calendar, ListTodo, Bell, Upload, Info
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -329,6 +329,15 @@ const SidebarContentComponent = ({ isMobileView = false }: { isMobileView?: bool
                     >
                       <CreditCard size={18} />
                       <span>Subscription</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton 
+                      isActive={isActive('/dashboard/about')}
+                      onClick={() => handleNavigationWithSidebarClose('/dashboard/about')}
+                    >
+                      <Info size={18} />
+                      <span>About Brewscovery</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </>
