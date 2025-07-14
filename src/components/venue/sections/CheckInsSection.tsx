@@ -71,7 +71,8 @@ const CheckInsSection = ({
           <div className="space-y-4">
             {userCheckins.length > 0 && (
               <div className="space-y-3">
-                <h4 className="text-sm font-medium">Your Check-ins</h4>
+                {/* Only show subtitle for business users or admin who can see both user and other check-ins */}
+                {userType !== 'regular' && <h4 className="text-sm font-medium">Your Check-ins</h4>}
                 {userCheckins.map(checkin => (
                   <div key={checkin.id} className="bg-muted/30 p-3 rounded-md space-y-2">
                     <div className="flex justify-between items-start">
