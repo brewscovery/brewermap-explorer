@@ -82,11 +82,42 @@ export const useVenueHours = (venueId: string | null) => {
       
       console.log('[DEBUG] Batch updating venue hours with data:', batchData);
       
-      // Perform a single batch upsert operation
+      // Perform individual updates to ensure triggers fire
+      console.log('[DEBUG] Performing individual updates to trigger database triggers');
+      
+      for (const hourData of batchData) {
+        if (hourData.id) {
+          // Update existing record
+          const { error: updateError } = await supabase
+            .from('venue_hours')
+            .update({
+              venue_open_time: hourData.venue_open_time,
+              venue_close_time: hourData.venue_close_time,
+              kitchen_open_time: hourData.kitchen_open_time,
+              kitchen_close_time: hourData.kitchen_close_time,
+              is_closed: hourData.is_closed,
+              updated_at: hourData.updated_at,
+              updated_by: hourData.updated_by
+            })
+            .eq('id', hourData.id);
+            
+          if (updateError) throw updateError;
+        } else {
+          // Insert new record
+          const { error: insertError } = await supabase
+            .from('venue_hours')
+            .insert(hourData);
+            
+          if (insertError) throw insertError;
+        }
+      }
+      
+      // Fetch the updated data
       const { data, error } = await supabase
         .from('venue_hours')
-        .upsert(batchData)
-        .select();
+        .select('*')
+        .eq('venue_id', venueId)
+        .order('day_of_week');
 
       if (error) throw error;
 
