@@ -184,7 +184,7 @@ export const BreweryImportTable = ({
       <CardContent className="p-0">
         <ScrollArea className="h-96">
           <Table>
-            <TableHeader>
+            <TableHeader className="sticky top-0 bg-background z-10">
               <TableRow>
                 <TableHead className="w-12">
                   <Checkbox
@@ -199,6 +199,7 @@ export const BreweryImportTable = ({
                 <TableHead>City</TableHead>
                 <TableHead>State</TableHead>
                 <TableHead>Country</TableHead>
+                <TableHead>Postal Code</TableHead>
                 <TableHead>Phone</TableHead>
                 <TableHead>Website</TableHead>
                 <TableHead>Independent</TableHead>
@@ -224,6 +225,7 @@ export const BreweryImportTable = ({
                   <EditableCell brewery={brewery} field="city" value={brewery.city} />
                   <EditableCell brewery={brewery} field="state" value={brewery.state} />
                   <EditableCell brewery={brewery} field="country" value={brewery.country} />
+                  <EditableCell brewery={brewery} field="postalCode" value={brewery.postalCode} />
                   <EditableCell brewery={brewery} field="phone" value={brewery.phone} />
                   <EditableCell brewery={brewery} field="webPage" value={brewery.webPage} />
                   <EditableCell 
