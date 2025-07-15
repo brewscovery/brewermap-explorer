@@ -24,9 +24,7 @@ const VenueHoursDialog = ({
   onOpenChange,
   venue
 }: VenueHoursDialogProps) => {
-  const [formData, setFormData] = useState<Array<any>>([]);
   const [hasKitchen, setHasKitchen] = useState<boolean>(true);
-  const [kitchenClosedDays, setKitchenClosedDays] = useState<Set<number>>(new Set());
   const [activeTab, setActiveTab] = useState<'regular' | 'happy' | 'daily'>('regular');
   
   const { 
@@ -86,12 +84,8 @@ const VenueHoursDialog = ({
             {activeTab === 'regular' && (
               <RegularHoursTab
                 hours={hours}
-                formData={formData}
-                setFormData={setFormData}
                 hasKitchen={hasKitchen}
                 setHasKitchen={setHasKitchen}
-                kitchenClosedDays={kitchenClosedDays}
-                setKitchenClosedDays={setKitchenClosedDays}
                 HOURS={HOURS}
                 venueId={venue.id}
                 isUpdating={isUpdating}

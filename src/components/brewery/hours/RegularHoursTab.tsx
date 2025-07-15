@@ -5,12 +5,8 @@ import VenueHoursSection from './VenueHoursSection';
 
 interface RegularHoursTabProps {
   hours: VenueHour[];
-  formData: Array<Partial<VenueHour>>;
-  setFormData: React.Dispatch<React.SetStateAction<Array<Partial<VenueHour>>>>;
   hasKitchen: boolean;
   setHasKitchen: (value: boolean) => void;
-  kitchenClosedDays: Set<number>;
-  setKitchenClosedDays: React.Dispatch<React.SetStateAction<Set<number>>>;
   HOURS: { value: string; label: string }[];
   venueId: string;
   isUpdating: boolean;
@@ -28,6 +24,7 @@ const RegularHoursTab = ({
 }: RegularHoursTabProps) => {
   
   const handleSave = async (hoursData: Partial<VenueHour>[]) => {
+    console.log('[DEBUG] RegularHoursTab handleSave called with:', hoursData);
     const formattedData = hoursData.map(day => ({
       ...day, // This preserves the id and other fields
       venue_open_time: day.venue_open_time ? `${day.venue_open_time}:00` : null,
