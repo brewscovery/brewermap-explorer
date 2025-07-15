@@ -140,7 +140,8 @@ const VenueHoursSection = ({
   };
 
   const handleSave = async () => {
-    console.log('Saving venue hours data:', formData);
+    console.log('[VenueHoursSection] SAVE BUTTON CLICKED - Starting save process');
+    console.log('[VenueHoursSection] Form data to save:', formData);
     
     // Validate that all entries have day_of_week
     const validData = formData.map(hour => {
@@ -151,7 +152,9 @@ const VenueHoursSection = ({
       return hour;
     });
     
-    await onSave(validData);
+    console.log('[VenueHoursSection] Calling onSave with valid data:', validData);
+    const result = await onSave(validData);
+    console.log('[VenueHoursSection] onSave result:', result);
   };
 
   const toggleHasKitchen = (value: boolean) => {
