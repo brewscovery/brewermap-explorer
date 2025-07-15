@@ -10,6 +10,7 @@ export interface VenueHour {
   is_closed: boolean;
   created_at: string;
   updated_at: string;
+  updated_by: string | null;
 }
 
 // Days of week array (0 = Monday, 6 = Sunday)
