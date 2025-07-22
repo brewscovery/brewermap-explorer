@@ -53,6 +53,13 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
     }
   }, [venue, setIsVenueSidebarOpen]);
 
+  // Cleanup effect to ensure sidebar state is reset when component unmounts
+  useEffect(() => {
+    return () => {
+      setIsVenueSidebarOpen(false);
+    };
+  }, [setIsVenueSidebarOpen]);
+
   // Use consolidated real-time updates for this venue
   useRealtimeVenue(venueId);
   
