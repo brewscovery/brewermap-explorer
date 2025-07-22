@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useVenueSidebar } from '@/contexts/VenueSidebarContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Venue } from '@/types/venue';
@@ -29,6 +30,7 @@ interface VenueSidebarProps {
 
 const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProps) => {
   const { user, userType } = useAuth();
+  const { setIsVenueSidebarOpen } = useVenueSidebar();
   const [isCheckInDialogOpen, setIsCheckInDialogOpen] = useState(false);
   const [isTodoListDialogOpen, setIsTodoListDialogOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -37,16 +39,19 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   
   const venueId = venue?.id || null;
 
-  // Start slide-in animation when component mounts
+  // Start slide-in animation when component mounts and update context
   useEffect(() => {
     if (venue) {
+      setIsVenueSidebarOpen(true);
       // Small delay to ensure the component is mounted before starting animation
       const timer = setTimeout(() => {
         setIsVisible(true);
       }, 50);
       return () => clearTimeout(timer);
+    } else {
+      setIsVenueSidebarOpen(false);
     }
-  }, [venue]);
+  }, [venue, setIsVenueSidebarOpen]);
 
   // Use consolidated real-time updates for this venue
   useRealtimeVenue(venueId);
@@ -153,6 +158,7 @@ const VenueSidebar = ({ venue, onClose, displayMode = 'full' }: VenueSidebarProp
   const handleClose = () => {
     console.log("VenueSidebar: handleClose called explicitly");
     setIsVisible(false);
+    setIsVenueSidebarOpen(false);
     // Add a small delay to allow slide-out animation before actually closing
     setTimeout(() => {
       if (onClose) {

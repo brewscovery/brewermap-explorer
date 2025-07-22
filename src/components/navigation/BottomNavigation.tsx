@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePWADetection } from '@/hooks/usePWADetection';
+import { useVenueSidebar } from '@/contexts/VenueSidebarContext';
 import { 
   Map, 
   Heart, 
@@ -45,6 +46,7 @@ const BottomNavigation = () => {
   const { user, userType } = useAuth();
   const isMobile = useIsMobile();
   const { isPWA } = usePWADetection();
+  const { isVenueSidebarOpen } = useVenueSidebar();
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   // Don't render if not on mobile or not in PWA mode
@@ -229,7 +231,7 @@ const BottomNavigation = () => {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-brewscovery-teal/20 px-2 py-1 z-50 safe-area-padding-bottom shadow-lg">
+    <nav className={`fixed bottom-0 left-0 right-0 bg-white border-t-2 border-brewscovery-teal/20 px-2 py-1 z-50 safe-area-padding-bottom shadow-lg transition-transform duration-300 ease-in-out ${isVenueSidebarOpen ? 'translate-y-full' : 'translate-y-0'}`}>
       <div className="flex items-center justify-around max-w-md mx-auto">
         {navItems.map((item) => {
           const Icon = item.icon;

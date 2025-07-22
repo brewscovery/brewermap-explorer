@@ -90,7 +90,7 @@ const MobileVenueSidebar = ({
         dismissible={false}
         modal={false}
       >
-        <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 rounded-t-[10px] border bg-background p-0" style={{ zIndex: 9999 }}>
+        <DrawerContent className="h-[85vh] max-h-[85vh] fixed inset-x-0 bottom-0 z-[120] rounded-t-[10px] border bg-background p-0">
           <VisuallyHidden>
             <DrawerTitle>{venue.name} Details</DrawerTitle>
             <DrawerDescription>Information about {venue.name}</DrawerDescription>

@@ -11,6 +11,7 @@ import { FloatingSidebarToggle } from '@/components/ui/FloatingSidebarToggle';
 import { useBreweryClaimNotifications } from '@/hooks/useBreweryClaimNotifications';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { usePWADetection } from '@/hooks/usePWADetection';
+import { VenueSidebarProvider } from '@/contexts/VenueSidebarContext';
 
 const AppLayout = () => {
   const { user, userType, firstName, lastName } = useAuth();
@@ -40,39 +41,41 @@ const AppLayout = () => {
   const bottomNavHeight = showBottomNav ? 'pb-16' : '';
   
   return (
-    <SidebarProvider defaultOpen={false}>
-      <div className="flex w-full min-h-screen">
-        <UnifiedSidebar />
-        
-        <div className={`h-screen overflow-auto flex-1 ${bottomNavHeight}`}>
-          {isBusinessUserDashboard || isRegularUserDashboard ? (
-            <div className="flex-1 flex flex-col">
-              <DashboardHeader displayName={displayName} />
-              <main className="p-6 pt-4 flex-1">
+    <VenueSidebarProvider>
+      <SidebarProvider defaultOpen={false}>
+        <div className="flex w-full min-h-screen">
+          <UnifiedSidebar />
+          
+          <div className={`h-screen overflow-auto flex-1 ${bottomNavHeight}`}>
+            {isBusinessUserDashboard || isRegularUserDashboard ? (
+              <div className="flex-1 flex flex-col">
+                <DashboardHeader displayName={displayName} />
+                <main className="p-6 pt-4 flex-1">
+                  <Outlet />
+                </main>
+              </div>
+            ) : isAdminRoute ? (
+              <main className="flex-1 flex flex-col">
                 <Outlet />
               </main>
-            </div>
-          ) : isAdminRoute ? (
-            <main className="flex-1 flex flex-col">
-              <Outlet />
-            </main>
-          ) : isRootRoute ? (
-            <main className="flex-1 flex flex-col h-full">
-              <Outlet />
-            </main>
-          ) : (
-            <div className="flex-1 flex flex-col h-full">
-              <Header />
-              <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
+            ) : isRootRoute ? (
+              <main className="flex-1 flex flex-col h-full">
                 <Outlet />
               </main>
-            </div>
-          )}
+            ) : (
+              <div className="flex-1 flex flex-col h-full">
+                <Header />
+                <main className="flex-1 pt-[73px] flex flex-col h-[calc(100%-73px)]">
+                  <Outlet />
+                </main>
+              </div>
+            )}
+          </div>
+          
+          <BottomNavigation />
         </div>
-        
-        <BottomNavigation />
-      </div>
-    </SidebarProvider>
+      </SidebarProvider>
+    </VenueSidebarProvider>
   );
 };
 
