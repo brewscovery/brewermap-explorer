@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { X, Download } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,14 +11,21 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const PWAInstallPrompt = () => {
+  const location = useLocation();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
+
+  // Don't show general PWA prompt when on QR redirect route
+  const isQrRedirectRoute = location.pathname.startsWith('/qr/');
 
   useEffect(() => {
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setShowPrompt(true);
+      // Only show if not on QR redirect route
+      if (!isQrRedirectRoute) {
+        setShowPrompt(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -25,7 +33,7 @@ const PWAInstallPrompt = () => {
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
     };
-  }, []);
+  }, [isQrRedirectRoute]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -46,7 +54,7 @@ const PWAInstallPrompt = () => {
     setDeferredPrompt(null);
   };
 
-  if (!showPrompt || !deferredPrompt) {
+  if (!showPrompt || !deferredPrompt || isQrRedirectRoute) {
     return null;
   }
 
