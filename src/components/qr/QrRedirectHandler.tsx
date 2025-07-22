@@ -147,7 +147,13 @@ const QrRedirectHandler = () => {
 
   const handlePWAClose = () => {
     setShowPWAPrompt(false);
-    handleRedirect();
+    // Don't automatically redirect to website - user chose not to install PWA
+    // Instead, show a message or go to homepage without the specific action
+    if (qrType === 'venue') {
+      navigate('/');
+    } else {
+      handleRedirect();
+    }
   };
 
   // Show PWA install prompt
